@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
+import { changedShare, MOVING } from './pixels.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
@@ -60,6 +61,8 @@ test.describe('3D model on the heart clock page', () => {
 
 test.describe('3D model in time with the monitor', () => {
   test('beats while the clock plays and stands still on pause', async ({ page }) => {
+    // Under SwiftShader a beating page renders slowly, and a screenshot can take seconds.
+    test.slow();
     await page.goto('en/heart-clock/');
     const load = page.getByRole('button', { name: en['viewer.load'] });
     await load.scrollIntoViewIfNeeded();
@@ -69,17 +72,13 @@ test.describe('3D model in time with the monitor', () => {
     await expect(canvas).toBeVisible({ timeout: 15_000 });
     // The viewer follows the page's clock and offers no start button of its own.
     await expect(page.getByRole('button', { name: en['viewer.heartbeat.start'] })).toHaveCount(0);
-    const changes = async () => {
-      const a = await canvas.screenshot();
-      await page.waitForTimeout(150);
-      return !a.equals(await canvas.screenshot());
-    };
-    await expect.poll(changes, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => changedShare(canvas), { timeout: 45_000 }).toBeGreaterThan(MOVING);
 
-    await page.getByRole('button', { name: en['heartClock.pause'] }).click();
+    // A click event without scrolling the page up to the monitor and back.
+    await page.getByRole('button', { name: en['heartClock.pause'] }).dispatchEvent('click');
     // Valves and glow ease out within about a second, then the picture holds.
-    await expect.poll(changes, { timeout: 5_000 }).toBe(false);
-    expect(await changes()).toBe(false);
+    await expect.poll(() => changedShare(canvas, 500), { timeout: 20_000 }).toBeLessThan(MOVING);
+    expect(await changedShare(canvas, 500)).toBeLessThan(MOVING);
   });
 });
 

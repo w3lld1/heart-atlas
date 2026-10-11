@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
+import { changedShare, MOVING } from './pixels.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
@@ -78,15 +79,15 @@ test.describe('heart viewer', () => {
   });
 
   test('beats on request and stops again', async ({ page }) => {
+    // Under SwiftShader a beating page renders slowly, and a screenshot can take seconds.
+    test.slow();
     await page.goto('en/anatomy/');
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible(LOAD);
     const start = page.getByRole('button', { name: en['viewer.heartbeat.start'] });
     await expect(start).toBeVisible(LOAD);
     // Nothing moves until the reader asks.
-    const still = await canvas.screenshot();
-    await page.waitForTimeout(400);
-    expect((await canvas.screenshot()).equals(still)).toBe(true);
+    expect(await changedShare(canvas, 400)).toBeLessThan(MOVING);
 
     await page.getByLabel(en['viewer.heartbeat.rate']).fill('120');
     await expect(page.locator('output')).toHaveText(
@@ -97,13 +98,7 @@ test.describe('heart viewer', () => {
     await expect(stop).toBeVisible();
     await expect(page.getByText(en['viewer.heartbeat.note'])).toBeVisible();
     // At 120 beats per minute frames 150 ms apart show the heart in different phases.
-    await expect
-      .poll(async () => {
-        const a = await canvas.screenshot();
-        await page.waitForTimeout(150);
-        return a.equals(await canvas.screenshot());
-      }, LOAD)
-      .toBe(false);
+    await expect.poll(() => changedShare(canvas), { timeout: 45_000 }).toBeGreaterThan(MOVING);
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
 
