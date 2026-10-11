@@ -15,16 +15,19 @@ concurrency:
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Check the branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::run this workflow on main"; exit 1
       - uses: actions/checkout@v5
       - name: Read version and notes
         id: notes
         run: |
           version=$(jq -r .version package.json)
-          if [ -z "$version" ] || [ "$version" = null ]; then
-            echo "::error::package.json has no version"; exit 1
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::package.json version '$version' is not semver"; exit 1
           fi
           # The section runs from "## [<version>] - <date>" to the next "## " heading or link list.
           awk -v v="$version" '
@@ -41,8 +44,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.notes.outputs.version }}
         run: |
-          if gh release view "v$VERSION" > /dev/null 2>&1; then
-            echo "::error::release v$VERSION already exists"; exit 1
+          # An existing tag would make gh reuse it and ignore --target.
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::tag v$VERSION already exists"; exit 1
           fi
+          prerelease=()
+          if [[ "$VERSION" == *-* ]]; then prerelease=(--prerelease); fi
           gh release create "v$VERSION" --target "$GITHUB_SHA" --title "Heart Atlas $VERSION" \
-            --notes-file "$RUNNER_TEMP/notes.md"
+            --notes-file "$RUNNER_TEMP/notes.md" "${prerelease[@]}"
