@@ -4,16 +4,19 @@
 
 An open-source interactive web app about the heart and heart disease: 3D anatomy, a live cardiac cycle with a synchronized ECG and heart sounds, and articles on heart conditions in "normal / disease" mode. Every article cites verified sources. Free, runs in the browser, and built so any language can be added.
 
-> **Status:** stage 0 (foundation). Nothing to try yet. See the [stage 0 spec](docs/plans/2026-10-11-stage-0-foundation.md).
+> **Status:** preparing the first release, v0.1 ([stage 4 spec](docs/plans/2026-10-11-stage-4-release.md)). Every change to `main` is deployed to [w3lld1.github.io/heart-atlas](https://w3lld1.github.io/heart-atlas/).
 >
 > Heart Atlas is an educational resource. It does not replace a consultation with a doctor. See [DISCLAIMER.md](DISCLAIMER.md).
 
-## What it will include
+## What's inside
 
-- A 3D heart model: chambers, valves, great vessels, coronary arteries, conduction system.
-- A "heart clock": one cardiac-cycle timer drives the 3D animation, ECG trace and heart sounds. A disease is a set of parameters applied to that cycle.
-- Articles at two levels, for patients and for students, each linked to the structures it describes.
-- Russian and English first; any other language can be added with one registry entry and a strings file.
+- **3D anatomy.** A model of the normal adult heart built from BodyParts3D: chambers, septa, valves, papillary muscles, great vessels, coronary arteries and cardiac veins, and a schematic conduction system. Structures can be selected and highlighted with the mouse or keyboard.
+- **Heart clock.** One cardiac-cycle timer drives a synthetic ECG, heart sounds and a Wiggers diagram of left-heart pressures and volume. Disease presets (atrial fibrillation, ST-elevation myocardial infarction, heart failure with reduced ejection fraction, hypertension, aortic stenosis, atrial septal defect) switch the cycle between normal and disease; every number comes from a cited source or is marked as a model assumption.
+- **Articles.** Six disease articles in Russian and English, each at two levels (for patients and for students), with numbered citations, an animated "normal / disease" diagram and the heart clock preset of that disease.
+- **Search.** Full-text search across the site, including other names and abbreviations of each disease.
+- **Offline.** The site installs as an app; the home, search and offline pages and pages you have opened work without a connection.
+- **Embedding.** The ECG, the 3D model and the disease articles can be embedded on other sites with an `<iframe>`; a builder page gives the code.
+- **Any language.** Russian and English now; a language is added with one registry entry and a strings file, and right-to-left scripts are supported.
 
 ## Medical content
 
