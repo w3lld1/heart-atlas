@@ -12,6 +12,9 @@ test.use({
   },
 });
 
+// Building the scene under SwiftShader on a CI runner can take longer than the default 5 s.
+const LOAD = { timeout: 15_000 };
+
 for (const locale of Object.keys(productionLocales)) {
   test.describe(`anatomy page (${locale})`, () => {
     test('is linked from the home page', async ({ page }) => {
@@ -23,7 +26,7 @@ for (const locale of Object.keys(productionLocales)) {
 
     test('shows the 3D model and has no axe violations', async ({ page }) => {
       await page.goto(`${locale}/anatomy/`);
-      await expect(page.locator('canvas')).toBeVisible();
+      await expect(page.locator('canvas')).toBeVisible(LOAD);
       const results = await axe(page).analyze();
       expect(results.violations).toEqual([]);
     });
@@ -37,7 +40,7 @@ test.describe('heart viewer', () => {
     const model = page.waitForResponse((r) => r.url().endsWith('/models/heart-lod0.glb'));
     await page.goto('en/anatomy/');
     expect((await model).ok()).toBe(true);
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible(LOAD);
 
     const button = page.getByRole('button', { name: en['structure.left-ventricle'], exact: true });
     await button.click();
@@ -55,30 +58,41 @@ test.describe('heart viewer', () => {
       isMobile: true,
     });
     const page = await context.newPage();
+    const requested: string[] = [];
+    page.on('request', (r) => requested.push(r.url()));
     const model = page.waitForResponse((r) => r.url().endsWith('/models/heart-lod1.glb'));
     await page.goto('en/anatomy/');
     expect((await model).ok()).toBe(true);
+    expect(requested.filter((url) => url.endsWith('heart-lod0.glb'))).toEqual([]);
     await context.close();
   });
 
   test('highlights structures named by the page through the window event', async ({ page }) => {
     await page.goto('en/anatomy/');
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible(LOAD);
     await page.evaluate(() =>
       window.dispatchEvent(
-        new CustomEvent('heart-atlas:highlight', { detail: { ids: ['interventricular-septum'] } }),
+        new CustomEvent('heart-atlas:highlight', {
+          detail: { ids: ['left-atrium', 'mitral-valve', 'no-such-structure'] },
+        }),
       ),
     );
-    await expect(
-      page.getByRole('button', { name: en['structure.interventricular-septum'] }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    for (const key of ['structure.left-atrium', 'structure.mitral-valve'] as const) {
+      await expect(page.getByRole('button', { name: en[key], exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    }
+    await expect(page.locator('p[aria-live]')).toHaveText(
+      `${en['viewer.selected']}: ${en['structure.left-atrium']}, ${en['structure.mitral-valve']}`,
+    );
   });
 
   test('takes keyboard focus and keeps arrow keys from scrolling the page', async ({ page }) => {
     await page.goto('en/anatomy/');
     const model = page.getByRole('application', { name: en['viewer.canvasLabel'] });
     // Keyboard control starts once the model has loaded.
-    await expect(model).toHaveAttribute('aria-busy', 'false');
+    await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
     await model.focus();
     await expect(model).toBeFocused();
     const before = await page.evaluate(() => window.scrollY);
@@ -90,16 +104,14 @@ test.describe('heart viewer', () => {
     await page.addInitScript(() => {
       HTMLCanvasElement.prototype.getContext = () => null;
     });
-    const scripts: string[] = [];
-    page.on('request', (r) => {
-      if (r.resourceType() === 'script') scripts.push(r.url());
-    });
+    const requested: string[] = [];
+    page.on('request', (r) => requested.push(r.url()));
     await page.goto('en/anatomy/');
     await expect(page.getByRole('status')).toHaveText(en['viewer.unavailable']);
     await expect(page.getByRole('img', { name: en['viewer.posterAlt'] })).toBeVisible();
     const button = page.getByRole('button', { name: en['structure.aorta'] });
     await button.click();
     await expect(button).toHaveAttribute('aria-pressed', 'true');
-    expect(scripts.filter((url) => url.includes('Scene'))).toEqual([]);
+    expect(requested.filter((url) => url.includes('/Scene.') || url.endsWith('.glb'))).toEqual([]);
   });
 });

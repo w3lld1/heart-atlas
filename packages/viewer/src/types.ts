@@ -63,4 +63,6 @@ export interface HeartViewerProps {
   highlight?: string[];
   /** 'visible' loads three.js when the viewer scrolls into view; 'click' waits for the button. */
   loadOn?: 'visible' | 'click';
+  /** Level of the structure list heading, so the viewer fits the outline of the page around it. */
+  headingLevel?: 2 | 3 | 4;
 }

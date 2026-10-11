@@ -16,6 +16,7 @@ import {
   MeshStandardMaterial,
   Plane,
   Vector3,
+  type Intersection,
   type Object3D,
   type PerspectiveCamera,
 } from 'three';
@@ -38,6 +39,9 @@ export interface SceneProps {
   /** Id of the element with keyboard help. */
   describedBy: string;
   reducedMotion: boolean;
+  /** Moves focus to the model once it has loaded. */
+  focusOnReady: boolean;
+  onReady: () => void;
   onSelect: (id: string) => void;
 }
 
@@ -45,7 +49,9 @@ const HOME: Vec3 = [0, 0.015, 0.36];
 const TARGET: Vec3 = [0, 0.015, 0];
 const LIMITS = { minDistance: 0.08, maxDistance: 0.8 };
 const HIGHLIGHT = new Color('#ffb000');
+const NO_EMISSION = new Color(0);
 const GHOST_GROUPS = new Set(['chamber']);
+const AXIS = { sagittal: 0, transverse: 1, frontal: 2 } as const;
 
 type KeyHandler = (key: string) => boolean;
 
@@ -87,68 +93,72 @@ interface MeshState {
   group: string;
 }
 
-type ModelProps = Omit<SceneProps, 'canvasLabel' | 'describedBy' | 'reducedMotion'> & {
-  onReady: () => void;
-};
+type ModelProps = Omit<
+  SceneProps,
+  'canvasLabel' | 'describedBy' | 'reducedMotion' | 'focusOnReady' | 'onReady'
+> & { onLoaded: () => void };
 
-function Model({ onReady, ...props }: ModelProps) {
-  const { scene } = useGLTF(props.url, false, true);
+function isShown(object: Object3D): boolean {
+  for (let o: Object3D | null = object; o; o = o.parent) if (!o.visible) return false;
+  return true;
+}
+
+function Model({ onLoaded, ...props }: ModelProps) {
+  const gltf = useGLTF(props.url, false, true);
   const gl = useThree((s) => s.gl);
-  useEffect(onReady, [onReady, scene]);
 
-  // Own copies of the materials, so highlighting one mesh never recolours another that shares a material.
-  const meshes = useMemo(() => {
+  // useGLTF caches one scene per URL. Each viewer works on its own copy with its own materials,
+  // so two viewers on a page, or a remount, never fight over the same objects.
+  const { scene, meshes } = useMemo(() => {
+    const copy = gltf.scene.clone(true);
     const list: MeshState[] = [];
-    scene.traverse((o: Object3D) => {
+    copy.traverse((o: Object3D) => {
       if (!(o instanceof Mesh) || !(o.material instanceof MeshStandardMaterial)) return;
       const material = o.material.clone();
       o.material = material;
       list.push({ mesh: o, material, group: String(o.userData['group'] ?? '') });
     });
-    return list;
-  }, [scene]);
+    return { scene: copy, meshes: list };
+  }, [gltf.scene]);
+  // Geometry stays shared with the cache; only the cloned materials belong to this viewer.
+  useEffect(() => () => meshes.forEach((m) => m.material.dispose()), [meshes]);
+  useEffect(onLoaded, [onLoaded, scene]);
 
   const bounds = useMemo(() => new Box3().setFromObject(scene), [scene]);
   const plane = useMemo(() => new Plane(), []);
+  const cutting = props.section !== 'off';
+  if (props.section !== 'off') {
+    const i = AXIS[props.section];
+    const size = bounds.getSize(new Vector3());
+    const centre = bounds.getCenter(new Vector3());
+    // Keeps the part of the model on the lower side of the cut position along the axis.
+    plane.set(
+      new Vector3().setComponent(i, -1),
+      centre.getComponent(i) + (props.sectionPosition * size.getComponent(i)) / 2,
+    );
+  }
+  const isolating = props.isolate && props.highlighted.size > 0;
 
   useLayoutEffect(() => {
     gl.localClippingEnabled = true;
-    const size = bounds.getSize(new Vector3());
-    const centre = bounds.getCenter(new Vector3());
-    const axis = { sagittal: 0, transverse: 1, frontal: 2 } as const;
-    if (props.section !== 'off') {
-      const i = axis[props.section];
-      const normal = new Vector3().setComponent(i, -1);
-      // Keeps the part of the model on the negative side of the cut position.
-      const at = centre.getComponent(i) + (props.sectionPosition * size.getComponent(i)) / 2;
-      plane.set(normal, at);
-    }
-    const isolating = props.isolate && props.highlighted.size > 0;
     for (const { mesh, material, group } of meshes) {
       const lit = props.highlighted.has(mesh.name);
-      material.emissive.copy(lit ? HIGHLIGHT : new Color(0));
+      material.emissive.copy(lit ? HIGHLIGHT : NO_EMISSION);
       material.emissiveIntensity = lit ? 0.45 : 0;
       const ghosted = props.ghost && GHOST_GROUPS.has(group) && !lit;
-      material.transparent = ghosted;
       material.opacity = ghosted ? 0.18 : 1;
       material.depthWrite = !ghosted;
-      material.clippingPlanes = props.section === 'off' ? null : [plane];
-      material.needsUpdate = true;
+      // Only these two change the shader program, so only they need a recompile.
+      if (material.transparent !== ghosted || (material.clippingPlanes !== null) !== cutting) {
+        material.transparent = ghosted;
+        material.clippingPlanes = cutting ? [plane] : null;
+        material.needsUpdate = true;
+      }
       mesh.visible = !isolating || lit;
       // Transparent chambers draw after the structures inside them.
       mesh.renderOrder = ghosted ? 1 : 0;
     }
-  }, [
-    meshes,
-    bounds,
-    plane,
-    gl,
-    props.highlighted,
-    props.ghost,
-    props.isolate,
-    props.section,
-    props.sectionPosition,
-  ]);
+  }, [meshes, plane, gl, cutting, isolating, props.highlighted, props.ghost]);
 
   const anchor = useMemo(() => {
     if (!props.labelFor) return null;
@@ -157,16 +167,26 @@ function Model({ onReady, ...props }: ModelProps) {
     if (node instanceof Mesh) return new Box3().setFromObject(node).getCenter(new Vector3());
     return node.getWorldPosition(new Vector3());
   }, [scene, props.labelFor]);
+  const labelShown = anchor !== null && (!cutting || plane.distanceToPoint(anchor) >= 0);
+
+  // three's raycaster ignores visibility, clipping and opacity, so pick the first hit the reader
+  // can actually see: not hidden, not cut away and not a see-through chamber.
+  const pickable = (hit: Intersection) =>
+    hit.object instanceof Mesh &&
+    isShown(hit.object) &&
+    !(cutting && plane.distanceToPoint(hit.point) < 0) &&
+    !(hit.object.material instanceof MeshStandardMaterial && hit.object.material.transparent);
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-    if (event.object.name) props.onSelect(event.object.name);
+    const hit = event.intersections.find(pickable);
+    if (hit?.object.name) props.onSelect(hit.object.name);
   };
 
   return (
     <>
       <primitive object={scene} onClick={onClick} />
-      {anchor && props.label && (
+      {labelShown && props.label && (
         <Html position={anchor} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
           <span className="heart-viewer-label">{props.label}</span>
         </Html>
@@ -175,18 +195,38 @@ function Model({ onReady, ...props }: ModelProps) {
   );
 }
 
-export default function Scene({ canvasLabel, describedBy, reducedMotion, ...props }: SceneProps) {
+export default function Scene({
+  canvasLabel,
+  describedBy,
+  reducedMotion,
+  focusOnReady,
+  onReady,
+  ...props
+}: SceneProps) {
   const keyHandler = useRef<KeyHandler | null>(null);
+  const wrapper = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
-  const onReady = useCallback(() => setReady(true), []);
+  // Wheel and pinch zoom only while the model has focus, so scrolling past it moves the page.
+  const [focused, setFocused] = useState(false);
+  const onLoaded = useCallback(() => setReady(true), []);
+
+  useEffect(() => {
+    if (!ready) return;
+    onReady();
+    if (focusOnReady) wrapper.current?.focus();
+  }, [ready, focusOnReady, onReady]);
+
   return (
     <div
+      ref={wrapper}
       className="heart-viewer-canvas"
       tabIndex={0}
       role="application"
       aria-label={canvasLabel}
       aria-describedby={describedBy}
       aria-busy={!ready}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       onKeyDown={(event) => {
         if (keyHandler.current?.(event.key)) event.preventDefault();
       }}
@@ -198,11 +238,12 @@ export default function Scene({ canvasLabel, describedBy, reducedMotion, ...prop
       >
         <hemisphereLight args={['#ffffff', '#443333', 2]} />
         <directionalLight position={[1, 2, 3]} intensity={2} />
-        <Model {...props} onReady={onReady} />
+        <Model {...props} onLoaded={onLoaded} />
         <OrbitControls
           makeDefault
           target={TARGET}
           enableDamping={!reducedMotion}
+          enableZoom={focused}
           minDistance={LIMITS.minDistance}
           maxDistance={LIMITS.maxDistance}
         />

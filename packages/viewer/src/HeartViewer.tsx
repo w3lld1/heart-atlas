@@ -2,6 +2,7 @@ import {
   Component,
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -22,7 +23,10 @@ const SECTIONS: SectionAxis[] = ['off', 'sagittal', 'frontal', 'transverse'];
 function hasWebGL(): boolean {
   try {
     const canvas = document.createElement('canvas');
-    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'));
+    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+    // Browsers cap live contexts, so the probe gives its context back at once.
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    return gl !== null;
   } catch {
     return false;
   }
@@ -34,19 +38,28 @@ function prefersLowDetail(): boolean {
 }
 
 class ErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
+  { onError: () => void; children: ReactNode },
   { failed: boolean }
 > {
   override state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
   }
+  override componentDidCatch() {
+    this.props.onError();
+  }
   override render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
+    return this.state.failed ? null : this.props.children;
   }
 }
 
-type Status = 'idle' | 'active' | 'unsupported';
+type Phase = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported';
+
+const STATUS: Partial<Record<Phase, ViewerMessageKey>> = {
+  loading: 'viewer.loading',
+  error: 'viewer.error',
+  unsupported: 'viewer.unavailable',
+};
 
 export default function HeartViewer({
   models,
@@ -55,8 +68,9 @@ export default function HeartViewer({
   messages: t,
   highlight = [],
   loadOn = 'visible',
+  headingLevel = 2,
 }: HeartViewerProps) {
-  const [status, setStatus] = useState<Status>('idle');
+  const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
   const [external, setExternal] = useState<string[]>(highlight);
   const [ghost, setGhost] = useState(false);
@@ -64,10 +78,15 @@ export default function HeartViewer({
   const [section, setSection] = useState<SectionAxis>('off');
   const [sectionPosition, setSectionPosition] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Set when the reader pressed the load button, so focus follows them into the model.
+  const [focusOnReady, setFocusOnReady] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  const activate = () => setStatus(hasWebGL() ? 'active' : 'unsupported');
+  const start = useCallback(() => {
+    setPhase((p) => (p === 'idle' ? (hasWebGL() ? 'loading' : 'unsupported') : p));
+  }, []);
 
   useEffect(() => {
     setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -76,75 +95,66 @@ export default function HeartViewer({
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           observer.disconnect();
-          setStatus((s) => (s === 'idle' ? (hasWebGL() ? 'active' : 'unsupported') : s));
+          start();
         }
       },
       { rootMargin: '200px' },
     );
     observer.observe(rootRef.current);
     return () => observer.disconnect();
-  }, [loadOn]);
+  }, [loadOn, start]);
+
+  const known = useMemo(() => new Set(structures.map((s) => s.id)), [structures]);
 
   useEffect(() => {
     const onHighlight = (event: Event) => {
       if (!isHighlightEvent(event)) return;
-      setExternal(event.detail.ids);
-      setSelected(event.detail.ids[0] ?? null);
+      setSelected(null);
+      setExternal(event.detail.ids.filter((x) => known.has(x)));
     };
     window.addEventListener(HIGHLIGHT_EVENT, onHighlight);
     return () => window.removeEventListener(HIGHLIGHT_EVENT, onHighlight);
-  }, []);
+  }, [known]);
 
-  const active = selected ? [selected] : external;
+  const active = useMemo(() => (selected ? [selected] : external), [selected, external]);
   const highlighted = useMemo(() => meshesFor(active, structures), [active, structures]);
   const labelOf = (structureId: string | null) =>
     structures.find((s) => s.id === structureId)?.label ?? '';
+  const scene = phase === 'loading' || phase === 'ready';
   const url = useMemo(
-    () => (status === 'active' && prefersLowDetail() ? models.low : models.high),
-    [status, models],
+    () => (scene && prefersLowDetail() ? models.low : models.high),
+    [scene, models],
   );
+  const onReady = useCallback(() => setPhase('ready'), []);
+  const onError = useCallback(() => setPhase('error'), []);
 
-  const select = (structureId: string) =>
-    setSelected((s) => (s === structureId ? null : structureId));
+  const select = useCallback(
+    (structureId: string) => setSelected((s) => (s === structureId ? null : structureId)),
+    [],
+  );
   const groupLabel = (group: string) => t[`viewer.group.${group}` as ViewerMessageKey] ?? group;
   const showSchematic = active.some(
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
-
-  const posterImage = (
-    <img
-      className={styles.poster}
-      src={poster}
-      alt={t['viewer.posterAlt']}
-      width="640"
-      height="640"
-    />
-  );
+  const status = STATUS[phase];
+  const Title = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+  const GroupTitle = `h${headingLevel + 1}` as 'h3' | 'h4' | 'h5';
 
   return (
     <div className={styles.viewer} ref={rootRef}>
-      <div className={styles.stage}>
-        {status === 'active' ? (
-          <ErrorBoundary
-            fallback={
-              <>
-                {posterImage}
-                <p className={styles.overlay} role="alert">
-                  {t['viewer.error']}
-                </p>
-              </>
-            }
-          >
-            <Suspense
-              fallback={
-                <>
-                  {posterImage}
-                  <p className={styles.overlay} role="status">
-                    {t['viewer.loading']}
-                  </p>
-                </>
-              }
-            >
+      <div className={styles.stage} ref={stageRef} tabIndex={-1}>
+        {phase !== 'ready' && (
+          <img
+            className={styles.poster}
+            src={poster}
+            alt={t['viewer.posterAlt']}
+            width="640"
+            height="640"
+          />
+        )}
+        {scene && (
+          <ErrorBoundary onError={onError}>
+            <Suspense fallback={null}>
               <Scene
                 url={url}
                 highlighted={highlighted}
@@ -157,37 +167,44 @@ export default function HeartViewer({
                 canvasLabel={t['viewer.canvasLabel']}
                 describedBy={`${id}-help`}
                 reducedMotion={reducedMotion}
+                focusOnReady={focusOnReady}
+                onReady={onReady}
                 onSelect={select}
               />
             </Suspense>
           </ErrorBoundary>
-        ) : (
-          <>
-            {posterImage}
-            {status === 'idle' ? (
-              <button type="button" className={styles.load} onClick={activate}>
-                {t['viewer.load']}
-              </button>
-            ) : (
-              <p className={styles.overlay} role="status">
-                {t['viewer.unavailable']}
-              </p>
-            )}
-          </>
         )}
+        {phase === 'idle' && loadOn === 'click' && (
+          <button
+            type="button"
+            className={styles.load}
+            onClick={() => {
+              setFocusOnReady(true);
+              // The button disappears; keep focus inside the viewer until the model takes it.
+              stageRef.current?.focus();
+              start();
+            }}
+          >
+            {t['viewer.load']}
+          </button>
+        )}
+        <p className={status ? styles.overlay : styles.hidden} role="status">
+          {status ? t[status] : ''}
+        </p>
       </div>
 
       <div className={styles.panel}>
         <p id={`${id}-help`} className={styles.help}>
           {t['viewer.keyboardHelp']}
         </p>
-        <p className={styles.selected} aria-live="polite">
-          <span>{t['viewer.selected']}: </span>
-          <strong>{active.length > 0 ? active.map(labelOf).join(', ') : t['viewer.none']}</strong>
+        <div className={styles.selected}>
+          <p aria-live="polite">
+            <span>{t['viewer.selected']}: </span>
+            <strong>{active.length > 0 ? active.map(labelOf).join(', ') : t['viewer.none']}</strong>
+          </p>
           {active.length > 0 && (
             <button
               type="button"
-              className={styles.clear}
               onClick={() => {
                 setSelected(null);
                 setExternal([]);
@@ -196,10 +213,10 @@ export default function HeartViewer({
               {t['viewer.clear']}
             </button>
           )}
-        </p>
+        </div>
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
 
-        {status === 'active' && (
+        {phase === 'ready' && (
           <div className={styles.options}>
             <label>
               <input type="checkbox" checked={ghost} onChange={(e) => setGhost(e.target.checked)} />
@@ -237,6 +254,7 @@ export default function HeartViewer({
                   max={1}
                   step={0.02}
                   value={sectionPosition}
+                  aria-valuetext={`${Math.round((sectionPosition + 1) * 50)}%`}
                   onChange={(e) => setSectionPosition(Number(e.target.value))}
                 />
               </div>
@@ -244,10 +262,10 @@ export default function HeartViewer({
           </div>
         )}
 
-        <h2 className={styles['list-title']}>{t['viewer.structures']}</h2>
+        <Title className={styles['list-title']}>{t['viewer.structures']}</Title>
         {groupStructures(structures).map(([group, items]) => (
           <div key={group} className={styles.group}>
-            <h3>{groupLabel(group)}</h3>
+            <GroupTitle className={styles['group-title']}>{groupLabel(group)}</GroupTitle>
             <ul>
               {items.map((s) => (
                 <li key={s.id}>

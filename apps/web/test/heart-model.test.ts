@@ -24,6 +24,11 @@ describe('heart model data for the viewer', () => {
     expect(septum).toMatchObject({ kind: 'zone', meshes: ['right-ventricle', 'left-ventricle'] });
   });
 
+  it('shows both attributions of a source published under two licenses', () => {
+    expect(heartAttribution()).toContain('The Database Center for Life Science');
+    expect(heartAttribution()).toContain('ライフサイエンス統合データベースセンター');
+  });
+
   it.each(localeCodes)('fills the model source into the attribution line (%s)', (locale) => {
     const line = viewerMessages(getMessages(locale))['viewer.attribution'];
     expect(line).toContain(heartAttribution());
