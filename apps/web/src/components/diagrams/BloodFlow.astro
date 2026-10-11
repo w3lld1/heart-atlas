@@ -1,0 +1,169 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-arrow-v`;
+const arrowA = `${uid}-arrow-a`;
+// The two circuits as one route each: body → right heart → lungs, lungs → left heart → body.
+const venous = 'M120,295 H30 V112 H95 M130,140 V160 M95,182 H60 V35 H120';
+const arterial = 'M240,35 H300 V112 H265 M230,140 V160 M265,182 H330 V295 H240';
+---
+
+<svg viewBox="0 0 360 330" role="img" aria-label={t['diagram.blood-flow.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lungs and body -->
+  <rect
+    x="120"
+    y="15"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="180" y="40" text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <rect
+    x="120"
+    y="275"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="180" y="300" text-anchor="middle">
+    {t['diagram.label.body']}
+  </text>
+
+  <!-- Heart: right side (viewer's left) holds venous blood, left side arterial -->
+  <rect
+    x="95"
+    y="85"
+    width="70"
+    height="55"
+    rx="10"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></rect>
+  <rect
+    x="95"
+    y="160"
+    width="70"
+    height="55"
+    rx="10"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></rect>
+  <rect
+    x="195"
+    y="85"
+    width="70"
+    height="55"
+    rx="10"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></rect>
+  <rect
+    x="195"
+    y="160"
+    width="70"
+    height="55"
+    rx="10"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></rect>
+  <text x="130" y="118" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="130" y="193" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="230" y="118" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="230" y="193" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Vessels with arrows, readable without motion -->
+  <g fill="none" stroke-width="3">
+    <path
+      d="M120,295 H30 V112 H93"
+      stroke="var(--diagram-venous)"
+      marker-end={`url(#${arrowV})`}
+    ></path>
+    <path d="M130,140 V158" stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <path
+      d="M95,182 H60 V35 H118"
+      stroke="var(--diagram-venous)"
+      marker-end={`url(#${arrowV})`}
+    ></path>
+    <path
+      d="M240,35 H300 V112 H267"
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <path d="M230,140 V158" stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    <path
+      d="M265,182 H330 V295 H242"
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke-width="3">
+    <path class="dash-flow" d={venous} stroke="var(--color-bg)"></path>
+    <path class="dash-flow" d={arterial} stroke="var(--color-bg)"></path>
+  </g>
+
+  <text class="diagram-small" x="36" y="250">
+    {t['diagram.label.venaCava']}
+  </text>
+  <text class="diagram-small" x="66" y="70">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small" x="294" y="70" text-anchor="end">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="diagram-small" x="324" y="250" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+</svg>

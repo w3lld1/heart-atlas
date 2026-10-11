@@ -1,0 +1,161 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// Parts of the pathway in the order the impulse reaches them, with the moment it gets there (s).
+// The pause at the AV node is the point of the animation: the ventricles wait for the atria.
+const parts: { n: number; label: string; delay: number; badge: [number, number] }[] = [
+  { n: 1, label: t['diagram.label.saNode'], delay: 0, badge: [126, 36] },
+  { n: 2, label: t['diagram.label.avNode'], delay: 0.45, badge: [150, 150] },
+  { n: 3, label: t['diagram.label.his'], delay: 0.95, badge: [196, 150] },
+  { n: 4, label: t['diagram.label.branches'], delay: 1.1, badge: [196, 222] },
+  { n: 5, label: t['diagram.label.purkinje'], delay: 1.25, badge: [66, 236] },
+];
+const sa = 'M141,58 m-7,0 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0';
+const atria = 'M141,58 Q160,100 170,134 M141,58 Q200,48 250,66';
+const av = 'M170,138 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0';
+const his = 'M172,143 L180,165';
+const branches = 'M178,166 Q170,205 160,246 M182,166 Q194,205 206,246';
+const purkinje =
+  'M160,246 Q120,268 90,236 Q70,210 74,180 M206,246 Q250,274 284,240 Q300,214 296,180 M160,246 Q180,262 206,246';
+const segments = [
+  { d: sa, delay: 0, fill: true },
+  { d: atria, delay: 0.1 },
+  { d: av, delay: 0.45, fill: true },
+  { d: his, delay: 0.95 },
+  { d: branches, delay: 1.1 },
+  { d: purkinje, delay: 1.25 },
+];
+---
+
+<svg
+  viewBox="0 0 400 380"
+  role="img"
+  aria-label={t['diagram.conduction-system.title']}
+  lang={locale}
+>
+  <g transform="translate(20,10)">
+    <path
+      d="M60,55 Q180,5 300,55 Q345,140 285,232 Q225,292 180,296 Q135,292 75,232 Q15,140 60,55 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+    <g fill="var(--color-bg)" stroke="var(--color-border)" stroke-width="2">
+      <ellipse cx="115" cy="95" rx="58" ry="45"></ellipse>
+      <ellipse cx="245" cy="95" rx="58" ry="45"></ellipse>
+      <ellipse cx="120" cy="205" rx="50" ry="58"></ellipse>
+      <ellipse cx="248" cy="205" rx="52" ry="60"></ellipse>
+    </g>
+
+    <!-- The atria light up as the impulse spreads over them -->
+    <g class="flow">
+      <ellipse
+        class="conduction-glow"
+        cx="115"
+        cy="95"
+        rx="58"
+        ry="45"
+        style="animation-delay: 0.1s"
+      ></ellipse>
+      <ellipse
+        class="conduction-glow"
+        cx="245"
+        cy="95"
+        rx="58"
+        ry="45"
+        style="animation-delay: 0.2s"
+      ></ellipse>
+      <ellipse
+        class="conduction-glow"
+        cx="120"
+        cy="205"
+        rx="50"
+        ry="58"
+        style="animation-delay: 1.3s"
+      ></ellipse>
+      <ellipse
+        class="conduction-glow"
+        cx="248"
+        cy="205"
+        rx="52"
+        ry="60"
+        style="animation-delay: 1.3s"
+      ></ellipse>
+    </g>
+
+    <!-- The pathway, visible without motion -->
+    <g fill="none" stroke="var(--diagram-impulse)" stroke-width="4" stroke-linecap="round">
+      {segments.map((segment) => (
+        <path d={segment.d} fill={segment.fill ? 'var(--diagram-impulse)' : 'none'} />
+      ))}
+    </g>
+    <!-- The impulse: each part flashes when the impulse reaches it -->
+    <g class="flow" fill="none" stroke="var(--color-text)" stroke-width="5" stroke-linecap="round">
+      {segments.map((segment) => (
+        <path
+          class="conduction-flash"
+          d={segment.d}
+          fill={segment.fill ? 'var(--color-text)' : 'none'}
+          style={`animation-delay: ${segment.delay}s`}
+        />
+      ))}
+    </g>
+
+    {parts.map((part) => (
+      <g>
+        <circle cx={part.badge[0]} cy={part.badge[1]} r="10" fill="var(--color-text)" />
+        <text
+          class="diagram-small"
+          x={part.badge[0]}
+          y={part.badge[1] + 4}
+          text-anchor="middle"
+          fill="var(--color-bg)"
+          style="fill: var(--color-bg)"
+        >
+          {part.n}
+        </text>
+      </g>
+    ))}
+  </g>
+
+  <!-- Legend: the same numbers in the order the impulse travels -->
+  {parts.map((part, i) => (
+    <text class="diagram-small" x={i < 3 ? 20 : 210} y={322 + (i % 3) * 20}>
+      {`${part.n}. ${part.label}`}
+    </text>
+  ))}
+</svg>
+
+<style is:global>
+  .diagram .conduction-flash {
+    animation: conduction-flash 2.4s linear infinite;
+    opacity: 0;
+  }
+
+  .diagram .conduction-glow {
+    animation: conduction-flash 2.4s linear infinite;
+    fill: var(--diagram-impulse);
+    opacity: 0;
+  }
+
+  @keyframes conduction-flash {
+    0% {
+      opacity: 0;
+    }
+
+    4% {
+      opacity: 0.9;
+    }
+
+    16%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

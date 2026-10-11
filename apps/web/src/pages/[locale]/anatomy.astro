@@ -1,9 +1,12 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { getCollection } from 'astro:content';
 import { HeartViewer } from '@heart-atlas/viewer';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { localeCodes } from '../../i18n/locales.ts';
+import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
+import { localePath } from '../../i18n/paths.ts';
+import { articlePages } from '../../lib/articles.ts';
 import { heartModelUrls, heartStructures, viewerMessages } from '../../lib/heart-model.ts';
 
 export const getStaticPaths = (() =>
@@ -11,7 +14,12 @@ export const getStaticPaths = (() =>
 
 const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
 const t = getMessages(locale);
-const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
+const base = import.meta.env.BASE_URL;
+const { models, poster } = heartModelUrls(base);
+// Anatomy articles readable in this locale; this page is their list (see typesListedElsewhere).
+const articles = articlePages(await getCollection('articles'), locales)
+  .filter((page) => page.locale === locale && page.type === 'anatomy')
+  .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title, locale));
 ---
 
 <BaseLayout locale={locale} title={t['anatomy.title']} description={t['anatomy.intro']} searchable>
@@ -25,4 +33,20 @@ const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
     messages={viewerMessages(t)}
     loadOn="auto"
   />
+  {articles.length > 0 && (
+    <section aria-labelledby="anatomy-articles">
+      <h2 id="anatomy-articles">{t['anatomy.articles']}</h2>
+      <ul>
+        {articles.map((page) => (
+          <li
+            lang={page.contentLocale === locale ? undefined : page.contentLocale}
+            dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
+          >
+            <a href={localePath(base, locale, `anatomy/${page.slug}/`)}>{page.entry.data.title}</a>
+            <p>{page.entry.data.description}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 </BaseLayout>

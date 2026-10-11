@@ -2,7 +2,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
-import type { DiagramName } from '../src/components/diagrams/index.ts';
+import { diagramStates, diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
@@ -104,6 +104,50 @@ describe('Diagram', () => {
     expect(html).toContain('Disease caption');
     expect(html).toMatch(/value="disease" checked/);
   });
+
+  it('switches between the states a diagram declares, with a caption per state', async () => {
+    const html = await container.renderToString(Diagram, {
+      props: { name: 'heart-chambers' },
+      locals: { locale: 'ru' },
+      slots: { diastole: 'Наполнение', systole: 'Изгнание' },
+    });
+    expect(html).toMatch(/value="diastole" checked/);
+    expect(html).toContain('value="systole"');
+    expect(html).not.toContain('value="disease"');
+    expect(html).toContain('Диастола');
+    expect(html).toContain('<div class="diagram-caption" data-only="systole">Изгнание</div>');
+    // The first diagram on a page carries the state rules for all diagrams.
+    expect(html).toContain(
+      ".diagram:has([value='systole']:checked) [data-only]:not([data-only='systole']){display:none}",
+    );
+  });
+
+  it('has no switch for a single-state diagram', async () => {
+    const html = await container.renderToString(Diagram, {
+      props: { name: 'blood-flow' },
+      locals: { locale: 'en' },
+      slots: { scheme: 'Caption' },
+    });
+    expect(html).not.toContain('<fieldset');
+    expect(html).toContain('Caption');
+  });
+
+  it.each(Object.keys(diagrams) as DiagramName[])(
+    '%s has a title, labels and a valid initial state in every locale',
+    async (name) => {
+      const { states, initial } = diagramStates(name);
+      expect(states).toContain(initial);
+      for (const locale of ['ru', 'en']) {
+        const html = await container.renderToString(Diagram, {
+          props: { name },
+          locals: { locale },
+        });
+        expect(html).toMatch(/aria-label="[^"]{10,}"/);
+        // A missing message key renders as empty text, so no <text> element may be empty.
+        expect(html).not.toMatch(/<text[^>]*>\s*<\/text>/);
+      }
+    },
+  );
 
   it('fails the build on an unknown diagram', async () => {
     await expect(
