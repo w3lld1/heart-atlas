@@ -49,15 +49,17 @@ const arrow = `${uid}-arrow`;
   <text class="diagram-small" x="70" y="105" text-anchor="middle">
     {t['diagram.label.ventricleCell']}
   </text>
-  <g class="peptide-release">
+  <g>
     <rect
+      class="peptide-release"
       x="35"
       y="118"
       width="70"
       height="28"
       rx="14"
-      fill="var(--diagram-impulse)"
-      stroke="var(--color-text)"
+      fill="var(--color-bg)"
+      stroke="var(--diagram-impulse)"
+      stroke-width="4"
     ></rect>
     <text class="diagram-small" x="70" y="137" text-anchor="middle">
       proBNP

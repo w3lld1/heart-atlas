@@ -1,5 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { productionLocales } from '../src/i18n/locales.ts';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
 import { diagramStates, diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
@@ -137,7 +138,7 @@ describe('Diagram', () => {
     async (name) => {
       const { states, initial } = diagramStates(name);
       expect(states).toContain(initial);
-      for (const locale of ['ru', 'en']) {
+      for (const locale of Object.keys(productionLocales)) {
         const html = await container.renderToString(Diagram, {
           props: { name },
           locals: { locale },
@@ -148,6 +149,15 @@ describe('Diagram', () => {
       }
     },
   );
+
+  it('fails the build on a caption for a state the diagram does not have', async () => {
+    await expect(
+      container.renderToString(Diagram, {
+        props: { name: 'heart-chambers' },
+        slots: { systolic: 'Typo' },
+      }),
+    ).rejects.toThrow('no state "systolic"');
+  });
 
   it('fails the build on an unknown diagram', async () => {
     await expect(

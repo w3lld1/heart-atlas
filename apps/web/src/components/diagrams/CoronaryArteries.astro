@@ -14,17 +14,17 @@ const t = getMessages(locale);
 const arteries = {
   rca: 'M168,74 Q118,82 92,118 Q66,160 88,214 Q100,240 126,256',
   marginal: 'M86,190 Q110,214 130,226',
-  main: 'M194,74 L216,86',
+  main: 'M174,76 L216,86',
   lad: 'M216,86 Q214,180 186,284',
   diagonal: 'M212,150 Q240,170 262,200',
   lcx: 'M216,86 Q268,92 296,128 Q312,154 306,186',
-  sinus: 'M120,84 Q116,66 132,54',
+  sinus: 'M132,85 Q120,66 134,52',
 };
 const pda = 'M126,256 Q156,282 186,284';
 ---
 
 <svg
-  viewBox="0 0 400 330"
+  viewBox="-150 0 550 330"
   role="img"
   aria-label={t['diagram.coronary-arteries.title']}
   lang={locale}
@@ -65,7 +65,7 @@ const pda = 'M126,256 Q156,282 186,284';
   <text class="diagram-small" x="300" y="112">
     {t['diagram.label.lcx']}
   </text>
-  <text class="diagram-small" x="196" y="240" text-anchor="end">
+  <text class="diagram-small" x="200" y="296">
     {t['diagram.label.lad']}
   </text>
   <text class="diagram-small" x="266" y="214">
@@ -77,10 +77,10 @@ const pda = 'M126,256 Q156,282 186,284';
   <text class="diagram-small" x="74" y="232" text-anchor="end">
     {t['diagram.label.marginal']}
   </text>
-  <text class="diagram-small" x="136" y="46" text-anchor="end">
+  <text class="diagram-small" x="128" y="46" text-anchor="end">
     {t['diagram.label.sinusBranch']}
   </text>
-  <text class="diagram-small" x="150" y="318" text-anchor="middle">
+  <text class="diagram-small" x="150" y="324" text-anchor="middle">
     {t['diagram.label.pda']}
   </text>
 </svg>

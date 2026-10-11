@@ -28,14 +28,17 @@ const messages = Object.fromEntries(
 ) as HeartClockMessages;
 ---
 
-<figure class="ecg-monitor" lang={locale} data-pagefind-ignore>
-  <HeartClockDemo
-    client:visible
-    locale={locale}
-    messages={messages}
-    {...(preset === undefined ? {} : { preset })}
-    {...(presets === undefined ? {} : { presets })}
-  />
+<figure class="ecg-monitor" data-pagefind-ignore>
+  <!-- The monitor and the note are UI text in the page locale; the caption is article text. -->
+  <div lang={locale}>
+    <HeartClockDemo
+      client:visible
+      locale={locale}
+      messages={messages}
+      {...(preset === undefined ? {} : { preset })}
+      {...(presets === undefined ? {} : { presets })}
+    />
+  </div>
   <figcaption>
     {Astro.slots.has('default') && (
       <div class="ecg-monitor-caption">

@@ -20,10 +20,15 @@ const valves = [
 ---
 
 <!--
-  A four-chamber view as on echocardiography: both atria above, both ventricles below, and the
+  A four-chamber section in anatomical orientation (echocardiography shows the apex on top): both atria above, both ventricles below, and the
   two atrioventricular valves between them. The aortic and pulmonary valves are not in this view.
 -->
-<svg viewBox="0 0 360 300" role="img" aria-label={t['diagram.heart-chambers.title']} lang={locale}>
+<svg
+  viewBox="-90 0 540 300"
+  role="img"
+  aria-label={t['diagram.heart-chambers.title']}
+  lang={locale}
+>
   <defs>
     <marker
       id={arrowV}
@@ -175,10 +180,12 @@ const valves = [
   <text x="270" y="214" text-anchor="middle">
     {t['diagram.label.lv']}
   </text>
-  <text class="diagram-small" x="118" y="132" text-anchor="middle">
+  <path d="M100,150 L52,150" fill="none" stroke="var(--color-text)" stroke-width="1"></path>
+  <text class="diagram-small" x="48" y="154" text-anchor="end">
     {t['diagram.label.tricuspid']}
   </text>
-  <text class="diagram-small" x="246" y="132" text-anchor="middle">
+  <path d="M264,150 L312,150" fill="none" stroke="var(--color-text)" stroke-width="1"></path>
+  <text class="diagram-small" x="316" y="154">
     {t['diagram.label.mitral']}
   </text>
 </svg>

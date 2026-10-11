@@ -27,7 +27,14 @@ const stateRules =
         )
         .join('')
     : '';
-// Captions are article text in a slot per state, e.g. <p slot="systole">.
+// Captions are article text in a slot per state, e.g. <p slot="systole">. A slot for a state the
+// diagram does not have would vanish silently, so it fails the build. The default slot is the
+// whitespace MDX leaves between captions.
+for (const slot of Object.keys(Astro.slots).filter((key) => key !== 'default')) {
+  if (!(states as readonly string[]).includes(slot)) {
+    throw new Error(`<Diagram name="${name}">: no state "${slot}" (states: ${states.join(', ')})`);
+  }
+}
 const captions = await Promise.all(
   states.map(async (state) => ({
     state,
@@ -93,7 +100,9 @@ const captions = await Promise.all(
     }
   }
 
+  /* Labels sit at fixed points of the art, which is never mirrored, so text anchors must not flip. */
   .diagram svg {
+    direction: ltr;
     display: block;
     inline-size: 100%;
     max-inline-size: 32rem;
