@@ -2,6 +2,10 @@
   "name": "@heart-atlas/models",
   "private": true,
   "type": "module",
+  "exports": {
+    "./structures": "./src/structures.ts",
+    "./licenses": "./src/licenses.ts"
+  },
   "scripts": {
     "assemble": "node src/assemble.ts",
     "typecheck": "tsc --noEmit"

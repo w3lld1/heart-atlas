@@ -32,6 +32,9 @@ const types = articleTypes.filter((type) =>
         </li>
       ))}
       <li>
+        <a href={localePath(base, locale, 'anatomy/')}>{t['nav.anatomy']}</a>
+      </li>
+      <li>
         <a href={localePath(base, locale, 'heart-clock/')}>{t['nav.heartClock']}</a>
       </li>
     </ul>

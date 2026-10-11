@@ -1,0 +1,27 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { HeartViewer } from '@heart-atlas/viewer';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { localeCodes } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+import { heartModelUrls, heartStructures, viewerMessages } from '../../lib/heart-model.ts';
+
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
+---
+
+<BaseLayout locale={locale} title={t['anatomy.title']} description={t['anatomy.intro']} searchable>
+  <h1>{t['anatomy.title']}</h1>
+  <p>{t['anatomy.intro']}</p>
+  <HeartViewer
+    client:visible
+    models={models}
+    poster={poster}
+    structures={heartStructures(t)}
+    messages={viewerMessages(t)}
+  />
+</BaseLayout>
