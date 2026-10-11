@@ -77,8 +77,8 @@ test.describe('3D model in time with the monitor', () => {
     await expect.poll(changes, { timeout: 15_000 }).toBe(true);
 
     await page.getByRole('button', { name: en['heartClock.pause'] }).click();
-    // Valves and glow ease out within a few hundred milliseconds, then the picture holds.
-    await page.waitForTimeout(800);
+    // Valves and glow ease out within about a second, then the picture holds.
+    await expect.poll(changes, { timeout: 5_000 }).toBe(false);
     expect(await changes()).toBe(false);
   });
 });

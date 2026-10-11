@@ -30,11 +30,23 @@ interface OwnClock {
   source: CycleSource;
 }
 
+/**
+ * Longest step of the clock between two frames, ms. A tab coming back from the background resumes
+ * where it paused instead of jumping past the clock's kept history.
+ */
+const MAX_FRAME_MS = 100;
+
 async function startOwnClock(rate: number): Promise<OwnClock> {
   const { createHeartClock, cycleState } = await import('@heart-atlas/heart-clock');
   const clock = createHeartClock({ heartRate: rate });
-  const start = performance.now();
-  const now = () => performance.now() - start;
+  let t = 0;
+  let last = performance.now();
+  const now = () => {
+    const time = performance.now();
+    t += Math.min(MAX_FRAME_MS, time - last);
+    last = time;
+    return t;
+  };
   return {
     setRate: (heartRate) => clock.setParams({ heartRate }, now()),
     source: () => cycleState(clock, now()),
@@ -106,6 +118,8 @@ export default function HeartViewer({
   const [waitForClick, setWaitForClick] = useState(loadOn === 'click');
   const [cycle, setCycle] = useState<CycleSource | null>(null);
   const [rate, setRate] = useState<number>(RATE.initial);
+  const rateRef = useRef<number>(RATE.initial);
+  const [startingClock, setStartingClock] = useState(false);
   const ownClock = useRef<OwnClock | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -148,19 +162,33 @@ export default function HeartViewer({
     if (ownClock.current || starting.current) {
       ownClock.current = null;
       starting.current = 0;
+      setStartingClock(false);
       setCycle(null);
       return;
     }
     const attempt = ++starts.current;
     starting.current = attempt;
-    const clock = await startOwnClock(rate);
-    if (starting.current !== attempt) return;
-    starting.current = 0;
-    ownClock.current = clock;
-    setCycle(() => clock.source);
-  }, [rate]);
+    setStartingClock(true);
+    try {
+      // The rate as it is once loaded, in case the reader moved the slider meanwhile.
+      const clock = await startOwnClock(rateRef.current);
+      if (starting.current !== attempt) return;
+      clock.setRate(rateRef.current);
+      ownClock.current = clock;
+      setCycle(() => clock.source);
+    } catch {
+      // The clock code did not load (offline, stale deploy): the heart stays still and the button
+      // offers the start again.
+    } finally {
+      if (starting.current === attempt) {
+        starting.current = 0;
+        setStartingClock(false);
+      }
+    }
+  }, []);
 
   const changeRate = useCallback((value: number) => {
+    rateRef.current = value;
     setRate(value);
     ownClock.current?.setRate(value);
   }, []);
@@ -310,7 +338,9 @@ export default function HeartViewer({
             {cycleMode === 'own' && (
               <div className={styles.heartbeat}>
                 <button type="button" onClick={toggleHeartbeat}>
-                  {cycle ? t['viewer.heartbeat.stop'] : t['viewer.heartbeat.start']}
+                  {cycle || startingClock
+                    ? t['viewer.heartbeat.stop']
+                    : t['viewer.heartbeat.start']}
                 </button>
                 <div className={styles.field}>
                   <label htmlFor={`${id}-rate`}>{t['viewer.heartbeat.rate']}</label>
@@ -324,7 +354,10 @@ export default function HeartViewer({
                     aria-valuetext={rateText}
                     onChange={(e) => changeRate(Number(e.target.value))}
                   />
-                  <output htmlFor={`${id}-rate`}>{rateText}</output>
+                  {/* aria-valuetext already speaks the value; <output> is a live region in Chromium. */}
+                  <output htmlFor={`${id}-rate`} aria-hidden="true">
+                    {rateText}
+                  </output>
                 </div>
                 {cycle && <p className={styles.note}>{t['viewer.heartbeat.note']}</p>}
               </div>

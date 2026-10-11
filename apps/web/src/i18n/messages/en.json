@@ -186,7 +186,7 @@
   "viewer.heartbeat.stop": "Stop the heartbeat",
   "viewer.heartbeat.rate": "Heart rate",
   "viewer.heartbeat.rateValue": "{rate} beats per minute",
-  "viewer.heartbeat.note": "The heartbeat is a schematic: the atria and then the ventricles contract and the valves open in time with the heart clock, but the size of the movement is exaggerated so it is easy to see.",
+  "viewer.heartbeat.note": "The heartbeat is a schematic: the atria and then the ventricles contract and the valves open in time with a model of the cardiac cycle, but the size of the movement is exaggerated so it is easy to see.",
   "structure.right-atrium": "Right atrium",
   "structure.left-atrium": "Left atrium",
   "structure.right-ventricle": "Right ventricle",
