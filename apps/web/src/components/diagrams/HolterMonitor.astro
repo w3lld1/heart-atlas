@@ -1,0 +1,134 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clip = `${uid}-strip`;
+// A schematic strip of regular beats: flat line, P wave, QRS spike, T wave. Not a real recording.
+const beat = (x: number) =>
+  `L${x + 4},100 Q${x + 6},95 ${x + 8},100 L${x + 11},100 L${x + 12},104 L${x + 14},74 L${x + 16},108 L${x + 18},100 L${x + 21},100 Q${x + 24},92 ${x + 27},100`;
+const strip = `M170,100 ${Array.from({ length: 8 }, (_, i) => beat(170 + i * 29)).join(' ')} L404,100`;
+---
+
+<svg viewBox="0 0 420 250" role="img" aria-label={t['diagram.holter-monitor.title']} lang={locale}>
+  <defs>
+    <clipPath id={clip}>
+      <rect x="164" y="56" width="246" height="84"></rect>
+    </clipPath>
+  </defs>
+
+  <!-- Person with electrodes on the chest and the recorder on the belt -->
+  <path
+    d="M50,40 Q80,20 110,40 L126,70 Q134,130 122,210 L38,210 Q26,130 34,70 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <circle cx="80" cy="22" r="16" fill="var(--diagram-muscle)"></circle>
+  <g fill="var(--color-bg)" stroke="var(--color-text)" stroke-width="2">
+    <circle cx="62" cy="80" r="6"></circle>
+    <circle cx="98" cy="80" r="6"></circle>
+    <circle cx="70" cy="120" r="6"></circle>
+    <circle cx="96" cy="128" r="6"></circle>
+  </g>
+  <g fill="none" stroke="var(--color-text)" stroke-width="1.5">
+    <path d="M62,86 Q60,150 72,172"></path>
+    <path d="M98,86 Q104,150 86,172"></path>
+    <path d="M70,126 Q70,150 76,172"></path>
+    <path d="M96,134 Q96,150 82,172"></path>
+  </g>
+  <rect x="56" y="172" width="48" height="30" rx="5" fill="var(--color-text)"></rect>
+  <circle data-only="symptom" cx="94" cy="187" r="5" fill="var(--diagram-impulse)"></circle>
+  <text class="diagram-small" x="80" y="226" text-anchor="middle">
+    {t['diagram.label.recorder']}
+  </text>
+  <path d="M112,18 L100,72" fill="none" stroke="var(--color-text)" stroke-width="1"></path>
+  <text class="diagram-small" x="110" y="14">
+    {t['diagram.label.electrodes']}
+  </text>
+
+  <!-- The recording: an ECG strip that keeps going for hours -->
+  <rect
+    x="164"
+    y="56"
+    width="246"
+    height="84"
+    rx="6"
+    fill="var(--color-bg)"
+    stroke="var(--color-border)"
+    stroke-width="2"
+  ></rect>
+  <path
+    d={strip}
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    clip-path={`url(#${clip})`}
+  ></path>
+  <text class="diagram-small" x="166" y="48">
+    {t['diagram.label.ecgRecord']}
+  </text>
+  <text class="diagram-small" x="287" y="160" text-anchor="middle">
+    {t['diagram.label.hours']}
+  </text>
+
+  <g data-only="recording">
+    <rect
+      class="flow holter-scan"
+      x="164"
+      y="56"
+      width="4"
+      height="84"
+      fill="var(--diagram-impulse)"
+    ></rect>
+  </g>
+
+  <!-- A symptom: the button press marks this moment on the recording, and the diary notes it -->
+  <g data-only="symptom">
+    <rect x="284" y="56" width="34" height="84" fill="var(--diagram-impulse)" opacity="0.3"></rect>
+    <path
+      d="M301,56 V30 L322,36 L301,42"
+      fill="var(--diagram-impulse)"
+      stroke="var(--color-text)"
+    ></path>
+    <text class="diagram-small" x="328" y="38">
+      {t['diagram.label.button']}
+    </text>
+    <rect
+      x="190"
+      y="176"
+      width="196"
+      height="46"
+      rx="6"
+      fill="var(--color-bg)"
+      stroke="var(--color-border)"
+      stroke-width="2"
+    ></rect>
+    <text class="diagram-small" x="200" y="196">
+      {t['diagram.label.diary']}
+    </text>
+    <text class="diagram-small" x="200" y="213">
+      {t['diagram.label.diaryEntry']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .holter-scan {
+    animation: holter-scan 4s linear infinite;
+  }
+
+  @keyframes holter-scan {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(242px);
+    }
+  }
+</style>

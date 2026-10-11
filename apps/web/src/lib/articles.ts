@@ -52,3 +52,9 @@ export function articlePages<T extends { id: string }>(
   }
   return pages;
 }
+
+/**
+ * Article types whose list is not a `/<locale>/<type>/` page of its own: the anatomy page with
+ * the 3D viewer lives at `/<locale>/anatomy/` and lists the anatomy articles under the viewer.
+ */
+export const typesListedElsewhere: ReadonlySet<string> = new Set(['anatomy']);

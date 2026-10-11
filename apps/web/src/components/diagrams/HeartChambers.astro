@@ -1,0 +1,210 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-arrow-v`;
+const arrowA = `${uid}-arrow-a`;
+const arrowM = `${uid}-arrow-m`;
+// Atrioventricular valves at the top of each ventricle: [x of the valve centre, colour token].
+const valves = [
+  { x: 118, colour: 'var(--diagram-venous)' },
+  { x: 246, colour: 'var(--diagram-arterial)' },
+];
+---
+
+<!--
+  A four-chamber section in anatomical orientation (echocardiography shows the apex on top): both atria above, both ventricles below, and the
+  two atrioventricular valves between them. The aortic and pulmonary valves are not in this view.
+-->
+<svg
+  viewBox="-90 0 540 300"
+  role="img"
+  aria-label={t['diagram.heart-chambers.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowM}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <path
+    d="M60,55 Q180,5 300,55 Q345,140 285,232 Q225,292 180,296 Q135,292 75,232 Q15,140 60,55 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Atria -->
+  <ellipse
+    cx="115"
+    cy="95"
+    rx="58"
+    ry="45"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="245"
+    cy="95"
+    rx="58"
+    ry="45"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Ventricles: full and relaxed in diastole, smaller while they contract in systole -->
+  <g data-only="diastole">
+    <ellipse
+      cx="118"
+      cy="205"
+      rx="54"
+      ry="62"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="246"
+      cy="207"
+      rx="56"
+      ry="64"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+  <g data-only="systole">
+    <ellipse
+      class="chambers-squeeze"
+      cx="118"
+      cy="191"
+      rx="40"
+      ry="48"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      class="chambers-squeeze"
+      cx="246"
+      cy="193"
+      rx="42"
+      ry="50"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+
+  <!-- Atrioventricular valves: open into the ventricles in diastole, shut in systole -->
+  {valves.map(({ x, colour }) => (
+    <g stroke={colour} stroke-width="4" stroke-linecap="round">
+      <g data-only="diastole">
+        <line x1={x - 18} y1="140" x2={x - 12} y2="170" />
+        <line x1={x + 18} y1="140" x2={x + 12} y2="170" />
+      </g>
+      <g data-only="systole">
+        <line x1={x - 18} y1="140" x2={x - 1} y2="148" />
+        <line x1={x + 18} y1="140" x2={x + 1} y2="148" />
+      </g>
+    </g>
+  ))}
+
+  <!-- Diastole: blood flows from the atria into the ventricles -->
+  <g data-only="diastole" fill="none" stroke-width="3">
+    <path d="M118,80 V215" stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <path d="M246,80 V215" stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    <g class="flow">
+      <path class="dash-flow" d="M118,80 V210" stroke="var(--color-bg)"></path>
+      <path class="dash-flow" d="M246,80 V210" stroke="var(--color-bg)"></path>
+    </g>
+  </g>
+
+  <!-- Systole: the ventricle walls move inwards -->
+  <g data-only="systole" fill="none" stroke="var(--color-text)" stroke-width="2">
+    <path d="M62,200 H74" marker-end={`url(#${arrowM})`}></path>
+    <path d="M174,200 H162" marker-end={`url(#${arrowM})`}></path>
+    <path d="M186,200 H198" marker-end={`url(#${arrowM})`}></path>
+    <path d="M302,200 H290" marker-end={`url(#${arrowM})`}></path>
+    <path d="M118,262 V248" marker-end={`url(#${arrowM})`}></path>
+    <path d="M246,266 V252" marker-end={`url(#${arrowM})`}></path>
+  </g>
+
+  <text x="86" y="100" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="274" y="100" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="96" y="214" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="270" y="214" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <path d="M100,150 L52,150" fill="none" stroke="var(--color-text)" stroke-width="1"></path>
+  <text class="diagram-small" x="48" y="154" text-anchor="end">
+    {t['diagram.label.tricuspid']}
+  </text>
+  <path d="M264,150 L312,150" fill="none" stroke="var(--color-text)" stroke-width="1"></path>
+  <text class="diagram-small" x="316" y="154">
+    {t['diagram.label.mitral']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .chambers-squeeze {
+    animation: chambers-squeeze 1.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @keyframes chambers-squeeze {
+    0%,
+    100% {
+      transform: scale(1.12);
+    }
+
+    50% {
+      transform: scale(1);
+    }
+  }
+</style>

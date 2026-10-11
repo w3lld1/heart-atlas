@@ -5,7 +5,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
 import { localePath } from '../../../i18n/paths.ts';
-import { articlePages, type ArticlePage } from '../../../lib/articles.ts';
+import { articlePages, typesListedElsewhere, type ArticlePage } from '../../../lib/articles.ts';
 import { articleTypes, type ArticleType } from '../../../lib/content.ts';
 
 type Entry = Awaited<ReturnType<typeof getCollection<'articles'>>>[number];
@@ -13,6 +13,7 @@ type Entry = Awaited<ReturnType<typeof getCollection<'articles'>>>[number];
 export const getStaticPaths = (async () => {
   const byPage = new Map<string, ArticlePage<Entry>[]>();
   for (const page of articlePages(await getCollection('articles'), locales)) {
+    if (typesListedElsewhere.has(page.type)) continue;
     const key = `${page.locale}/${page.type}`;
     byPage.set(key, [...(byPage.get(key) ?? []), page]);
   }

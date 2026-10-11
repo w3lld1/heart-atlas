@@ -1,0 +1,151 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+// The two sides of the heart as two rows: atrium → valve → ventricle → valve → artery.
+const rows = [
+  {
+    y: 85,
+    colour: 'var(--diagram-venous)',
+    fill: 'var(--diagram-venous-fill)',
+    marker: `${uid}-arrow-v`,
+    atrium: t['diagram.label.ra'],
+    ventricle: t['diagram.label.rv'],
+    artery: t['diagram.label.pulmonaryArtery'],
+    inlet: t['diagram.label.tricuspid'],
+    outlet: t['diagram.label.pulmonaryValve'],
+  },
+  {
+    y: 205,
+    colour: 'var(--diagram-arterial)',
+    fill: 'var(--diagram-arterial-fill)',
+    marker: `${uid}-arrow-a`,
+    atrium: t['diagram.label.la'],
+    ventricle: t['diagram.label.lv'],
+    artery: t['diagram.label.aorta'],
+    inlet: t['diagram.label.mitral'],
+    outlet: t['diagram.label.aorticValve'],
+  },
+];
+const inletX = 125;
+const outletX = 255;
+---
+
+<svg viewBox="0 0 480 280" role="img" aria-label={t['diagram.heart-valves.title']} lang={locale}>
+  <defs>
+    {rows.map((row) => (
+      <marker
+        id={row.marker}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="5"
+        markerHeight="5"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={row.colour} />
+      </marker>
+    ))}
+  </defs>
+  {rows.map((row) => {
+    const top = row.y - 30;
+    const bottom = row.y + 30;
+    // A closed valve: both leaflets meet across the opening. An open one: they lie along the flow.
+    const closed = (x: number) =>
+      `M${x},${top + 3} L${x},${row.y - 1} M${x},${bottom - 3} L${x},${row.y + 1}`;
+    const open = (x: number) =>
+      `M${x},${top + 3} L${x + 20},${top + 9} M${x},${bottom - 3} L${x + 20},${bottom - 9}`;
+    return (
+      <g>
+        <rect
+          x="20"
+          y={top}
+          width="90"
+          height="60"
+          rx="10"
+          fill={row.fill}
+          stroke={row.colour}
+          stroke-width="2"
+        />
+        <rect
+          x="140"
+          y={top}
+          width="100"
+          height="60"
+          rx="10"
+          fill={row.fill}
+          stroke={row.colour}
+          stroke-width="2"
+        />
+        <rect
+          x="270"
+          y={top + 8}
+          width="190"
+          height="44"
+          rx="22"
+          fill={row.fill}
+          stroke={row.colour}
+          stroke-width="2"
+        />
+        <text x="65" y={row.y + 6} text-anchor="middle">
+          {row.atrium}
+        </text>
+        <text x="190" y={row.y + 6} text-anchor="middle">
+          {row.ventricle}
+        </text>
+        <text class="diagram-small" x="365" y={row.y + 4} text-anchor="middle">
+          {row.artery}
+        </text>
+
+        <g stroke={row.colour} stroke-width="4" stroke-linecap="round" fill="none">
+          <path data-only="diastole" d={open(inletX)} />
+          <path data-only="systole" d={closed(inletX)} />
+          <path data-only="diastole" d={closed(outletX)} />
+          <path data-only="systole" d={open(outletX)} />
+        </g>
+        <text class="diagram-small" x={inletX} y={bottom + 18} text-anchor="middle">
+          {row.inlet}
+        </text>
+        <text class="diagram-small" x={outletX + 8} y={bottom + 18} text-anchor="middle">
+          {row.outlet}
+        </text>
+
+        <g fill="none" stroke-width="3">
+          <path
+            data-only="diastole"
+            d={`M95,${row.y - 14} H168`}
+            stroke={row.colour}
+            marker-end={`url(#${row.marker})`}
+          />
+          <path
+            data-only="systole"
+            d={`M215,${row.y - 14} H298`}
+            stroke={row.colour}
+            marker-end={`url(#${row.marker})`}
+          />
+          <g class="flow">
+            <path
+              data-only="diastole"
+              class="dash-flow"
+              d={`M95,${row.y - 14} H164`}
+              stroke="var(--color-bg)"
+            />
+            <path
+              data-only="systole"
+              class="dash-flow"
+              d={`M215,${row.y - 14} H294`}
+              stroke="var(--color-bg)"
+            />
+          </g>
+        </g>
+      </g>
+    );
+  })}
+</svg>

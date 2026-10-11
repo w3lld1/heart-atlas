@@ -7,6 +7,7 @@ import { localeCodes, locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
 import { localePath } from '../../../i18n/paths.ts';
 import { articlePages } from '../../../lib/articles.ts';
+import { articleTypes } from '../../../lib/content.ts';
 import { iframeCode } from '../../../lib/embed.ts';
 
 export const getStaticPaths = (() =>
@@ -17,23 +18,28 @@ const t = getMessages(locale);
 const embedUrl = (path: string) =>
   new URL(localePath(import.meta.env.BASE_URL, locale, `embed/${path}`), Astro.site).href;
 
-const diseases = articlePages(await getCollection('articles'), locales)
-  .filter((page) => page.locale === locale && page.type === 'disease')
-  .map((page) => ({
-    slug: page.slug,
-    title: page.entry.data.title,
-    withMonitor: page.entry.data.preset !== undefined,
-  }))
-  .sort((a, b) => a.title.localeCompare(b.title, locale));
-
+const pages = articlePages(await getCollection('articles'), locales).filter(
+  (page) => page.locale === locale,
+);
 const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1200 };
 const heartModel = { src: embedUrl('heart-model/'), title: t['anatomy.title'], height: 1000 };
-const diseaseModules = diseases.map((disease) => ({
-  src: embedUrl(`disease/${disease.slug}/`),
-  title: disease.title,
-  // Articles with a preset also hold the heart clock monitor.
-  height: disease.withMonitor ? 1600 : 800,
-}));
+const hasMonitor = (entry: (typeof pages)[number]['entry']) =>
+  entry.data.preset !== undefined || (entry.body ?? '').includes('<EcgMonitor');
+// One group per article type that has articles, in the order of articleTypes.
+const articleGroups = articleTypes
+  .map((type) => ({
+    type,
+    modules: pages
+      .filter((page) => page.type === type)
+      .map((page) => ({
+        src: embedUrl(`${type}/${page.slug}/`),
+        title: page.entry.data.title,
+        // Articles with the heart clock monitor are taller.
+        height: hasMonitor(page.entry) ? 1600 : 800,
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title, locale)),
+  }))
+  .filter((group) => group.modules.length > 0);
 const [minRate, maxRate] = paramRanges.heartRate;
 ---
 
@@ -56,15 +62,15 @@ const [minRate, maxRate] = paramRanges.heartRate;
             {heartModel.title}
           </option>
         </optgroup>
-        {diseaseModules.length > 0 && (
-          <optgroup label={t['articles.type.disease']}>
-            {diseaseModules.map((module) => (
+        {articleGroups.map((group) => (
+          <optgroup label={t[`articles.type.${group.type}`]}>
+            {group.modules.map((module) => (
               <option value={module.src} data-title={module.title} data-height={module.height}>
                 {module.title}
               </option>
             ))}
           </optgroup>
-        )}
+        ))}
       </select>
     </label>
     <label data-ecg-field>

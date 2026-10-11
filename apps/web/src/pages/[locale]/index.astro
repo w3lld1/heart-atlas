@@ -5,7 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
 import { localePath } from '../../i18n/paths.ts';
-import { articlePages } from '../../lib/articles.ts';
+import { articlePages, typesListedElsewhere } from '../../lib/articles.ts';
 import { articleTypes } from '../../lib/content.ts';
 
 export const getStaticPaths = (() =>
@@ -16,8 +16,11 @@ const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
 const pages = articlePages(await getCollection('articles'), locales);
 // Sections with at least one article readable in this locale, in the order of articleTypes.
-const types = articleTypes.filter((type) =>
-  pages.some((page) => page.locale === locale && page.type === type),
+// Anatomy articles are listed on the anatomy page, which has its own link below.
+const types = articleTypes.filter(
+  (type) =>
+    !typesListedElsewhere.has(type) &&
+    pages.some((page) => page.locale === locale && page.type === type),
 );
 ---
 

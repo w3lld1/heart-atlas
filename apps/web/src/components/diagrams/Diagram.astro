@@ -1,7 +1,7 @@
 ---
 import { defaultLocale } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
-import { diagrams, type DiagramName } from './index.ts';
+import { diagramStates, diagrams, stateIds, type DiagramName } from './index.ts';
 
 interface Props {
   name: DiagramName;
@@ -10,27 +10,53 @@ interface Props {
 const { name } = Astro.props;
 const Art = diagrams[name];
 if (!Art) throw new Error(`Unknown diagram "${name}"`);
+const { states, initial } = diagramStates(name);
 const locale = Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
 // A unique id per diagram on the page keeps radio groups and SVG ids apart.
 Astro.locals.diagramCount = (Astro.locals.diagramCount ?? 0) + 1;
 const id = `diagram-${Astro.locals.diagramCount}`;
+// One rule per state id: in that state, everything marked for another state is hidden. Scoped
+// styles cannot come from data, so the rules go into the page once, with the first diagram.
+const stateRules =
+  Astro.locals.diagramCount === 1
+    ? stateIds
+        .map(
+          (state) =>
+            `.diagram:has([value='${state}']:checked) [data-only]:not([data-only='${state}']){display:none}`,
+        )
+        .join('')
+    : '';
+// Captions are article text in a slot per state, e.g. <p slot="systole">. A slot for a state the
+// diagram does not have would vanish silently, so it fails the build. The default slot is the
+// whitespace MDX leaves between captions.
+for (const slot of Object.keys(Astro.slots).filter((key) => key !== 'default')) {
+  if (!(states as readonly string[]).includes(slot)) {
+    throw new Error(`<Diagram name="${name}">: no state "${slot}" (states: ${states.join(', ')})`);
+  }
+}
+const captions = await Promise.all(
+  states.map(async (state) => ({
+    state,
+    html: Astro.slots.has(state) ? await Astro.slots.render(state) : '',
+  })),
+);
 ---
 
 <figure class="diagram">
   <!-- Controls and labels are UI text in the page locale; captions are article text. -->
   <div class="diagram-controls" lang={locale}>
-    <fieldset>
-      <legend class="diagram-visually-hidden">{t['diagram.state']}</legend>
-      <label>
-        <input type="radio" name={`${id}-state`} value="normal" />
-        {t['diagram.normal']}
-      </label>
-      <label>
-        <input type="radio" name={`${id}-state`} value="disease" checked />
-        {t['diagram.disease']}
-      </label>
-    </fieldset>
+    {states.length > 1 && (
+      <fieldset>
+        <legend class="diagram-visually-hidden">{t['diagram.state']}</legend>
+        {states.map((state) => (
+          <label>
+            <input type="radio" name={`${id}-state`} value={state} checked={state === initial} />
+            {t[`diagram.state.${state}`]}
+          </label>
+        ))}
+      </fieldset>
+    )}
     <label class="diagram-pause">
       <input type="checkbox" />
       {t['diagram.pause']}
@@ -38,12 +64,9 @@ const id = `diagram-${Astro.locals.diagramCount}`;
   </div>
   <Art locale={locale} uid={id} />
   <figcaption>
-    <div class="diagram-caption" data-state="normal">
-      <slot name="normal" />
-    </div>
-    <div class="diagram-caption" data-state="disease">
-      <slot name="disease" />
-    </div>
+    {captions.map(({ state, html }) => (
+      <div class="diagram-caption" data-only={state} set:html={html} />
+    ))}
     <p class="diagram-note" lang={locale}>
       {t['diagram.schematic']}
     </p>
@@ -79,8 +102,8 @@ const id = `diagram-${Astro.locals.diagramCount}`;
     }
   }
 
+  /* Labels sit at fixed points of the art, which is never mirrored, so text anchors must not flip. */
   .diagram svg {
-    /* Coordinates and text anchors are fixed: anatomy does not mirror in right-to-left pages. */
     direction: ltr;
     display: block;
     inline-size: 100%;
@@ -96,6 +119,25 @@ const id = `diagram-${Astro.locals.diagramCount}`;
     font-weight: 600;
   }
 
+  .diagram svg text.diagram-small {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* Moving dashes along a vessel or pathway: the shared flow animation of the diagrams. */
+  .diagram .dash-flow {
+    animation: diagram-dash 1.4s linear infinite;
+    fill: none;
+    stroke-dasharray: 4 12;
+    stroke-linecap: round;
+  }
+
+  @keyframes diagram-dash {
+    to {
+      stroke-dashoffset: -32;
+    }
+  }
+
   .diagram-controls {
     display: flex;
     flex-wrap: wrap;
@@ -106,6 +148,7 @@ const id = `diagram-${Astro.locals.diagramCount}`;
 
   .diagram-controls fieldset {
     display: inline-flex;
+    flex-wrap: wrap;
     margin: 0;
     padding: 0;
     border: 1px solid var(--color-border);
@@ -157,9 +200,10 @@ const id = `diagram-${Astro.locals.diagramCount}`;
     white-space: nowrap;
   }
 
-  /* The state is pure CSS, so the toggle works without JavaScript. */
-  .diagram:has([value='normal']:checked) :is(.disease-only, .diagram-caption[data-state='disease']),
-  .diagram:has([value='disease']:checked) :is(.normal-only, .diagram-caption[data-state='normal']) {
+  /* The state is pure CSS, so the toggle works without JavaScript. Elements marked
+     data-only="<state>" (or the older normal-only / disease-only classes) show only in it. */
+  .diagram:has([value='normal']:checked) .disease-only,
+  .diagram:has([value='disease']:checked) .normal-only {
     display: none;
   }
 
@@ -182,3 +226,5 @@ const id = `diagram-${Astro.locals.diagramCount}`;
     }
   }
 </style>
+
+{stateRules && <Fragment set:html={`<style>${stateRules}</style>`} />}

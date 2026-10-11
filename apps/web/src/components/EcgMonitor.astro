@@ -1,0 +1,67 @@
+---
+import { isPresetId, type PresetId } from '@heart-atlas/heart-clock';
+import HeartClockDemo, {
+  heartClockMessageKeys,
+  type HeartClockMessages,
+} from './heart-clock/HeartClockDemo.tsx';
+import { defaultLocale } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+
+// The heart clock monitor inside an article: <EcgMonitor preset="normal" />, with an optional
+// article caption as children. MDX components
+// are not hydrated themselves, so this Astro wrapper renders the island.
+interface Props {
+  /** Preset to start with. */
+  preset?: PresetId;
+  /** Presets the reader can switch between; without them there is no switch. */
+  presets?: PresetId[];
+}
+
+const { preset, presets } = Astro.props;
+for (const id of [preset, ...(presets ?? [])]) {
+  if (id !== undefined && !isPresetId(id)) throw new Error(`<EcgMonitor>: unknown preset "${id}"`);
+}
+const locale = Astro.locals.locale ?? defaultLocale;
+const t = getMessages(locale);
+const messages = Object.fromEntries(
+  heartClockMessageKeys.map((key) => [key, t[key]]),
+) as HeartClockMessages;
+---
+
+<figure class="ecg-monitor" data-pagefind-ignore>
+  <!-- The monitor and the note are UI text in the page locale; the caption is article text. -->
+  <div lang={locale}>
+    <HeartClockDemo
+      client:visible
+      locale={locale}
+      messages={messages}
+      {...(preset === undefined ? {} : { preset })}
+      {...(presets === undefined ? {} : { presets })}
+    />
+  </div>
+  <figcaption>
+    {Astro.slots.has('default') && (
+      <div class="ecg-monitor-caption">
+        <slot />
+      </div>
+    )}
+    <p lang={locale}>{t['heartClock.schematic']}</p>
+  </figcaption>
+</figure>
+
+<style>
+  .ecg-monitor {
+    margin-block: 1.5rem;
+    margin-inline: 0;
+  }
+
+  figcaption {
+    margin-block-start: 0.5rem;
+  }
+
+  figcaption > p {
+    margin-block: 0.5rem 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+</style>

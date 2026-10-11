@@ -1,0 +1,86 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// Front view of the heart. Arteries on the front surface are solid; the posterior descending
+// artery runs on the back surface and is dashed.
+const arteries = {
+  rca: 'M168,74 Q118,82 92,118 Q66,160 88,214 Q100,240 126,256',
+  marginal: 'M86,190 Q110,214 130,226',
+  main: 'M174,76 L216,86',
+  lad: 'M216,86 Q214,180 186,284',
+  diagonal: 'M212,150 Q240,170 262,200',
+  lcx: 'M216,86 Q268,92 296,128 Q312,154 306,186',
+  sinus: 'M132,85 Q120,66 134,52',
+};
+const pda = 'M126,256 Q156,282 186,284';
+---
+
+<svg
+  viewBox="-150 0 550 330"
+  role="img"
+  aria-label={t['diagram.coronary-arteries.title']}
+  lang={locale}
+>
+  <!-- Heart and aorta -->
+  <path
+    d="M70,90 Q180,40 310,90 Q350,170 290,250 Q230,312 186,300 Q140,300 90,250 Q30,170 70,90 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    d="M166,74 Q166,30 190,14 Q214,4 236,16"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="22"
+    stroke-linecap="round"
+  ></path>
+
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="5" stroke-linecap="round">
+    {Object.values(arteries).map((d) => (
+      <path d={d} />
+    ))}
+    <path d={pda} stroke-dasharray="6 6" />
+  </g>
+
+  <!-- Blood moving along the arteries -->
+  <g class="flow" stroke="var(--diagram-arterial-fill)" stroke-width="3">
+    {Object.values(arteries).map((d) => (
+      <path class="dash-flow" d={d} />
+    ))}
+  </g>
+
+  <text class="diagram-small" x="242" y="22">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="226" y="70">
+    {t['diagram.label.lca']}
+  </text>
+  <text class="diagram-small" x="300" y="112">
+    {t['diagram.label.lcx']}
+  </text>
+  <text class="diagram-small" x="200" y="296">
+    {t['diagram.label.lad']}
+  </text>
+  <text class="diagram-small" x="266" y="214">
+    {t['diagram.label.diagonal']}
+  </text>
+  <text class="diagram-small" x="60" y="112" text-anchor="end">
+    {t['diagram.label.rca']}
+  </text>
+  <text class="diagram-small" x="74" y="232" text-anchor="end">
+    {t['diagram.label.marginal']}
+  </text>
+  <text class="diagram-small" x="128" y="46" text-anchor="end">
+    {t['diagram.label.sinusBranch']}
+  </text>
+  <text class="diagram-small" x="150" y="324" text-anchor="middle">
+    {t['diagram.label.pda']}
+  </text>
+</svg>

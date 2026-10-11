@@ -14,14 +14,12 @@ import { localePath } from '../../../../i18n/paths.ts';
 import { articlePages } from '../../../../lib/articles.ts';
 
 export const getStaticPaths = (async () =>
-  articlePages(await getCollection('articles'), locales)
-    .filter((page) => page.type === 'disease')
-    .map((page) => ({
-      params: { locale: page.locale, slug: page.slug },
-      props: { entry: page.entry, contentLocale: page.contentLocale },
-    }))) satisfies GetStaticPaths;
+  articlePages(await getCollection('articles'), locales).map((page) => ({
+    params: { locale: page.locale, type: page.type, slug: page.slug },
+    props: { entry: page.entry, contentLocale: page.contentLocale },
+  }))) satisfies GetStaticPaths;
 
-const { locale, slug } = Astro.params;
+const { locale, type, slug } = Astro.params;
 const { entry, contentLocale } = Astro.props;
 const t = getMessages(locale);
 const article = entry.data;
@@ -31,11 +29,11 @@ Astro.locals.locale = locale;
 Astro.locals.sourceCount = article.sources.length;
 // The full article in the language it is written in.
 const canonical = new URL(
-  localePath(import.meta.env.BASE_URL, contentLocale, `disease/${slug}/`),
+  localePath(import.meta.env.BASE_URL, contentLocale, `${type}/${slug}/`),
   Astro.site,
 );
 const fullPage = new URL(
-  localePath(import.meta.env.BASE_URL, locale, `disease/${slug}/`),
+  localePath(import.meta.env.BASE_URL, locale, `${type}/${slug}/`),
   Astro.site,
 );
 const { Content } = await render(entry);
