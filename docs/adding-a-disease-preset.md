@@ -62,7 +62,7 @@ Then run `pnpm i18n:check`.
 
 ### 4. Sources on the page
 
-Add every document your numbers come from to `presetSources` in [`apps/web/src/components/heart-clock/sources.ts`](../apps/web/src/components/heart-clock/sources.ts). The heart clock page lists them under the monitor.
+Add every document your numbers come from to `presetSources` in [`apps/web/src/components/heart-clock/sources.ts`](../apps/web/src/components/heart-clock/sources.ts) as a `ClockSource`: `text` (the citation as shown), `href` (an https link) and `lang` (the language of the title). The heart clock page lists them under the monitor.
 
 ### 5. Using the preset
 

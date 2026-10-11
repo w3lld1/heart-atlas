@@ -96,7 +96,7 @@ Marks a statement with the numbers of the sources that support it, as numbered i
 
 ```mdx
 Blood speeds up through the valve.<Cite n={2} />
-Once symptoms appear, the risk rises sharply.<Cite n={[1, 3]} />
+Once symptoms appear, the risk rises sharply.<Cite n={[1, 2]} />
 ```
 
 A number outside `1..sources.length` fails the build. Put a `<Cite>` after every medical statement.
@@ -116,7 +116,7 @@ The most common first sign is breathlessness on exertion.<Cite n={2} />
 
 <Student>
 
-Text with terminology.<Cite n={3} />
+Text with terminology.<Cite n={2} />
 
 </Student>
 ```
@@ -129,8 +129,8 @@ An animated "normal / disease" schematic with a switch, a pause button and a cap
 
 ```mdx
 <Diagram name="aortic-stenosis">
-  <p slot="normal">Normally blood leaves the left ventricle through a valve with three leaflets.<Cite n={3} /></p>
-  <p slot="disease">In aortic stenosis the aortic opening is narrowed.<Cite n={3} /></p>
+  <p slot="normal">Normally blood leaves the left ventricle through a valve with three leaflets.<Cite n={2} /></p>
+  <p slot="disease">In aortic stenosis the aortic opening is narrowed.<Cite n={2} /></p>
 </Diagram>
 ```
 

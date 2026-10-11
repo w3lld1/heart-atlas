@@ -15,7 +15,7 @@ How the repository is laid out and how a page gets from source files to GitHub P
 | `scripts/`             | Repository scripts, for now `check-dois.mjs` (checks every DOI in `content/` against Crossref).                                                                               | MIT             |
 | `docs/`                | Contributor docs (this folder), [`accessibility.md`](accessibility.md) and the stage specs in `docs/plans/`.                                                                  | —               |
 
-It is a pnpm workspace (`pnpm-workspace.yaml`). Packages export TypeScript sources directly (`"exports": "./src/index.ts"`), so there is no package build step. The root `vitest.config.ts` runs the Vitest projects of `apps/*`, `packages/*` and `scripts/`.
+It is a pnpm workspace (`pnpm-workspace.yaml`). Packages export TypeScript sources directly (`exports` in each `package.json` points at `src/*.ts`), so there is no package build step. The root `vitest.config.ts` runs the Vitest projects of `apps/*`, `packages/*` and `scripts/`.
 
 ## Root scripts
 
@@ -70,7 +70,7 @@ Most of the site is static HTML. Interactive parts are React islands that load o
 
 | Island                                               | Where                                                           | Loads with                       |
 | ---------------------------------------------------- | --------------------------------------------------------------- | -------------------------------- |
-| `HeartViewer` (`packages/viewer`)                    | `[locale]/anatomy.astro`                                        | `client:visible`                 |
+| `HeartViewer` (`packages/viewer`)                    | `[locale]/anatomy.astro`, `[locale]/heart-clock.astro` (beats with the clock) | `client:visible`; 3D on click on the heart clock page |
 | `HeartModelEmbed` (`components/viewer/`)             | `[locale]/embed/heart-model.astro`                              | `client:visible`, 3D on click    |
 | `HeartClockDemo` (`components/heart-clock/`)         | `[locale]/heart-clock.astro`, articles with `preset` (`ArticleClock.astro`) | `client:visible`     |
 | `EcgEmbed` (`components/heart-clock/`)               | `[locale]/embed/ecg.astro`                                      | `client:load`                    |
@@ -82,7 +82,7 @@ The article diagrams (`components/diagrams/`) and the patient/student switch are
 `apps/web/src/pages/[locale]/embed/`:
 
 - `index.astro`: the code builder (pick a module, get `<iframe>` code).
-- `ecg.astro`: the heart clock monitor; accepts `?rate=`.
+- `ecg.astro`: the heart clock monitor; accepts `?preset=<id>` and `?rate=`.
 - `heart-model.astro`: the 3D model; accepts `?structure=<id>` from `structures.yaml`.
 - `disease/[slug].astro`: a disease article with its review notice and sources.
 
