@@ -12,7 +12,9 @@ import HeartValves from './HeartValves.astro';
 import HolterMonitor from './HolterMonitor.astro';
 import Hypertension from './Hypertension.astro';
 import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
+import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
+import Pericarditis from './Pericarditis.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
@@ -30,7 +32,9 @@ export const diagrams = {
   'holter-monitor': HolterMonitor,
   hypertension: Hypertension,
   'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
+  'infective-endocarditis': InfectiveEndocarditis,
   'natriuretic-peptides': NatriureticPeptides,
+  pericarditis: Pericarditis,
 } as const;
 
 export type DiagramName = keyof typeof diagrams;

@@ -235,7 +235,6 @@
   "diagram.label.venaCava": "Полые вены",
   "diagram.label.pulmonaryArtery": "Лёгочная артерия",
   "diagram.label.pulmonaryVeins": "Лёгочные вены",
-  "diagram.label.aorta": "Аорта",
   "diagram.label.tricuspid": "Трёхстворчатый",
   "diagram.label.pulmonaryValve": "Лёгочный",
   "diagram.label.mitral": "Митральный",
@@ -270,5 +269,14 @@
   "diagram.label.cleavage": "расщепление",
   "diagram.label.activeHormone": "активный гормон",
   "diagram.label.inactiveFragment": "неактивный фрагмент",
-  "diagram.natriuretic-peptides.title": "Схема: proBNP расщепляется на активный гормон BNP и неактивный фрагмент NT-proBNP"
+  "diagram.natriuretic-peptides.title": "Схема: proBNP расщепляется на активный гормон BNP и неактивный фрагмент NT-proBNP",
+  "diagram.label.pericardium": "Перикард",
+  "diagram.label.inflamed-pericardium": "Воспалённый перикард",
+  "diagram.label.pericardial-cavity": "Полость перикарда",
+  "diagram.label.effusion": "Выпот",
+  "diagram.pericarditis.title": "Схема сердца в перикарде: в норме и при воспалении листков перикарда с жидкостью между ними",
+  "diagram.label.vegetation": "Вегетация",
+  "diagram.label.damaged-leaflet": "Разрушенная створка",
+  "diagram.label.embolus": "Эмбол",
+  "diagram.infective-endocarditis.title": "Схема клапана сердца: в норме и при инфекционном эндокардите с вегетацией, разрушенной створкой, обратным током крови и отрывающимся фрагментом"
 }

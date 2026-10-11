@@ -1,0 +1,164 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const heartId = `${uid}-pc-heart`;
+
+// One heart outline, drawn at different scales around the same centre: the heart itself and
+// the outer (parietal) layer of the pericardium. The gap between them is the pericardial cavity.
+const centre = { x: 120, y: 150 };
+const heartPath =
+  'M60,85 Q180,35 300,85 Q352,175 297,270 Q237,326 180,332 Q123,326 63,270 Q8,175 60,85 Z';
+const around = (scale: number) =>
+  `translate(${centre.x} ${centre.y}) scale(${scale}) translate(-180 -190)`;
+const heartScale = 0.5;
+// A narrow cavity normally; with an effusion the outer layer stands further from the heart.
+const sacNormal = 0.56;
+const sacEffusion = 0.64;
+---
+
+<svg viewBox="0 30 470 240" role="img" aria-label={t['diagram.pericarditis.title']} lang={locale}>
+  <defs>
+    <path id={heartId} d={heartPath}></path>
+  </defs>
+
+  <!-- Outer layer and the cavity under it -->
+  <g class="normal-only">
+    <use
+      href={`#${heartId}`}
+      transform={around(sacNormal)}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--color-muted)"
+      stroke-width="3"
+      vector-effect="non-scaling-stroke"
+    ></use>
+  </g>
+  <g class="disease-only">
+    <!-- Effusion: more fluid between the layers -->
+    <use
+      href={`#${heartId}`}
+      transform={around(sacEffusion)}
+      fill="var(--diagram-venous-fill)"
+      stroke="none"
+    ></use>
+    <!-- Inflamed outer layer; the soft halo pulses -->
+    <use
+      class="pc-halo"
+      href={`#${heartId}`}
+      transform={around(sacEffusion)}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-opacity="0.35"
+      stroke-width="10"
+      vector-effect="non-scaling-stroke"
+    ></use>
+    <use
+      href={`#${heartId}`}
+      transform={around(sacEffusion)}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      vector-effect="non-scaling-stroke"
+    ></use>
+  </g>
+
+  <!-- The heart with the inner (visceral) layer on its surface; it beats inside the sac -->
+  <g class="pc-beat">
+    <use
+      href={`#${heartId}`}
+      transform={around(heartScale)}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="2"
+      vector-effect="non-scaling-stroke"
+    ></use>
+    <g class="disease-only">
+      <use
+        class="pc-halo"
+        href={`#${heartId}`}
+        transform={around(heartScale)}
+        fill="none"
+        stroke="var(--diagram-arterial)"
+        stroke-opacity="0.35"
+        stroke-width="10"
+        vector-effect="non-scaling-stroke"
+      ></use>
+      <use
+        href={`#${heartId}`}
+        transform={around(heartScale)}
+        fill="none"
+        stroke="var(--diagram-arterial)"
+        stroke-width="3"
+        vector-effect="non-scaling-stroke"
+      ></use>
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="188" y1="96" x2="249" y2="60"></line>
+    <line class="disease-only" x1="199" y1="86" x2="249" y2="60"></line>
+    <line class="normal-only" x1="197" y1="147" x2="249" y2="147"></line>
+    <line class="disease-only" x1="203" y1="146" x2="249" y2="147"></line>
+    <line x1="160" y1="190" x2="249" y2="232"></line>
+  </g>
+  <text class="normal-only" x="255" y="65">
+    {t['diagram.label.pericardium']}
+  </text>
+  <text class="disease-only" x="255" y="65">
+    {t['diagram.label.inflamed-pericardium']}
+  </text>
+  <text class="normal-only" x="255" y="152">
+    {t['diagram.label.pericardial-cavity']}
+  </text>
+  <text class="disease-only" x="255" y="152">
+    {t['diagram.label.effusion']}
+  </text>
+  <text x="255" y="237">
+    {t['diagram.label.heart-muscle']}
+  </text>
+</svg>
+
+<style is:global>
+  /* The heart beats inside the pericardium; the sac itself does not move. */
+  .diagram .pc-beat {
+    transform-box: view-box;
+    transform-origin: 120px 150px;
+    animation: pc-beat 1.2s ease-in-out infinite;
+  }
+
+  /* Inflamed layers: the halo pulses; without motion it stays at its drawn strength. */
+  .diagram .pc-halo {
+    animation: pc-halo 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pc-beat {
+    0%,
+    60%,
+    100% {
+      transform: scale(1);
+    }
+
+    25% {
+      transform: scale(0.93);
+    }
+  }
+
+  @keyframes pc-halo {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
+  }
+</style>

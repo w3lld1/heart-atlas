@@ -235,7 +235,6 @@
   "diagram.label.venaCava": "[RTL] Venae cavae",
   "diagram.label.pulmonaryArtery": "[RTL] Pulmonary artery",
   "diagram.label.pulmonaryVeins": "[RTL] Pulmonary veins",
-  "diagram.label.aorta": "[RTL] Aorta",
   "diagram.label.tricuspid": "[RTL] Tricuspid",
   "diagram.label.pulmonaryValve": "[RTL] Pulmonary",
   "diagram.label.mitral": "[RTL] Mitral",
@@ -270,5 +269,14 @@
   "diagram.label.cleavage": "[RTL] cleavage",
   "diagram.label.activeHormone": "[RTL] active hormone",
   "diagram.label.inactiveFragment": "[RTL] inactive fragment",
-  "diagram.natriuretic-peptides.title": "[RTL] Diagram: proBNP is cleaved into the active hormone BNP and the inactive fragment NT-proBNP"
+  "diagram.natriuretic-peptides.title": "[RTL] Diagram: proBNP is cleaved into the active hormone BNP and the inactive fragment NT-proBNP",
+  "diagram.label.pericardium": "[RTL] Pericardium",
+  "diagram.label.inflamed-pericardium": "[RTL] Inflamed pericardium",
+  "diagram.label.pericardial-cavity": "[RTL] Pericardial cavity",
+  "diagram.label.effusion": "[RTL] Effusion",
+  "diagram.pericarditis.title": "[RTL] Diagram of the heart inside the pericardium: normal, and with inflamed pericardial layers and fluid between them",
+  "diagram.label.vegetation": "[RTL] Vegetation",
+  "diagram.label.damaged-leaflet": "[RTL] Damaged leaflet",
+  "diagram.label.embolus": "[RTL] Embolus",
+  "diagram.infective-endocarditis.title": "[RTL] Diagram of a heart valve: normal, and in infective endocarditis with a vegetation, a damaged leaflet, backflow and a fragment breaking off"
 }
