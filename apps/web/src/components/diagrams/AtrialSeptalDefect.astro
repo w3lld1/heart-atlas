@@ -3,9 +3,14 @@ import { getMessages } from '../../i18n/messages.ts';
 
 interface Props {
   locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
 }
 
-const t = getMessages(Astro.props.locale);
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-arrow-v`;
+const arrowA = `${uid}-arrow-a`;
 // Particles: start position, travel and a negative delay so the flow is already running.
 const venous = [0, -0.7, -1.4, -2.1];
 const arterial = [-0.35, -1.05, -1.75, -2.45];
@@ -16,11 +21,11 @@ const shunt = [0, -1, -2];
   viewBox="0 0 360 300"
   role="img"
   aria-label={t['diagram.atrial-septal-defect.title']}
-  lang={Astro.props.locale}
+  lang={locale}
 >
   <defs>
     <marker
-      id="asd-arrow-v"
+      id={arrowV}
       viewBox="0 0 10 10"
       refX="8"
       refY="5"
@@ -31,7 +36,7 @@ const shunt = [0, -1, -2];
       <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
     </marker>
     <marker
-      id="asd-arrow-a"
+      id={arrowA}
       viewBox="0 0 10 10"
       refX="8"
       refY="5"
@@ -101,7 +106,16 @@ const shunt = [0, -1, -2];
 
   <!-- Defect in the atrial septum -->
   <g class="disease-only">
-    <rect x="168" y="84" width="24" height="22" fill="var(--diagram-arterial-fill)"></rect>
+    <rect
+      x="168"
+      y="84"
+      width="24"
+      height="22"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
     <line x1="180" y1="44" x2="180" y2="80" stroke="var(--color-text)" stroke-width="1.5"></line>
     <text x="180" y="36" text-anchor="middle">
       {t['diagram.label.defect']}
@@ -114,14 +128,14 @@ const shunt = [0, -1, -2];
     stroke="var(--diagram-venous)"
     stroke-width="3"
     fill="none"
-    marker-end="url(#asd-arrow-v)"
+    marker-end={`url(#${arrowV})`}
   ></path>
   <path
     d="M245,62 L245,222"
     stroke="var(--diagram-arterial)"
     stroke-width="3"
     fill="none"
-    marker-end="url(#asd-arrow-a)"
+    marker-end={`url(#${arrowA})`}
   ></path>
   <path
     class="disease-only"
@@ -129,7 +143,7 @@ const shunt = [0, -1, -2];
     stroke="var(--diagram-arterial)"
     stroke-width="3"
     fill="none"
-    marker-end="url(#asd-arrow-a)"
+    marker-end={`url(#${arrowA})`}
   ></path>
 
   <!-- Moving blood -->

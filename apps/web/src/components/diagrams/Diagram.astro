@@ -12,10 +12,12 @@ const Art = diagrams[name];
 if (!Art) throw new Error(`Unknown diagram "${name}"`);
 const locale = Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
-const id = `diagram-${name}`;
+// A unique id per diagram on the page keeps radio groups and SVG ids apart.
+Astro.locals.diagramCount = (Astro.locals.diagramCount ?? 0) + 1;
+const id = `diagram-${Astro.locals.diagramCount}`;
 ---
 
-<figure class="diagram" id={id}>
+<figure class="diagram">
   <!-- Controls and labels are UI text in the page locale; captions are article text. -->
   <div class="diagram-controls" lang={locale}>
     <fieldset>
@@ -34,7 +36,7 @@ const id = `diagram-${name}`;
       {t['diagram.pause']}
     </label>
   </div>
-  <Art locale={locale} />
+  <Art locale={locale} uid={id} />
   <figcaption>
     <div class="diagram-caption" data-state="normal">
       <slot name="normal" />
@@ -86,7 +88,7 @@ const id = `diagram-${name}`;
   .diagram svg text {
     fill: var(--color-text);
     font-family: system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
   }
 
@@ -118,9 +120,10 @@ const id = `diagram-${name}`;
     color: var(--color-bg);
   }
 
+  /* Inside the label: the rounded fieldset clips anything drawn outside it. */
   .diagram-controls fieldset label:has(:focus-visible) {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    outline: 2px solid currentcolor;
+    outline-offset: -4px;
   }
 
   .diagram-controls fieldset input {

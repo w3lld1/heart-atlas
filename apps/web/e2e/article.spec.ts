@@ -75,6 +75,31 @@ test.describe('article page', () => {
     await expect(particle).toHaveCSS('animation-play-state', 'paused');
   });
 
+  test('shows a visible focus ring on the diagram toggle', async ({ page }) => {
+    await page.goto(article);
+    const diagram = page.locator('figure.diagram');
+    await diagram.getByRole('radio', { name: 'Болезнь' }).focus();
+    await page.keyboard.press('ArrowLeft');
+    const label = diagram.locator('fieldset label', { hasText: 'Норма' });
+    await expect(label).toHaveCSS('outline-style', 'solid');
+  });
+
+  test('keeps the diagram meaningful with reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(article);
+    const diagram = page.locator('figure.diagram');
+    await expect(diagram.locator('.flow')).toBeHidden();
+    await expect(diagram.getByText('Пауза')).toBeHidden();
+    await expect(diagram.locator('path[marker-end]').first()).toBeVisible();
+  });
+
+  test('has no axe violations in the dark theme', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto(article);
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
   for (const path of [article, 'ru/disease/another-condition/', 'ru/disease/']) {
     test(`has no axe violations: ${path}`, async ({ page }) => {
       await page.goto(path);

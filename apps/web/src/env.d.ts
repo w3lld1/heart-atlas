@@ -4,5 +4,7 @@ declare namespace App {
     locale?: string;
     /** Number of sources of the current article, so Cite can reject a missing source. */
     sourceCount?: number;
+    /** Diagrams rendered so far on the page, for unique ids. */
+    diagramCount?: number;
   }
 }
