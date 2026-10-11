@@ -90,7 +90,9 @@ test.describe('article page', () => {
     const diagram = page.locator('figure.diagram');
     await expect(diagram.locator('.flow')).toBeHidden();
     await expect(diagram.getByText('Пауза')).toBeHidden();
-    await expect(diagram.locator('path[marker-end]').first()).toBeVisible();
+    // A straight arrow has a zero-width box, so check that it is rendered rather than "visible".
+    await expect(diagram.getByRole('img')).toBeVisible();
+    await expect(diagram.locator('path[marker-end]').first()).not.toHaveCSS('display', 'none');
   });
 
   test('has no axe violations in the dark theme', async ({ page }) => {
