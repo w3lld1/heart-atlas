@@ -86,6 +86,36 @@ export function checkParams(params: HeartParams): void {
   for (let i = 0; i <= steps; i += 1) beatTiming(low + ((high - low) * i) / (steps || 1), params);
 }
 
+/**
+ * The widest unbroken range of whole heart rates, beats per minute, at which these parameters fit,
+ * so a heart rate control can offer only those. A wide QRS, for example, does not fit the fastest
+ * rates. Every rate inside the range is checked, so a gap cannot hide in it.
+ */
+export function heartRateLimits(params: HeartParams): readonly [min: number, max: number] {
+  const [low, high] = paramRanges.heartRate;
+  const fits = (heartRate: number) => {
+    try {
+      checkParams({ ...params, heartRate });
+      return true;
+    } catch (error) {
+      if (error instanceof RangeError) return false;
+      throw error;
+    }
+  };
+  let best: [number, number] | undefined;
+  let start: number | undefined;
+  for (let rate = Math.ceil(low); rate <= Math.floor(high) + 1; rate += 1) {
+    if (rate <= high && fits(rate)) {
+      start ??= rate;
+    } else if (start !== undefined) {
+      if (!best || rate - 1 - start > best[1] - best[0]) best = [start, rate - 1];
+      start = undefined;
+    }
+  }
+  if (!best) throw new RangeError('These parameters do not fit any heart rate');
+  return best;
+}
+
 function smoothstep(x: number): number {
   const c = Math.min(1, Math.max(0, x));
   return c * c * (3 - 2 * c);

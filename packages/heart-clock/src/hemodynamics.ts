@@ -1,4 +1,5 @@
 import type { Beat } from './clock.ts';
+import { gradientPeakAt, gradientPeakPerMean, gradientShape } from './valve.ts';
 
 /** Pressures (mmHg) and left ventricular volume (% of end-diastolic volume) at one moment. */
 export interface Hemodynamics {
@@ -54,14 +55,24 @@ function through(t: number, keys: readonly Keyframe[]): number {
 // ejection fraction come from a source (StatPearls, "Physiology, Cardiac Cycle"); the other
 // levels are fractions of the end-diastolic pressure chosen so that each valve opens and closes
 // on the right pressure difference: the mitral valve is open while LA ≥ LV (from mitral opening
-// to the R peak), the aortic valve while LV and aorta move together. Named choices: the aortic
-// valve closes at 70% of the way from diastolic to systolic pressure; the dicrotic notch is
-// 4 mmHg deep, 15 ms after closure.
+// to the R peak), the aortic valve while the aorta follows the ventricle (lower by the valve's
+// drop when the valve is stenotic). Named choices: the aortic valve closes at 70% of the way from
+// diastolic to systolic aortic pressure; the dicrotic notch is 4 mmHg deep, 15 ms after closure.
 
-/** LV pressure where the aortic valve closes. */
+/** Peak pressure drop across the aortic valve: its mean is `aorticValveGradient`. */
+function aorticPeakDrop(beat: Beat): number {
+  return beat.params.aorticValveGradient * gradientPeakPerMean;
+}
+
+/** Peak aortic pressure: the LV peak less the valve's drop at that moment. */
+function aorticSystolic(beat: Beat): number {
+  return beat.params.lvSystolic - aorticPeakDrop(beat);
+}
+
+/** Pressure in the aorta, and in the ventricle, when the aortic valve closes. */
 function closurePressure(beat: Beat): number {
-  const { lvSystolic, aorticDiastolic } = beat.params;
-  return aorticDiastolic + 0.7 * (lvSystolic - aorticDiastolic);
+  const { aorticDiastolic } = beat.params;
+  return aorticDiastolic + 0.7 * (aorticSystolic(beat) - aorticDiastolic);
 }
 
 /**
@@ -84,9 +95,13 @@ function startVolume(beat: Beat): number {
   return 100 - atrialContribution * ejectionFraction * 100;
 }
 
-function lvPressure(t: number, beat: Beat, next: Beat): number {
+/**
+ * LV pressure without the valve's drop: during ejection this is the aortic pressure, and the
+ * ventricle is higher by `valveGradient`. With a normal valve the two are the same.
+ */
+function basePressure(t: number, beat: Beat, next: Beat): number {
   const { timing } = beat;
-  const { lvSystolic, aorticDiastolic, lvEndDiastolic: edp } = beat.params;
+  const { aorticDiastolic, lvEndDiastolic: edp } = beat.params;
   const lvet = timing.aorticClosure - timing.ejectionStart;
   const filling = timing.rr - timing.mitralOpening;
   return through(t, [
@@ -94,7 +109,7 @@ function lvPressure(t: number, beat: Beat, next: Beat): number {
     [timing.qOnset, edp],
     [timing.rPeak, edp],
     [timing.ejectionStart, aorticDiastolic],
-    [timing.ejectionStart + 0.35 * lvet, lvSystolic],
+    [timing.ejectionStart + gradientPeakAt * lvet, aorticSystolic(beat)],
     [timing.aorticClosure, closurePressure(beat)],
     [timing.mitralOpening, 0.9 * edp],
     [timing.mitralOpening + 0.3 * filling, 0.3 * edp],
@@ -158,6 +173,14 @@ function aorticRunoff(tau: number, beat: Beat, next: Beat): number {
   return to + (from - to) * decay - notch * (1 - tau / span);
 }
 
+/** Pressure drop across the aortic valve at `t` ms into the beat; 0 outside ejection. */
+function valveGradient(t: number, beat: Beat): number {
+  const { ejectionStart, aorticClosure } = beat.timing;
+  if (t <= ejectionStart || t >= aorticClosure) return 0;
+  const x = (t - ejectionStart) / (aorticClosure - ejectionStart);
+  return aorticPeakDrop(beat) * gradientShape(x);
+}
+
 /**
  * Pressures and volume at `t` ms into `beat`. `previous` and `next` are the neighbouring beats:
  * aortic pressure before this beat's ejection is the run-off of the previous beat, and every
@@ -165,12 +188,13 @@ function aorticRunoff(tau: number, beat: Beat, next: Beat): number {
  */
 export function hemodynamics(t: number, beat: Beat, previous: Beat, next: Beat): Hemodynamics {
   const { timing } = beat;
-  const lv = lvPressure(t, beat, next);
+  const base = basePressure(t, beat, next);
+  const lv = base + valveGradient(t, beat);
   let aorta: number;
   if (t < timing.ejectionStart) {
     aorta = aorticRunoff(t + previous.rr - previous.timing.aorticClosure, previous, beat);
   } else if (t < timing.aorticClosure) {
-    aorta = lv;
+    aorta = base;
   } else {
     // The closed aortic valve keeps the aorta at or above the ventricle.
     aorta = Math.max(lv, aorticRunoff(t - timing.aorticClosure, beat, next));

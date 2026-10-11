@@ -32,7 +32,9 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const tAfter = 0.07 * qt;
   const tCentre = tEnd - 2.5 * tAfter;
   const st =
-    params.stShift * smoothstep(jPoint - 10, jPoint + 10, t) * (1 - smoothstep(tCentre, tEnd, t));
+    params.stShift *
+    smoothstep(jPoint - Math.min(15, 0.15 * qrs), jPoint, t) *
+    (1 - smoothstep(tCentre, tEnd, t));
   return (
     wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5) +
     wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs) +

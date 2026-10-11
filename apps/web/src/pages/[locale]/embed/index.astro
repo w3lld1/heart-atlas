@@ -1,0 +1,171 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { getCollection } from 'astro:content';
+import { paramRanges } from '@heart-atlas/heart-clock';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { localeCodes, locales } from '../../../i18n/locales.ts';
+import { getMessages } from '../../../i18n/messages.ts';
+import { localePath } from '../../../i18n/paths.ts';
+import { articlePages } from '../../../lib/articles.ts';
+import { iframeCode } from '../../../lib/embed.ts';
+
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+const embedUrl = (path: string) =>
+  new URL(localePath(import.meta.env.BASE_URL, locale, `embed/${path}`), Astro.site).href;
+
+const diseases = articlePages(await getCollection('articles'), locales)
+  .filter((page) => page.locale === locale && page.type === 'disease')
+  .map((page) => ({ slug: page.slug, title: page.entry.data.title }))
+  .sort((a, b) => a.title.localeCompare(b.title, locale));
+
+const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1200 };
+const diseaseModules = diseases.map((disease) => ({
+  src: embedUrl(`disease/${disease.slug}/`),
+  title: disease.title,
+  height: 800,
+}));
+const [minRate, maxRate] = paramRanges.heartRate;
+---
+
+<BaseLayout locale={locale} title={t['embed.title']} description={t['embed.intro']}>
+  <h1>{t['embed.title']}</h1>
+  <p>{t['embed.intro']}</p>
+  <form class="builder" data-builder>
+    <label>
+      {t['embed.module']}
+      <select name="module">
+        <optgroup label={t['embed.tools']}>
+          <option value={ecg.src} data-title={ecg.title} data-height={ecg.height} data-rate>
+            {ecg.title}
+          </option>
+        </optgroup>
+        {diseaseModules.length > 0 && (
+          <optgroup label={t['articles.type.disease']}>
+            {diseaseModules.map((module) => (
+              <option value={module.src} data-title={module.title} data-height={module.height}>
+                {module.title}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    </label>
+    <div class="field" data-rate-field>
+      <label for="rate">{t['heartClock.heartRate']}</label>
+      <input
+        id="rate"
+        name="rate"
+        type="number"
+        inputmode="numeric"
+        min={minRate}
+        max={maxRate}
+        step="1"
+        aria-describedby="rate-hint rate-error"
+      />
+      <span id="rate-hint" class="hint">
+        {t['embed.rateHint']}
+      </span>
+      <span id="rate-error" class="hint" aria-live="polite"></span>
+    </div>
+    <label>
+      {t['embed.code']}
+      <textarea name="code" rows="4" readonly>{iframeCode(ecg)}</textarea>
+    </label>
+    <p>
+      <button
+        type="button"
+        data-copy
+        data-copied={t['embed.copied']}
+        data-copy-failed={t['embed.copyFailed']}
+        hidden
+      >
+        {t['embed.copy']}
+      </button>
+      <span role="status" data-copy-status></span>
+    </p>
+  </form>
+  <p>{t['embed.license']}</p>
+</BaseLayout>
+
+<script>
+  import { iframeCode } from '../../../lib/embed.ts';
+
+  const form = document.querySelector<HTMLFormElement>('[data-builder]');
+  const select = form?.querySelector('select');
+  const rate = form?.querySelector<HTMLInputElement>('input[name="rate"]');
+  const rateField = form?.querySelector<HTMLElement>('[data-rate-field]');
+  const code = form?.querySelector('textarea');
+  const copy = form?.querySelector<HTMLButtonElement>('[data-copy]');
+  const status = form?.querySelector<HTMLElement>('[data-copy-status]');
+  const rateError = form?.querySelector<HTMLElement>('#rate-error');
+
+  function update() {
+    const option = select?.selectedOptions[0];
+    if (!option || !rate || !rateField || !code || !rateError) return;
+    const withRate = option.dataset['rate'] !== undefined;
+    rateField.hidden = !withRate;
+    const src = new URL(option.value);
+    const valid = rate.checkValidity();
+    rateError.textContent = valid ? '' : rate.validationMessage;
+    // valueAsNumber normalises "1e2" or "90.0" to the plain integer the embed accepts.
+    if (withRate && valid && rate.value !== '') {
+      src.searchParams.set('rate', String(rate.valueAsNumber));
+    }
+    code.value = iframeCode({
+      src: src.href,
+      title: option.dataset['title'] ?? '',
+      height: Number(option.dataset['height']),
+    });
+    if (status) status.textContent = '';
+  }
+
+  form?.addEventListener('input', update);
+  form?.addEventListener('submit', (event) => event.preventDefault());
+  update();
+
+  if (copy && code && status && navigator.clipboard) {
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      // Cleared first, so a second copy is announced again.
+      status.textContent = '';
+      try {
+        await navigator.clipboard.writeText(code.value);
+        status.textContent = copy.dataset['copied'] ?? '';
+      } catch {
+        code.select();
+        status.textContent = copy.dataset['copyFailed'] ?? '';
+      }
+    });
+  }
+</script>
+
+<style>
+  .builder {
+    display: grid;
+    gap: 1rem;
+  }
+
+  label,
+  .field {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .field[hidden] {
+    display: none;
+  }
+
+  .hint {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+
+  textarea {
+    font-family: ui-monospace, monospace;
+    font-size: 0.875rem;
+  }
+</style>

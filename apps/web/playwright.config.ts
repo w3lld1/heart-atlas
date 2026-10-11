@@ -15,6 +15,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${port}${base}`,
     trace: 'on-first-retry',
+    // Stale worker caches make tests flaky; pwa.spec.ts turns workers on for itself.
+    serviceWorkers: 'block',
   },
   projects: [
     {

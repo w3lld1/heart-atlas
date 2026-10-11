@@ -56,3 +56,17 @@ describe('fWaves', () => {
     for (let t = 0; t < 2000; t += 7) expect(Math.abs(fWaves(t, af))).toBeLessThanOrEqual(0.1);
   });
 });
+
+describe('ST shift with a narrow QRS', () => {
+  it('leaves the S wave alone', () => {
+    // Value at the centre of the S wave.
+    const nadir = (stShift: number) => {
+      const params = resolveParams({ qrsDuration: 40, stShift });
+      const timing = beatTiming(1000, params);
+      return beatWaves(timing.qOnset + 0.8 * 40, timing, params);
+    };
+    const plain = nadir(0);
+    expect(nadir(0.5)).toBeCloseTo(plain, 2);
+    expect(nadir(-0.5)).toBeCloseTo(plain, 2);
+  });
+});

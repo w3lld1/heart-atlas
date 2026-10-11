@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createHeartClock, type HeartClock } from '../src/clock.ts';
 import type { Hemodynamics } from '../src/hemodynamics.ts';
 import { defaultParams } from '../src/params.ts';
+import { presetParams } from '../src/presets.ts';
 import { phaseStarts } from '../src/timing.ts';
 
 const keys = ['lv', 'aorta', 'la', 'volume'] as const;
@@ -99,6 +100,56 @@ describe('hemodynamicsAt', () => {
     }
   });
 
+  it('keeps the aorta below the ventricle by the mean valve gradient in aortic stenosis', () => {
+    for (const heartRate of [50, 75, 140]) {
+      const clock = createHeartClock({ ...presetParams('aortic-stenosis'), heartRate });
+      const beat = clock.beatAt(3000);
+      const { ejectionStart, aorticClosure } = beat.timing;
+      let sum = 0;
+      let count = 0;
+      let lvPeak = 0;
+      let aortaPeak = 0;
+      let falling = false;
+      let previous = beat.params.aorticDiastolic;
+      for (let t = ejectionStart + 0.25; t < aorticClosure; t += 0.25) {
+        const h = clock.hemodynamicsAt(beat.start + t);
+        expect(h.aorta).toBeLessThanOrEqual(h.lv);
+        sum += h.lv - h.aorta;
+        count += 1;
+        lvPeak = Math.max(lvPeak, h.lv);
+        aortaPeak = Math.max(aortaPeak, h.aorta);
+        // One hump: once the aorta starts to fall during ejection it does not rise again.
+        if (h.aorta < previous - 1e-9) falling = true;
+        else if (falling)
+          expect(h.aorta, `${heartRate} bpm at ${t} ms`).toBeLessThanOrEqual(previous + 1e-9);
+        previous = h.aorta;
+      }
+      expect(Math.abs(sum / count - 40)).toBeLessThan(0.2);
+      expect(lvPeak).toBeCloseTo(180, 1);
+      // The aortic peak stays near the normal 120 mmHg; the stenosis shows in the ventricle.
+      expect(aortaPeak).toBeGreaterThan(105);
+      expect(aortaPeak).toBeLessThan(125);
+      expectContinuous(clock, 0, 3000);
+    }
+  });
+
+  it('keeps valve-side order with a stenotic valve and across a switch to and from it', () => {
+    const clock = createHeartClock(presetParams('aortic-stenosis'));
+    clock.setParams(presetParams('hypertension'), 1500);
+    clock.setParams(presetParams('aortic-stenosis'), 3500);
+    expectContinuous(clock, 0, 6000);
+    for (let t = 0; t < 6000; t += 0.5) {
+      const { beat, tInBeat } = clock.sample(t);
+      const h = clock.hemodynamicsAt(t);
+      const { ejectionStart, aorticClosure } = beat.timing;
+      if (tInBeat < ejectionStart || tInBeat > aorticClosure) {
+        expect(h.aorta, `at ${t} ms`).toBeGreaterThanOrEqual(h.lv - 1e-9);
+      } else {
+        expect(h.aorta, `at ${t} ms`).toBeLessThanOrEqual(h.lv + 1e-9);
+      }
+    }
+  });
+
   it('has no atrial kick in volume when the atria do not contract', () => {
     const clock = createHeartClock({ atrialContribution: 0 });
     const beat = clock.beatAt(1600);
@@ -109,5 +160,9 @@ describe('hemodynamicsAt', () => {
   it('rejects pressures that would keep a valve shut', () => {
     expect(() => createHeartClock({ lvSystolic: 85, aorticDiastolic: 80 })).toThrow(RangeError);
     expect(() => createHeartClock({ lvEndDiastolic: 35, aorticDiastolic: 40 })).toThrow(RangeError);
+    // A gradient that would keep the aorta from rising 10 mmHg above its diastolic pressure.
+    expect(() => createHeartClock({ lvSystolic: 140, aorticValveGradient: 40 })).toThrow(
+      RangeError,
+    );
   });
 });

@@ -1,3 +1,4 @@
+import { gradientPeakPerMean } from '../src/valve.ts';
 import { describe, expect, it } from 'vitest';
 import { defaultParams, paramRanges, resolveParams } from '../src/params.ts';
 
@@ -20,8 +21,18 @@ describe('resolveParams', () => {
     ['rrIrregularity', 0.5],
     ['qtc', Number.NaN],
     ['fWaveFrequency', Infinity],
+    ['aorticValveGradient', -1],
+    ['aorticValveGradient', 101],
+    ['s2Split', 101],
   ] as const)('rejects %s = %s and names the parameter', (key, value) => {
     expect(() => resolveParams({ [key]: value })).toThrow(new RegExp(`^${key} must be`));
+  });
+
+  it('allows a valve gradient right up to the aortic peak limit', () => {
+    // The aortic peak is lvSystolic less the peak drop; it must be at least diastolic + 10.
+    const limit = (120 - 90) / gradientPeakPerMean;
+    expect(() => resolveParams({ aorticValveGradient: limit })).not.toThrow();
+    expect(() => resolveParams({ aorticValveGradient: limit + 0.01 })).toThrow(RangeError);
   });
 
   it('rejects unknown keys and a fractional seed', () => {

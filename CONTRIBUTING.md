@@ -31,6 +31,7 @@ Until physician reviewers join, trust comes from sources:
 - Every article has two levels: for patients in plain language and for students with terminology. The student level may add detail (pathophysiology, classification, criteria) but must never contradict the patient level. Write `<Patient>` and `<Student>` as blocks with blank lines inside, and keep shared text and section headings outside them.
 - Mark each statement with the sources that support it: `<Cite n={2} />` or `<Cite n={[1, 3]} />`, numbered as in `sources`.
 - Never give individual treatment advice or doses for self-treatment.
+- Optionally list other names, abbreviations and old terms in `aliases` (for example `aliases: [мерцательная аритмия, ФП]`). Search finds the article by them. They do not appear on the article page, but can appear in search result snippets.
 
 The build rejects articles that break these rules. The full schema is described in the [stage 0 spec](docs/plans/2026-10-11-stage-0-foundation.md#политика-источников).
 
@@ -38,7 +39,7 @@ The build rejects articles that break these rules. The full schema is described 
 
 1. Add an entry to the locale registry `apps/web/src/i18n/locales.ts`: code, native name, writing direction (`ltr` or `rtl`) and a fallback locale.
 2. Copy `apps/web/src/i18n/messages/en.json` to `<code>.json` and translate it. `pnpm i18n:check` reports missing keys.
-3. Translate articles into `content/<code>/…` at your own pace. Untranslated articles are shown in the fallback language with a notice.
+3. Translate articles into `content/<code>/…` at your own pace. Untranslated articles are shown in the fallback language with a notice. Give each translation its own `aliases` in that language.
 
 ## Using Claude Code
 

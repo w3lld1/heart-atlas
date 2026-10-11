@@ -76,6 +76,13 @@ const { Content } = await render(entry);
   >
     <h1>{article.title}</h1>
     <Content components={{ Cite, Patient, Student }} />
+    {/* Search synonyms: hidden from readers and screen readers, indexed by Pagefind. After the
+        text, so result excerpts start with the article itself. */}
+    {article.aliases.length > 0 && (
+      <div hidden data-pagefind-weight="3">
+        {article.aliases.join(', ')}
+      </div>
+    )}
   </article>
   <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
 </BaseLayout>

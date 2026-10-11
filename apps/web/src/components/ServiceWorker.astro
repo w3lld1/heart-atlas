@@ -1,0 +1,106 @@
+---
+import { getMessages } from '../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+---
+
+<!-- The live region is always present, so screen readers announce the notice when it appears. -->
+<div class="update-region" role="status" data-base={import.meta.env.BASE_URL}>
+  <div class="update-notice" hidden>
+    <span>{t['update.text']}</span>
+    <button type="button">{t['update.button']}</button>
+  </div>
+</div>
+
+<script>
+  // Registers the offline worker (production builds only, see BaseLayout) and offers a
+  // reload when a new version has been downloaded. Never reloads on its own.
+  // Accepting in one tab activates the new version, which reloads the other open tabs too.
+  const region = document.querySelector<HTMLElement>('.update-region');
+  const notice = region?.querySelector<HTMLElement>('.update-notice');
+  const button = notice?.querySelector('button');
+  const base = region?.dataset['base'] ?? '/';
+
+  function offerUpdate(worker: ServiceWorker) {
+    if (!notice || !button) return;
+    button.onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
+    notice.hidden = false;
+  }
+
+  if ('serviceWorker' in navigator) {
+    let reloading = false;
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // The first install takes control silently; only an accepted update reloads.
+      if (!hadController || reloading) return;
+      reloading = true;
+      location.reload();
+    });
+
+    // After `load`, so the precache download does not compete with the first page load.
+    window.addEventListener('load', () => {
+      void register();
+    });
+  }
+
+  async function register() {
+    await navigator.serviceWorker
+      .register(`${base}sw.js`, { scope: base })
+      .then((registration) => {
+        if (registration.waiting && navigator.serviceWorker.controller) {
+          offerUpdate(registration.waiting);
+        }
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          worker?.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+              offerUpdate(worker);
+            }
+          });
+        });
+      })
+      .catch(() => {
+        // Blocked or unsupported (private mode, tests): the site works without it.
+      });
+  }
+</script>
+
+<style>
+  .update-notice {
+    position: fixed;
+    z-index: 2;
+    inset-block-end: 1rem;
+    inset-inline: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    max-inline-size: 32rem;
+    margin-inline: auto;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  }
+
+  .update-notice[hidden] {
+    display: none;
+  }
+
+  button {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 0.375rem;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font: inherit;
+  }
+</style>

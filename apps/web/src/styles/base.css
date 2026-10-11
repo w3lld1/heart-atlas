@@ -1,0 +1,47 @@
+/*
+ * Colours and base typography shared by the site layout and the embed layout. In a layer, so any
+ * unlayered rule wins over it regardless of the order of stylesheets.
+ */
+@layer base {
+  :root {
+    color-scheme: light dark;
+
+    --color-bg: #fff;
+    --color-text: #1b1b1f;
+    --color-muted: #55565c;
+    --color-accent: #b3122e;
+    --color-border: #d9d9de;
+    --color-notice-bg: #fff4e5;
+
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #121214;
+      --color-text: #ececf0;
+      --color-muted: #a9aab2;
+      --color-accent: #ff7a8a;
+      --color-border: #34353b;
+      --color-notice-bg: #2a2117;
+    }
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  a {
+    color: var(--color-accent);
+  }
+
+  .disclaimer {
+    padding: 0.75rem 1rem;
+    border-inline-start: 4px solid var(--color-accent);
+    background: var(--color-notice-bg);
+    color: var(--color-text);
+  }
+}

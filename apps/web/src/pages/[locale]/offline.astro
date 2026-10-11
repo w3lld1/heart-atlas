@@ -1,0 +1,23 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { localeCodes } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+import { localePath } from '../../i18n/paths.ts';
+
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+// The service worker shows this page for anything not cached while the reader is offline.
+---
+
+<BaseLayout locale={locale} title={t['offline.title']}>
+  <meta slot="head" name="robots" content="noindex" />
+  <h1>{t['offline.title']}</h1>
+  <p>{t['offline.text']}</p>
+  <p>
+    <a href={localePath(import.meta.env.BASE_URL, locale)}>{t['offline.home']}</a>
+  </p>
+</BaseLayout>

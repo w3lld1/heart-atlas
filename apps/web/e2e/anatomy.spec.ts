@@ -107,7 +107,7 @@ test.describe('heart viewer', () => {
     const requested: string[] = [];
     page.on('request', (r) => requested.push(r.url()));
     await page.goto('en/anatomy/');
-    await expect(page.getByRole('status')).toHaveText(en['viewer.unavailable']);
+    await expect(page.locator('main').getByRole('status')).toHaveText(en['viewer.unavailable']);
     await expect(page.getByRole('img', { name: en['viewer.posterAlt'] })).toBeVisible();
     const button = page.getByRole('button', { name: en['structure.aorta'] });
     await button.click();

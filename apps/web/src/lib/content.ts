@@ -118,12 +118,26 @@ export function createArticleSchema(trusted: TrustedSources) {
       title: z.string().min(1),
       description: z.string().min(1),
       type: z.enum(articleTypes),
+      // Other names, abbreviations and old terms that search should find the article by.
+      aliases: z.array(z.string().trim().min(1)).default([]),
       sources: z.array(createSourceSchema(trusted)).min(1, 'An article needs at least one source'),
       sources_checked: dateSchema,
       // Optional until the project has physician reviewers. While null, pages show ReviewNotice.
       review: reviewSchema.nullable().default(null),
     })
     .superRefine((article, ctx) => {
+      const seen = new Set([article.title.toLocaleLowerCase()]);
+      for (const [index, alias] of article.aliases.entries()) {
+        const key = alias.toLocaleLowerCase();
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['aliases', index],
+            message: `Alias "${alias}" repeats the title or another alias`,
+          });
+        }
+        seen.add(key);
+      }
       if (!clinicalTypes.has(article.type)) return;
       if (article.sources.length < 2) {
         ctx.addIssue({

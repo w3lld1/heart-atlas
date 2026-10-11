@@ -7,6 +7,8 @@ import { soundEvents, type HeartClock, type HeartSound } from '@heart-atlas/hear
 const voices: Record<HeartSound, { frequency: number; duration: number; gain: number }> = {
   S1: { frequency: 110, duration: 0.12, gain: 0.5 },
   S2: { frequency: 170, duration: 0.08, gain: 0.4 },
+  // The pulmonary component of a split S2, a little lower and quieter than the aortic one.
+  P2: { frequency: 150, duration: 0.08, gain: 0.3 },
 };
 
 /** How far ahead sounds are queued on the audio clock, in seconds of real time. */

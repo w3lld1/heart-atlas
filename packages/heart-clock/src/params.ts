@@ -1,3 +1,5 @@
+import { gradientPeakPerMean } from './valve.ts';
+
 /**
  * Parameters of the heart clock. Units: ms, mV, beats per minute.
  * Sources and model assumptions: docs/plans/2026-10-11-stage-2-heart-clock.md.
@@ -27,7 +29,10 @@ export interface HeartParams {
   fWaveAmplitude: number;
   /** Frequency of f waves, Hz. */
   fWaveFrequency: number;
-  /** Peak left ventricular (and aortic) systolic pressure, mmHg. */
+  /**
+   * Peak left ventricular systolic pressure, mmHg. The aortic peak is the same with a normal
+   * valve and lower by the valve's peak drop with `aorticValveGradient`.
+   */
   lvSystolic: number;
   /** Aortic diastolic pressure, mmHg. */
   aorticDiastolic: number;
@@ -37,6 +42,17 @@ export interface HeartParams {
   ejectionFraction: number;
   /** Share of ventricular filling that comes from atrial contraction, 0–1. 0 in AF. */
   atrialContribution: number;
+  /**
+   * Mean systolic pressure gradient across the aortic valve during ejection, mmHg. 0 for a
+   * normal valve; aortic stenosis raises it, and the aorta then stays below the ventricle.
+   */
+  aorticValveGradient: number;
+  /**
+   * Split of the second heart sound, ms: the pulmonary component follows the aortic one by this
+   * much on every beat (a fixed split, as in atrial septal defect). 0 plays a single S2. At high
+   * heart rates P2 may fall after the mitral valve opens; the model does not prevent that.
+   */
+  s2Split: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -63,6 +79,8 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   lvEndDiastolic: 10,
   ejectionFraction: 0.65,
   atrialContribution: 0.2,
+  aorticValveGradient: 0,
+  s2Split: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -84,6 +102,8 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   lvEndDiastolic: [3, 40],
   ejectionFraction: [0.1, 0.85],
   atrialContribution: [0, 0.4],
+  aorticValveGradient: [0, 100],
+  s2Split: [0, 100],
 };
 
 /** Merges a patch over `base` and checks every value; throws RangeError naming the parameter. */
@@ -112,6 +132,14 @@ export function resolveParams(
   // valve only when LV pressure falls below it again.
   if (params.aorticDiastolic + 10 > params.lvSystolic) {
     throw new RangeError('aorticDiastolic must be at least 10 mmHg below lvSystolic');
+  }
+  // A stenotic valve takes its peak drop off the aortic peak (valve.ts); the aorta must still
+  // rise at least 10 mmHg above its diastolic pressure.
+  const aorticPeak = params.lvSystolic - gradientPeakPerMean * params.aorticValveGradient;
+  if (aorticPeak < params.aorticDiastolic + 10) {
+    throw new RangeError(
+      'With this aorticValveGradient the aortic peak must stay at least 10 mmHg above aorticDiastolic',
+    );
   }
   if (params.lvEndDiastolic + 10 > params.aorticDiastolic) {
     throw new RangeError('lvEndDiastolic must be at least 10 mmHg below aorticDiastolic');
