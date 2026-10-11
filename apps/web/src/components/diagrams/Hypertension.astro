@@ -1,0 +1,172 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// Particles in the artery: a negative delay so the flow is already running.
+const flow = [0, -0.6, -1.2, -1.8];
+// Pressure arrows push from the blood onto the artery wall: x positions per state.
+const normalArrows = [215, 300];
+const diseaseArrows = [190, 240, 290, 335];
+---
+
+<svg viewBox="0 0 360 330" role="img" aria-label={t['diagram.hypertension.title']} lang={locale}>
+  <!-- Left ventricle: the cavity is the same in both states, only the wall differs. -->
+  <g class="htn-beat">
+    <path
+      class="normal-only"
+      d="M45,166 Q45,152 59,152 L141,152 Q155,152 155,166 L155,235 Q155,300 100,308 Q45,300 45,235 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+    <path
+      class="disease-only"
+      d="M35,162 Q35,142 55,142 L145,142 Q165,142 165,162 L165,236 Q165,310 100,318 Q35,310 35,236 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+    <path
+      d="M57,164 L143,164 L143,235 Q143,290 100,296 Q57,290 57,235 Z"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+  </g>
+
+  <!-- Artery leaving the ventricle: wall drawn as a wide stroke, lumen as a narrower one on top -->
+  <path
+    d="M100,168 L100,100 Q100,70 130,70 L360,70"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="60"
+  ></path>
+  <path
+    d="M100,170 L100,100 Q100,70 130,70 L360,70"
+    fill="none"
+    stroke="var(--diagram-arterial-fill)"
+    stroke-width="50"
+  ></path>
+
+  <!-- Blood pressure on the artery wall: small arrows in normal, larger and more of them in disease -->
+  <g class="normal-only" fill="var(--color-muted)" stroke="var(--color-muted)">
+    {normalArrows.map((x) => (
+      <>
+        <line x1={x} y1="62" x2={x} y2="56" stroke-width="2.5" />
+        <path d={`M${x - 5},57 L${x},49 L${x + 5},57 Z`} stroke="none" />
+        <line x1={x} y1="78" x2={x} y2="84" stroke-width="2.5" />
+        <path d={`M${x - 5},83 L${x},91 L${x + 5},83 Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+  <g class="disease-only htn-push" fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+    {diseaseArrows.map((x) => (
+      <>
+        <line x1={x} y1="63" x2={x} y2="54" stroke-width="3.5" />
+        <path d={`M${x - 6.5},56 L${x},45 L${x + 6.5},56 Z`} stroke="none" />
+        <line x1={x} y1="77" x2={x} y2="86" stroke-width="3.5" />
+        <path d={`M${x - 6.5},84 L${x},95 L${x + 6.5},84 Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+
+  <!-- Moving blood along the artery -->
+  <g class="flow">
+    {flow.map((delay) => (
+      <circle
+        class="htn-flow"
+        cx="140"
+        cy="70"
+        r="4"
+        fill="var(--diagram-arterial)"
+        style={`animation-delay: ${delay}s`}
+      />
+    ))}
+  </g>
+
+  <text x="250" y="28" text-anchor="middle">
+    {t['diagram.label.artery']}
+  </text>
+  <text class="normal-only" x="258" y="124" text-anchor="middle">
+    {t['diagram.label.pressure']}
+  </text>
+  <text class="disease-only" x="262" y="124" text-anchor="middle">
+    {t['diagram.label.high-pressure']}
+  </text>
+
+  <text x="100" y="246" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Wall label with a leader line to the middle of the wall -->
+  <g class="normal-only">
+    <line x1="150" y1="230" x2="186" y2="230" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="192" y="235">
+      {t['diagram.label.wall']}
+    </text>
+  </g>
+  <g class="disease-only">
+    <line x1="154" y1="230" x2="186" y2="230" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="192" y="235">
+      {t['diagram.label.lv-hypertrophy']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .htn-flow {
+    animation: htn-flow 2.4s linear infinite;
+  }
+
+  .diagram .htn-beat {
+    transform-box: view-box;
+    transform-origin: 100px 150px;
+    animation: htn-beat 1.2s ease-in-out infinite;
+  }
+
+  .diagram .htn-push {
+    animation: htn-push 1.2s ease-in-out infinite;
+  }
+
+  @keyframes htn-flow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(210px, 0);
+    }
+  }
+
+  @keyframes htn-beat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    35% {
+      transform: scale(0.95, 0.97);
+    }
+  }
+
+  @keyframes htn-push {
+    0%,
+    100% {
+      opacity: 0.75;
+    }
+
+    35% {
+      opacity: 1;
+    }
+  }
+</style>

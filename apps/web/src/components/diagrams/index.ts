@@ -1,21 +1,31 @@
+import AorticStenosis from './AorticStenosis.astro';
+import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import BloodFlow from './BloodFlow.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
+import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
 import HeartChambers from './HeartChambers.astro';
+import HeartFailure from './HeartFailure.astro';
 import HeartValves from './HeartValves.astro';
 import HolterMonitor from './HolterMonitor.astro';
+import Hypertension from './Hypertension.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
+  'aortic-stenosis': AorticStenosis,
+  'atrial-fibrillation': AtrialFibrillation,
   'atrial-septal-defect': AtrialSeptalDefect,
   'blood-flow': BloodFlow,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
+  'coronary-heart-disease': CoronaryHeartDisease,
   'heart-chambers': HeartChambers,
+  'heart-failure': HeartFailure,
   'heart-valves': HeartValves,
   'holter-monitor': HolterMonitor,
+  hypertension: Hypertension,
   'natriuretic-peptides': NatriureticPeptides,
 } as const;
 

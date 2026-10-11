@@ -26,8 +26,7 @@ const canonical = new URL(localePath(import.meta.env.BASE_URL, locale, 'heart-cl
   <p class="schematic" role="note">
     {t['heartClock.schematic']}
   </p>
-  {/* The query string is read in the browser, so the island is not rendered at build time. */}
-  <EcgEmbed client:only="react" locale={locale} messages={messages} />
+  <EcgEmbed client:load locale={locale} messages={messages} />
   <noscript>
     <p>{t['embed.noScript']}</p>
   </noscript>

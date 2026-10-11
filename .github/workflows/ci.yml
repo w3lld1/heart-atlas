@@ -51,6 +51,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - run: pnpm build
+      # JS an article page can load, gzip, against the stage 4 budget.
+      - run: pnpm --filter @heart-atlas/web js-budget
       - uses: actions/upload-artifact@v4
         with:
           name: site

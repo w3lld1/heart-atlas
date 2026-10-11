@@ -1,0 +1,374 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const asArrowId = `${uid}-as-arrow`;
+// Blood particles: start column (x), start row (y) and a delay so the second row trails the first.
+const particles = [
+  { x: 92, y: 228, delay: 0 },
+  { x: 115, y: 228, delay: 0 },
+  { x: 138, y: 228, delay: 0 },
+  { x: 92, y: 248, delay: 0.2 },
+  { x: 115, y: 248, delay: 0.2 },
+  { x: 138, y: 248, delay: 0.2 },
+];
+// In stenosis the same particles start a little wider and converge on the narrow opening (x = 115).
+const jet = particles.map((p) => ({ ...p, offset: Math.sign(p.x - 115) * 27 }));
+// Valve seen from above: the cusps meet at three commissures.
+const cx = 285;
+const cy = 228;
+const commissures = [-90, 30, 150].map((deg) => {
+  const rad = (deg * Math.PI) / 180;
+  return { x: cx + 40 * Math.cos(rad), y: cy + 40 * Math.sin(rad) };
+});
+/** Rounded triangle: vertices at the commissures (radius r), sides bowed by control radius c. */
+function orifice(r: number, c: number): string {
+  const pt = (deg: number, rad: number) => {
+    const a = (deg * Math.PI) / 180;
+    return `${(cx + rad * Math.cos(a)).toFixed(1)},${(cy + rad * Math.sin(a)).toFixed(1)}`;
+  };
+  return `M${pt(-90, r)} Q${pt(-30, c)} ${pt(30, r)} Q${pt(90, c)} ${pt(150, r)} Q${pt(210, c)} ${pt(-90, r)} Z`;
+}
+---
+
+<svg viewBox="0 0 376 300" role="img" aria-label={t['diagram.aortic-stenosis.title']} lang={locale}>
+  <defs>
+    <marker
+      id={asArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle wall: the same thickness in both states -->
+  <path
+    d="M70,150 C48,152 42,178 42,200 C42,258 82,292 115,292 C148,292 188,258 188,200 C188,178 182,152 160,150 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Left ventricle cavity and aorta, one lumen with the valve between them -->
+  <path
+    d="M70,18 L70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150 L160,18 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <path
+    d="M70,18 L70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150 L160,18"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g class="normal-only as-arrows" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    <path d="M92,226 L92,32" marker-end={`url(#${asArrowId})`}></path>
+    <path d="M115,226 L115,32" marker-end={`url(#${asArrowId})`}></path>
+    <path d="M138,226 L138,32" marker-end={`url(#${asArrowId})`}></path>
+  </g>
+  <g
+    class="disease-only as-arrows"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-linecap="round"
+  >
+    <!-- Blood converges on the narrow opening -->
+    <path d="M88,226 C88,190 113,178 114,152" stroke-width="3"></path>
+    <path d="M115,226 L115,152" stroke-width="3"></path>
+    <path d="M142,226 C142,190 117,178 116,152" stroke-width="3"></path>
+    <!-- Narrow jet; the speed lines mark that it moves faster -->
+    <path
+      d="M109,140 L121,140 L118,26 L112,26 Z"
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M115,140 L115,30" stroke-width="4" marker-end={`url(#${asArrowId})`}></path>
+    <path
+      d="M101,58 L101,78 M101,92 L101,112 M129,58 L129,78 M129,92 L129,112"
+      stroke-width="2"
+    ></path>
+  </g>
+
+  <!-- Valve cusps (side view). Drawn in the open position; the animation closes them between beats. -->
+  <g class="normal-only">
+    <g transform="translate(73,150) rotate(-80)">
+      <g class="as-cusp as-cusp-wide">
+        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+      </g>
+    </g>
+    <g transform="translate(157,150) scale(-1,1) rotate(-80)">
+      <g class="as-cusp as-cusp-wide">
+        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+      </g>
+    </g>
+  </g>
+  <g class="disease-only">
+    <g transform="translate(77,150) rotate(-50)">
+      <g class="as-cusp as-cusp-narrow">
+        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+        <circle class="as-calcium" cx="14" cy="-3" r="4"></circle>
+        <circle class="as-calcium" cx="27" cy="3" r="3.5"></circle>
+        <circle class="as-calcium" cx="37" cy="-2" r="3"></circle>
+      </g>
+    </g>
+    <g transform="translate(153,150) scale(-1,1) rotate(-50)">
+      <g class="as-cusp as-cusp-narrow">
+        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+        <circle class="as-calcium" cx="16" cy="3" r="4"></circle>
+        <circle class="as-calcium" cx="29" cy="-3" r="3.5"></circle>
+      </g>
+    </g>
+  </g>
+
+  <!-- Moving blood: a wide, even stream in the normal state, a narrow fast jet in stenosis -->
+  <g class="flow">
+    <g class="normal-only">
+      {particles.map((p) => (
+        <circle
+          class="as-p as-p-normal"
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${p.delay}s`}
+        ></circle>
+      ))}
+    </g>
+    <g class="disease-only">
+      {jet.map((p) => (
+        <circle
+          class="as-p as-p-jet"
+          cx={115 + p.offset}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`--as-dx: ${-p.offset}px; animation-delay: ${p.delay}s`}
+        ></circle>
+      ))}
+    </g>
+  </g>
+
+  <!-- Valve seen from above -->
+  <path
+    d="M163,154 L246,206"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="3 4"
+    fill="none"
+  ></path>
+  <circle
+    cx={cx}
+    cy={cy}
+    r="40"
+    fill="var(--color-border)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+  ></circle>
+  {commissures.map((c) => (
+    <line x1={cx} y1={cy} x2={c.x} y2={c.y} stroke="var(--color-muted)" stroke-width="2"></line>
+  ))}
+  <path
+    class="as-orifice normal-only"
+    d={orifice(34, 30)}
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+  ></path>
+  <g class="disease-only">
+    <path
+      class="as-orifice"
+      d={orifice(13, 4)}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-muted)"
+      stroke-width="2"
+    ></path>
+    <circle class="as-calcium" cx="270" cy="212" r="4"></circle>
+    <circle class="as-calcium" cx="306" cy="220" r="3.5"></circle>
+    <circle class="as-calcium" cx="281" cy="253" r="4"></circle>
+    <circle class="as-calcium" cx="298" cy="243" r="3"></circle>
+    <circle class="as-calcium" cx="262" cy="236" r="3"></circle>
+  </g>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="164" y1="40" x2="194" y2="40"></line>
+    <line class="disease-only" x1="134" y1="85" x2="194" y2="85"></line>
+    <line class="normal-only" x1="157" y1="128" x2="194" y2="133"></line>
+    <line class="disease-only" x1="146" y1="134" x2="194" y2="133"></line>
+  </g>
+  <text x="200" y="45">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="disease-only" x="200" y="90">
+    {t['diagram.label.fast-jet']}
+  </text>
+  <text class="normal-only" x="200" y="138">
+    {t['diagram.label.leaflets']}
+  </text>
+  <text class="disease-only" x="200" y="138">
+    {t['diagram.label.calcified-leaflets']}
+  </text>
+  <text x={cx} y="292" text-anchor="middle">
+    {t['diagram.label.valve-top-view']}
+  </text>
+  <text x="115" y="256" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .as-leaf {
+    fill: var(--color-border);
+    stroke: var(--color-muted);
+    stroke-width: 2;
+  }
+
+  .diagram .as-calcium {
+    fill: var(--color-muted);
+  }
+
+  /* One beat: the valve opens, blood leaves the ventricle, the valve closes. */
+  .diagram .as-cusp-wide {
+    --as-close: 67deg;
+  }
+
+  .diagram .as-cusp-narrow {
+    --as-close: 40deg;
+  }
+
+  .diagram .as-cusp {
+    animation: as-cusp 2.4s ease-in-out infinite;
+  }
+
+  /* Arrows fade while the valve is closed; without motion they stay solid. */
+  .diagram .as-arrows {
+    animation: as-arrows 2.4s ease-in-out infinite;
+  }
+
+  .diagram .as-orifice {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: as-orifice 2.4s ease-in-out infinite;
+  }
+
+  .diagram .as-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .as-p-normal {
+    animation: as-normal 2.4s linear infinite;
+  }
+
+  .diagram .as-p-jet {
+    animation: as-jet 2.4s linear infinite;
+  }
+
+  @keyframes as-cusp {
+    0%,
+    4%,
+    60%,
+    100% {
+      transform: rotate(var(--as-close));
+    }
+
+    14%,
+    50% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes as-arrows {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes as-orifice {
+    0%,
+    4%,
+    60%,
+    100% {
+      transform: scale(0.08);
+    }
+
+    14%,
+    50% {
+      transform: scale(1);
+    }
+  }
+
+  /* Normal: a wide stream rises at an even pace. */
+  @keyframes as-normal {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    52% {
+      opacity: 1;
+    }
+
+    58%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  /* Stenosis: blood crowds into the narrow opening, then shoots up as a fast jet. */
+  @keyframes as-jet {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    36% {
+      opacity: 1;
+      transform: translate(var(--as-dx), -78px) scale(0.8, 1);
+    }
+
+    40% {
+      transform: translate(var(--as-dx), -110px) scale(0.6, 2.2);
+    }
+
+    47% {
+      opacity: 1;
+      transform: translate(var(--as-dx), -185px) scale(0.6, 2.2);
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--as-dx), -200px) scale(0.6, 2.2);
+    }
+  }
+</style>

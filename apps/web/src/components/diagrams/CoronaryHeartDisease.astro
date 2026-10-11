@@ -1,0 +1,246 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const chdArrowId = `${uid}-chd-arrow`;
+
+// Blood routes through the artery: the trunk, then branch A (left) or branch B (right) into the muscle.
+const routeA = 'M8,60 H98 Q110,60 110,72 V252';
+const routeB = 'M8,60 H220 Q250,60 250,90 V252';
+// In disease branch B is blocked: blood reaches the clot and goes no further.
+const routeBBlocked = 'M8,60 H220 Q250,60 250,90 V128';
+// Negative delays so the flow is already running when the page opens.
+const normalA = [0, -0.8, -1.6];
+const normalB = [-0.4, -1.55, -2.7];
+const diseaseA = [0, -1.2, -2.4];
+const diseaseB = [-0.6, -1.6];
+// Small vessels fanning out from the end of each branch into the muscle.
+const fan = (x: number) =>
+  `M${x},222 Q${x - 6},236 ${x - 30},250 M${x},222 V258 M${x},222 Q${x + 6},236 ${x + 30},250`;
+---
+
+<svg
+  viewBox="0 0 372 300"
+  role="img"
+  aria-label={t['diagram.coronary-heart-disease.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={chdArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Heart muscle supplied by the artery -->
+  <rect x="6" y="210" width="360" height="86" rx="16" fill="var(--diagram-muscle)"></rect>
+
+  <!-- Region whose branch is blocked: no blood flow. Paler, but still muscle. -->
+  <rect
+    class="disease-only"
+    x="186"
+    y="218"
+    width="172"
+    height="70"
+    rx="10"
+    fill="var(--color-bg)"
+    fill-opacity="0.6"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+
+  <!-- Small vessels into the muscle -->
+  <path d={fan(110)} stroke="var(--diagram-arterial)" stroke-width="2.5" fill="none"></path>
+  <path
+    class="normal-only"
+    d={fan(250)}
+    stroke="var(--diagram-arterial)"
+    stroke-width="2.5"
+    fill="none"
+  ></path>
+
+  <!-- Artery: the wall is drawn first, then the lumen, so the branch joins the trunk smoothly -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="28">
+    <path d="M0,60 H220 Q250,60 250,90 V224"></path>
+    <path d="M98,60 Q110,60 110,72 V224"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="20">
+    <path d="M0,60 H220 Q250,60 250,90 V228"></path>
+    <path d="M98,60 Q110,60 110,72 V228"></path>
+  </g>
+
+  <!-- Plaques in the artery wall narrow the lumen -->
+  <g class="disease-only" fill="var(--diagram-plaque)">
+    <path d="M98,104 C112,118 112,158 98,172 Z"></path>
+    <path d="M122,104 C108,118 108,158 122,172 Z"></path>
+    <path d="M238,126 C252,138 252,166 238,178 Z"></path>
+    <path d="M262,126 C248,138 248,166 262,178 Z"></path>
+  </g>
+  <!-- Beyond the clot the artery holds no moving blood -->
+  <rect class="disease-only" x="240" y="170" width="20" height="40" fill="var(--color-bg)"></rect>
+  <!-- A blood clot on the plaque blocks the artery completely -->
+  <g class="disease-only">
+    <ellipse cx="250" cy="150" rx="8" ry="17" fill="var(--diagram-arterial)"></ellipse>
+    <circle cx="248" cy="143" r="1.8" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="252" cy="153" r="1.8" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="248" cy="160" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${chdArrowId})`}
+  >
+    <path d="M14,60 H78"></path>
+    <path class="normal-only" d="M110,84 V206"></path>
+    <path class="normal-only" d="M132,60 H220 Q250,60 250,90 V206"></path>
+    <path class="disease-only" d="M132,60 H220 Q250,60 250,90 V122"></path>
+  </g>
+  <!-- Through the narrowing only a thin stream passes -->
+  <path
+    class="disease-only"
+    d="M110,84 V206"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="1.5"
+    marker-end={`url(#${chdArrowId})`}
+  ></path>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    <g class="normal-only">
+      {normalA.map((delay) => (
+        <circle
+          class="chd-run"
+          r="4.5"
+          style={`offset-path: path('${routeA}'); animation-duration: 2.4s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+      {normalB.map((delay) => (
+        <circle
+          class="chd-run"
+          r="4.5"
+          style={`offset-path: path('${routeB}'); animation-duration: 3.45s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseA.map((delay) => (
+        <circle
+          class="chd-run"
+          r="2.5"
+          style={`offset-path: path('${routeA}'); animation-duration: 3.6s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+      {diseaseB.map((delay) => (
+        <circle
+          class="chd-stop"
+          r="4.5"
+          style={`offset-path: path('${routeBBlocked}'); animation-duration: 2s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x="8" y="32">
+    {t['diagram.label.coronary-artery']}
+  </text>
+  <g class="disease-only">
+    <line x1="78" y1="138" x2="96" y2="138" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="74" y="143" text-anchor="end">
+      {t['diagram.label.plaque']}
+    </text>
+    <line x1="268" y1="150" x2="278" y2="150" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="282" y="155">
+      {t['diagram.label.clot']}
+    </text>
+  </g>
+  <text class="normal-only" x="186" y="284" text-anchor="middle">
+    {t['diagram.label.heart-muscle']}
+  </text>
+  <text class="disease-only" x="96" y="284" text-anchor="middle">
+    {t['diagram.label.heart-muscle']}
+  </text>
+  <text class="disease-only" x="272" y="258" text-anchor="middle">
+    {t['diagram.label.no-blood-flow']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .chd-run,
+  .diagram .chd-stop {
+    offset-rotate: 0deg;
+    animation-name: chd-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .diagram .chd-stop {
+    animation-name: chd-stop;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .chd-run,
+    .diagram .chd-stop {
+      display: none;
+    }
+  }
+
+  @keyframes chd-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8%,
+    82% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+
+  /* Blood reaches the clot, stays there for a moment and fades: it cannot pass. */
+  @keyframes chd-stop {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8% {
+      opacity: 1;
+    }
+
+    75% {
+      offset-distance: 100%;
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>

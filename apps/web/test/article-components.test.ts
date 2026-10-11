@@ -1,9 +1,10 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { productionLocales } from '../src/i18n/locales.ts';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
 import { diagramStates, diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
+import { localeCodes } from '../src/i18n/locales.ts';
+import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
@@ -134,16 +135,19 @@ describe('Diagram', () => {
   });
 
   it.each(Object.keys(diagrams) as DiagramName[])(
-    '%s has a title, labels and a valid initial state in every locale',
+    'renders "%s" as an image named in every locale, with labels and a valid initial state',
     async (name) => {
       const { states, initial } = diagramStates(name);
       expect(states).toContain(initial);
-      for (const locale of Object.keys(productionLocales)) {
+      for (const locale of localeCodes) {
         const html = await container.renderToString(Diagram, {
           props: { name },
           locals: { locale },
         });
-        expect(html).toMatch(/aria-label="[^"]{10,}"/);
+        expect(html).toContain('role="img"');
+        const title = getMessages(locale)[`diagram.${name}.title` as MessageKey];
+        expect(title).toBeTruthy();
+        expect(html).toContain(`aria-label="${title}"`);
         // A missing message key renders as empty text, so no <text> element may be empty.
         expect(html).not.toMatch(/<text[^>]*>\s*<\/text>/);
       }

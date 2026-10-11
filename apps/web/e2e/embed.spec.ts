@@ -87,6 +87,8 @@ for (const locale of Object.keys(productionLocales)) {
 
 test.describe('embed parameters', () => {
   const slider = (page: Page) => page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  // The build renders the monitor with defaults; URL parameters apply only after hydration.
+  const hydrated = (page: Page) => expect(page.locator('astro-island[ssr]')).toHaveCount(0);
 
   test('applies a whitelisted parameter and ignores unknown ones', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=120&autoplay=1&locale=ru');
@@ -96,6 +98,7 @@ test.describe('embed parameters', () => {
 
   test('ignores an out-of-range value', async ({ page }) => {
     await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[1] + 1}`);
+    await hydrated(page);
     await expect(slider(page)).toHaveValue(String(defaultParams.heartRate));
   });
 
