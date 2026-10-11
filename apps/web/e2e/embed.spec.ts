@@ -1,8 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
-import { paramRanges, defaultParams } from '@heart-atlas/heart-clock';
+import {
+  defaultParams,
+  heartRateLimits,
+  paramRanges,
+  presetParams,
+} from '@heart-atlas/heart-clock';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { testLocales } from '../test/fixtures/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
+import ru from '../src/i18n/messages/ru.json' with { type: 'json' };
 import { axe } from './axe.ts';
 
 /** Checks what every embed page must have: no site chrome, noindex, canonical, credit, no worker. */
@@ -96,6 +102,36 @@ test.describe('embed parameters', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
+  test('starts from the preset in the URL and ignores an unknown one', async ({ page }) => {
+    const condition = (id: string) =>
+      page.getByRole('radio', { name: en[`heartClock.preset.${id}` as keyof typeof en] });
+    await page.goto('en/embed/ecg/?preset=atrial-fibrillation&rate=90');
+    await expect(condition('atrial-fibrillation')).toBeChecked();
+    await expect(slider(page)).toHaveValue('90');
+
+    await page.goto('en/embed/ecg/?preset=not-a-preset');
+    await hydrated(page);
+    await expect(condition('normal')).toBeChecked();
+  });
+
+  test('keeps a rate from the URL inside the preset limits', async ({ page }) => {
+    const [, max] = heartRateLimits(presetParams('atrial-septal-defect'));
+    await page.goto(`en/embed/ecg/?preset=atrial-septal-defect&rate=${max + 1}`);
+    await hydrated(page);
+    await expect(
+      page.getByRole('radio', { name: en['heartClock.preset.atrial-septal-defect'] }),
+    ).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(max));
+  });
+
+  test('the reader can change the rate set by the URL', async ({ page }) => {
+    await page.goto('en/embed/ecg/?rate=90');
+    await hydrated(page);
+    await slider(page).fill('100');
+    await page.waitForTimeout(300);
+    await expect(slider(page)).toHaveValue('100');
+  });
+
   test('ignores an out-of-range value', async ({ page }) => {
     await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[1] + 1}`);
     await hydrated(page);
@@ -131,6 +167,7 @@ test.describe('embed builder', () => {
     await expect(code).toHaveValue(/src="[^"]*\/heart-atlas\/en\/embed\/ecg\/"/);
 
     const rate = page.getByLabel(en['heartClock.heartRate']);
+    const condition = page.locator('select[name="preset"]');
     await rate.fill('90');
     await expect(code).toHaveValue(/\/en\/embed\/ecg\/\?rate=90"/);
     // Number inputs accept forms the embed does not; the builder writes the plain integer.
@@ -141,11 +178,31 @@ test.describe('embed builder', () => {
     await expect(page.locator('#rate-error')).not.toBeEmpty();
     await rate.fill('');
 
+    await condition.selectOption('atrial-fibrillation');
+    await expect(code).toHaveValue(/\/en\/embed\/ecg\/\?preset=atrial-fibrillation"/);
+    await rate.fill('90');
+    await expect(code).toHaveValue(/\?preset=atrial-fibrillation&amp;rate=90"/);
+    await expect(code).toHaveValue(
+      new RegExp(
+        `title="${en['heartClock.title']}: ${en['heartClock.preset.atrial-fibrillation']}"`,
+      ),
+    );
+    // A rate the preset does not allow is reported and left out of the code.
+    const [, asdMax] = heartRateLimits(presetParams('atrial-septal-defect'));
+    await condition.selectOption('atrial-septal-defect');
+    await rate.fill(String(asdMax + 1));
+    await expect(code).not.toHaveValue(/rate=/);
+    await expect(page.locator('#rate-error')).not.toBeEmpty();
+    await rate.fill('');
+    // Left on a disease preset, so the module switch below shows that it is dropped.
+    await condition.selectOption('atrial-fibrillation');
+
     const disease = page.locator('select[name="module"] option[value*="/embed/disease/"]').first();
     const value = await disease.getAttribute('value');
     await page.locator('select[name="module"]').selectOption(value ?? '');
     await expect(page.getByLabel(en['heartClock.heartRate'])).toBeHidden();
-    await expect(code).not.toHaveValue(/rate=/);
+    await expect(code).not.toHaveValue(/rate=|preset=/);
+    await expect(condition).toBeHidden();
     await expect(code).toHaveValue(/\/en\/embed\/disease\//);
   });
 });
@@ -174,6 +231,16 @@ test.describe('embed in the right-to-left test locale', () => {
 
 test.describe('embed citations', () => {
   test.skip(process.env['HA_TEST_CONTENT'] !== '1', 'needs the HA_TEST_CONTENT=1 build');
+
+  test('an article with a preset embeds the monitor', async ({ page }) => {
+    await page.goto('ru/embed/disease/test-condition/');
+    const monitor = page.locator('section.clock');
+    await expect(
+      monitor.getByRole('radio', { name: ru['heartClock.preset.atrial-fibrillation'] }),
+    ).toBeChecked();
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
+  });
 
   test('a citation scrolls to its source inside the frame', async ({ page, context }) => {
     await page.goto('ru/embed/disease/test-condition/');

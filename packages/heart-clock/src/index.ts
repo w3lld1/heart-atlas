@@ -13,3 +13,13 @@ export {
 export { soundEvents, type HeartSound, type SoundEvent } from './sounds.ts';
 export { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 export { isPresetId, presetIds, presetParams, presets, type PresetId } from './presets.ts';
+export { cycleState } from './cycle.ts';
+export {
+  publishCycleSource,
+  subscribeCycleSource,
+  withdrawCycleSource,
+  type ChamberId,
+  type CycleSource,
+  type CycleState,
+  type ValveId,
+} from './cycle-source.ts';

@@ -1,35 +1,45 @@
-import { paramRanges, type HeartParams } from '@heart-atlas/heart-clock';
-import { useEffect, useState } from 'react';
+import { isPresetId, paramRanges, presetIds, type PresetId } from '@heart-atlas/heart-clock';
+import { useEffect, useMemo, useState } from 'react';
 import { integerIn, parseEmbedParams } from '../../lib/embed.ts';
 import HeartClockDemo, { type HeartClockMessages } from './HeartClockDemo.tsx';
 
 /** Query parameters the ECG embed accepts; everything else is ignored. */
-export const ecgEmbedParams = { rate: integerIn(...paramRanges.heartRate) };
+export const ecgEmbedParams = {
+  rate: integerIn(...paramRanges.heartRate),
+  preset: (value: string): PresetId | undefined => (isPresetId(value) ? value : undefined),
+};
 
 interface Props {
   locale: string;
   messages: HeartClockMessages;
 }
 
-const defaults: Partial<HeartParams> = {};
+interface Settings {
+  rate?: number;
+  preset?: PresetId;
+}
 
 /**
  * Heart clock monitor configured from the query string. The build renders it with default
- * parameters, so the page has its final size before scripts run; after hydration the monitor is
- * mounted again with the parameters from the URL.
+ * settings, so the page has its final size before scripts run; after hydration the monitor is
+ * mounted again with the settings from the URL.
  */
 export default function EcgEmbed({ locale, messages }: Props) {
-  const [params, setParams] = useState(defaults);
+  const [settings, setSettings] = useState<Settings>({});
   useEffect(() => {
-    const { rate } = parseEmbedParams(window.location.search, ecgEmbedParams);
-    if (rate !== undefined) setParams({ heartRate: rate });
+    setSettings(parseEmbedParams(window.location.search, ecgEmbedParams));
   }, []);
+  const { rate, preset } = settings;
+  // A stable object: the monitor rebuilds its clock whenever `params` changes.
+  const params = useMemo(() => (rate === undefined ? undefined : { heartRate: rate }), [rate]);
   return (
     <HeartClockDemo
-      key={params.heartRate ?? 'default'}
+      key={`${preset ?? ''}:${rate ?? ''}`}
       locale={locale}
       messages={messages}
-      params={params}
+      presets={presetIds}
+      {...(preset === undefined ? {} : { preset })}
+      {...(params === undefined ? {} : { params })}
     />
   );
 }

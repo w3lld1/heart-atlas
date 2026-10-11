@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { articleComponents } from '../../../../components/article-components.ts';
+import ArticleClock from '../../../../components/heart-clock/ArticleClock.astro';
 import LevelScript from '../../../../components/LevelScript.astro';
 import LevelSwitch from '../../../../components/LevelSwitch.astro';
 import ReviewNotice from '../../../../components/ReviewNotice.astro';
@@ -57,6 +58,7 @@ const { Content } = await render(entry);
     <h1>{article.title}</h1>
     <Content components={articleComponents} />
   </article>
+  {article.preset && <ArticleClock locale={locale} preset={article.preset} />}
   <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
 </EmbedLayout>
 
