@@ -24,6 +24,27 @@ describe('valveFrame', () => {
     expect(frame.radius).toBeCloseTo(2, 1);
   });
 
+  it('finds a plane whose normal is orthogonal to (1, 1, 1)', () => {
+    // The same disc in the plane x = y: its normal (1, -1, 0)/√2 is orthogonal to (1, 1, 1).
+    const s = Math.SQRT1_2;
+    const tilted: number[] = [];
+    for (let i = 0; i < disc.length; i += 3) {
+      const [x = 0, y = 0, z = 0] = disc.slice(i, i + 3);
+      tilted.push(x * s + (y - 1) * s, x * s - (y - 1) * s, z);
+    }
+    const frame = valveFrame(tilted);
+    expect(Math.abs(frame.normal[0] * s - frame.normal[1] * s)).toBeCloseTo(1, 3);
+  });
+
+  it('uses a given flow axis when chordae dominate the spread', () => {
+    // Chordae: a long column of points along x below the disc, which misleads the PCA.
+    const withChordae = [...disc];
+    for (let k = 0; k < 40; k++) withChordae.push(-4 + k * 0.2, -3, 0);
+    const frame = valveFrame(withChordae, [0, 3, 0]);
+    expect(frame.normal).toEqual([0, 1, 0]);
+    expect(frame.radius).toBeGreaterThan(0);
+  });
+
   it('handles an empty mesh', () => {
     expect(valveFrame([]).radius).toBe(0);
   });

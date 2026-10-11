@@ -48,6 +48,8 @@ export const VALVE_SPREAD = 0.8;
 /** Time constants of the viewer's own easing, ms: leaflets move, the conduction glow fades. */
 export const VALVE_EASE_MS = 40;
 export const GLOW_EASE_MS = 120;
+/** Time constant of the return to rest once the heartbeat stops, ms. */
+export const SETTLE_EASE_MS = 200;
 
 /** Moves `current` towards `target` with exponential easing, frame-rate independent. */
 export function ease(current: number, target: number, dtMs: number, tauMs: number): number {
@@ -79,13 +81,14 @@ export interface ValveFrame {
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /**
- * Centre, plane normal and radius of a valve from its vertex positions. The normal is the axis
- * along which the points spread least (smallest principal component): leaflets lie across the
- * orifice, so that axis points through it.
+ * Centre, plane normal and radius of a valve from its vertex positions. Without a given normal it
+ * is the axis along which the points spread least (smallest principal component): semilunar
+ * leaflets lie across the orifice, so that axis points through it. Atrioventricular valves pass
+ * the atrium → ventricle axis instead, because their chordae dominate the spread.
  */
-export function valveFrame(positions: ArrayLike<number>): ValveFrame {
+export function valveFrame(positions: ArrayLike<number>, given?: Vec3): ValveFrame {
   const n = Math.floor(positions.length / 3);
-  if (n === 0) return { center: [0, 0, 0], normal: [0, 1, 0], radius: 0 };
+  if (n === 0) return { center: [0, 0, 0], normal: given ?? [0, 1, 0], radius: 0 };
   const at = (i: number, j: number) => positions[i * 3 + j] ?? 0;
   let cx = 0;
   let cy = 0;
@@ -96,16 +99,7 @@ export function valveFrame(positions: ArrayLike<number>): ValveFrame {
     cz += at(i, 2) / n;
   }
   const c: Vec3 = [cx, cy, cz];
-  // Covariance matrix, row-major.
-  const m = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-  for (let i = 0; i < n; i++) {
-    const d = [at(i, 0) - cx, at(i, 1) - cy, at(i, 2) - cz];
-    for (let a = 0; a < 3; a++) {
-      for (let b = 0; b < 3; b++)
-        m[a * 3 + b] = (m[a * 3 + b] ?? 0) + ((d[a] ?? 0) * (d[b] ?? 0)) / n;
-    }
-  }
-  const normal = smallestEigenvector(m);
+  const normal = given ? unit(given) : smallestEigenvector(covariance(positions, n, c));
   const distances: number[] = [];
   for (let i = 0; i < n; i++) {
     const d: Vec3 = [at(i, 0) - cx, at(i, 1) - cy, at(i, 2) - cz];
@@ -117,23 +111,57 @@ export function valveFrame(positions: ArrayLike<number>): ValveFrame {
   return { center: c, normal, radius };
 }
 
+function unit(v: Vec3): Vec3 {
+  const length = Math.hypot(...v);
+  return length === 0 ? [0, 1, 0] : [v[0] / length, v[1] / length, v[2] / length];
+}
+
+/** Covariance matrix of the points about `c`, row-major. */
+function covariance(positions: ArrayLike<number>, n: number, c: Vec3): number[] {
+  const m = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (let i = 0; i < n; i++) {
+    const d = [0, 1, 2].map((j) => (positions[i * 3 + j] ?? 0) - c[j as 0 | 1 | 2]);
+    for (let a = 0; a < 3; a++) {
+      for (let b = 0; b < 3; b++)
+        m[a * 3 + b] = (m[a * 3 + b] ?? 0) + ((d[a] ?? 0) * (d[b] ?? 0)) / n;
+    }
+  }
+  return m;
+}
+
 /**
  * Smallest-eigenvalue eigenvector of a symmetric 3×3 matrix by power iteration on
- * (trace·I − M), whose largest eigenvector it is. Enough precision for a display axis.
+ * (trace·I − M), whose largest eigenvector it is. Started from each axis, keeping the result with
+ * the smallest Rayleigh quotient, so a start orthogonal to the answer cannot mislead it.
  */
 function smallestEigenvector(m: number[]): Vec3 {
   const trace = (m[0] ?? 0) + (m[4] ?? 0) + (m[8] ?? 0);
   const s = m.map((v, i) => (i % 4 === 0 ? trace - v : -v));
-  let v: Vec3 = [0.577, 0.577, 0.577];
-  for (let iteration = 0; iteration < 64; iteration++) {
-    const next: Vec3 = [0, 1, 2].map(
-      (r) => (s[r * 3] ?? 0) * v[0] + (s[r * 3 + 1] ?? 0) * v[1] + (s[r * 3 + 2] ?? 0) * v[2],
+  const times = (a: number[], v: Vec3): Vec3 =>
+    [0, 1, 2].map(
+      (r) => (a[r * 3] ?? 0) * v[0] + (a[r * 3 + 1] ?? 0) * v[1] + (a[r * 3 + 2] ?? 0) * v[2],
     ) as Vec3;
-    const length = Math.hypot(...next);
-    if (length === 0) return [0, 1, 0];
-    v = [next[0] / length, next[1] / length, next[2] / length];
+  let best: Vec3 = [0, 1, 0];
+  let bestValue = Infinity;
+  const starts: Vec3[] = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
+  for (let v of starts) {
+    for (let iteration = 0; iteration < 64; iteration++) {
+      const next = times(s, v);
+      const length = Math.hypot(...next);
+      if (length === 0) break;
+      v = [next[0] / length, next[1] / length, next[2] / length];
+    }
+    const value = dot(v, times(m, v));
+    if (value < bestValue) {
+      bestValue = value;
+      best = v;
+    }
   }
-  return v;
+  return best;
 }
 
 /**

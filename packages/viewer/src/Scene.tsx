@@ -27,6 +27,7 @@ import {
   DEFORM_VERTEX,
   ease,
   GLOW_EASE_MS,
+  SETTLE_EASE_MS,
   SQUEEZE,
   VALVE_EASE_MS,
   VALVE_SPREAD,
@@ -138,11 +139,19 @@ const isChamber = (name: string): name is ChamberId =>
   (CHAMBERS as readonly string[]).includes(name);
 const isValve = (name: string): name is ValveId => (VALVES as readonly string[]).includes(name);
 
+const ATRIA: ChamberId[] = ['right-atrium', 'left-atrium'];
 const VENTRICLES: ChamberId[] = ['right-ventricle', 'left-ventricle'];
+/** Atrium and ventricle on each side of an atrioventricular valve, for its flow axis. */
+const AV_AXIS: Partial<Record<ValveId, [ChamberId, ChamberId]>> = {
+  'tricuspid-valve': ['right-atrium', 'right-ventricle'],
+  'mitral-valve': ['left-atrium', 'left-ventricle'],
+};
 
 /**
  * Chambers whose contraction a mesh follows. Papillary muscles and the vessels on the surface
- * move with the ventricles, so they stay attached to the wall that carries them.
+ * move with the ventricles, so they stay attached to the wall that carries them. Everything that
+ * follows ventricles squeezes towards their common centre, and atria towards theirs, so shared
+ * walls such as the septum move as one.
  */
 function followsFor(name: string, group: string): ChamberId[] | undefined {
   if (isChamber(name)) return [name];
@@ -180,7 +189,7 @@ function newUniforms(): DeformUniforms {
 }
 
 /** Valve frame in the mesh's own geometry space, where the shader works. */
-function setValveFrame(mesh: Mesh, uniforms: DeformUniforms) {
+function setValveFrame(mesh: Mesh, uniforms: DeformUniforms, axis?: Vec3) {
   const position = mesh.geometry.getAttribute('position');
   if (!position) return;
   // getX/Y/Z undo the quantization, giving the same values the shader sees.
@@ -190,7 +199,7 @@ function setValveFrame(mesh: Mesh, uniforms: DeformUniforms) {
     points[i * 3 + 1] = position.getY(i);
     points[i * 3 + 2] = position.getZ(i);
   }
-  const frame = valveFrame(points);
+  const frame = valveFrame(points, axis);
   uniforms.uValve.value = 1;
   uniforms.uCenter.value.set(...frame.center);
   uniforms.uNormal.value.set(...frame.normal);
@@ -226,17 +235,16 @@ function Model({ onLoaded, ...props }: ModelProps) {
   const { scene, meshes } = useMemo(() => {
     const copy = gltf.scene.clone(true);
     copy.updateMatrixWorld(true);
-    // Squeeze centres in model space: each chamber's own, and both ventricles for the vessels.
+    // Squeeze centres in model space; null when the model lacks the chambers.
     const centreOf = (names: readonly string[]) => {
       const box = new Box3();
       for (const name of names) {
         const node = copy.getObjectByName(name);
         if (node) box.expandByObject(node);
       }
-      return box.getCenter(new Vector3());
+      return box.isEmpty() ? null : box.getCenter(new Vector3());
     };
-    const centres = new Map<string, Vector3>();
-    for (const chamber of CHAMBERS) centres.set(chamber, centreOf([chamber]));
+    const atria = centreOf(ATRIA);
     const ventricles = centreOf(VENTRICLES);
     const list: MeshState[] = [];
     copy.traverse((o: Object3D) => {
@@ -244,15 +252,26 @@ function Model({ onLoaded, ...props }: ModelProps) {
       const material = o.material.clone();
       o.material = material;
       const group = String(o.userData['group'] ?? '');
-      const follows = followsFor(o.name, group);
+      const centre = (c: ChamberId) => (ATRIA.includes(c) ? atria : ventricles);
+      const found = followsFor(o.name, group);
+      const follows = found?.every((c) => centre(c)) ? found : undefined;
       let deform: DeformUniforms | undefined;
       if (follows || isValve(o.name)) {
         deform = newUniforms();
-        const centre = follows?.length === 1 ? centres.get(follows[0] ?? '') : ventricles;
         // The shader works in the mesh's geometry space; quantization scales nodes uniformly,
         // so squeezing there about the mapped centre equals squeezing in model space.
-        if (centre) deform.uSqueezeCenter.value.copy(o.worldToLocal(centre.clone()));
-        if (isValve(o.name)) setValveFrame(o, deform);
+        const squeezeCentre = follows?.[0] ? centre(follows[0]) : null;
+        if (squeezeCentre) deform.uSqueezeCenter.value.copy(o.worldToLocal(squeezeCentre.clone()));
+      }
+      if (deform && isValve(o.name)) {
+        const ends = AV_AXIS[o.name];
+        const from = ends && centreOf([ends[0]]);
+        const to = ends && centreOf([ends[1]]);
+        const axis =
+          from && to
+            ? o.worldToLocal(to.clone()).sub(o.worldToLocal(from.clone())).toArray()
+            : undefined;
+        setValveFrame(o, deform, axis);
       }
       if (deform) addDeformation(material, deform);
       list.push({
@@ -310,27 +329,40 @@ function Model({ onLoaded, ...props }: ModelProps) {
 
   // Heartbeat. Chambers follow the clock's contraction directly (it is already smooth); valves
   // and the conduction glow are eased here. While anything moves, each frame asks for the next.
+  // A source has no change events, so while one is set a slow tick lets a paused clock resume.
+  const lastState = useRef('');
+  useEffect(() => {
+    if (!props.cycle) return;
+    const tick = window.setInterval(invalidate, 200);
+    return () => window.clearInterval(tick);
+  }, [props.cycle, invalidate]);
+
   useFrame((state, delta) => {
     const cycle = props.cycle?.() ?? null;
     const dt = delta * 1000;
-    let moving = cycle !== null;
+    // A paused clock gives the same state every frame; only a change asks for the next frame.
+    const signature = cycle ? JSON.stringify(cycle) : '';
+    let moving = signature !== lastState.current;
+    lastState.current = signature;
     for (const m of meshes) {
       const name = m.mesh.name;
       if (m.deform && m.follows) {
         const target =
           m.follows.reduce((sum, c) => sum + (cycle?.contraction[c] ?? 0) * SQUEEZE[c], 0) /
           m.follows.length;
-        const squeeze = cycle ? target : ease(m.deform.uSqueeze.value, 0, dt, VALVE_EASE_MS);
+        const squeeze = cycle ? target : ease(m.deform.uSqueeze.value, 0, dt, SETTLE_EASE_MS);
         m.deform.uSqueeze.value = squeeze;
-        if (squeeze > 1e-4) moving = true;
+        if (!cycle && squeeze > 1e-4) moving = true;
       }
       if (m.deform && isValve(name)) {
-        m.level = ease(m.level, cycle?.valveOpen[name] ?? 0, dt, VALVE_EASE_MS);
+        const target = cycle?.valveOpen[name] ?? 0;
+        m.level = ease(m.level, target, dt, VALVE_EASE_MS);
         m.deform.uOpen.value = m.level * VALVE_SPREAD;
-        if (m.level > 1e-4) moving = true;
+        if (Math.abs(m.level - target) > 1e-4) moving = true;
       } else if (m.group === 'conduction') {
-        m.level = ease(m.level, cycle?.excited.includes(name) ? 1 : 0, dt, GLOW_EASE_MS);
-        if (m.level > 1e-4) moving = true;
+        const target = cycle?.excited.includes(name) ? 1 : 0;
+        m.level = ease(m.level, target, dt, GLOW_EASE_MS);
+        if (Math.abs(m.level - target) > 1e-4) moving = true;
         // The reader's own highlight wins over the heartbeat.
         if (!props.highlighted.has(name)) {
           m.material.emissive.copy(m.level > 1e-4 ? PULSE : NO_EMISSION);
