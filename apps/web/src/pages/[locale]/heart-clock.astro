@@ -1,5 +1,6 @@
 ---
 import { presetIds } from '@heart-atlas/heart-clock';
+import { HeartViewer } from '@heart-atlas/viewer';
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import HeartClockDemo, {
   heartClockMessageKeys,
@@ -9,6 +10,7 @@ import { modelSources, presetSources } from '../../components/heart-clock/source
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
+import { heartModelUrls, heartStructures, viewerMessages } from '../../lib/heart-model.ts';
 
 export const getStaticPaths = (() =>
   localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
@@ -20,6 +22,7 @@ const messages = Object.fromEntries(
 ) as HeartClockMessages;
 
 const sources = [...modelSources, ...presetSources];
+const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
 ---
 
 <BaseLayout locale={locale} title={t['heartClock.title']} description={t['heartClock.intro']}>
@@ -29,6 +32,16 @@ const sources = [...modelSources, ...presetSources];
     {t['heartClock.schematic']}
   </p>
   <HeartClockDemo client:visible locale={locale} messages={messages} presets={presetIds} />
+  <h2>{t['heartClock.model3d']}</h2>
+  <HeartViewer
+    client:visible={{ rootMargin: '200px' }}
+    models={models}
+    poster={poster}
+    structures={heartStructures(t)}
+    messages={viewerMessages(t)}
+    loadOn="click"
+    headingLevel={3}
+  />
   <h2>{t['heartClock.sources']}</h2>
   <ol class="sources">
     {sources.map((source) => (

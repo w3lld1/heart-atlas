@@ -1,8 +1,12 @@
 import {
   createHeartClock,
+  cycleState,
   heartRateLimits,
   presetIds,
   presetParams,
+  publishCycleSource,
+  withdrawCycleSource,
+  type CycleSource,
   type HeartParams,
   type Phase,
   type PresetId,
@@ -69,7 +73,10 @@ export interface HeartClockDemoProps {
 function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined) {
   const merged = { ...presetParams(id), ...params };
   try {
-    return { params: merged, limits: heartRateLimits(merged) };
+    const limits = heartRateLimits(merged);
+    // heartRateLimits checks every rate itself, so a caller's rate outside them would only fail
+    // later, when the clock is created; keep it inside instead.
+    return { params: { ...merged, heartRate: clamp(merged.heartRate, limits) }, limits };
   } catch (error) {
     if (error instanceof RangeError) return undefined;
     throw error;
@@ -181,6 +188,15 @@ export default function HeartClockDemo({
     observer.observe(wrapper);
     return () => observer.disconnect();
   }, []);
+
+  // Lets a 3D viewer on the page beat with this clock. It reads the same time as the strip, so
+  // the model matches the monitor; a clock that nowRef has not moved to yet gives no state.
+  useEffect(() => {
+    const source: CycleSource = () =>
+      nowClockRef.current === clock ? cycleState(clock, nowRef.current) : null;
+    publishCycleSource(source);
+    return () => withdrawCycleSource(source);
+  }, [clock]);
 
   // Draws one frame now and, while playing, on every animation frame.
   useEffect(() => {

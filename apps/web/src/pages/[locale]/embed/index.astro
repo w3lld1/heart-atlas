@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { paramRanges } from '@heart-atlas/heart-clock';
+import { heartRateLimits, paramRanges, presetIds, presetParams } from '@heart-atlas/heart-clock';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
@@ -23,6 +23,8 @@ const pages = articlePages(await getCollection('articles'), locales).filter(
 );
 const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1200 };
 const heartModel = { src: embedUrl('heart-model/'), title: t['anatomy.title'], height: 1000 };
+const hasMonitor = (entry: (typeof pages)[number]['entry']) =>
+  entry.data.preset !== undefined || (entry.body ?? '').includes('<EcgMonitor');
 // One group per article type that has articles, in the order of articleTypes.
 const articleGroups = articleTypes
   .map((type) => ({
@@ -32,7 +34,8 @@ const articleGroups = articleTypes
       .map((page) => ({
         src: embedUrl(`${type}/${page.slug}/`),
         title: page.entry.data.title,
-        height: 800,
+        // Articles with the heart clock monitor are taller.
+        height: hasMonitor(page.entry) ? 1600 : 800,
       }))
       .sort((a, b) => a.title.localeCompare(b.title, locale)),
   }))
@@ -70,7 +73,21 @@ const [minRate, maxRate] = paramRanges.heartRate;
         ))}
       </select>
     </label>
-    <div class="field" data-rate-field>
+    <label data-ecg-field>
+      {t['heartClock.condition']}
+      <select name="preset">
+        {presetIds.map((id) => {
+          // Some presets allow a narrower heart rate range than the clock itself.
+          const [min, max] = heartRateLimits(presetParams(id));
+          return (
+            <option value={id} data-min={min} data-max={max}>
+              {t[`heartClock.preset.${id}`]}
+            </option>
+          );
+        })}
+      </select>
+    </label>
+    <div class="field" data-ecg-field>
       <label for="rate">{t['heartClock.heartRate']}</label>
       <input
         id="rate"
@@ -111,9 +128,10 @@ const [minRate, maxRate] = paramRanges.heartRate;
   import { iframeCode } from '../../../lib/embed.ts';
 
   const form = document.querySelector<HTMLFormElement>('[data-builder]');
-  const select = form?.querySelector('select');
+  const select = form?.querySelector<HTMLSelectElement>('select[name="module"]');
   const rate = form?.querySelector<HTMLInputElement>('input[name="rate"]');
-  const rateField = form?.querySelector<HTMLElement>('[data-rate-field]');
+  const preset = form?.querySelector<HTMLSelectElement>('select[name="preset"]');
+  const ecgFields = form?.querySelectorAll<HTMLElement>('[data-ecg-field]') ?? [];
   const code = form?.querySelector('textarea');
   const copy = form?.querySelector<HTMLButtonElement>('[data-copy]');
   const status = form?.querySelector<HTMLElement>('[data-copy-status]');
@@ -121,10 +139,19 @@ const [minRate, maxRate] = paramRanges.heartRate;
 
   function update() {
     const option = select?.selectedOptions[0];
-    if (!option || !rate || !rateField || !code || !rateError) return;
+    if (!option || !rate || !preset || !code || !rateError) return;
     const withRate = option.dataset['rate'] !== undefined;
-    rateField.hidden = !withRate;
+    for (const field of ecgFields) field.hidden = !withRate;
     const src = new URL(option.value);
+    const presetOption = preset.selectedOptions[0];
+    rate.min = presetOption?.dataset['min'] ?? rate.min;
+    rate.max = presetOption?.dataset['max'] ?? rate.max;
+    let title = option.dataset['title'] ?? '';
+    // Normal is the default, so it needs no parameter.
+    if (withRate && presetOption && preset.value !== 'normal') {
+      src.searchParams.set('preset', preset.value);
+      title = `${title}: ${presetOption.text.trim()}`;
+    }
     const valid = rate.checkValidity();
     rateError.textContent = valid ? '' : rate.validationMessage;
     // valueAsNumber normalises "1e2" or "90.0" to the plain integer the embed accepts.
@@ -133,7 +160,7 @@ const [minRate, maxRate] = paramRanges.heartRate;
     }
     code.value = iframeCode({
       src: src.href,
-      title: option.dataset['title'] ?? '',
+      title,
       height: Number(option.dataset['height']),
     });
     if (status) status.textContent = '';
@@ -171,6 +198,7 @@ const [minRate, maxRate] = paramRanges.heartRate;
     gap: 0.25rem;
   }
 
+  label[hidden],
   .field[hidden] {
     display: none;
   }

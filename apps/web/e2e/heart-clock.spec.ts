@@ -16,7 +16,7 @@ for (const locale of Object.keys(productionLocales)) {
     test('draws the ECG and has no axe violations', async ({ page }) => {
       await page.goto(`${locale}/heart-clock/`);
       // Two drawings: the ECG strip and the Wiggers diagram, each with a pixel buffer.
-      const images = page.getByRole('img');
+      const images = page.locator('canvas[role="img"]');
       await expect(images).toHaveCount(2);
       for (const image of await images.all()) {
         await expect(image).toBeVisible();
@@ -28,6 +28,26 @@ for (const locale of Object.keys(productionLocales)) {
     });
   });
 }
+
+test.describe('3D model on the heart clock page', () => {
+  test('waits for the button before loading three.js and the model', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', (r) => requested.push(r.url()));
+    await page.goto('en/heart-clock/');
+    await expect(
+      page.getByRole('heading', { level: 2, name: en['heartClock.model3d'] }),
+    ).toBeVisible();
+    const load = page.getByRole('button', { name: en['viewer.load'] });
+    await load.scrollIntoViewIfNeeded();
+    await expect(load).toBeVisible();
+    // Wait until both islands have hydrated and the network is quiet: the viewer still waits for
+    // the click, while its own small chunk has loaded.
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
+    await page.waitForLoadState('networkidle');
+    expect(requested.filter((url) => url.includes('/Scene.') || url.endsWith('.glb'))).toEqual([]);
+  });
+});
 
 test.describe('heart clock controls', () => {
   test('plays by default, pauses and follows the heart rate', async ({ page }) => {

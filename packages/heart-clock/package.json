@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./cycle-source": "./src/cycle-source.ts"
   },
   "scripts": {
     "test": "vitest run",
