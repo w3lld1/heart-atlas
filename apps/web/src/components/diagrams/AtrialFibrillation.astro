@@ -1,0 +1,536 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const afArrowId = `${uid}-af-arrow`;
+const afAtriaId = `${uid}-af-atria`;
+
+/*
+ * Timing. Every animation repeats within one 4.8 s strip sweep so the ECG cursor
+ * and the heart stay in step. Normal: one beat every 0.96 s (five per sweep, 62.5 per
+ * minute), the ventricles activate at 62 % of each beat. AF: four ventricular beats per sweep at
+ * irregular moments (fractions of the sweep below); the keyframes use the same values.
+ */
+const strip = { x: 64, width: 280, base: 372 };
+const at = (f: number) => strip.x + strip.width * f;
+// Normal beats: [P wave, QRS] as fractions of the sweep.
+const normalBeats: [number, number][] = [
+  [0.04, 0.124],
+  [0.24, 0.324],
+  [0.44, 0.524],
+  [0.64, 0.724],
+  [0.84, 0.924],
+];
+const afQrs = [0.125, 0.2708, 0.5833, 0.7083];
+
+const qrs = (x: number) =>
+  `L${x - 4},${strip.base} L${x - 2},${strip.base + 4} L${x},${strip.base - 28} L${x + 3},${strip.base + 8} L${x + 5},${strip.base} `;
+const tWave = (x: number) => `Q${x + 14},${strip.base - 12} ${x + 20},${strip.base} `;
+
+// Normal: P wave, QRS and T wave on a flat baseline.
+let normalEcg = `M${strip.x},${strip.base} `;
+normalBeats.forEach(([p, q]) => {
+  const px = at(p);
+  const qx = at(q);
+  normalEcg += `L${px - 7},${strip.base} Q${px},${strip.base - 14} ${px + 7},${strip.base} `;
+  normalEcg += qrs(qx) + `L${qx + 8},${strip.base} ` + tWave(qx);
+});
+normalEcg += `L${strip.x + strip.width},${strip.base}`;
+
+// AF: no P waves, a fine irregular baseline and QRS complexes at irregular intervals.
+const wiggle = [2.5, -1.5, 3, -2.5, 1.5, -3, 2, -1, 3, -2];
+const nextWiggle = (i: number) => wiggle[i % wiggle.length] ?? 0;
+let afEcg = `M${strip.x},${strip.base} `;
+let x = strip.x;
+let k = 0;
+for (const q of afQrs) {
+  const qx = at(q);
+  while (x + 4 < qx - 4) {
+    x += 4;
+    afEcg += `L${x},${strip.base + nextWiggle(k++)} `;
+  }
+  afEcg += qrs(qx) + `L${qx + 8},${strip.base} ` + tWave(qx);
+  x = qx + 20;
+}
+while (x + 4 < strip.x + strip.width) {
+  x += 4;
+  afEcg += `L${x},${strip.base + nextWiggle(k++)} `;
+}
+
+// Chaotic wavelets in the atria: centre, duration and a negative delay so they are already running.
+const wavelets = [
+  [92, 76, 1.3, 0],
+  [138, 108, 1.1, -0.4],
+  [78, 108, 1.6, -0.9],
+  [136, 70, 1.4, -0.2],
+  [108, 96, 0.9, -0.6],
+  [226, 74, 1.2, -0.3],
+  [270, 108, 1.5, -1.1],
+  [232, 114, 1, -0.5],
+  [282, 80, 1.3, -0.8],
+  [252, 92, 1.7, -0.1],
+];
+
+// Static marks of chaotic activity: short wavy arrows pointing in different directions.
+const squiggles = [
+  'M66,100 q6,-12 14,-6 t12,-10',
+  'M98,66 q8,8 16,2 t16,4',
+  'M162,104 q-4,-12 -12,-10 t-10,-14',
+  'M96,124 q8,-6 14,0 t16,-2',
+  'M294,96 q-6,-12 -14,-6 t-12,-10',
+  'M262,64 q-8,8 -16,2 t-16,4',
+  'M198,104 q4,-12 12,-10 t10,-14',
+  'M264,124 q-8,-6 -14,0 t-16,-2',
+];
+
+// Static marks of the normal path: SA node across both atria, then down to the ventricles.
+const normalPaths = ['M86,70 Q100,128 166,138', 'M92,62 Q170,62 262,82'];
+---
+
+<svg
+  viewBox="0 -34 360 434"
+  role="img"
+  aria-label={t['diagram.atrial-fibrillation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={afArrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+    <clipPath id={afAtriaId}>
+      <ellipse cx="115" cy="92" rx="58" ry="42"></ellipse>
+      <ellipse cx="245" cy="92" rx="58" ry="42"></ellipse>
+    </clipPath>
+  </defs>
+
+  <!-- Heart wall -->
+  <path
+    d="M60,55 Q180,5 300,55 Q345,140 285,232 Q225,292 180,296 Q135,292 75,232 Q15,140 60,55 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Chambers: atria on top, ventricles below -->
+  <ellipse
+    cx="115"
+    cy="92"
+    rx="58"
+    ry="42"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="245"
+    cy="92"
+    rx="58"
+    ry="42"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="120"
+    cy="214"
+    rx="50"
+    ry="56"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="248"
+    cy="214"
+    rx="52"
+    ry="56"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Moving impulse inside the chambers (under the static marks) -->
+  <g class="flow">
+    <g class="normal-only">
+      <g clip-path={`url(#${afAtriaId})`}>
+        <circle class="af-wave" cx="78" cy="60" r="240"></circle>
+      </g>
+      <ellipse class="af-ventricles af-v-normal" cx="120" cy="214" rx="50" ry="56"></ellipse>
+      <ellipse class="af-ventricles af-v-normal" cx="248" cy="214" rx="52" ry="56"></ellipse>
+    </g>
+    <g class="disease-only">
+      <g clip-path={`url(#${afAtriaId})`}>
+        {wavelets.map(([cx, cy, dur, delay]) => (
+          <circle
+            class="af-wavelet"
+            cx={cx}
+            cy={cy}
+            r="14"
+            style={`animation-duration: ${dur}s; animation-delay: ${delay}s`}
+          ></circle>
+        ))}
+      </g>
+      <ellipse class="af-ventricles af-v-af" cx="120" cy="214" rx="50" ry="56"></ellipse>
+      <ellipse class="af-ventricles af-v-af" cx="248" cy="214" rx="52" ry="56"></ellipse>
+    </g>
+  </g>
+
+  <!-- Static marks: they carry the meaning without motion -->
+  <g class="normal-only">
+    {normalPaths.map((d) => (
+      <path class="af-mark" d={d} marker-end={`url(#${afArrowId})`}></path>
+    ))}
+    <path class="af-mark" d="M180,152 L183,262" marker-end={`url(#${afArrowId})`}></path>
+  </g>
+  <g class="disease-only">
+    {squiggles.map((d) => (
+      <path class="af-mark af-mark-thin" d={d} marker-end={`url(#${afArrowId})`}></path>
+    ))}
+    <!-- Broken, uneven line: impulses reach the ventricles irregularly -->
+    <path
+      class="af-mark af-mark-irregular"
+      d="M180,152 L183,262"
+      marker-end={`url(#${afArrowId})`}
+    ></path>
+  </g>
+
+  <!-- Conduction from the atria to the ventricles -->
+  <g class="flow">
+    <circle class="af-dot af-dot-normal normal-only" cx="180" cy="146" r="5"></circle>
+    <circle class="af-dot af-dot-af disease-only" cx="180" cy="146" r="5"></circle>
+    <circle class="af-halo af-halo-sa normal-only" cx="78" cy="60" r="7"></circle>
+  </g>
+
+  <!-- Nodes -->
+  <circle class="af-node" cx="78" cy="60" r="6"></circle>
+
+  <!-- Labels -->
+  <line x1="78" y1="52" x2="78" y2="-8" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="20" y="-16">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text class="af-label-v" x="115" y="104" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="af-label-a" x="245" y="104" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="96" y="222" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="272" y="222" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- ECG strip: regular beats with P waves, or irregular beats without P waves -->
+  <rect
+    x={strip.x - 8}
+    y="336"
+    width={strip.width + 16}
+    height="58"
+    rx="6"
+    fill="none"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="50" y="377" text-anchor="end">
+    {t['diagram.label.ecg']}
+  </text>
+  <path class="af-ecg normal-only" d={normalEcg}></path>
+  <path class="af-ecg disease-only" d={afEcg}></path>
+  <g class="flow">
+    <line class="af-cursor normal-only" x1={strip.x} y1="340" x2={strip.x} y2="390"></line>
+    <line class="af-cursor disease-only" x1={strip.x} y1="340" x2={strip.x} y2="390"></line>
+  </g>
+</svg>
+
+<style is:global>
+  /* A halo in the chamber colour keeps atrial labels readable over the marks. */
+  .diagram .af-label-v,
+  .diagram .af-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .af-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .af-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .af-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .af-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+    paint-order: stroke;
+  }
+
+  .diagram .af-mark-thin {
+    stroke-width: 3;
+  }
+
+  .diagram .af-mark-irregular {
+    stroke-dasharray: 18 6 5 6 26 6 8 6;
+    stroke-linecap: butt;
+  }
+
+  .diagram .af-ecg {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+  }
+
+  .diagram .af-cursor {
+    stroke: var(--diagram-impulse);
+    stroke-width: 3;
+    animation: af-sweep 4.8s linear infinite;
+  }
+
+  .diagram .af-wave {
+    fill: var(--diagram-impulse);
+    fill-opacity: 0.3;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: af-wave 0.96s linear infinite;
+  }
+
+  .diagram .af-wavelet {
+    fill: var(--diagram-impulse);
+    fill-opacity: 0.2;
+    stroke: var(--diagram-impulse);
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: af-wavelet 1.3s ease-out infinite;
+  }
+
+  .diagram .af-ventricles {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+  }
+
+  .diagram .af-v-normal {
+    animation: af-v-normal 0.96s linear infinite;
+  }
+
+  .diagram .af-v-af {
+    animation: af-v-af 4.8s linear infinite;
+  }
+
+  .diagram .af-dot {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    opacity: 0;
+  }
+
+  .diagram .af-dot-normal {
+    animation: af-dot-normal 0.96s linear infinite;
+  }
+
+  .diagram .af-dot-af {
+    animation: af-dot-af 4.8s linear infinite;
+  }
+
+  .diagram .af-halo {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .diagram .af-halo-sa {
+    animation: af-halo-sa 0.96s ease-out infinite;
+  }
+
+  @keyframes af-sweep {
+    from {
+      transform: translate(0, 0);
+    }
+
+    to {
+      transform: translate(280px, 0);
+    }
+  }
+
+  /* One wave from the SA node fills both atria, then fades. */
+  @keyframes af-wave {
+    0% {
+      opacity: 1;
+      transform: scale(0.03);
+    }
+
+    45% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    58%,
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes af-wavelet {
+    0% {
+      opacity: 0;
+      transform: scale(0.2);
+    }
+
+    20% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(2.2);
+    }
+  }
+
+  @keyframes af-halo-sa {
+    0% {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+
+    30%,
+    100% {
+      opacity: 0;
+      transform: scale(3);
+    }
+  }
+
+  /* Ventricles activate at 62 % of each 0.96 s beat: the QRS on the strip. */
+  @keyframes af-v-normal {
+    0%,
+    61% {
+      opacity: 0;
+    }
+
+    63% {
+      opacity: 0.45;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes af-dot-normal {
+    0%,
+    44% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    45% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    62% {
+      opacity: 1;
+      transform: translate(3px, 112px);
+    }
+
+    63%,
+    100% {
+      opacity: 0;
+      transform: translate(3px, 112px);
+    }
+  }
+
+  /* AF: four ventricular beats per 4.8 s at 12.5 %, 27.1 %, 58.3 % and 70.8 %. */
+  @keyframes af-v-af {
+    0%,
+    12.4%,
+    19%,
+    27%,
+    33.5%,
+    58.2%,
+    64.5%,
+    70.7%,
+    77%,
+    100% {
+      opacity: 0;
+    }
+
+    12.5%,
+    27.1%,
+    58.3%,
+    70.8% {
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes af-dot-af {
+    0%,
+    7.2%,
+    21.8%,
+    53%,
+    65.5% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    7.3%,
+    21.9%,
+    53.1%,
+    65.6% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    12.5%,
+    27.1%,
+    58.3%,
+    70.8% {
+      opacity: 1;
+      transform: translate(3px, 112px);
+    }
+
+    12.6%,
+    27.2%,
+    58.4%,
+    70.9%,
+    100% {
+      opacity: 0;
+      transform: translate(3px, 112px);
+    }
+  }
+</style>

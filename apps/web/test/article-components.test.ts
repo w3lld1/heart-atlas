@@ -2,7 +2,8 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
-import type { DiagramName } from '../src/components/diagrams/index.ts';
+import { diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
+import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
@@ -104,6 +105,23 @@ describe('Diagram', () => {
     expect(html).toContain('Disease caption');
     expect(html).toMatch(/value="disease" checked/);
   });
+
+  it.each(Object.keys(diagrams) as DiagramName[])(
+    'renders "%s" as an image named in both locales',
+    async (name) => {
+      for (const locale of ['en', 'ru']) {
+        const html = await container.renderToString(Diagram, {
+          props: { name },
+          locals: { locale },
+          slots: { normal: 'Normal caption', disease: 'Disease caption' },
+        });
+        expect(html).toContain('role="img"');
+        const title = getMessages(locale)[`diagram.${name}.title` as MessageKey];
+        expect(title).toBeTruthy();
+        expect(html).toContain(`aria-label="${title}"`);
+      }
+    },
+  );
 
   it('fails the build on an unknown diagram', async () => {
     await expect(

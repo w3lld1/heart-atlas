@@ -1,0 +1,310 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const hfArrowId = `${uid}-hf-arrow`;
+
+// Each ventricle contracts towards a fixed point: the left one towards the aortic root.
+type Point = readonly [x: number, y: number];
+const lvOrigin: Point = [205, 182];
+const rvOrigin: Point = [110, 196];
+const originCss = ([x, y]: Point) => `--hf-origin: ${x}px ${y}px`;
+// End-of-contraction size, the same scale the animation reaches.
+const fullSqueeze = 'scale(0.75 0.62)';
+const weakSqueeze = 'scale(0.93 0.9)';
+const around = ([x, y]: Point, scale: string) =>
+  `translate(${x} ${y}) ${scale} translate(${-x} ${-y})`;
+// Blood leaving the left ventricle with one beat: a bigger bolus when the contraction is full.
+const strongBeat = [0, -0.07, -0.14, -0.21, -0.28];
+const weakBeat = [0, -0.07];
+---
+
+<svg viewBox="0 0 360 356" role="img" aria-label={t['diagram.heart-failure.title']} lang={locale}>
+  <defs>
+    <marker
+      id={hfArrowId}
+      viewBox="0 0 10 10"
+      refX="5"
+      refY="5"
+      markerWidth="3.2"
+      markerHeight="3.2"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Heart wall -->
+  <path
+    d="M60,85 Q180,35 300,85 Q352,175 297,270 Q237,326 180,332 Q123,326 63,270 Q8,175 60,85 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Atria -->
+  <ellipse
+    cx="100"
+    cy="125"
+    rx="48"
+    ry="40"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="272"
+    cy="125"
+    rx="46"
+    ry="40"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Aorta leaving the left ventricle; drawn under it so the chamber edge marks the root -->
+  <path
+    d="M205,190 L205,55 Q205,25 235,25 L322,25"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="28"
+  ></path>
+  <path
+    d="M205,192 L205,55 Q205,25 235,25 L324,25"
+    fill="none"
+    stroke="var(--diagram-arterial-fill)"
+    stroke-width="23"
+  ></path>
+
+  <!--
+    Ventricles shrink with each beat. The right one contracts fully in both states; the left one
+    contracts weakly in heart failure, because the article's statements are about the left ventricle.
+  -->
+  <g style={originCss(rvOrigin)}>
+    <ellipse
+      class="hf-chamber hf-chamber-normal"
+      cx="110"
+      cy="248"
+      rx="44"
+      ry="58"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+  <g style={originCss(lvOrigin)}>
+    <ellipse
+      class="hf-chamber hf-chamber-normal normal-only"
+      cx="222"
+      cy="241"
+      rx="56"
+      ry="62"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      class="hf-chamber hf-chamber-weak disease-only"
+      cx="222"
+      cy="241"
+      rx="56"
+      ry="62"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+
+  <!-- Dashed outline: chamber size at the end of contraction, readable without motion -->
+  <g fill="none" stroke="var(--color-text)" stroke-width="1.5" stroke-dasharray="5 4">
+    <ellipse
+      cx="110"
+      cy="248"
+      rx="44"
+      ry="58"
+      vector-effect="non-scaling-stroke"
+      transform={around(rvOrigin, fullSqueeze)}
+    ></ellipse>
+    <g class="normal-only">
+      <ellipse
+        cx="222"
+        cy="241"
+        rx="56"
+        ry="62"
+        vector-effect="non-scaling-stroke"
+        transform={around(lvOrigin, fullSqueeze)}
+      ></ellipse>
+    </g>
+    <g class="disease-only">
+      <ellipse
+        cx="222"
+        cy="241"
+        rx="56"
+        ry="62"
+        vector-effect="non-scaling-stroke"
+        transform={around(lvOrigin, weakSqueeze)}
+      ></ellipse>
+    </g>
+  </g>
+
+  <!-- Blood ejected per beat: thick arrow when the contraction is full, thin when it is weak -->
+  <path
+    class="normal-only"
+    d="M205,214 L205,55 Q205,25 235,25 L300,25"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="7"
+    marker-end={`url(#${hfArrowId})`}
+  ></path>
+  <path
+    class="disease-only"
+    d="M205,214 L205,55 Q205,25 235,25 L312,25"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2.5"
+    marker-end={`url(#${hfArrowId})`}
+  ></path>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    <g class="normal-only">
+      {strongBeat.map((delay) => (
+        <circle
+          class="hf-eject"
+          cx="205"
+          cy="214"
+          r="5.5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {weakBeat.map((delay) => (
+        <circle
+          class="hf-eject"
+          cx="205"
+          cy="214"
+          r="5.5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <text x="228" y="56">
+    {t['diagram.label.aorta']}
+  </text>
+  <text x="100" y="130" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="272" y="130" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="110" y="236" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="226" y="240" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Legend for the dashed outline -->
+  <line
+    x1="96"
+    y1="344"
+    x2="128"
+    y2="344"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></line>
+  <text x="136" y="349">
+    {t['diagram.label.contracted']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .hf-chamber {
+    transform-box: view-box;
+    transform-origin: var(--hf-origin);
+  }
+
+  .diagram .hf-chamber-normal {
+    animation: hf-beat-full 1.6s ease-in-out infinite;
+  }
+
+  .diagram .hf-chamber-weak {
+    animation: hf-beat-weak 1.6s ease-in-out infinite;
+  }
+
+  .diagram .hf-eject {
+    opacity: 0;
+    animation: hf-eject 1.6s linear infinite;
+  }
+
+  @keyframes hf-beat-full {
+    0%,
+    75%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    30%,
+    42% {
+      transform: scale(0.75, 0.62);
+    }
+  }
+
+  @keyframes hf-beat-weak {
+    0%,
+    75%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    30%,
+    42% {
+      transform: scale(0.93, 0.9);
+    }
+  }
+
+  /* Up the ascending aorta, round the arch, out to the right; timed with the contraction. */
+  @keyframes hf-eject {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6% {
+      opacity: 1;
+    }
+
+    40% {
+      transform: translate(0, -159px);
+    }
+
+    44% {
+      transform: translate(9px, -180px);
+    }
+
+    48% {
+      transform: translate(30px, -189px);
+    }
+
+    62% {
+      opacity: 1;
+    }
+
+    68%,
+    100% {
+      opacity: 0;
+      transform: translate(105px, -189px);
+    }
+  }
+</style>
