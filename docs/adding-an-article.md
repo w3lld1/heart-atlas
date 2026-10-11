@@ -125,7 +125,7 @@ The level switch hides one level when JavaScript runs; without JavaScript both a
 
 ### `<Diagram>`
 
-An animated "normal / disease" schematic with a switch, a pause button and a caption per state. The state captions are medical text, so they live in the article and carry `<Cite>`:
+An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
 
 ```mdx
 <Diagram name="aortic-stenosis">
@@ -134,7 +134,19 @@ An animated "normal / disease" schematic with a switch, a pause button and a cap
 </Diagram>
 ```
 
-`name` must be a key of `diagrams` in `apps/web/src/components/diagrams/index.ts`; an unknown name fails the build. The existing diagrams are `aortic-stenosis`, `atrial-fibrillation`, `atrial-septal-defect`, `coronary-heart-disease`, `heart-failure` and `hypertension`. A new diagram is an Astro component with inline SVG in `components/diagrams/` (props `locale` and `uid`), registered in `index.ts`, with its labels in the strings files. A diagram shows only what the article text says and its sources support. Design rules: [article visuals spec](plans/2026-10-11-article-visuals.md).
+`name` must be a key of `diagrams` in `apps/web/src/components/diagrams/index.ts`; an unknown name fails the build. A new diagram is an Astro component with inline SVG in `components/diagrams/` (props `locale` and `uid`), registered in `index.ts` (and in `customStates` if it does not use normal / disease), with its labels in the strings files. Elements marked `data-only="<state>"` show only in that state. A diagram shows only what the article text says and its sources support. Design rules: [article visuals spec](plans/2026-10-11-article-visuals.md).
+
+### `<EcgMonitor>`
+
+The live heart clock monitor inside an article. `preset` is the preset to start with; `presets` lists the presets the reader can switch between (without it there is no switch). Children are an optional caption, which is article text and carries `<Cite>`:
+
+```mdx
+<EcgMonitor preset="normal" presets={['normal', 'atrial-fibrillation']}>
+  The P wave disappears in atrial fibrillation.<Cite n={1} />
+</EcgMonitor>
+```
+
+An unknown preset id fails the build. A disease article with `preset` in its frontmatter already shows the monitor after the text, so it does not need `<EcgMonitor>` as well.
 
 ## Translations
 

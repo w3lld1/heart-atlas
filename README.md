@@ -12,10 +12,10 @@ An open-source interactive web app about the heart and heart disease: 3D anatomy
 
 - **3D anatomy.** A model of the normal adult heart built from BodyParts3D: chambers, septa, valves, papillary muscles, great vessels, coronary arteries and cardiac veins, and a schematic conduction system. Structures can be selected and highlighted with the mouse or keyboard.
 - **Heart clock.** One cardiac-cycle timer drives a synthetic ECG, heart sounds and a Wiggers diagram of left-heart pressures and volume. Disease presets (atrial fibrillation, ST-elevation myocardial infarction, heart failure with reduced ejection fraction, hypertension, aortic stenosis, atrial septal defect) switch the cycle between normal and disease; every number comes from a cited source or is marked as a model assumption.
-- **Articles.** Six disease articles in Russian and English, each at two levels (for patients and for students), with numbered citations, an animated "normal / disease" diagram and the heart clock preset of that disease.
+- **Articles.** In Russian and English, each at two levels (for patients and for students), with numbered citations: six disease articles with an animated "normal / disease" diagram and the heart clock preset of that disease, six anatomy articles and four on diagnostic tests (ECG, echocardiography, Holter monitoring, natriuretic peptides) with interactive diagrams or a live ECG monitor.
 - **Search.** Full-text search across the site, including other names and abbreviations of each disease.
 - **Offline.** The site installs as an app; the home, search and offline pages and pages you have opened work without a connection.
-- **Embedding.** The ECG, the 3D model and the disease articles can be embedded on other sites with an `<iframe>`; a builder page gives the code.
+- **Embedding.** The ECG, the 3D model and any article can be embedded on other sites with an `<iframe>`; a builder page gives the code.
 - **Any language.** Russian and English now; a language is added with one registry entry and a strings file, and right-to-left scripts are supported.
 
 ## Medical content

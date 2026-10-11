@@ -44,7 +44,7 @@ From `package.json`:
 2. **Content collection.** `apps/web/src/content.config.ts` defines one collection, `articles`, loaded from the repository root `content/**/*.mdx` and validated with `createArticleSchema()` from `apps/web/src/lib/content.ts`. A frontmatter error stops the build. With `HA_TEST_CONTENT=1` the collection reads the fictional articles in `apps/web/test/fixtures/site-content/` instead.
 3. **Routes.** Every page lives under `apps/web/src/pages/[locale]/` and `getStaticPaths` generates one copy per locale in the registry:
    - `index.astro`: home; `[type]/index.astro`: list of articles of one type; `[type]/[slug].astro`: an article.
-   - `anatomy.astro`: the 3D viewer; `heart-clock.astro`: the heart clock with all presets.
+   - `anatomy.astro`: the 3D viewer and the list of anatomy articles; `heart-clock.astro`: the heart clock with all presets.
    - `search/index.astro`, `offline.astro`.
    - `embed/`: pages for `<iframe>` embedding (below).
    - `apps/web/src/pages/index.astro` at the root only redirects to the default locale, because static hosting has no server redirects.
@@ -84,7 +84,7 @@ The article diagrams (`components/diagrams/`) and the patient/student switch are
 - `index.astro`: the code builder (pick a module, get `<iframe>` code).
 - `ecg.astro`: the heart clock monitor; accepts `?preset=<id>` and `?rate=`.
 - `heart-model.astro`: the 3D model; accepts `?structure=<id>` from `structures.yaml`.
-- `disease/[slug].astro`: a disease article with its review notice and sources.
+- `[type]/[slug].astro`: any article (anatomy, disease, diagnostic) with its review notice and sources.
 
 Query parameters are parsed with `apps/web/src/lib/embed.ts` (`parseEmbedParams`): each page lists the parameters it accepts with a parser, and anything else is ignored. Embed pages use `EmbedLayout.astro`: `noindex`, a canonical link to the full page, the disclaimer, credits and the license, and no service worker.
 
