@@ -32,6 +32,7 @@ const articles = articlePages(await getCollection('articles'), locales)
     structures={heartStructures(t)}
     messages={viewerMessages(t)}
     loadOn="auto"
+    cycle="own"
   />
   {articles.length > 0 && (
     <section aria-labelledby="anatomy-articles">

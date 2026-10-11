@@ -1,0 +1,308 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-dcm-arrow`;
+
+type Point = readonly [x: number, y: number];
+interface Chamber {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+}
+// The wall has the same thickness in both states: only the cavity size changes.
+const wall = 14;
+const normalLv: Chamber = { cx: 190, cy: 236, rx: 58, ry: 68 };
+const dilatedLv: Chamber = { cx: 190, cy: 248, rx: 88, ry: 98 };
+// Each ventricle contracts towards the aortic root at its top.
+const top = (c: Chamber): Point => [c.cx, c.cy - c.ry];
+const originCss = ([x, y]: Point) => `--dcm-origin: ${x}px ${y}px`;
+const fullSqueeze = 'scale(0.74 0.66)';
+const weakSqueeze = 'scale(0.94 0.92)';
+const around = ([x, y]: Point, scale: string) =>
+  `translate(${x} ${y}) ${scale} translate(${-x} ${-y})`;
+// Blood leaving with one beat: a bigger bolus when the contraction is full.
+const strongBeat = [0, -0.07, -0.14, -0.21, -0.28];
+const weakBeat = [0, -0.07];
+---
+
+<svg
+  viewBox="0 0 380 420"
+  role="img"
+  aria-label={t['diagram.dilated-cardiomyopathy.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="5"
+      refY="5"
+      markerWidth="3.2"
+      markerHeight="3.2"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left atrium -->
+  <ellipse
+    cx="300"
+    cy="100"
+    rx="44"
+    ry="36"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Aorta leaving the left ventricle; drawn under it so the chamber edge marks the root -->
+  <path
+    d="M190,215 L190,60 Q190,30 220,30 L338,30"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="28"
+  ></path>
+  <path
+    d="M190,217 L190,60 Q190,30 220,30 L340,30"
+    fill="none"
+    stroke="var(--diagram-arterial-fill)"
+    stroke-width="23"
+  ></path>
+
+  <!-- Left ventricle: wall and cavity beat together. Normal size contracts fully, dilated weakly. -->
+  {[
+    { lv: normalLv, state: 'normal-only', beat: 'dcm-beat-full' },
+    { lv: dilatedLv, state: 'disease-only', beat: 'dcm-beat-weak' },
+  ].map(({ lv, state, beat }) => (
+    <g class={state} style={originCss(top(lv))}>
+      <g class={`dcm-chamber ${beat}`}>
+        <ellipse
+          cx={lv.cx}
+          cy={lv.cy}
+          rx={lv.rx + wall}
+          ry={lv.ry + wall}
+          fill="var(--diagram-muscle)"
+        />
+        <ellipse
+          cx={lv.cx}
+          cy={lv.cy}
+          rx={lv.rx}
+          ry={lv.ry}
+          fill="var(--diagram-arterial-fill)"
+          stroke="var(--diagram-arterial)"
+          stroke-width="2"
+        />
+      </g>
+    </g>
+  ))}
+
+  <!-- Dashed: cavity at the end of contraction. Dotted: normal size, shown in both states so a paused beat compares fairly. -->
+  <g fill="none" stroke="var(--color-text)" stroke-width="1.5" stroke-dasharray="5 4">
+    <g class="normal-only">
+      <ellipse
+        cx={normalLv.cx}
+        cy={normalLv.cy}
+        rx={normalLv.rx}
+        ry={normalLv.ry}
+        vector-effect="non-scaling-stroke"
+        transform={around(top(normalLv), fullSqueeze)}
+      ></ellipse>
+    </g>
+    <g class="disease-only">
+      <ellipse
+        cx={dilatedLv.cx}
+        cy={dilatedLv.cy}
+        rx={dilatedLv.rx}
+        ry={dilatedLv.ry}
+        vector-effect="non-scaling-stroke"
+        transform={around(top(dilatedLv), weakSqueeze)}
+      ></ellipse>
+    </g>
+  </g>
+  <ellipse
+    cx={normalLv.cx}
+    cy={normalLv.cy}
+    rx={normalLv.rx}
+    ry={normalLv.ry}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-dasharray="1 4"
+    stroke-linecap="round"
+  ></ellipse>
+
+  <!-- Blood ejected per beat: thick arrow when the contraction is full, thin when it is weak -->
+  <path
+    class="normal-only"
+    d="M190,200 L190,60 Q190,30 220,30 L316,30"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="7"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <path
+    class="disease-only"
+    d="M190,200 L190,60 Q190,30 220,30 L328,30"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2.5"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    <g class="normal-only">
+      {strongBeat.map((delay) => (
+        <circle
+          class="dcm-eject"
+          cx="190"
+          cy="200"
+          r="5.5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {weakBeat.map((delay) => (
+        <circle
+          class="dcm-eject"
+          cx="190"
+          cy="200"
+          r="5.5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <text x="166" y="70" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text x="300" y="106" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="226" y="236" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Legend -->
+  <line
+    x1="70"
+    y1="386"
+    x2="102"
+    y2="386"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></line>
+  <text x="110" y="391">
+    {t['diagram.label.contracted']}
+  </text>
+  <g>
+    <line
+      x1="70"
+      y1="410"
+      x2="102"
+      y2="410"
+      stroke="var(--color-muted)"
+      stroke-width="2"
+      stroke-dasharray="1 4"
+      stroke-linecap="round"
+    ></line>
+    <text x="110" y="415">
+      {t['diagram.label.normal-size']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .dcm-chamber {
+    transform-box: view-box;
+    transform-origin: var(--dcm-origin);
+  }
+
+  .diagram .dcm-beat-full {
+    animation: dcm-beat-full 1.6s ease-in-out infinite;
+  }
+
+  .diagram .dcm-beat-weak {
+    animation: dcm-beat-weak 1.6s ease-in-out infinite;
+  }
+
+  .diagram .dcm-eject {
+    opacity: 0;
+    animation: dcm-eject 1.6s linear infinite;
+  }
+
+  @keyframes dcm-beat-full {
+    0%,
+    75%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    30%,
+    42% {
+      transform: scale(0.74, 0.66);
+    }
+  }
+
+  @keyframes dcm-beat-weak {
+    0%,
+    75%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    30%,
+    42% {
+      transform: scale(0.94, 0.92);
+    }
+  }
+
+  /* Up the ascending aorta, round the arch, out to the right; timed with the contraction. */
+  @keyframes dcm-eject {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6% {
+      opacity: 1;
+    }
+
+    40% {
+      transform: translate(0, -140px);
+    }
+
+    44% {
+      transform: translate(9px, -161px);
+    }
+
+    48% {
+      transform: translate(30px, -170px);
+    }
+
+    62% {
+      opacity: 1;
+    }
+
+    68%,
+    100% {
+      opacity: 0;
+      transform: translate(125px, -170px);
+    }
+  }
+</style>

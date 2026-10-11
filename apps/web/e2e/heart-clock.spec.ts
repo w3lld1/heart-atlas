@@ -3,6 +3,16 @@ import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
+import { changedShare, MOVING } from './pixels.ts';
+
+// Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+test.use({
+  launchOptions: {
+    args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+    ...(executablePath ? { executablePath } : {}),
+  },
+});
 
 for (const locale of Object.keys(productionLocales)) {
   test.describe(`heart clock page (${locale})`, () => {
@@ -46,6 +56,29 @@ test.describe('3D model on the heart clock page', () => {
     await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
     await page.waitForLoadState('networkidle');
     expect(requested.filter((url) => url.includes('/Scene.') || url.endsWith('.glb'))).toEqual([]);
+  });
+});
+
+test.describe('3D model in time with the monitor', () => {
+  test('beats while the clock plays and stands still on pause', async ({ page }) => {
+    // Under SwiftShader a beating page renders slowly, and a screenshot can take seconds.
+    test.slow();
+    await page.goto('en/heart-clock/');
+    const load = page.getByRole('button', { name: en['viewer.load'] });
+    await load.scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
+    await load.click();
+    const canvas = page.locator('canvas:not([role="img"])');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    // The viewer follows the page's clock and offers no start button of its own.
+    await expect(page.getByRole('button', { name: en['viewer.heartbeat.start'] })).toHaveCount(0);
+    await expect.poll(() => changedShare(canvas), { timeout: 45_000 }).toBeGreaterThan(MOVING);
+
+    // A click event without scrolling the page up to the monitor and back.
+    await page.getByRole('button', { name: en['heartClock.pause'] }).dispatchEvent('click');
+    // Valves and glow ease out within about a second, then the picture holds.
+    await expect.poll(() => changedShare(canvas, 500), { timeout: 20_000 }).toBeLessThan(MOVING);
+    expect(await changedShare(canvas, 500)).toBeLessThan(MOVING);
   });
 });
 

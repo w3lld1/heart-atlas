@@ -5,11 +5,13 @@ import BloodFlow from './BloodFlow.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
+import DilatedCardiomyopathy from './DilatedCardiomyopathy.astro';
 import HeartChambers from './HeartChambers.astro';
 import HeartFailure from './HeartFailure.astro';
 import HeartValves from './HeartValves.astro';
 import HolterMonitor from './HolterMonitor.astro';
 import Hypertension from './Hypertension.astro';
+import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
@@ -21,11 +23,13 @@ export const diagrams = {
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
   'coronary-heart-disease': CoronaryHeartDisease,
+  'dilated-cardiomyopathy': DilatedCardiomyopathy,
   'heart-chambers': HeartChambers,
   'heart-failure': HeartFailure,
   'heart-valves': HeartValves,
   'holter-monitor': HolterMonitor,
   hypertension: Hypertension,
+  'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
   'natriuretic-peptides': NatriureticPeptides,
 } as const;
 

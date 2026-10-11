@@ -1,0 +1,368 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-hcm-arrow`;
+
+// The heart is drawn in its own coordinates and shifted right; labels sit in the free column.
+const shift = 150;
+const at = (x: number) => x + shift;
+// Mitral leaflets hinge at the two sides of the opening into the left atrium.
+const anteriorHinge = 'translate(163 124)';
+const posteriorHinge = 'translate(235 124)';
+// Blood leaving through the outflow tract: a wide stream normally, a narrow jet past the bulge.
+const stream = [100, 113, 126].flatMap((x) => [
+  { x, y: 228, delay: 0 },
+  { x, y: 248, delay: 0.2 },
+]);
+const jet = [0, 0.15, 0.3].map((delay) => ({ x: 111, y: 170, delay }));
+const backflow = [0, 0.25].map((delay) => ({ x: 214, y: 178, delay }));
+---
+
+<svg
+  viewBox="0 0 440 330"
+  role="img"
+  aria-label={t['diagram.hypertrophic-cardiomyopathy.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4.5"
+      markerHeight="4.5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <g transform={`translate(${shift} 0)`}>
+    <!-- Left ventricle wall -->
+    <path
+      d="M86,126 C60,150 50,240 110,296 C140,322 216,322 248,296 C286,250 288,180 262,128 L240,112 L162,128 L140,128 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+
+    <!-- Left atrium, drawn first so the ventricle's opening covers its lower edge -->
+    <ellipse
+      cx="204"
+      cy="80"
+      rx="56"
+      ry="46"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+
+    <!-- Left ventricle cavity, aorta and the opening into the left atrium: one lumen -->
+    <path
+      d="M86,20 L86,140 C80,225 122,298 178,298 C236,298 268,225 256,150 L236,112 L162,112 L162,128 L140,128 L140,20 Z"
+      fill="var(--diagram-arterial-fill)"
+    ></path>
+    <path
+      d="M140,20 L140,128 L162,128 L162,111"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+    <path
+      d="M236,118 L256,150 C268,225 236,298 178,298 C122,298 80,225 86,140 L86,20"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+
+    <!-- Thickened base of the septum; the rest of the wall keeps its thickness -->
+    <g class="disease-only">
+      <path
+        d="M86,140 C114,146 120,176 112,200 C108,214 102,224 100,232 L80,232 L80,140 Z"
+        fill="var(--diagram-muscle)"
+      ></path>
+      <path
+        d="M86,140 C114,146 120,176 112,200 C108,214 102,224 100,232"
+        fill="none"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></path>
+    </g>
+
+    <!-- Flow arrows, visible with and without motion -->
+    <g class="normal-only hcm-arrows" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+      <path d="M100,226 L100,34" marker-end={`url(#${arrowId})`}></path>
+      <path d="M113,226 L113,34" marker-end={`url(#${arrowId})`}></path>
+      <path d="M126,226 L126,34" marker-end={`url(#${arrowId})`}></path>
+    </g>
+    <g
+      class="disease-only hcm-arrows"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      stroke-linecap="round"
+    >
+      <!-- Blood crowds into the gap between the bulge and the leaflet -->
+      <path d="M150,250 C150,205 124,190 112,166"></path>
+      <path d="M180,250 C180,200 128,186 114,166"></path>
+      <path d="M111,160 L111,34" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+      <!-- Part of the blood goes back into the left atrium -->
+      <path
+        d="M214,180 C212,150 204,124 198,98"
+        stroke-dasharray="7 5"
+        marker-end={`url(#${arrowId})`}
+      ></path>
+    </g>
+
+    <!-- Mitral leaflets. Drawn in their systolic position; the animation opens them between beats. -->
+    <g transform={anteriorHinge}>
+      <g class="hcm-leaf hcm-anterior-normal normal-only">
+        <path class="hcm-leaf-shape" d="M0,-2.5 Q26,-4 50,-2 Q54,0 50,2 Q26,4 0,2.5 Z"></path>
+      </g>
+      <g class="hcm-leaf hcm-anterior-sam disease-only">
+        <path class="hcm-leaf-shape" d="M0,-2.5 Q26,-4 50,-2 Q54,0 50,2 Q26,4 0,2.5 Z"></path>
+      </g>
+    </g>
+    <g transform={posteriorHinge}>
+      <g class="hcm-leaf hcm-posterior">
+        <path class="hcm-leaf-shape" d="M0,-2.5 Q12,-3.5 23,-2 Q26,0 23,2 Q12,3.5 0,2.5 Z"></path>
+      </g>
+    </g>
+
+    <!-- Moving blood -->
+    <g class="flow">
+      <g class="normal-only">
+        {stream.map((p) => (
+          <circle
+            class="hcm-p hcm-p-normal"
+            cx={p.x}
+            cy={p.y}
+            r="5"
+            fill="var(--diagram-arterial)"
+            style={`animation-delay: ${p.delay}s`}
+          />
+        ))}
+      </g>
+      <g class="disease-only">
+        {jet.map((p) => (
+          <circle
+            class="hcm-p hcm-p-jet"
+            cx={p.x}
+            cy={p.y}
+            r="4.5"
+            fill="var(--diagram-arterial)"
+            style={`animation-delay: ${p.delay}s`}
+          />
+        ))}
+        {backflow.map((p) => (
+          <circle
+            class="hcm-p hcm-p-back"
+            cx={p.x}
+            cy={p.y}
+            r="4.5"
+            fill="var(--diagram-arterial)"
+            style={`animation-delay: ${p.delay}s`}
+          />
+        ))}
+      </g>
+    </g>
+
+    <text x="232" y="66" text-anchor="middle">
+      {t['diagram.label.la']}
+    </text>
+    <text x="214" y="262" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+  </g>
+
+  <!-- Labels in the free column, with leader lines to the parts they name -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="214" y1="55" x2={at(84)} y2="55"></line>
+    <line class="normal-only" x1="214" y1="200" x2={at(80)} y2="200"></line>
+    <line class="disease-only" x1="214" y1="200" x2={at(100)} y2="200"></line>
+    <line class="disease-only" x1="214" y1="153" x2={at(108)} y2="153"></line>
+    <line class="disease-only" x1={at(206)} y1="27" x2={at(204)} y2="90"></line>
+  </g>
+  <text x="208" y="60" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="normal-only" x="208" y="205" text-anchor="end">
+    {t['diagram.label.septum']}
+  </text>
+  <text class="disease-only" x="208" y="205" text-anchor="end">
+    {t['diagram.label.thick-septum']}
+  </text>
+  <text class="disease-only" x="208" y="158" text-anchor="end">
+    {t['diagram.label.narrowed-outflow']}
+  </text>
+  <text class="disease-only" x={at(206)} y="20" text-anchor="middle">
+    {t['diagram.label.backflow']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .hcm-leaf-shape {
+    fill: var(--color-border);
+    stroke: var(--color-muted);
+    stroke-width: 2;
+  }
+
+  /*
+   * One beat lasts 2.4 s: contraction (systole) first, then filling (diastole).
+   * Each leaflet rests at its systolic angle, so without motion the disease state shows
+   * the leaflet pulled towards the septum.
+   */
+  .diagram .hcm-leaf {
+    --hcm-open: 95deg;
+
+    transform: rotate(var(--hcm-systole));
+  }
+
+  .diagram .hcm-anterior-normal {
+    --hcm-systole: 18deg;
+
+    animation: hcm-leaf 2.4s ease-in-out infinite;
+  }
+
+  .diagram .hcm-anterior-sam {
+    --hcm-systole: 145deg;
+
+    animation: hcm-sam 2.4s ease-in-out infinite;
+  }
+
+  .diagram .hcm-posterior {
+    --hcm-systole: 160deg;
+    --hcm-open: 80deg;
+
+    animation: hcm-leaf 2.4s ease-in-out infinite;
+  }
+
+  .diagram .hcm-arrows {
+    animation: hcm-arrows 2.4s ease-in-out infinite;
+  }
+
+  .diagram .hcm-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .hcm-p-normal {
+    animation: hcm-normal 2.4s linear infinite;
+  }
+
+  .diagram .hcm-p-jet {
+    animation: hcm-jet 2.4s linear infinite;
+  }
+
+  .diagram .hcm-p-back {
+    animation: hcm-back 2.4s linear infinite;
+  }
+
+  @keyframes hcm-leaf {
+    0%,
+    45%,
+    100% {
+      transform: rotate(var(--hcm-systole));
+    }
+
+    55%,
+    90% {
+      transform: rotate(var(--hcm-open));
+    }
+  }
+
+  /* The leaflet closes, then is pulled towards the septum during contraction. */
+  @keyframes hcm-sam {
+    0%,
+    100% {
+      transform: rotate(18deg);
+    }
+
+    15%,
+    40% {
+      transform: rotate(var(--hcm-systole));
+    }
+
+    55%,
+    90% {
+      transform: rotate(var(--hcm-open));
+    }
+  }
+
+  @keyframes hcm-arrows {
+    0%,
+    45%,
+    100% {
+      opacity: 1;
+    }
+
+    55%,
+    90% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes hcm-normal {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    5%,
+    36% {
+      opacity: 1;
+    }
+
+    42%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  @keyframes hcm-jet {
+    0%,
+    12% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    16%,
+    36% {
+      opacity: 1;
+    }
+
+    42%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -136px) scale(0.7, 2);
+    }
+  }
+
+  @keyframes hcm-back {
+    0%,
+    14% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    18%,
+    36% {
+      opacity: 1;
+    }
+
+    42%,
+    100% {
+      opacity: 0;
+      transform: translate(-14px, -76px);
+    }
+  }
+</style>

@@ -73,7 +73,7 @@ interface CycleState {
 
 ## Страница часов сердца
 
-Под монитором, перед списком источников, секция с h2 «Модель сердца» (`heartClock.model3d`) и `HeartViewer client:visible` с `loadOn="click"` и `headingLevel={3}`, чтобы three.js не грузился без запроса. Страница часов добавляется в список URL Lighthouse CI (`apps/web/lighthouserc.json`), чтобы это проверялось. Данные вьюера берутся так же, как на странице анатомии (`heartModelUrls`, `heartStructures`, `viewerMessages`). Пока анимации во вьюере нет, модель просто показывается; проп `cycle="page"` добавляется в PR треда «3D-модель сердца», когда вьюер его понимает.
+Под монитором, перед списком источников, секция с h2 «Модель сердца» (`heartClock.model3d`) и `HeartViewer client:visible` с `loadOn="click"` и `headingLevel={3}`, чтобы three.js не грузился без запроса. Страница часов добавляется в список URL Lighthouse CI (`apps/web/lighthouserc.json`), чтобы это проверялось. Данные вьюера берутся так же, как на странице анатомии (`heartModelUrls`, `heartStructures`, `viewerMessages`). Вьюер получает проп `cycle="page"` и бьётся в такт монитору (PR треда «3D-модель сердца», спека вьюера).
 
 ## Тесты
 

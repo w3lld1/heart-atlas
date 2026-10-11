@@ -1,22 +1,13 @@
 import type { Vec3 } from './camera.ts';
 
-// Shapes of the cycle state from docs/plans/2026-10-11-stage-2-cycle-sync.md. They mirror the
-// types of @heart-atlas/heart-clock/cycle-source so the scene chunk needs no heart clock code.
-export type ChamberId = 'right-atrium' | 'left-atrium' | 'right-ventricle' | 'left-ventricle';
-export type ValveId = 'tricuspid-valve' | 'mitral-valve' | 'pulmonary-valve' | 'aortic-valve';
+import type { ChamberId, ValveId } from '@heart-atlas/heart-clock/cycle-source';
 
-export interface CycleState {
-  phase: string;
-  /** Conduction system parts excited now. */
-  excited: string[];
-  /** Contraction of each chamber from 0 (relaxed) to 1. */
-  contraction: Record<ChamberId, number>;
-  /** Opening of each valve from 0 (closed) to 1. */
-  valveOpen: Record<ValveId, number>;
-}
-
-/** Returns the state at the source's own current time; null means no clock, the heart rests. */
-export type CycleSource = () => CycleState | null;
+export type {
+  ChamberId,
+  CycleSource,
+  CycleState,
+  ValveId,
+} from '@heart-atlas/heart-clock/cycle-source';
 
 export const CHAMBERS: readonly ChamberId[] = [
   'right-atrium',

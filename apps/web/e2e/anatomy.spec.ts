@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
+import { changedShare, MOVING } from './pixels.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
@@ -75,6 +76,34 @@ test.describe('heart viewer', () => {
     await expect(page.getByRole('application')).toBeFocused(LOAD);
     expect(models.filter((url) => url.endsWith('heart-lod0.glb'))).toEqual([]);
     await context.close();
+  });
+
+  test('beats on request and stops again', async ({ page }) => {
+    // Under SwiftShader a beating page renders slowly, and a screenshot can take seconds.
+    test.slow();
+    await page.goto('en/anatomy/');
+    const canvas = page.locator('canvas');
+    await expect(canvas).toBeVisible(LOAD);
+    const start = page.getByRole('button', { name: en['viewer.heartbeat.start'] });
+    await expect(start).toBeVisible(LOAD);
+    // Nothing moves until the reader asks.
+    expect(await changedShare(canvas, 400)).toBeLessThan(MOVING);
+
+    await page.getByLabel(en['viewer.heartbeat.rate']).fill('120');
+    await expect(page.locator('output')).toHaveText(
+      en['viewer.heartbeat.rateValue'].replace('{rate}', '120'),
+    );
+    await start.click();
+    const stop = page.getByRole('button', { name: en['viewer.heartbeat.stop'] });
+    await expect(stop).toBeVisible();
+    await expect(page.getByText(en['viewer.heartbeat.note'])).toBeVisible();
+    // At 120 beats per minute frames 150 ms apart show the heart in different phases.
+    await expect.poll(() => changedShare(canvas), { timeout: 45_000 }).toBeGreaterThan(MOVING);
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
+
+    await stop.click();
+    await expect(start).toBeVisible();
   });
 
   test('highlights structures named by the page through the window event', async ({ page }) => {
