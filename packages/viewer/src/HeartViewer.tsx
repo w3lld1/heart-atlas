@@ -80,6 +80,8 @@ export default function HeartViewer({
   const [reducedMotion, setReducedMotion] = useState(false);
   // Set when the reader pressed the load button, so focus follows them into the model.
   const [focusOnReady, setFocusOnReady] = useState(false);
+  // Decided after mount, since the build cannot know the screen: 'auto' turns into a click on phones.
+  const [waitForClick, setWaitForClick] = useState(loadOn === 'click');
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -90,7 +92,9 @@ export default function HeartViewer({
 
   useEffect(() => {
     setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    if (loadOn !== 'visible' || !rootRef.current) return;
+    const click = loadOn === 'click' || (loadOn === 'auto' && prefersLowDetail());
+    setWaitForClick(click);
+    if (click || !rootRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -174,7 +178,7 @@ export default function HeartViewer({
             </Suspense>
           </ErrorBoundary>
         )}
-        {phase === 'idle' && loadOn === 'click' && (
+        {phase === 'idle' && waitForClick && (
           <button
             type="button"
             className={styles.load}

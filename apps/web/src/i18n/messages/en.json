@@ -175,5 +175,6 @@
   "structure.bundle-of-his": "Bundle of His",
   "structure.right-bundle-branch": "Right bundle branch",
   "structure.left-bundle-branch": "Left bundle branch",
-  "structure.purkinje-fibers": "Purkinje fibres"
+  "structure.purkinje-fibers": "Purkinje fibres",
+  "embed.credits": "Third-party material: {credits}."
 }

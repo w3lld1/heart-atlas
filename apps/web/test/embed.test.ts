@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { iframeCode, integerIn, parseEmbedParams } from '../src/lib/embed.ts';
+import { iframeCode, integerIn, oneOf, parseEmbedParams } from '../src/lib/embed.ts';
 
 describe('parseEmbedParams', () => {
   const parsers = { rate: integerIn(40, 180) };
@@ -21,6 +21,22 @@ describe('parseEmbedParams', () => {
   it('accepts range bounds', () => {
     expect(parseEmbedParams('?rate=40', parsers)).toEqual({ rate: 40 });
     expect(parseEmbedParams('?rate=180', parsers)).toEqual({ rate: 180 });
+  });
+});
+
+describe('oneOf', () => {
+  const parsers = { structure: oneOf(['left-ventricle', 'aorta']) };
+
+  it('keeps an allowed value and ignores other parameters', () => {
+    expect(parseEmbedParams('?structure=aorta&autoplay=1', parsers)).toEqual({
+      structure: 'aorta',
+    });
+  });
+
+  it('drops values that are not exactly allowed', () => {
+    for (const structure of ['', 'Aorta', 'aorta ', 'left', 'constructor', '__proto__']) {
+      expect(parseEmbedParams(new URLSearchParams({ structure }), parsers)).toEqual({});
+    }
   });
 });
 

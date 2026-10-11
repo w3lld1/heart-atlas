@@ -59,6 +59,7 @@ type KeyHandler = (key: string) => boolean;
 function KeyboardOrbit({ handlerRef }: { handlerRef: RefObject<KeyHandler | null> }) {
   const camera = useThree((s) => s.camera);
   const controls = useThree((s) => s.controls) as { target: Vector3; update: () => void } | null;
+  const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     handlerRef.current = (key) => {
       const action = keyAction(key);
@@ -78,12 +79,13 @@ function KeyboardOrbit({ handlerRef }: { handlerRef: RefObject<KeyHandler | null
       if (action.reset) target.set(...TARGET);
       camera.lookAt(target);
       controls?.update();
+      invalidate();
       return true;
     };
     return () => {
       handlerRef.current = null;
     };
-  }, [camera, controls, handlerRef]);
+  }, [camera, controls, handlerRef, invalidate]);
   return null;
 }
 
@@ -106,6 +108,7 @@ function isShown(object: Object3D): boolean {
 function Model({ onLoaded, ...props }: ModelProps) {
   const gltf = useGLTF(props.url, false, true);
   const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
 
   // useGLTF caches one scene per URL. Each viewer works on its own copy with its own materials,
   // so two viewers on a page, or a remount, never fight over the same objects.
@@ -159,6 +162,8 @@ function Model({ onLoaded, ...props }: ModelProps) {
       mesh.renderOrder = ghosted ? 1 : 0;
     }
   }, [meshes, plane, gl, cutting, isolating, props.highlighted, props.ghost]);
+  // The canvas draws on demand: any change of props (highlight, cut position, label) needs a frame.
+  useEffect(() => invalidate());
 
   const anchor = useMemo(() => {
     if (!props.labelFor) return null;
@@ -231,7 +236,9 @@ export default function Scene({
         if (keyHandler.current?.(event.key)) event.preventDefault();
       }}
     >
+      {/* Draw only when something changes: a constant render loop keeps the CPU busy for nothing. */}
       <Canvas
+        frameloop="demand"
         camera={{ position: HOME, fov: 35, near: 0.01, far: 10 }}
         dpr={[1, 2]}
         onCreated={({ camera }) => (camera as PerspectiveCamera).lookAt(...TARGET)}

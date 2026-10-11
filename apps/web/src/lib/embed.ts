@@ -33,6 +33,12 @@ export function integerIn(min: number, max: number) {
   };
 }
 
+/** One of the allowed strings, compared exactly, otherwise undefined. */
+export function oneOf(values: Iterable<string>) {
+  const allowed = new Set(values);
+  return (value: string): string | undefined => (allowed.has(value) ? value : undefined);
+}
+
 /** `<iframe>` code for an embed page. `title` is required: screen readers announce it. */
 export function iframeCode({
   src,

@@ -1,0 +1,47 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import HeartModelEmbed from '../../../components/viewer/HeartModelEmbed.tsx';
+import EmbedLayout from '../../../layouts/EmbedLayout.astro';
+import { localeCodes } from '../../../i18n/locales.ts';
+import { getMessages } from '../../../i18n/messages.ts';
+import { localePath } from '../../../i18n/paths.ts';
+import {
+  heartAttribution,
+  heartModelUrls,
+  heartStructures,
+  viewerMessages,
+} from '../../../lib/heart-model.ts';
+
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
+const canonical = new URL(localePath(import.meta.env.BASE_URL, locale, 'anatomy/'), Astro.site);
+---
+
+<EmbedLayout
+  locale={locale}
+  title={t['anatomy.title']}
+  canonical={canonical}
+  credits={heartAttribution()}
+>
+  <h1>{t['anatomy.title']}</h1>
+  {/* 3D waits for the reader's click: the host page should not pay for three.js up front. */}
+  <HeartModelEmbed
+    client:visible
+    models={models}
+    poster={poster}
+    structures={heartStructures(t)}
+    messages={viewerMessages(t)}
+    loadOn="click"
+  />
+</EmbedLayout>
+
+<style>
+  h1 {
+    margin-block-start: 0;
+    font-size: 1.25rem;
+  }
+</style>

@@ -51,19 +51,29 @@ test.describe('heart viewer', () => {
     await expect(button).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('loads the light model on a phone', async ({ browser }) => {
+  test('waits for a tap on a phone, then loads the light model', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
       hasTouch: true,
       isMobile: true,
     });
     const page = await context.newPage();
-    const requested: string[] = [];
-    page.on('request', (r) => requested.push(r.url()));
-    const model = page.waitForResponse((r) => r.url().endsWith('/models/heart-lod1.glb'));
+    const models: string[] = [];
+    page.on('request', (r) => {
+      if (r.url().endsWith('.glb')) models.push(r.url());
+    });
     await page.goto('en/anatomy/');
+    const load = page.getByRole('button', { name: en['viewer.load'] });
+    await expect(load).toBeVisible();
+    await page.waitForTimeout(500);
+    expect(models).toEqual([]);
+
+    const model = page.waitForResponse((r) => r.url().endsWith('/models/heart-lod1.glb'));
+    await load.click();
     expect((await model).ok()).toBe(true);
-    expect(requested.filter((url) => url.endsWith('heart-lod0.glb'))).toEqual([]);
+    // Focus stays in the viewer and moves to the model once it has loaded.
+    await expect(page.getByRole('application')).toBeFocused(LOAD);
+    expect(models.filter((url) => url.endsWith('heart-lod0.glb'))).toEqual([]);
     await context.close();
   });
 

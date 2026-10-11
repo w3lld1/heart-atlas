@@ -40,6 +40,22 @@ for (const locale of Object.keys(productionLocales)) {
       expect(results.violations).toEqual([]);
     });
 
+    test('heart model module has the embed shell, model credits and no axe violations', async ({
+      page,
+    }) => {
+      await page.goto(`${locale}/embed/heart-model/`);
+      // three.js waits for the reader: only the poster and the load button are on the page.
+      await expect(page.locator('main img')).toBeVisible();
+      await expect(page.locator('main button').first()).toBeVisible();
+      await expect(page.locator('canvas')).toHaveCount(0);
+      await expectEmbedShell(page, new RegExp(`/${locale}/anatomy/$`));
+      await expect(page.locator('footer .credits')).toContainText(
+        'BodyParts3D, © The Database Center for Life Science',
+      );
+      const results = await axe(page).analyze();
+      expect(results.violations).toEqual([]);
+    });
+
     test('disease module keeps the review notice and sources', async ({ page }) => {
       const pathname = await firstDiseaseEmbed(page, locale);
       await page.goto(pathname);
@@ -82,6 +98,22 @@ test.describe('embed parameters', () => {
     await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[1] + 1}`);
     await expect(slider(page)).toHaveValue(String(defaultParams.heartRate));
   });
+
+  test('highlights the structure named in the query and ignores unknown parameters', async ({
+    page,
+  }) => {
+    await page.goto('en/embed/heart-model/?structure=aorta&autoplay=1');
+    await expect(
+      page.getByRole('button', { name: en['structure.aorta'], exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('ignores a structure id that is not in the model', async ({ page }) => {
+    await page.goto('en/embed/heart-model/?structure=liver');
+    await expect(page.locator('main button[aria-pressed]').first()).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(page.locator('main button[aria-pressed="true"]')).toHaveCount(0);
+  });
 });
 
 test.describe('embed builder', () => {
@@ -118,7 +150,12 @@ test.describe('embed in the right-to-left test locale', () => {
   for (const code of Object.keys(testLocales)) {
     test(`embed pages have no axe violations (${code})`, async ({ page }) => {
       const disease = await firstDiseaseEmbed(page, code);
-      for (const path of [`${code}/embed/`, `${code}/embed/ecg/`, disease]) {
+      for (const path of [
+        `${code}/embed/`,
+        `${code}/embed/ecg/`,
+        `${code}/embed/heart-model/`,
+        disease,
+      ]) {
         await page.goto(path);
         await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
         await expect(page.locator('main')).not.toBeEmpty();

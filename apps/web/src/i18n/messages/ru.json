@@ -175,5 +175,6 @@
   "structure.bundle-of-his": "Пучок Гиса",
   "structure.right-bundle-branch": "Правая ножка пучка Гиса",
   "structure.left-bundle-branch": "Левая ножка пучка Гиса",
-  "structure.purkinje-fibers": "Волокна Пуркинье"
+  "structure.purkinje-fibers": "Волокна Пуркинье",
+  "embed.credits": "Сторонние материалы: {credits}."
 }

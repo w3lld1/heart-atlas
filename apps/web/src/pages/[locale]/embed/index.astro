@@ -23,6 +23,7 @@ const diseases = articlePages(await getCollection('articles'), locales)
   .sort((a, b) => a.title.localeCompare(b.title, locale));
 
 const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1200 };
+const heartModel = { src: embedUrl('heart-model/'), title: t['anatomy.title'], height: 1000 };
 const diseaseModules = diseases.map((disease) => ({
   src: embedUrl(`disease/${disease.slug}/`),
   title: disease.title,
@@ -41,6 +42,13 @@ const [minRate, maxRate] = paramRanges.heartRate;
         <optgroup label={t['embed.tools']}>
           <option value={ecg.src} data-title={ecg.title} data-height={ecg.height} data-rate>
             {ecg.title}
+          </option>
+          <option
+            value={heartModel.src}
+            data-title={heartModel.title}
+            data-height={heartModel.height}
+          >
+            {heartModel.title}
           </option>
         </optgroup>
         {diseaseModules.length > 0 && (

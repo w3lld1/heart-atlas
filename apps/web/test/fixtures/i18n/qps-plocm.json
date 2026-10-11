@@ -175,5 +175,6 @@
   "structure.bundle-of-his": "[RTL] Bundle of His",
   "structure.right-bundle-branch": "[RTL] Right bundle branch",
   "structure.left-bundle-branch": "[RTL] Left bundle branch",
-  "structure.purkinje-fibers": "[RTL] Purkinje fibres"
+  "structure.purkinje-fibers": "[RTL] Purkinje fibres",
+  "embed.credits": "[RTL] Third-party material: {credits}."
 }

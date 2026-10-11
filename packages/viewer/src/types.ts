@@ -61,8 +61,12 @@ export interface HeartViewerProps {
   messages: ViewerMessages;
   /** Structure ids highlighted on load, e.g. from an article's `structures`. */
   highlight?: string[];
-  /** 'visible' loads three.js when the viewer scrolls into view; 'click' waits for the button. */
-  loadOn?: 'visible' | 'click';
+  /**
+   * 'visible' loads three.js when the viewer scrolls into view; 'click' waits for the button;
+   * 'auto' behaves like 'visible' on desktops and like 'click' on phones and narrow screens, so a
+   * phone downloads the 3D code and model only when the reader asks for them.
+   */
+  loadOn?: 'visible' | 'click' | 'auto';
   /** Level of the structure list heading, so the viewer fits the outline of the page around it. */
   headingLevel?: 2 | 3 | 4;
 }
