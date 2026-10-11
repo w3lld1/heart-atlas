@@ -45,7 +45,7 @@ const dir = locales[locale]?.dir ?? 'ltr';
         {' · '}
         {t['footer.license']}
       </p>
-      {credits && <p class="credits">{t['embed.credits'].replace('{credits}', credits)}</p>}
+      {credits && <p class="credits">{t['embed.credits'].replace('{credits}', () => credits)}</p>}
     </footer>
     <script is:inline>
       // Links to other pages leave the frame: browsing inside a small iframe on someone else's

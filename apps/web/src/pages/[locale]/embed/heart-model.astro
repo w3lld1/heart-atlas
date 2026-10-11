@@ -37,6 +37,9 @@ const canonical = new URL(localePath(import.meta.env.BASE_URL, locale, 'anatomy/
     messages={viewerMessages(t)}
     loadOn="click"
   />
+  <noscript>
+    <p>{t['embed.noScript']}</p>
+  </noscript>
 </EmbedLayout>
 
 <style>

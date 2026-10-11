@@ -47,9 +47,8 @@ export function viewerMessages(t: Messages): ViewerMessages {
   const messages = Object.fromEntries(
     viewerMessageKeys.map((key) => [key, t[key]]),
   ) as ViewerMessages;
-  messages['viewer.attribution'] = messages['viewer.attribution'].replace(
-    '{source}',
-    heartAttribution(),
-  );
+  // A function, so `$` patterns in the data are never read as replacement syntax.
+  const source = heartAttribution();
+  messages['viewer.attribution'] = messages['viewer.attribution'].replace('{source}', () => source);
   return messages;
 }

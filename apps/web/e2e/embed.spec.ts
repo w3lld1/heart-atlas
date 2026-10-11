@@ -110,9 +110,12 @@ test.describe('embed parameters', () => {
 
   test('ignores a structure id that is not in the model', async ({ page }) => {
     await page.goto('en/embed/heart-model/?structure=liver');
-    await expect(page.locator('main button[aria-pressed]').first()).toBeVisible();
-    await page.waitForTimeout(300);
+    // Wait for hydration, then check that nothing was highlighted but the list still works.
+    await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
     await expect(page.locator('main button[aria-pressed="true"]')).toHaveCount(0);
+    const aorta = page.getByRole('button', { name: en['structure.aorta'], exact: true });
+    await aorta.click();
+    await expect(aorta).toHaveAttribute('aria-pressed', 'true');
   });
 });
 
