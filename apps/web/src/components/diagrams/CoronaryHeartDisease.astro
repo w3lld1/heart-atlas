@@ -92,7 +92,7 @@ const fan = (x: number) =>
     <path d="M262,126 C248,138 248,166 262,178 Z"></path>
   </g>
   <!-- Beyond the clot the artery holds no moving blood -->
-  <rect class="disease-only" x="240" y="170" width="20" height="58" fill="var(--color-bg)"></rect>
+  <rect class="disease-only" x="240" y="170" width="20" height="40" fill="var(--color-bg)"></rect>
   <!-- A blood clot on the plaque blocks the artery completely -->
   <g class="disease-only">
     <ellipse cx="250" cy="150" rx="8" ry="17" fill="var(--diagram-arterial)"></ellipse>
@@ -195,6 +195,14 @@ const fan = (x: number) =>
 
   .diagram .chd-stop {
     animation-name: chd-stop;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .chd-run,
+    .diagram .chd-stop {
+      display: none;
+    }
   }
 
   @keyframes chd-run {

@@ -80,6 +80,8 @@ const id = `diagram-${Astro.locals.diagramCount}`;
   }
 
   .diagram svg {
+    /* Coordinates and text anchors are fixed: anatomy does not mirror in right-to-left pages. */
+    direction: ltr;
     display: block;
     inline-size: 100%;
     max-inline-size: 32rem;

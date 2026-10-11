@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
 import { diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
+import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
@@ -107,9 +108,9 @@ describe('Diagram', () => {
   });
 
   it.each(Object.keys(diagrams) as DiagramName[])(
-    'renders "%s" as an image named in both locales',
+    'renders "%s" as an image named in every locale',
     async (name) => {
-      for (const locale of ['en', 'ru']) {
+      for (const locale of localeCodes) {
         const html = await container.renderToString(Diagram, {
           props: { name },
           locals: { locale },
