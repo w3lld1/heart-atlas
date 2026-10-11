@@ -68,7 +68,7 @@ Add every document your numbers come from to `presetSources` in [`apps/web/src/c
 
 - **Heart clock page.** `[locale]/heart-clock.astro` passes all `presetIds`, so the new preset appears there with no further change.
 - **Article.** Set `preset: <id>` in the frontmatter of the disease article (see [Adding an article](adding-an-article.md)). The schema in `apps/web/src/lib/content.ts` accepts any id from `presetIds` except `normal`. The article page then shows the monitor after the text with the switch `normal` / `<id>`, starting on the preset.
-- **Embed.** The ECG embed `/<locale>/embed/ecg/` currently reads only `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`); `main` has no `?preset=` parameter yet. Do not document embed URLs with `?preset=` until it lands.
+- **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range, `heartRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped.
 
 ### 6. Check
 

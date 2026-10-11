@@ -1,5 +1,5 @@
-# Anatomical structures of the heart model. Ids are a public contract: articles reference them
-# in `structures`, and every built model must contain a node with each id.
+# Anatomical structures of the heart model. Ids are a public contract: the viewer, the strings
+# files and the embed's ?structure= use them, and every built model must contain a node with each id.
 # kind: mesh  - a node with geometry built from BodyParts3D elements or from conduction.yaml
 # kind: zone  - an empty anchor node; the viewer highlights `meshes` together and labels `anchor`
 # elements: BodyParts3D 4.0 element files (partof_BP3D_4.0_obj_99/<id>.obj)

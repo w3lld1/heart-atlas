@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
+
+## [0.1.0] - unreleased
+
+The first public version: a working site in Russian and English with the 3D heart, the heart clock, disease articles, search, offline mode and embedding.
+
+### 3D anatomy
+
+- A model of the normal adult heart built from BodyParts3D: chambers, septa, valves, papillary muscles, great vessels, coronary arteries and cardiac veins, and a schematic conduction system, with structure ids and a license register ([#39](https://github.com/w3lld1/heart-atlas/pull/39)).
+- Compressed models in two levels of detail with size and triangle budgets checked in CI, and a workflow that rebuilds the model from the pinned BodyParts3D archive ([#44](https://github.com/w3lld1/heart-atlas/pull/44)).
+- The anatomy page with a 3D viewer: rotate, zoom, select and highlight structures with the mouse or keyboard; a poster with a text alternative is shown until the model loads ([#56](https://github.com/w3lld1/heart-atlas/pull/56)).
+- The model beats: a heartbeat deformation driven by the cardiac cycle ([#81](https://github.com/w3lld1/heart-atlas/pull/81)), synchronised with the heart clock on its page ([#82](https://github.com/w3lld1/heart-atlas/pull/82)).
+
+### Heart clock
+
+- One cardiac-cycle timer drives a synthetic ECG, heart sounds and a Wiggers diagram of left-heart pressures and volume, with text descriptions that follow the rhythm ([#33](https://github.com/w3lld1/heart-atlas/pull/33), [#40](https://github.com/w3lld1/heart-atlas/pull/40), [#41](https://github.com/w3lld1/heart-atlas/pull/41), [#46](https://github.com/w3lld1/heart-atlas/pull/46)).
+- Disease presets: atrial fibrillation, ST-elevation myocardial infarction, heart failure with reduced ejection fraction, hypertension, aortic stenosis and atrial septal defect. Every number comes from a cited source or is marked as a model assumption, and a "normal / disease" switch ([#59](https://github.com/w3lld1/heart-atlas/pull/59), [#65](https://github.com/w3lld1/heart-atlas/pull/65)).
+- Animation does not start on its own with reduced motion, and sound never starts on its own.
+
+### Articles
+
+- Article schema with two levels of text (for patients and for students), numbered citations to verified sources, a "not reviewed by a physician" notice and a translation notice ([#17](https://github.com/w3lld1/heart-atlas/pull/17), [#27](https://github.com/w3lld1/heart-atlas/pull/27)).
+- Six disease articles in Russian and English, each with the heart clock preset of that disease ([#38](https://github.com/w3lld1/heart-atlas/pull/38), [#48](https://github.com/w3lld1/heart-atlas/pull/48), [#50](https://github.com/w3lld1/heart-atlas/pull/50), [#68](https://github.com/w3lld1/heart-atlas/pull/68), [#77](https://github.com/w3lld1/heart-atlas/pull/77)).
+- Animated "normal / disease" diagrams in articles ([#66](https://github.com/w3lld1/heart-atlas/pull/66), [#79](https://github.com/w3lld1/heart-atlas/pull/79)).
+
+### Search, offline and embedding
+
+- Full-text search across the site with Pagefind, including other names and abbreviations of each disease (`aliases`) ([#36](https://github.com/w3lld1/heart-atlas/pull/36), [#64](https://github.com/w3lld1/heart-atlas/pull/64)).
+- The site installs as an app: per-locale manifests, a service worker, an offline page and an update notice ([#45](https://github.com/w3lld1/heart-atlas/pull/45)).
+- Embedding with `<iframe>`: the ECG (with `?preset=` and `?rate=`), the 3D model (with `?structure=`) and disease articles, plus a builder page that gives the code ([#60](https://github.com/w3lld1/heart-atlas/pull/60), [#72](https://github.com/w3lld1/heart-atlas/pull/72), [#85](https://github.com/w3lld1/heart-atlas/pull/85)).
+
+### Languages and accessibility
+
+- A locale registry: a language is added with one registry entry and a strings file; right-to-left scripts are supported and tested with a pseudo-locale ([#15](https://github.com/w3lld1/heart-atlas/pull/15), [#28](https://github.com/w3lld1/heart-atlas/pull/28)).
+- axe checks in end-to-end tests, Lighthouse CI on every page template (each category at least 90, LCP at most 2.5 s, CLS at most 0.1), a 100 KB gzip JavaScript budget for article pages and a manual accessibility checklist ([#75](https://github.com/w3lld1/heart-atlas/pull/75)).
+
+### Project
+
+- Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
+- Contributor guides: architecture, adding an article, a language, a model and a disease preset.
+
+[0.1.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.1.0
