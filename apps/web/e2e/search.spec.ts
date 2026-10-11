@@ -54,3 +54,21 @@ for (const [locale, query] of Object.entries(queries)) {
     });
   });
 }
+
+test.describe('search synonyms', () => {
+  test.skip(process.env['HA_TEST_CONTENT'] !== '1', 'needs the HA_TEST_CONTENT=1 build');
+
+  test('a synonym from aliases finds the article without showing on the page', async ({ page }) => {
+    // aliases of test/fixtures/site-content/ru/disease/test-condition.mdx; the words appear
+    // nowhere else in the article.
+    await page.goto(`ru/search/?q=${encodeURIComponent('вымышленный синдром')}`);
+    await expect(
+      page.locator('.pagefind-ui__result-link[href$="/ru/disease/test-condition/"]'),
+    ).toBeVisible();
+
+    await page.goto('ru/disease/test-condition/');
+    const aliases = page.getByText('вымышленный синдром');
+    await expect(aliases).toBeAttached();
+    await expect(aliases).toBeHidden();
+  });
+});

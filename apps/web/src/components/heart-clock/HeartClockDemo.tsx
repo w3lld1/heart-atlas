@@ -1,8 +1,11 @@
 import {
   createHeartClock,
-  paramRanges,
+  heartRateLimits,
+  presetIds,
+  presetParams,
   type HeartParams,
   type Phase,
+  type PresetId,
 } from '@heart-atlas/heart-clock';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { drawEcg, ecgHeight, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
@@ -22,7 +25,6 @@ export const heartClockMessageKeys = [
   'heartClock.phase.isovolumic-relaxation',
   'heartClock.phase.filling',
   'heartClock.ecgLabel',
-  'heartClock.ecgDescription',
   'heartClock.soundOn',
   'heartClock.soundOff',
   'heartClock.wiggers.title',
@@ -36,6 +38,15 @@ export const heartClockMessageKeys = [
   'heartClock.wiggers.la',
   'heartClock.wiggers.lvVolume',
   'heartClock.wiggers.systole',
+  'heartClock.condition',
+  ...presetIds.flatMap(
+    (id) =>
+      [
+        `heartClock.preset.${id}`,
+        `heartClock.preset.${id}.summary`,
+        `heartClock.preset.${id}.ecg`,
+      ] as const,
+  ),
 ] as const;
 
 export type HeartClockMessages = Record<(typeof heartClockMessageKeys)[number], string>;
@@ -44,16 +55,66 @@ export interface HeartClockDemoProps {
   /** Locale code from the registry, for number formatting. */
   locale: string;
   messages: HeartClockMessages;
-  /** Clock parameters; disease presets will pass theirs here. */
+  /** Presets the reader can switch between; without them there is no switch. */
+  presets?: readonly PresetId[];
+  /** Preset to start with; the first of `presets` by default. */
+  preset?: PresetId;
+  /** Clock parameters applied on top of the preset. */
   params?: Partial<HeartParams>;
+}
+
+/** Parameters of a preset with the caller's overrides, or undefined if the two do not fit. */
+function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined) {
+  const merged = { ...presetParams(id), ...params };
+  try {
+    return { params: merged, limits: heartRateLimits(merged) };
+  } catch (error) {
+    if (error instanceof RangeError) return undefined;
+    throw error;
+  }
+}
+
+function clamp(value: number, [min, max]: readonly [number, number]): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 const speeds = [0.25, 0.5, 1] as const;
 /** Longest frame step, so a background tab does not jump the trace when it comes back. */
 const maxFrameMs = 100;
 
-export default function HeartClockDemo({ locale, messages: t, params }: HeartClockDemoProps) {
-  const clock = useMemo(() => createHeartClock(params), [params]);
+export default function HeartClockDemo({
+  locale,
+  messages: t,
+  presets,
+  preset,
+  params,
+}: HeartClockDemoProps) {
+  // Presets that fit the caller's parameters, with their parameters and heart rate limits.
+  const choices = useMemo(() => {
+    const ids = presets ?? [preset ?? 'normal'];
+    return ids.flatMap((id) => {
+      const merged = mergedParams(id, params);
+      return merged ? [{ id, ...merged }] : [];
+    });
+  }, [presets, preset, params]);
+  // The reader's choice, with the heart rate they had when they made it.
+  const [selection, setSelection] = useState<{ id: PresetId; rate: number } | undefined>();
+  const choice = choices.find((item) => item.id === (selection?.id ?? preset)) ?? choices[0];
+  if (!choice) throw new RangeError('No preset fits these heart clock parameters');
+  const presetId = choice.id;
+  const limits = choice.limits;
+  const selectedRate = selection?.rate;
+  // A preset change builds a new clock, so the whole strip and the current beat of the Wiggers
+  // diagram show the new preset at once, also while paused.
+  const clock = useMemo(
+    () =>
+      createHeartClock(
+        selectedRate === undefined
+          ? choice.params
+          : { ...choice.params, heartRate: clamp(selectedRate, choice.limits) },
+      ),
+    [choice, selectedRate],
+  );
   const [heartRate, setHeartRate] = useState(clock.params.heartRate);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
@@ -68,6 +129,8 @@ export default function HeartClockDemo({ locale, messages: t, params }: HeartClo
   // Clock time shown at the right edge of the strip. Starts one strip in, so the paused
   // first frame already shows a full trace.
   const nowRef = useRef(windowMs(maxEcgWidth));
+  // The clock nowRef belongs to: a new clock keeps no history, so time starts over with it.
+  const nowClockRef = useRef(clock);
   const speedRef = useRef(speed);
   speedRef.current = speed;
   const audioRef = useRef<AudioContext | null>(null);
@@ -85,6 +148,10 @@ export default function HeartClockDemo({ locale, messages: t, params }: HeartClo
 
   const id = useId();
   const descriptionId = `${id}-description`;
+
+  useEffect(() => {
+    setHeartRate(clock.params.heartRate);
+  }, [clock]);
 
   // Motion starts on its own unless the reader asked for reduced motion.
   useEffect(() => {
@@ -113,6 +180,10 @@ export default function HeartClockDemo({ locale, messages: t, params }: HeartClo
 
   // Draws one frame now and, while playing, on every animation frame.
   useEffect(() => {
+    if (nowClockRef.current !== clock) {
+      nowClockRef.current = clock;
+      nowRef.current = windowMs(maxEcgWidth);
+    }
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     const wiggers = wiggersRef.current;
@@ -178,6 +249,16 @@ export default function HeartClockDemo({ locale, messages: t, params }: HeartClo
     playerRef.current?.cancel(firstChanged);
   }
 
+  function changePreset(next: PresetId) {
+    const nextChoice = choices.find((item) => item.id === next);
+    if (!nextChoice) return;
+    const rate = clamp(heartRate, nextChoice.limits);
+    // Sounds queued for the old clock would play out of step.
+    playerRef.current?.cancel();
+    setSelection({ id: next, rate });
+    setHeartRate(rate);
+  }
+
   function changeSpeed(value: number) {
     setSpeed(value);
     // Queued sounds were timed for the old speed; the next frame queues them again.
@@ -211,12 +292,34 @@ export default function HeartClockDemo({ locale, messages: t, params }: HeartClo
     setPlaying(true);
   }
 
-  const [minRate, maxRate] = paramRanges.heartRate;
+  const [minRate, maxRate] = limits;
   const speedFormat = new Intl.NumberFormat(locale);
-  const description = t['heartClock.ecgDescription'].replace('{rate}', String(heartRate));
+  const description = t[`heartClock.preset.${presetId}.ecg`].replace('{rate}', String(heartRate));
 
   return (
     <div className={styles['demo']}>
+      {choices.length > 1 && (
+        <fieldset className={styles['presets']} aria-describedby={`${id}-summary`}>
+          <legend>{t['heartClock.condition']}</legend>
+          {choices.map((choice) => (
+            <label key={choice.id}>
+              <input
+                type="radio"
+                name={`${id}-preset`}
+                value={choice.id}
+                checked={presetId === choice.id}
+                onChange={() => changePreset(choice.id)}
+              />
+              {t[`heartClock.preset.${choice.id}`]}
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {choices.length > 1 && (
+        <p id={`${id}-summary`} className={styles['summary']}>
+          {t[`heartClock.preset.${presetId}.summary`]}
+        </p>
+      )}
       <div className={styles['controls']}>
         <button
           type="button"

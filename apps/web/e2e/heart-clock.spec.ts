@@ -1,3 +1,4 @@
+import { heartRateLimits, presetParams } from '@heart-atlas/heart-clock';
 import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
@@ -67,6 +68,73 @@ test.describe('heart clock controls', () => {
         { timeout: 5000, intervals: [50] },
       )
       .toBeGreaterThanOrEqual(3);
+  });
+});
+
+test.describe('disease presets', () => {
+  test('switch the description and the summary, and switch back', async ({ page }) => {
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    await expect(conditions).toHaveAccessibleDescription(en['heartClock.preset.normal.summary']);
+    await conditions
+      .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
+      .check();
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.atrial-fibrillation.summary'],
+    );
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+    await expect(ecg).toHaveAccessibleDescription(/^Atrial fibrillation at an average of 75 /);
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
+
+    await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
+  });
+
+  test('limit the heart rate to what the preset fits', async ({ page }) => {
+    await page.goto('en/heart-clock/');
+    // Wait for hydration, so the slider value is React's and not reset by it.
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    await slider.fill('180');
+    await page.getByRole('radio', { name: en['heartClock.preset.atrial-septal-defect'] }).check();
+    const [, max] = heartRateLimits(presetParams('atrial-septal-defect'));
+    await expect(slider).toHaveAttribute('max', String(max));
+    await expect(slider).toHaveValue(String(max));
+    await expect(page.locator('output')).toHaveText(String(max));
+
+    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await expect(slider).toHaveAttribute('max', '180');
+  });
+
+  test('keep drawing when switched after playing for a while', async ({ page }) => {
+    const errors: Error[] = [];
+    page.on('pageerror', (error) => errors.push(error));
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    // Long enough for the clock to drop the beats it started with.
+    await page.waitForTimeout(3000);
+    await page.getByRole('radio', { name: en['heartClock.preset.aortic-stenosis'] }).check();
+    await page.waitForTimeout(500);
+    await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
+    await page.waitForTimeout(500);
+    expect(errors).toEqual([]);
+    await expect(page.locator('[data-phase]')).toBeVisible();
+    // The ECG still has dark trace pixels.
+    const inked = await page
+      .getByRole('img', { name: en['heartClock.ecgLabel'] })
+      .evaluate((canvas: HTMLCanvasElement) => {
+        const context = canvas.getContext('2d');
+        if (!context) return 0;
+        const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+        let count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if ((data[i] ?? 255) < 80 && (data[i + 1] ?? 255) < 80) count += 1;
+        }
+        return count;
+      });
+    expect(inked).toBeGreaterThan(100);
   });
 });
 
