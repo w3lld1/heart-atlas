@@ -45,6 +45,11 @@ The build rejects articles that break the schema. Details, fields and components
 
 Add an entry to the locale registry `apps/web/src/i18n/locales.ts`, translate `apps/web/src/i18n/messages/en.json` into `<code>.json` and check it with `pnpm i18n:check`. Articles can follow at your own pace; until then readers see the fallback language with a notice. Step by step: [Adding a language](docs/adding-a-language.md).
 
+## Releasing
+
+1. In one PR, set `version` in the root `package.json` and add a dated section `## [<version>] - YYYY-MM-DD` to [`CHANGELOG.md`](CHANGELOG.md), with its link at the bottom.
+2. After it is merged, run the **Release** workflow (`.github/workflows/release.yml`) on `main` from the Actions tab. It tags `v<version>` on that commit and publishes a GitHub Release with the changelog section as notes. It fails if the section is missing or the release already exists.
+
 ## Using Claude Code
 
 The repository ships `.claude/settings.json`, which enables two plugins for everyone who opens the project in Claude Code:
