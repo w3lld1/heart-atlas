@@ -77,6 +77,40 @@ test.describe('heart viewer', () => {
     await context.close();
   });
 
+  test('beats on request and stops again', async ({ page }) => {
+    await page.goto('en/anatomy/');
+    const canvas = page.locator('canvas');
+    await expect(canvas).toBeVisible(LOAD);
+    const start = page.getByRole('button', { name: en['viewer.heartbeat.start'] });
+    await expect(start).toBeVisible(LOAD);
+    // Nothing moves until the reader asks.
+    const still = await canvas.screenshot();
+    await page.waitForTimeout(400);
+    expect((await canvas.screenshot()).equals(still)).toBe(true);
+
+    await page.getByLabel(en['viewer.heartbeat.rate']).fill('120');
+    await expect(page.locator('output')).toHaveText(
+      en['viewer.heartbeat.rateValue'].replace('{rate}', '120'),
+    );
+    await start.click();
+    const stop = page.getByRole('button', { name: en['viewer.heartbeat.stop'] });
+    await expect(stop).toBeVisible();
+    await expect(page.getByText(en['viewer.heartbeat.note'])).toBeVisible();
+    // At 120 beats per minute frames 150 ms apart show the heart in different phases.
+    await expect
+      .poll(async () => {
+        const a = await canvas.screenshot();
+        await page.waitForTimeout(150);
+        return a.equals(await canvas.screenshot());
+      }, LOAD)
+      .toBe(false);
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
+
+    await stop.click();
+    await expect(start).toBeVisible();
+  });
+
   test('highlights structures named by the page through the window event', async ({ page }) => {
     await page.goto('en/anatomy/');
     await expect(page.locator('canvas')).toBeVisible(LOAD);

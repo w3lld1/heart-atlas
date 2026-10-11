@@ -29,6 +29,11 @@ export const viewerMessageKeys = [
   'viewer.group.coronary-artery',
   'viewer.group.cardiac-vein',
   'viewer.group.conduction',
+  'viewer.heartbeat.start',
+  'viewer.heartbeat.stop',
+  'viewer.heartbeat.rate',
+  'viewer.heartbeat.rateValue',
+  'viewer.heartbeat.note',
 ] as const;
 
 export type ViewerMessageKey = (typeof viewerMessageKeys)[number];
@@ -69,4 +74,10 @@ export interface HeartViewerProps {
   loadOn?: 'visible' | 'click' | 'auto';
   /** Level of the structure list heading, so the viewer fits the outline of the page around it. */
   headingLevel?: 2 | 3 | 4;
+  /**
+   * Heartbeat. 'own' gives the reader a start button and a heart rate control, driving the model
+   * from its own heart clock; 'page' follows the heart clock island on the same page through
+   * `@heart-atlas/heart-clock/cycle-source`. Absent: the model never moves.
+   */
+  cycle?: 'own' | 'page';
 }

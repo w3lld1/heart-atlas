@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import { HIGHLIGHT_EVENT, isHighlightEvent } from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
@@ -19,6 +20,26 @@ import type { HeartViewerProps, SectionAxis, ViewerMessageKey } from './types.ts
 const Scene = lazy(() => import('./Scene.tsx'));
 
 const SECTIONS: SectionAxis[] = ['off', 'sagittal', 'frontal', 'transverse'];
+
+/** Heart rate control of the viewer's own clock, beats per minute; inside the clock's range. */
+const RATE = { min: 40, max: 180, step: 5, initial: 75 } as const;
+
+/** The viewer's own heart clock, loaded with the first start so the page does not pay for it. */
+interface OwnClock {
+  setRate(rate: number): void;
+  source: CycleSource;
+}
+
+async function startOwnClock(rate: number): Promise<OwnClock> {
+  const { createHeartClock, cycleState } = await import('@heart-atlas/heart-clock');
+  const clock = createHeartClock({ heartRate: rate });
+  const start = performance.now();
+  const now = () => performance.now() - start;
+  return {
+    setRate: (heartRate) => clock.setParams({ heartRate }, now()),
+    source: () => cycleState(clock, now()),
+  };
+}
 
 function hasWebGL(): boolean {
   try {
@@ -69,6 +90,7 @@ export default function HeartViewer({
   highlight = [],
   loadOn = 'visible',
   headingLevel = 2,
+  cycle: cycleMode,
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
@@ -82,6 +104,9 @@ export default function HeartViewer({
   const [focusOnReady, setFocusOnReady] = useState(false);
   // Decided after mount, since the build cannot know the screen: 'auto' turns into a click on phones.
   const [waitForClick, setWaitForClick] = useState(loadOn === 'click');
+  const [cycle, setCycle] = useState<CycleSource | null>(null);
+  const [rate, setRate] = useState<number>(RATE.initial);
+  const ownClock = useRef<OwnClock | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -107,6 +132,38 @@ export default function HeartViewer({
     observer.observe(rootRef.current);
     return () => observer.disconnect();
   }, [loadOn, start]);
+
+  // Follow the heart clock island on the page; a viewer that loads later gets its source at once.
+  useEffect(() => {
+    if (cycleMode !== 'page') return;
+    // A function in state would be called as an updater, hence the wrapper.
+    return subscribeCycleSource((source) => setCycle(() => source));
+  }, [cycleMode]);
+
+  // A press while the clock is still loading cancels the start, like a stop. Each start gets a
+  // new number; 0 means none is loading.
+  const starting = useRef(0);
+  const starts = useRef(0);
+  const toggleHeartbeat = useCallback(async () => {
+    if (ownClock.current || starting.current) {
+      ownClock.current = null;
+      starting.current = 0;
+      setCycle(null);
+      return;
+    }
+    const attempt = ++starts.current;
+    starting.current = attempt;
+    const clock = await startOwnClock(rate);
+    if (starting.current !== attempt) return;
+    starting.current = 0;
+    ownClock.current = clock;
+    setCycle(() => clock.source);
+  }, [rate]);
+
+  const changeRate = useCallback((value: number) => {
+    setRate(value);
+    ownClock.current?.setRate(value);
+  }, []);
 
   const known = useMemo(() => new Set(structures.map((s) => s.id)), [structures]);
 
@@ -141,6 +198,7 @@ export default function HeartViewer({
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
   const status = STATUS[phase];
+  const rateText = t['viewer.heartbeat.rateValue'].replace('{rate}', () => String(rate));
   const Title = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
   const GroupTitle = `h${headingLevel + 1}` as 'h3' | 'h4' | 'h5';
 
@@ -172,6 +230,7 @@ export default function HeartViewer({
                 describedBy={`${id}-help`}
                 reducedMotion={reducedMotion}
                 focusOnReady={focusOnReady}
+                cycle={cycle}
                 onReady={onReady}
                 onSelect={select}
               />
@@ -248,6 +307,28 @@ export default function HeartViewer({
                 ))}
               </select>
             </div>
+            {cycleMode === 'own' && (
+              <div className={styles.heartbeat}>
+                <button type="button" onClick={toggleHeartbeat}>
+                  {cycle ? t['viewer.heartbeat.stop'] : t['viewer.heartbeat.start']}
+                </button>
+                <div className={styles.field}>
+                  <label htmlFor={`${id}-rate`}>{t['viewer.heartbeat.rate']}</label>
+                  <input
+                    id={`${id}-rate`}
+                    type="range"
+                    min={RATE.min}
+                    max={RATE.max}
+                    step={RATE.step}
+                    value={rate}
+                    aria-valuetext={rateText}
+                    onChange={(e) => changeRate(Number(e.target.value))}
+                  />
+                  <output htmlFor={`${id}-rate`}>{rateText}</output>
+                </div>
+                {cycle && <p className={styles.note}>{t['viewer.heartbeat.note']}</p>}
+              </div>
+            )}
             {section !== 'off' && (
               <div className={styles.field}>
                 <label htmlFor={`${id}-position`}>{t['viewer.section.position']}</label>
