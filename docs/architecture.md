@@ -70,7 +70,7 @@ Most of the site is static HTML. Interactive parts are React islands that load o
 
 | Island                                               | Where                                                           | Loads with                       |
 | ---------------------------------------------------- | --------------------------------------------------------------- | -------------------------------- |
-| `HeartViewer` (`packages/viewer`)                    | `[locale]/anatomy.astro`, `[locale]/heart-clock.astro` (beats with the clock) | `client:visible`; 3D on click on the heart clock page |
+| `HeartViewer` (`packages/viewer`)                    | `[locale]/anatomy.astro` (`cycle="own"`: heartbeat button), `[locale]/heart-clock.astro` (`cycle="page"`: beats with the clock) | `client:visible`; 3D on click on the heart clock page |
 | `HeartModelEmbed` (`components/viewer/`)             | `[locale]/embed/heart-model.astro`                              | `client:visible`, 3D on click    |
 | `HeartClockDemo` (`components/heart-clock/`)         | `[locale]/heart-clock.astro`, articles with `preset` (`ArticleClock.astro`) | `client:visible`     |
 | `EcgEmbed` (`components/heart-clock/`)               | `[locale]/embed/ecg.astro`                                      | `client:load`                    |

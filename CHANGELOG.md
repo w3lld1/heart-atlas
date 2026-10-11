@@ -2,7 +2,7 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## 0.1.0 - unreleased
+## [0.1.0] - 2026-10-11
 
 The first public version: a working site in Russian and English with the 3D heart, the heart clock, disease articles, search, offline mode and embedding.
 
@@ -11,7 +11,7 @@ The first public version: a working site in Russian and English with the 3D hear
 - A model of the normal adult heart built from BodyParts3D: chambers, septa, valves, papillary muscles, great vessels, coronary arteries and cardiac veins, and a schematic conduction system, with structure ids, a license register and a workflow that rebuilds the model from the pinned BodyParts3D archive ([#39](https://github.com/w3lld1/heart-atlas/pull/39)).
 - Compressed models in two levels of detail with size and triangle budgets checked in CI ([#44](https://github.com/w3lld1/heart-atlas/pull/44)).
 - The anatomy page with a 3D viewer: rotate, zoom, select and highlight structures with the mouse or keyboard; a poster with a text alternative is shown until the model loads ([#56](https://github.com/w3lld1/heart-atlas/pull/56)).
-- The model beats: a heartbeat deformation driven by the cardiac cycle ([#81](https://github.com/w3lld1/heart-atlas/pull/81)), synchronised with the heart clock on its page ([#82](https://github.com/w3lld1/heart-atlas/pull/82)).
+- The model beats: a heartbeat deformation driven by the cardiac cycle ([#81](https://github.com/w3lld1/heart-atlas/pull/81)), synchronised with the heart clock on its page ([#82](https://github.com/w3lld1/heart-atlas/pull/82)). On the anatomy page a button and a heart rate control start the heartbeat; nothing moves on its own ([#89](https://github.com/w3lld1/heart-atlas/pull/89)).
 
 ### Heart clock
 
@@ -22,7 +22,7 @@ The first public version: a working site in Russian and English with the 3D hear
 ### Articles
 
 - Article schema with two levels of text (for patients and for students), numbered citations to verified sources, a "not reviewed by a physician" notice and a translation notice ([#17](https://github.com/w3lld1/heart-atlas/pull/17), [#27](https://github.com/w3lld1/heart-atlas/pull/27)).
-- Six disease articles in Russian and English, each with the heart clock preset of that disease ([#38](https://github.com/w3lld1/heart-atlas/pull/38), [#48](https://github.com/w3lld1/heart-atlas/pull/48), [#50](https://github.com/w3lld1/heart-atlas/pull/50), [#68](https://github.com/w3lld1/heart-atlas/pull/68), [#77](https://github.com/w3lld1/heart-atlas/pull/77)).
+- Eight disease articles in Russian and English, most with the heart clock preset of that disease, including hypertrophic and dilated cardiomyopathy ([#94](https://github.com/w3lld1/heart-atlas/pull/94), [#38](https://github.com/w3lld1/heart-atlas/pull/38), [#48](https://github.com/w3lld1/heart-atlas/pull/48), [#50](https://github.com/w3lld1/heart-atlas/pull/50), [#68](https://github.com/w3lld1/heart-atlas/pull/68), [#77](https://github.com/w3lld1/heart-atlas/pull/77)).
 - Six anatomy articles (structure of the heart, chambers, valves, conduction system, coronary circulation, cardiac cycle) and four diagnostic ones (ECG, echocardiography, Holter monitoring, natriuretic peptides) in Russian and English, with interactive diagrams or the live ECG monitor (`<EcgMonitor>`); the anatomy page lists its articles ([#83](https://github.com/w3lld1/heart-atlas/pull/83)).
 - Animated diagrams in articles: "normal / disease" and other state pairs such as diastole / systole ([#66](https://github.com/w3lld1/heart-atlas/pull/66), [#79](https://github.com/w3lld1/heart-atlas/pull/79)).
 
@@ -41,3 +41,5 @@ The first public version: a working site in Russian and English with the 3D hear
 
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
+
+[0.1.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.1.0
