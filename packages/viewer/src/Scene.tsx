@@ -1,5 +1,5 @@
 import { Html, OrbitControls, useGLTF } from '@react-three/drei';
-import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import {
   useCallback,
   useEffect,
@@ -21,6 +21,21 @@ import {
   type PerspectiveCamera,
 } from 'three';
 import { keyAction, orbit, type Vec3 } from './camera.ts';
+import {
+  CHAMBERS,
+  DEFORM_UNIFORMS,
+  DEFORM_VERTEX,
+  ease,
+  GLOW_EASE_MS,
+  SQUEEZE,
+  VALVE_EASE_MS,
+  VALVE_SPREAD,
+  VALVES,
+  valveFrame,
+  type ChamberId,
+  type CycleSource,
+  type ValveId,
+} from './cycle.ts';
 import type { SectionAxis } from './types.ts';
 
 export interface SceneProps {
@@ -41,6 +56,11 @@ export interface SceneProps {
   reducedMotion: boolean;
   /** Moves focus to the model once it has loaded. */
   focusOnReady: boolean;
+  /**
+   * Heartbeat: read every frame while set; null or absent lets the heart settle and stop.
+   * HeartViewer wires it once the heart clock publishes cycle states.
+   */
+  cycle?: CycleSource | null;
   onReady: () => void;
   onSelect: (id: string) => void;
 }
@@ -50,6 +70,9 @@ const TARGET: Vec3 = [0, 0.015, 0];
 const LIMITS = { minDistance: 0.08, maxDistance: 0.8 };
 const HIGHLIGHT = new Color('#ffb000');
 const NO_EMISSION = new Color(0);
+/** Soft glow of excited conduction parts: a fade, never a flash (WCAG 2.3.1). */
+const PULSE = new Color('#5ec8ff');
+const PULSE_INTENSITY = 0.6;
 const GHOST_GROUPS = new Set(['chamber']);
 const AXIS = { sagittal: 0, transverse: 1, frontal: 2 } as const;
 
@@ -89,10 +112,98 @@ function KeyboardOrbit({ handlerRef }: { handlerRef: RefObject<KeyHandler | null
   return null;
 }
 
+interface DeformUniforms {
+  uSqueeze: { value: number };
+  uSqueezeCenter: { value: Vector3 };
+  uValve: { value: number };
+  uOpen: { value: number };
+  uCenter: { value: Vector3 };
+  uNormal: { value: Vector3 };
+  uRadius: { value: number };
+}
+
 interface MeshState {
   mesh: Mesh;
   material: MeshStandardMaterial;
   group: string;
+  /** Present on meshes the heartbeat deforms. */
+  deform?: DeformUniforms;
+  /** Chambers whose contraction squeezes this mesh. */
+  follows?: ChamberId[];
+  /** Eased heartbeat value: valve opening or conduction glow. */
+  level: number;
+}
+
+const isChamber = (name: string): name is ChamberId =>
+  (CHAMBERS as readonly string[]).includes(name);
+const isValve = (name: string): name is ValveId => (VALVES as readonly string[]).includes(name);
+
+const VENTRICLES: ChamberId[] = ['right-ventricle', 'left-ventricle'];
+
+/**
+ * Chambers whose contraction a mesh follows. Papillary muscles and the vessels on the surface
+ * move with the ventricles, so they stay attached to the wall that carries them.
+ */
+function followsFor(name: string, group: string): ChamberId[] | undefined {
+  if (isChamber(name)) return [name];
+  switch (name) {
+    case 'right-papillary-muscles':
+      return ['right-ventricle'];
+    case 'left-papillary-muscles':
+      return ['left-ventricle'];
+    // Atrioventricular valves hang on chordae from the papillary muscles.
+    case 'tricuspid-valve':
+    case 'mitral-valve':
+    case 'bundle-of-his':
+    case 'right-bundle-branch':
+    case 'left-bundle-branch':
+    case 'purkinje-fibers':
+      return VENTRICLES;
+    case 'sa-node':
+    case 'av-node':
+      return ['right-atrium'];
+  }
+  if (group === 'coronary-artery' || group === 'cardiac-vein') return VENTRICLES;
+  return undefined;
+}
+
+function newUniforms(): DeformUniforms {
+  return {
+    uSqueeze: { value: 0 },
+    uSqueezeCenter: { value: new Vector3() },
+    uValve: { value: 0 },
+    uOpen: { value: 0 },
+    uCenter: { value: new Vector3() },
+    uNormal: { value: new Vector3(0, 1, 0) },
+    uRadius: { value: 0 },
+  };
+}
+
+/** Valve frame in the mesh's own geometry space, where the shader works. */
+function setValveFrame(mesh: Mesh, uniforms: DeformUniforms) {
+  const position = mesh.geometry.getAttribute('position');
+  if (!position) return;
+  // getX/Y/Z undo the quantization, giving the same values the shader sees.
+  const points = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    points[i * 3] = position.getX(i);
+    points[i * 3 + 1] = position.getY(i);
+    points[i * 3 + 2] = position.getZ(i);
+  }
+  const frame = valveFrame(points);
+  uniforms.uValve.value = 1;
+  uniforms.uCenter.value.set(...frame.center);
+  uniforms.uNormal.value.set(...frame.normal);
+  uniforms.uRadius.value = frame.radius;
+}
+
+function addDeformation(material: MeshStandardMaterial, uniforms: DeformUniforms) {
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${DEFORM_UNIFORMS}`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${DEFORM_VERTEX}`);
+  };
 }
 
 type ModelProps = Omit<
@@ -114,12 +225,44 @@ function Model({ onLoaded, ...props }: ModelProps) {
   // so two viewers on a page, or a remount, never fight over the same objects.
   const { scene, meshes } = useMemo(() => {
     const copy = gltf.scene.clone(true);
+    copy.updateMatrixWorld(true);
+    // Squeeze centres in model space: each chamber's own, and both ventricles for the vessels.
+    const centreOf = (names: readonly string[]) => {
+      const box = new Box3();
+      for (const name of names) {
+        const node = copy.getObjectByName(name);
+        if (node) box.expandByObject(node);
+      }
+      return box.getCenter(new Vector3());
+    };
+    const centres = new Map<string, Vector3>();
+    for (const chamber of CHAMBERS) centres.set(chamber, centreOf([chamber]));
+    const ventricles = centreOf(VENTRICLES);
     const list: MeshState[] = [];
     copy.traverse((o: Object3D) => {
       if (!(o instanceof Mesh) || !(o.material instanceof MeshStandardMaterial)) return;
       const material = o.material.clone();
       o.material = material;
-      list.push({ mesh: o, material, group: String(o.userData['group'] ?? '') });
+      const group = String(o.userData['group'] ?? '');
+      const follows = followsFor(o.name, group);
+      let deform: DeformUniforms | undefined;
+      if (follows || isValve(o.name)) {
+        deform = newUniforms();
+        const centre = follows?.length === 1 ? centres.get(follows[0] ?? '') : ventricles;
+        // The shader works in the mesh's geometry space; quantization scales nodes uniformly,
+        // so squeezing there about the mapped centre equals squeezing in model space.
+        if (centre) deform.uSqueezeCenter.value.copy(o.worldToLocal(centre.clone()));
+        if (isValve(o.name)) setValveFrame(o, deform);
+      }
+      if (deform) addDeformation(material, deform);
+      list.push({
+        mesh: o,
+        material,
+        group,
+        level: 0,
+        ...(deform ? { deform } : {}),
+        ...(follows ? { follows } : {}),
+      });
     });
     return { scene: copy, meshes: list };
   }, [gltf.scene]);
@@ -164,6 +307,39 @@ function Model({ onLoaded, ...props }: ModelProps) {
   }, [meshes, plane, gl, cutting, isolating, props.highlighted, props.ghost]);
   // The canvas draws on demand: any change of props (highlight, cut position, label) needs a frame.
   useEffect(() => invalidate());
+
+  // Heartbeat. Chambers follow the clock's contraction directly (it is already smooth); valves
+  // and the conduction glow are eased here. While anything moves, each frame asks for the next.
+  useFrame((state, delta) => {
+    const cycle = props.cycle?.() ?? null;
+    const dt = delta * 1000;
+    let moving = cycle !== null;
+    for (const m of meshes) {
+      const name = m.mesh.name;
+      if (m.deform && m.follows) {
+        const target =
+          m.follows.reduce((sum, c) => sum + (cycle?.contraction[c] ?? 0) * SQUEEZE[c], 0) /
+          m.follows.length;
+        const squeeze = cycle ? target : ease(m.deform.uSqueeze.value, 0, dt, VALVE_EASE_MS);
+        m.deform.uSqueeze.value = squeeze;
+        if (squeeze > 1e-4) moving = true;
+      }
+      if (m.deform && isValve(name)) {
+        m.level = ease(m.level, cycle?.valveOpen[name] ?? 0, dt, VALVE_EASE_MS);
+        m.deform.uOpen.value = m.level * VALVE_SPREAD;
+        if (m.level > 1e-4) moving = true;
+      } else if (m.group === 'conduction') {
+        m.level = ease(m.level, cycle?.excited.includes(name) ? 1 : 0, dt, GLOW_EASE_MS);
+        if (m.level > 1e-4) moving = true;
+        // The reader's own highlight wins over the heartbeat.
+        if (!props.highlighted.has(name)) {
+          m.material.emissive.copy(m.level > 1e-4 ? PULSE : NO_EMISSION);
+          m.material.emissiveIntensity = PULSE_INTENSITY * m.level;
+        }
+      }
+    }
+    if (moving) state.invalidate();
+  });
 
   const anchor = useMemo(() => {
     if (!props.labelFor) return null;
