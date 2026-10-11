@@ -90,5 +90,16 @@
   "embed.license": "Материалы Heart Atlas распространяются по лицензии CC BY-SA 4.0: их можно встраивать и распространять, если сохранить указание авторства и ссылку.",
   "embed.open": "открыть на сайте",
   "embed.noScript": "Для этого модуля нужен JavaScript. Откройте его на сайте по ссылке ниже.",
-  "embed.copyFailed": "Не удалось скопировать. Код выделен: скопируйте его с клавиатуры."
+  "embed.copyFailed": "Не удалось скопировать. Код выделен: скопируйте его с клавиатуры.",
+  "diagram.state": "Показать",
+  "diagram.normal": "Норма",
+  "diagram.disease": "Болезнь",
+  "diagram.pause": "Пауза",
+  "diagram.schematic": "Схема упрощена и не в масштабе.",
+  "diagram.label.ra": "ПП",
+  "diagram.label.la": "ЛП",
+  "diagram.label.rv": "ПЖ",
+  "diagram.label.lv": "ЛЖ",
+  "diagram.label.defect": "Дефект",
+  "diagram.atrial-septal-defect.title": "Схема камер сердца в норме и при дефекте межпредсердной перегородки"
 }

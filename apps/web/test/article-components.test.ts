@@ -1,6 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
+import Diagram from '../src/components/diagrams/Diagram.astro';
+import type { DiagramName } from '../src/components/diagrams/index.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
@@ -86,5 +88,26 @@ describe('SourceList', () => {
       props: { locale: 'ru', sources, checked: new Date('2026-10-11') },
     });
     expect(html).toContain('Источники сверены 11 октября 2026');
+  });
+});
+
+describe('Diagram', () => {
+  it('renders the named diagram with an accessible name and both captions', async () => {
+    const html = await container.renderToString(Diagram, {
+      props: { name: 'atrial-septal-defect' },
+      locals: { locale: 'en' },
+      slots: { normal: 'Normal caption', disease: 'Disease caption' },
+    });
+    expect(html).toContain('role="img"');
+    expect(html).toContain('aria-label="Diagram of the heart chambers');
+    expect(html).toContain('Normal caption');
+    expect(html).toContain('Disease caption');
+    expect(html).toMatch(/value="disease" checked/);
+  });
+
+  it('fails the build on an unknown diagram', async () => {
+    await expect(
+      container.renderToString(Diagram, { props: { name: 'nope' as DiagramName } }),
+    ).rejects.toThrow('Unknown diagram "nope"');
   });
 });

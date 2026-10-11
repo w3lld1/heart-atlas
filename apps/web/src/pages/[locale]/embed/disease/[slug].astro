@@ -1,13 +1,11 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
-import Cite from '../../../../components/Cite.astro';
+import { articleComponents } from '../../../../components/article-components.ts';
 import LevelScript from '../../../../components/LevelScript.astro';
 import LevelSwitch from '../../../../components/LevelSwitch.astro';
-import Patient from '../../../../components/Patient.astro';
 import ReviewNotice from '../../../../components/ReviewNotice.astro';
 import SourceList from '../../../../components/SourceList.astro';
-import Student from '../../../../components/Student.astro';
 import EmbedLayout from '../../../../layouts/EmbedLayout.astro';
 import { locales } from '../../../../i18n/locales.ts';
 import { getMessages } from '../../../../i18n/messages.ts';
@@ -57,7 +55,7 @@ const { Content } = await render(entry);
     dir={translated ? undefined : locales[contentLocale]?.dir}
   >
     <h1>{article.title}</h1>
-    <Content components={{ Cite, Patient, Student }} />
+    <Content components={articleComponents} />
   </article>
   <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
 </EmbedLayout>

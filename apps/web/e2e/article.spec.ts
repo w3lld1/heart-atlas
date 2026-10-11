@@ -56,6 +56,25 @@ test.describe('article page', () => {
     await expect(page.getByRole('link', { name: 'Another test condition' })).toBeVisible();
   });
 
+  test('switches the diagram between normal and disease and pauses it', async ({ page }) => {
+    await page.goto(article);
+    const diagram = page.locator('figure.diagram');
+    await expect(diagram.getByRole('img')).toHaveAccessibleName(/дефекте межпредсердной/);
+    await expect(diagram.getByText('Подпись болезни.')).toBeVisible();
+    await expect(diagram.getByText('Подпись нормы.')).toBeHidden();
+
+    // Radio buttons: arrow keys move the choice.
+    await diagram.getByRole('radio', { name: 'Болезнь' }).focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(diagram.getByRole('radio', { name: 'Норма' })).toBeChecked();
+    await expect(diagram.getByText('Подпись нормы.')).toBeVisible();
+    await expect(diagram.getByText('Подпись болезни.')).toBeHidden();
+
+    const particle = diagram.locator('.flow circle').first();
+    await diagram.getByRole('checkbox', { name: 'Пауза' }).check();
+    await expect(particle).toHaveCSS('animation-play-state', 'paused');
+  });
+
   for (const path of [article, 'ru/disease/another-condition/', 'ru/disease/']) {
     test(`has no axe violations: ${path}`, async ({ page }) => {
       await page.goto(path);
@@ -74,5 +93,13 @@ test.describe('article page without JavaScript', () => {
     await expect(page.locator(student)).toBeVisible();
     await expect(page.locator('.level-label', { hasText: 'Для студентов' })).toBeVisible();
     await expect(page.getByRole('group', { name: 'Уровень объяснения' })).toBeHidden();
+  });
+
+  test('switches the diagram with CSS only', async ({ page }) => {
+    await page.goto(article);
+    const diagram = page.locator('figure.diagram');
+    await diagram.getByText('Норма', { exact: true }).click();
+    await expect(diagram.getByText('Подпись нормы.')).toBeVisible();
+    await expect(diagram.getByText('Подпись болезни.')).toBeHidden();
   });
 });

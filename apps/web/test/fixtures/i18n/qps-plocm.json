@@ -90,5 +90,16 @@
   "embed.license": "[RTL] Heart Atlas content is licensed under CC BY-SA 4.0: you may embed and share it if you keep the credit and the link.",
   "embed.open": "[RTL] open on the site",
   "embed.noScript": "[RTL] This module needs JavaScript. Open it on the site using the link below.",
-  "embed.copyFailed": "[RTL] Could not copy. The code is selected: copy it with your keyboard."
+  "embed.copyFailed": "[RTL] Could not copy. The code is selected: copy it with your keyboard.",
+  "diagram.state": "[RTL] Show",
+  "diagram.normal": "[RTL] Normal",
+  "diagram.disease": "[RTL] Disease",
+  "diagram.pause": "[RTL] Pause",
+  "diagram.schematic": "[RTL] Simplified diagram, not to scale.",
+  "diagram.label.ra": "[RTL] RA",
+  "diagram.label.la": "[RTL] LA",
+  "diagram.label.rv": "[RTL] RV",
+  "diagram.label.lv": "[RTL] LV",
+  "diagram.label.defect": "[RTL] Defect",
+  "diagram.atrial-septal-defect.title": "[RTL] Diagram of the heart chambers with and without an atrial septal defect"
 }

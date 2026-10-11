@@ -1,0 +1,177 @@
+---
+import { defaultLocale } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+import { diagrams, type DiagramName } from './index.ts';
+
+interface Props {
+  name: DiagramName;
+}
+
+const { name } = Astro.props;
+const Art = diagrams[name];
+if (!Art) throw new Error(`Unknown diagram "${name}"`);
+const locale = Astro.locals.locale ?? defaultLocale;
+const t = getMessages(locale);
+const id = `diagram-${name}`;
+---
+
+<figure class="diagram" id={id}>
+  <!-- Controls and labels are UI text in the page locale; captions are article text. -->
+  <div class="diagram-controls" lang={locale}>
+    <fieldset>
+      <legend class="diagram-visually-hidden">{t['diagram.state']}</legend>
+      <label>
+        <input type="radio" name={`${id}-state`} value="normal" />
+        {t['diagram.normal']}
+      </label>
+      <label>
+        <input type="radio" name={`${id}-state`} value="disease" checked />
+        {t['diagram.disease']}
+      </label>
+    </fieldset>
+    <label class="diagram-pause">
+      <input type="checkbox" />
+      {t['diagram.pause']}
+    </label>
+  </div>
+  <Art locale={locale} />
+  <figcaption>
+    <div class="diagram-caption" data-state="normal">
+      <slot name="normal" />
+    </div>
+    <div class="diagram-caption" data-state="disease">
+      <slot name="disease" />
+    </div>
+    <p class="diagram-note" lang={locale}>
+      {t['diagram.schematic']}
+    </p>
+  </figcaption>
+</figure>
+
+<style is:global>
+  .diagram {
+    --diagram-arterial: #c62828;
+    --diagram-venous: #1f5fae;
+    --diagram-arterial-fill: #f9d7d7;
+    --diagram-venous-fill: #d6e3f5;
+    --diagram-muscle: #e8b4a8;
+    --diagram-impulse: #e3a400;
+
+    margin-block: 1.5rem;
+    margin-inline: 0;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .diagram {
+      --diagram-arterial: #ff6b6b;
+      --diagram-venous: #6fa8ff;
+      --diagram-arterial-fill: #4a2326;
+      --diagram-venous-fill: #1f2f4a;
+      --diagram-muscle: #6b3a33;
+      --diagram-impulse: #ffd24d;
+    }
+  }
+
+  .diagram svg {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 32rem;
+    block-size: auto;
+    margin-inline: auto;
+  }
+
+  .diagram svg text {
+    fill: var(--color-text);
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .diagram-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    align-items: center;
+    margin-block-end: 0.75rem;
+  }
+
+  .diagram-controls fieldset {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .diagram-controls fieldset label {
+    padding-block: 0.375rem;
+    padding-inline: 1rem;
+    cursor: pointer;
+  }
+
+  .diagram-controls fieldset label:has(:checked) {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .diagram-controls fieldset label:has(:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .diagram-controls fieldset input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .diagram-pause {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .diagram-note {
+    margin-block-start: 0.5rem;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+
+  .diagram-visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The state is pure CSS, so the toggle works without JavaScript. */
+  .diagram:has([value='normal']:checked) :is(.disease-only, .diagram-caption[data-state='disease']),
+  .diagram:has([value='disease']:checked) :is(.normal-only, .diagram-caption[data-state='normal']) {
+    display: none;
+  }
+
+  .diagram:has(.diagram-pause :checked) svg * {
+    animation-play-state: paused;
+  }
+
+  /* Without motion the arrows in each diagram carry the same meaning. */
+  @media (prefers-reduced-motion: reduce) {
+    .diagram svg * {
+      animation: none !important;
+    }
+
+    .diagram svg .flow {
+      display: none;
+    }
+
+    .diagram-pause {
+      display: none;
+    }
+  }
+</style>
