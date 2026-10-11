@@ -2,10 +2,18 @@
  * Compresses assets/models/heart/heart.glb into the LOD files the site loads and copies the poster.
  * Usage: node src/build.ts <output dir>   (apps/web runs it before `astro build` and `astro dev`)
  */
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type Document, Logger, NodeIO } from '@gltf-transform/core';
+import { gzipSync } from 'node:zlib';
+import { type Document, Logger, NodeIO, type Primitive } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, meshopt, prune, simplifyPrimitive, weld } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
@@ -28,12 +36,18 @@ export const LODS: readonly Lod[] = [
 /** Meshes this small (conduction nodes, thin branches) are never simplified, so they keep their shape. */
 const MIN_TRIANGLES_TO_SIMPLIFY = 2_000;
 
+function primitiveTriangles(primitive: Primitive): number {
+  const count =
+    primitive.getIndices()?.getCount() ?? primitive.getAttribute('POSITION')?.getCount() ?? 0;
+  return count / 3;
+}
+
 function triangleCount(doc: Document): number {
   return doc
     .getRoot()
     .listMeshes()
     .flatMap((m) => m.listPrimitives())
-    .reduce((n, p) => n + (p.getIndices()?.getCount() ?? 0) / 3, 0);
+    .reduce((n, p) => n + primitiveTriangles(p), 0);
 }
 
 export async function buildLod(source: Uint8Array, lod: Lod): Promise<Uint8Array> {
@@ -49,8 +63,7 @@ export async function buildLod(source: Uint8Array, lod: Lod): Promise<Uint8Array
   if (lod.ratio < 1) {
     for (const mesh of doc.getRoot().listMeshes()) {
       for (const primitive of mesh.listPrimitives()) {
-        const triangles = (primitive.getIndices()?.getCount() ?? 0) / 3;
-        if (triangles < MIN_TRIANGLES_TO_SIMPLIFY) continue;
+        if (primitiveTriangles(primitive) < MIN_TRIANGLES_TO_SIMPLIFY) continue;
         simplifyPrimitive(primitive, {
           simplifier: MeshoptSimplifier,
           ratio: lod.ratio,
@@ -72,14 +85,19 @@ export async function buildLod(source: Uint8Array, lod: Lod): Promise<Uint8Array
   return bytes;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+const script = process.argv[1];
+// realpath on both sides: argv keeps symlinks, import.meta.url does not.
+if (script !== undefined && realpathSync(script) === realpathSync(fileURLToPath(import.meta.url))) {
   const outDir = resolve(process.argv[2] ?? 'dist/models');
+  // The directory holds only generated files; clearing it drops renamed or removed LODs.
+  rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   const source = readFileSync(join(assetsDir, 'heart/heart.glb'));
   for (const lod of LODS) {
     const bytes = await buildLod(source, lod);
     writeFileSync(join(outDir, lod.file), bytes);
-    console.log(`${lod.file}: ${(bytes.byteLength / 1024).toFixed(0)} KB`);
+    const kb = (n: number): string => `${(n / 1024).toFixed(0)} KB`;
+    console.log(`${lod.file}: ${kb(bytes.byteLength)} (gzip ${kb(gzipSync(bytes).byteLength)})`);
   }
   copyFileSync(join(assetsDir, 'heart/poster.png'), join(outDir, 'heart-poster.png'));
 }
