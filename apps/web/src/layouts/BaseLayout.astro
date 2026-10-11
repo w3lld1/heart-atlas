@@ -6,6 +6,7 @@ import { defaultLocale, localeCodes, locales } from '../i18n/locales.ts';
 import { getMessages } from '../i18n/messages.ts';
 import { localePath, switchLocalePath } from '../i18n/paths.ts';
 import { repoUrl } from '../site.ts';
+import '../styles/base.css';
 
 interface Props {
   locale: string;
@@ -84,6 +85,8 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
         {t['footer.license']}
         {' · '}
         <a href={repoUrl}>{t['footer.source']}</a>
+        {' · '}
+        <a href={localePath(base, locale, 'embed/')}>{t['footer.embed']}</a>
       </p>
     </footer>
     {import.meta.env.PROD && <ServiceWorker locale={locale} />}
@@ -91,41 +94,6 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
 </html>
 
 <style is:global>
-  :root {
-    color-scheme: light dark;
-
-    --color-bg: #fff;
-    --color-text: #1b1b1f;
-    --color-muted: #55565c;
-    --color-accent: #b3122e;
-    --color-border: #d9d9de;
-    --color-notice-bg: #fff4e5;
-
-    font-family: system-ui, sans-serif;
-    line-height: 1.5;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-bg: #121214;
-      --color-text: #ececf0;
-      --color-muted: #a9aab2;
-      --color-accent: #ff7a8a;
-      --color-border: #34353b;
-      --color-notice-bg: #2a2117;
-    }
-  }
-
-  body {
-    margin: 0;
-    background: var(--color-bg);
-    color: var(--color-text);
-  }
-
-  a {
-    color: var(--color-accent);
-  }
-
   header,
   main,
   footer {
@@ -160,13 +128,6 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
     border-block-start: 1px solid var(--color-border);
     color: var(--color-muted);
     font-size: 0.875rem;
-  }
-
-  .disclaimer {
-    padding: 0.75rem 1rem;
-    border-inline-start: 4px solid var(--color-accent);
-    background: var(--color-notice-bg);
-    color: var(--color-text);
   }
 
   .skip-link {

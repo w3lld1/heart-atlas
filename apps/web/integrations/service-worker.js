@@ -125,8 +125,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(CONFIG.base)) return;
-  // Embedded modules live inside other sites; leave them to the network.
-  if (segments(url)[1] === 'embed') return;
+  // Embedded modules live inside other sites; leave them to the network. The builder page
+  // /<locale>/embed/ itself is a normal site page.
+  if (segments(url)[1] === 'embed' && segments(url)[2]) return;
   // Range requests (audio and video seeking) return partial responses that cannot be cached.
   if (request.headers.has('range')) return;
 

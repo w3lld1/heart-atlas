@@ -1,0 +1,74 @@
+---
+// Layout for pages shown inside an <iframe> on other sites: no header, footer or service worker,
+// only the module, the medical disclaimer, a link to the full page and the license.
+import { locales } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+import '../styles/base.css';
+
+interface Props {
+  locale: string;
+  title: string;
+  /** Absolute URL of the full page in its own language, for search engines. */
+  canonical: URL;
+  /** Full page in the reader's language for "open on the site"; defaults to `canonical`. */
+  fullPage?: URL;
+}
+
+const { locale, title, canonical, fullPage = canonical } = Astro.props;
+const t = getMessages(locale);
+const dir = locales[locale]?.dir ?? 'ltr';
+---
+
+<html lang={locale} dir={dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <title>{`${title} · ${t['site.name']}`}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p class="disclaimer">{t['footer.disclaimer']}</p>
+      <p>
+        <a href={fullPage} target="_blank" rel="noopener">
+          {t['site.name']} · {t['embed.open']}
+        </a>
+        {' · '}
+        {t['footer.license']}
+      </p>
+    </footer>
+    <script is:inline>
+      // Links to other pages leave the frame: browsing inside a small iframe on someone else's
+      // page is useless. Links within the page, such as citations, stay in it.
+      for (const link of document.querySelectorAll('a[href]:not([href^="#"])')) {
+        link.target = '_blank';
+        link.rel = 'noopener';
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  main,
+  footer {
+    padding-inline: 1rem;
+  }
+
+  main {
+    padding-block: 1rem;
+  }
+
+  footer {
+    padding-block: 0.5rem 1rem;
+    border-block-start: 1px solid var(--color-border);
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+</style>

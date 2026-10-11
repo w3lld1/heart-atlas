@@ -1,0 +1,72 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import Cite from '../../../../components/Cite.astro';
+import LevelScript from '../../../../components/LevelScript.astro';
+import LevelSwitch from '../../../../components/LevelSwitch.astro';
+import Patient from '../../../../components/Patient.astro';
+import ReviewNotice from '../../../../components/ReviewNotice.astro';
+import SourceList from '../../../../components/SourceList.astro';
+import Student from '../../../../components/Student.astro';
+import EmbedLayout from '../../../../layouts/EmbedLayout.astro';
+import { locales } from '../../../../i18n/locales.ts';
+import { getMessages } from '../../../../i18n/messages.ts';
+import { localePath } from '../../../../i18n/paths.ts';
+import { articlePages } from '../../../../lib/articles.ts';
+
+export const getStaticPaths = (async () =>
+  articlePages(await getCollection('articles'), locales)
+    .filter((page) => page.type === 'disease')
+    .map((page) => ({
+      params: { locale: page.locale, slug: page.slug },
+      props: { entry: page.entry, contentLocale: page.contentLocale },
+    }))) satisfies GetStaticPaths;
+
+const { locale, slug } = Astro.params;
+const { entry, contentLocale } = Astro.props;
+const t = getMessages(locale);
+const article = entry.data;
+const translated = contentLocale === locale;
+// MDX components read these from locals.
+Astro.locals.locale = locale;
+Astro.locals.sourceCount = article.sources.length;
+// The full article in the language it is written in.
+const canonical = new URL(
+  localePath(import.meta.env.BASE_URL, contentLocale, `disease/${slug}/`),
+  Astro.site,
+);
+const fullPage = new URL(
+  localePath(import.meta.env.BASE_URL, locale, `disease/${slug}/`),
+  Astro.site,
+);
+const { Content } = await render(entry);
+---
+
+<EmbedLayout locale={locale} title={article.title} canonical={canonical} fullPage={fullPage}>
+  <LevelScript slot="head" />
+  {/* The full notice, as on the site: an embed must not hide that no physician has checked it. */}
+  <ReviewNotice locale={locale} review={article.review} pageUrl={canonical} />
+  {!translated && (
+    <p class="translation-notice" role="note">
+      {t['translation.missing']}
+    </p>
+  )}
+  <LevelSwitch locale={locale} />
+  <article
+    lang={translated ? undefined : contentLocale}
+    dir={translated ? undefined : locales[contentLocale]?.dir}
+  >
+    <h1>{article.title}</h1>
+    <Content components={{ Cite, Patient, Student }} />
+  </article>
+  <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
+</EmbedLayout>
+
+<style>
+  .translation-notice {
+    padding-block: 0.75rem;
+    padding-inline: 1rem;
+    border-inline-start: 4px solid var(--color-border);
+    background: var(--color-notice-bg);
+  }
+</style>

@@ -77,5 +77,18 @@
   "offline.text": "This page has not been saved for offline reading yet. Pages you have opened before are still available.",
   "offline.home": "Go to the home page",
   "update.text": "A new version of Heart Atlas is available.",
-  "update.button": "Update"
+  "update.button": "Update",
+  "footer.embed": "Embed on your site",
+  "embed.title": "Embed Heart Atlas on your site",
+  "embed.intro": "Pick a module and paste the code into your page. The module opens in a frame with a link to the full page, the medical disclaimer and the license. Articles keep the notice that no physician has reviewed them.",
+  "embed.module": "Module",
+  "embed.tools": "Interactive models",
+  "embed.rateHint": "Optional. Leave empty for the default rate.",
+  "embed.code": "Code to paste",
+  "embed.copy": "Copy code",
+  "embed.copied": "Code copied",
+  "embed.license": "Heart Atlas content is licensed under CC BY-SA 4.0: you may embed and share it if you keep the credit and the link.",
+  "embed.open": "open on the site",
+  "embed.noScript": "This module needs JavaScript. Open it on the site using the link below.",
+  "embed.copyFailed": "Could not copy. The code is selected: copy it with your keyboard."
 }
