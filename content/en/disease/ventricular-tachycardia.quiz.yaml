@@ -1,0 +1,51 @@
+questions:
+  - level: patient
+    prompt: Where are the fast beats triggered in ventricular tachycardia?
+    options:
+      - text: In the aorta
+      - text: In the heart valves
+      - text: In the ventricles
+        correct: true
+    explanation: 'VT is a rhythm disorder in which fast beats are triggered not by the sinus node but by the ventricles: below the bundle of His, in its branches, the Purkinje fibres or the ventricular muscle.'
+    cite: [1, 3]
+  - level: patient
+    prompt: Why is ventricular tachycardia dangerous?
+    options:
+      - text: It is not, it is a harmless rhythm
+      - text: It can turn into ventricular fibrillation
+        correct: true
+    explanation: VT is dangerous because it can turn into ventricular fibrillation, a form of cardiac arrest.
+    cite: [2, 3]
+  - level: patient
+    prompt: Which three symptoms are the most important reasons to see a doctor and have tests?
+    options:
+      - text: Palpitations, feeling faint and fainting
+        correct: true
+      - text: Joint pain, rash and itching
+      - text: Heartburn, bloating and nausea
+    explanation: Palpitations, feeling faint and fainting are the three most important symptoms that need a visit to a doctor and further tests.
+    cite: [1]
+  - level: patient
+    prompt: What is the main long-term goal of treating VT?
+    options:
+      - text: Only to suppress the arrhythmia
+      - text: To prevent sudden death
+        correct: true
+    explanation: The main long-term goal is to prevent sudden death rather than simply to suppress the arrhythmia.
+    cite: [2, 3]
+  - level: student
+    prompt: How should any wide QRS complex tachycardia be considered?
+    options:
+      - text: As VT until proved otherwise
+        correct: true
+      - text: As supraventricular if the patient is haemodynamically stable
+    explanation: Any wide QRS complex tachycardia should be considered VT until proved otherwise; concluding that it is supraventricular only because the patient is haemodynamically stable is a common mistake.
+    cite: [1, 2]
+  - level: student
+    prompt: What is the target of catheter ablation in scar-related VT?
+    options:
+      - text: The aortic valve
+      - text: The critical isthmus of the re-entry circuit
+        correct: true
+    explanation: In scar-related VT the target of catheter ablation is the critical isthmus of the re-entry circuit.
+    cite: [1]

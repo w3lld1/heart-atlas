@@ -1,0 +1,394 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-wpw-arrow`;
+// The wave letters P, QRS and the PR interval are international ECG notation, the same in every
+// locale, so they are not in messages.
+
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const pathwayLines = twoLines(t['diagram.label.accessory-pathway']);
+
+/*
+ * A flat pathway scheme, not a heart outline: atria on top, the AV node between, the ventricles
+ * below, and one ECG beat in a panel at the bottom. Normal: the impulse from the SA node reaches
+ * the ventricles only through the AV node, which holds it back for a moment. Disease (WPW): the
+ * same route plus an accessory pathway, a strand of heart muscle across the gap between an atrium
+ * and a ventricle. The impulse goes through it without the AV node delay and excites one part of
+ * the ventricle first (pre-excitation); the rest is still excited through the AV node. On the ECG
+ * the PR interval is shorter, the QRS starts with a slurred delta wave and is wider. There is no
+ * millisecond scale; the caption gives the thresholds.
+ */
+// Normal route: SA node across the atria into the AV node and down into the ventricles.
+const normalRoute = 'M70,44 Q170,52 200,108 L200,170';
+// From the end of the route the impulse spreads into both sides of the ventricles.
+const spreadLeft = 'M200,170 Q150,192 104,262';
+const spreadRight = 'M200,170 Q248,192 278,252';
+// Accessory route: SA node across the atria to the accessory pathway and through it.
+const pathwayRoute = 'M70,44 Q230,46 360,82 L360,184';
+// The accessory pathway itself: a strand from inside the atria to inside the ventricles.
+const pathwayX = 352;
+const pathwayTop = 80;
+const pathwayHeight = 76;
+
+// One ECG beat on its own baseline in the bottom panel.
+const base = 384;
+const pStart = 40;
+// The PR interval runs from the start of P to the start of QRS; only the QRS start and width change.
+// Read against the P wave (34 wide) the normal PR is about 1.8 P and the WPW PR about 1 P, so it
+// does not look longer than the caption's thresholds. The QRS ends at the same x in both states.
+const qrsNormal = 100;
+const qrsShort = 76;
+const beat = (qrsStart: number, delta: boolean) => {
+  const p = `M24,${base} L${pStart},${base} C${pStart + 8},${base - 18} ${pStart + 26},${base - 18} ${pStart + 34},${base}`;
+  const start = delta
+    ? // Delta wave: a slow, slurred upstroke before the sharp part of QRS, which ends later too.
+      `L${qrsStart},${base} Q${qrsStart + 22},${base - 4} ${qrsStart + 28},${base - 26} L${qrsStart + 36},${base - 62} L${qrsStart + 46},${base + 8} L${qrsStart + 52},${base}`
+    : `L${qrsStart},${base} L${qrsStart + 6},${base + 6} L${qrsStart + 14},${base - 62} L${qrsStart + 22},${base + 8} L${qrsStart + 28},${base}`;
+  const qrsEnd = qrsStart + (delta ? 52 : 28);
+  const tStart = qrsEnd + 28;
+  return `${p} ${start} L${tStart},${base} C${tStart + 12},${base - 30} ${tStart + 40},${base - 30} ${tStart + 52},${base} L300,${base}`;
+};
+// The PR bracket under the beat.
+const bracketY = 402;
+const bracket = (qrsStart: number) =>
+  `M${pStart},${bracketY - 6} L${pStart},${bracketY + 6} M${pStart},${bracketY} L${qrsStart},${bracketY} M${qrsStart},${bracketY - 6} L${qrsStart},${bracketY + 6}`;
+---
+
+<svg viewBox="0 0 440 432" role="img" aria-label={t['diagram.wpw-syndrome.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Atria on top, ventricles below, the ECG panel at the bottom -->
+  <rect x="16" y="16" width="408" height="78" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect x="16" y="140" width="408" height="150" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect
+    x="16"
+    y="298"
+    width="408"
+    height="126"
+    rx="12"
+    fill="var(--color-bg)"
+    stroke="var(--color-border)"
+    stroke-width="2"
+  ></rect>
+
+  <!-- Ventricles light up once per beat -->
+  <g class="flow">
+    <rect class="wpw-beat" x="16" y="140" width="408" height="150" rx="16"></rect>
+  </g>
+
+  <!-- Disease: the accessory pathway across the gap and the part of the ventricle it excites
+       first -->
+  <g class="disease-only">
+    <rect
+      class="wpw-pathway"
+      x={pathwayX}
+      y={pathwayTop}
+      width="16"
+      height={pathwayHeight}
+      rx="6"
+    ></rect>
+    <ellipse class="wpw-zone" cx="360" cy="214" rx="50" ry="30"></ellipse>
+    <g class="flow">
+      <ellipse class="wpw-zone-flash" cx="360" cy="214" rx="50" ry="30"></ellipse>
+    </g>
+  </g>
+
+  <!-- The usual route through the AV node, in both states -->
+  <path class="wpw-mark" d={normalRoute}></path>
+  <path class="wpw-mark" d={spreadLeft} marker-end={`url(#${arrowId})`}></path>
+  <path class="wpw-mark" d={spreadRight} marker-end={`url(#${arrowId})`}></path>
+  <g class="flow">
+    <path class="wpw-run wpw-run-route" d={normalRoute} pathLength="100"></path>
+    <path class="wpw-run wpw-run-spread" d={spreadLeft} pathLength="100"></path>
+    <path class="wpw-run wpw-run-spread" d={spreadRight} pathLength="100"></path>
+  </g>
+
+  <!-- Disease: the early route through the accessory pathway -->
+  <g class="disease-only">
+    <path class="wpw-mark wpw-mark-early" d={pathwayRoute} marker-end={`url(#${arrowId})`}></path>
+    <g class="flow">
+      <path class="wpw-run wpw-run-early" d={pathwayRoute} pathLength="100"></path>
+    </g>
+  </g>
+
+  <!-- Nodes -->
+  <circle class="wpw-node" cx="70" cy="44" r="7"></circle>
+  <ellipse class="wpw-node" cx="200" cy="117" rx="14" ry="9"></ellipse>
+
+  <!-- ECG beat: baseline, trace and PR bracket -->
+  <line class="wpw-base" x1="24" y1={base} x2="300" y2={base}></line>
+  <path class="wpw-trace normal-only" d={beat(qrsNormal, false)}></path>
+  <path class="wpw-trace disease-only" d={beat(qrsShort, true)}></path>
+  <path class="wpw-bracket normal-only" d={bracket(qrsNormal)}></path>
+  <path class="wpw-bracket disease-only" d={bracket(qrsShort)}></path>
+  <path class="wpw-leader disease-only" d="M104,398 L92,382"></path>
+
+  <!-- Labels -->
+  <text x="86" y="36">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="30" y="84">
+    {t['diagram.label.atria']}
+  </text>
+  <text x="180" y="123" text-anchor="end">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="30" y="168">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small disease-only" x="342" y="112" text-anchor="end">
+    <tspan x="342">{pathwayLines[0]}</tspan>
+    <tspan x="342" dy="15">
+      {pathwayLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="360" y="264" text-anchor="middle">
+    {t['diagram.label.pre-excitation']}
+  </text>
+  <text x="412" y="330" text-anchor="end">
+    {t['diagram.label.ecg']}
+  </text>
+  <text class="diagram-small" x="57" y="358" text-anchor="middle">
+    P
+  </text>
+  <text class="diagram-small normal-only" x="114" y="314" text-anchor="middle">
+    QRS
+  </text>
+  <text class="diagram-small disease-only" x="112" y="314" text-anchor="middle">
+    QRS
+  </text>
+  <text class="diagram-small normal-only" x={(pStart + qrsNormal) / 2} y="418" text-anchor="middle">
+    PR
+  </text>
+  <text class="diagram-small disease-only" x={(pStart + qrsShort) / 2} y="418" text-anchor="middle">
+    PR
+  </text>
+  <text class="diagram-small disease-only" x="98" y="414">
+    {t['diagram.label.delta-wave']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .wpw-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .wpw-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  /* The early route: dashed, so it differs from the usual route without motion. */
+  .diagram .wpw-mark-early {
+    stroke-dasharray: 8 5;
+    stroke-linecap: butt;
+  }
+
+  /* The accessory pathway is a strand of heart muscle, outlined so it shows across the gap. */
+  .diagram .wpw-pathway {
+    fill: var(--diagram-muscle);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  /* The pre-excited part of the ventricle: marked without motion too. */
+  .diagram .wpw-zone {
+    fill: var(--diagram-impulse);
+    fill-opacity: 0.25;
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .diagram .wpw-zone-flash {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    animation: wpw-zone-flash 1.6s linear infinite;
+  }
+
+  .diagram .wpw-base {
+    stroke: var(--color-border);
+    stroke-width: 1;
+  }
+
+  .diagram .wpw-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .diagram .wpw-bracket,
+  .diagram .wpw-leader {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 1.5;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .wpw-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  .diagram .wpw-run-route {
+    animation: wpw-run-route 1.6s linear infinite;
+  }
+
+  .diagram .wpw-run-spread {
+    animation: wpw-run-spread 1.6s linear infinite;
+  }
+
+  .diagram .wpw-run-early {
+    animation: wpw-run-early 1.6s linear infinite;
+  }
+
+  .diagram .wpw-beat {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    animation: wpw-beat 1.6s linear infinite;
+  }
+
+  /* Usual route: across the atria and into the AV node, where the impulse is held back for a
+     moment (25–40 %), then down to the ventricles. */
+  @keyframes wpw-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    25%,
+    40% {
+      opacity: 1;
+      stroke-dashoffset: -70;
+    }
+
+    48% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    49%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes wpw-run-spread {
+    0%,
+    48% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    49% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    64% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    65%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes wpw-beat {
+    0%,
+    62% {
+      opacity: 0;
+    }
+
+    66% {
+      opacity: 0.45;
+    }
+
+    86%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Accessory route: no delay, so the impulse reaches the ventricle well before the usual one. */
+  @keyframes wpw-run-early {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    30% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    31%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  /* The pre-excited part lights up first, before the rest of the ventricles. */
+  @keyframes wpw-zone-flash {
+    0%,
+    30% {
+      opacity: 0;
+    }
+
+    34% {
+      opacity: 0.5;
+    }
+
+    66%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

@@ -1,0 +1,50 @@
+questions:
+  - level: patient
+    prompt: What happens to the blood in aortic regurgitation?
+    options:
+      - text: Blood from the aorta flows into the pulmonary artery
+      - text: During diastole some blood flows back from the aorta into the left ventricle
+        correct: true
+      - text: Blood from the left ventricle cannot get into the aorta
+    explanation: During diastole — when the left ventricle relaxes and fills — some blood flows back from the aorta into the left ventricle.
+    cite: [2, 4]
+  - level: patient
+    prompt: How does chronic aortic regurgitation usually behave?
+    options:
+      - text: It causes no symptoms for years, sometimes decades
+        correct: true
+      - text: It causes constant symptoms from the very start
+    explanation: Chronic aortic regurgitation usually causes no symptoms for years, sometimes decades.
+    cite: [2]
+  - level: patient
+    prompt: Why is an examination alone not enough in aortic regurgitation, so an echocardiogram is needed?
+    options:
+      - text: The left ventricle can start to work less well before any symptoms appear
+        correct: true
+      - text: An examination always shows exactly how severe the disease is
+    explanation: In at least a quarter of people the left ventricle starts to work less well before any symptoms appear, so an examination alone is not enough and an echocardiogram is needed.
+    cite: [2]
+  - level: patient
+    prompt: How can severe aortic regurgitation be effectively corrected?
+    options:
+      - text: With physical therapy exercises
+      - text: Only with an operation
+        correct: true
+    explanation: The only way to effectively correct severe aortic regurgitation is an operation.
+    cite: [2]
+  - level: student
+    prompt: How is the severity of AR recommended to be graded?
+    options:
+      - text: As mild, moderate or severe
+        correct: true
+      - text: By numbers (1, 2, 3, 4)
+    explanation: By severity, AR is graded as mild, moderate or severe; grading by numbers (1, 2, 3, 4) is not recommended.
+    cite: [2]
+  - level: student
+    prompt: Are the coronary arteries assessed before surgery for severe AR if there is no angina?
+    options:
+      - text: No, only if there is angina
+      - text: 'Yes: approximately 20% have significant CAD'
+        correct: true
+    explanation: 'The coronary arteries are assessed before surgery: approximately 20% of patients with severe AR have significant CAD, even if no angina is present.'
+    cite: [4]

@@ -5,6 +5,7 @@ import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
+import BrugadaSyndrome from './BrugadaSyndrome.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
@@ -26,10 +27,13 @@ import NatriureticPeptides from './NatriureticPeptides.astro';
 import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
+import PulmonaryHypertension from './PulmonaryHypertension.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
+import TricuspidRegurgitation from './TricuspidRegurgitation.astro';
 import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
 import VentricularTachycardia from './VentricularTachycardia.astro';
+import WpwSyndrome from './WpwSyndrome.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
@@ -40,6 +44,7 @@ export const diagrams = {
   'atrial-septal-defect': AtrialSeptalDefect,
   'av-block': AvBlock,
   'blood-flow': BloodFlow,
+  'brugada-syndrome': BrugadaSyndrome,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
@@ -61,10 +66,13 @@ export const diagrams = {
   'patent-ductus-arteriosus': PatentDuctusArteriosus,
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
+  'pulmonary-hypertension': PulmonaryHypertension,
   'supraventricular-tachycardia': SupraventricularTachycardia,
   'tetralogy-of-fallot': TetralogyOfFallot,
+  'tricuspid-regurgitation': TricuspidRegurgitation,
   'ventricular-septal-defect': VentricularSeptalDefect,
   'ventricular-tachycardia': VentricularTachycardia,
+  'wpw-syndrome': WpwSyndrome,
 } as const;
 
 export type DiagramName = keyof typeof diagrams;

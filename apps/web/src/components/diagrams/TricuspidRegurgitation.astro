@@ -1,0 +1,276 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-tr-arrow`;
+// Both states show systole: the right ventricle contracts and the tricuspid valve should be
+// closed. The right heart is drawn as the viewer sees it from the front: the right atrium on the
+// left, the pulmonary artery leaving the ventricle on the right. Labels sit in a column on the left.
+// Tricuspid leaflets hang from the annulus (x = 250 and 310, y = 165) into the ventricle.
+const closedLeaflets = ['M250,165 Q265,176 279,182', 'M310,165 Q295,176 281,182'];
+// In regurgitation the leaflets stop short of each other and leave a gap (x = 271–289).
+const gapLeaflets = ['M250,165 Q262,174 271,178', 'M310,165 Q298,174 289,178'];
+// Blood leaving the ventricle into the pulmonary artery: start column, row and delay.
+const forward = [
+  { x: 386, y: 222, delay: 0 },
+  { x: 402, y: 222, delay: 0 },
+  { x: 394, y: 238, delay: 0.2 },
+];
+// Blood pushed back through the gap; each particle fans out sideways (dx) inside the atrium.
+const back = [
+  { dx: -20, delay: 0 },
+  { dx: 0, delay: 0.15 },
+  { dx: 20, delay: 0.3 },
+];
+---
+
+<svg
+  viewBox="0 -12 470 332"
+  role="img"
+  aria-label={t['diagram.tricuspid-regurgitation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Right ventricle wall: the same in both states -->
+  <path
+    d="M432,160 L220,160 C204,205 228,288 315,308 C402,288 448,205 432,160 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Right atrium. It is drawn larger only in the disease state, which the caption ties to the
+       extra blood flowing back into it. -->
+  <ellipse
+    class="normal-only"
+    cx="280"
+    cy="82"
+    rx="62"
+    ry="46"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="280"
+    cy="76"
+    rx="78"
+    ry="58"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Right ventricle cavity, the opening to the atrium and the pulmonary artery as one lumen -->
+  <path
+    d="M415,22 L375,22 L375,165 L310,165 L310,118 L250,118 L250,165 L235,165 C222,205 244,272 315,290 C386,272 430,205 415,165 Z"
+    fill="var(--diagram-venous-fill)"
+  ></path>
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2">
+    <path d="M415,22 L415,165 C430,205 386,272 315,290 C244,272 222,205 235,165 L250,165"></path>
+    <path d="M375,22 L375,165 L310,165"></path>
+    <!-- Sides of the opening between atrium and ventricle, up to where each atrium outline meets them -->
+    <path class="normal-only" d="M250,122 L250,165 M310,122 L310,165"></path>
+    <path class="disease-only" d="M250,129 L250,165 M310,129 L310,165"></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    class="tr-pulse"
+    d="M395,244 L395,34"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <g class="disease-only">
+    <!-- The regurgitant jet fans out into the atrium -->
+    <path
+      d="M274,182 L286,182 L306,40 L254,40 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+    ></path>
+    <path
+      class="tr-pulse"
+      d="M280,250 L280,48"
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="4"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+  </g>
+
+  <!-- Tricuspid leaflets: closed in the normal state, a gap between them in regurgitation -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+    {closedLeaflets.map((d) => (
+      <path class="normal-only" d={d} />
+    ))}
+    {gapLeaflets.map((d) => (
+      <path class="disease-only" d={d} />
+    ))}
+  </g>
+  <circle cx="250" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="310" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Moving blood: always forward into the pulmonary artery, and in regurgitation also back into
+       the atrium -->
+  <g class="flow">
+    {forward.map((p) => (
+      <circle
+        class="tr-p tr-p-forward"
+        cx={p.x}
+        cy={p.y}
+        r="5"
+        fill="var(--diagram-venous)"
+        style={`animation-delay: ${p.delay}s`}
+      />
+    ))}
+    <g class="disease-only">
+      {back.map((p) => (
+        <circle
+          class="tr-p tr-p-back"
+          cx="280"
+          cy="240"
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`--tr-dx: ${p.dx}px; animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels: the chambers' and vessels' names, then leader lines to the column on the left -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="246" y1="168" x2="198" y2="172"></line>
+    <line x1="228" y1="76" x2="198" y2="76"></line>
+    <line class="disease-only" x1="258" y1="114" x2="198" y2="114"></line>
+  </g>
+  <text x="462" y="8" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text x="330" y="256" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="normal-only" x="192" y="82" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="disease-only" x="192" y="82" text-anchor="end">
+    {t['diagram.label.ra-dilated']}
+  </text>
+  <text class="diagram-small disease-only" x="192" y="118" text-anchor="end">
+    {t['diagram.label.backflow']}
+  </text>
+  <text class="diagram-small" x="192" y="176" text-anchor="end">
+    {t['diagram.label.tricuspid-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="192" y="194" text-anchor="end">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small disease-only" x="192" y="194" text-anchor="end">
+    {t['diagram.label.leaflets-gap']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .tr-pulse {
+    animation: tr-pulse 2.4s ease-in-out infinite;
+  }
+
+  .diagram .tr-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .tr-p-forward {
+    animation: tr-forward 2.4s linear infinite;
+  }
+
+  .diagram .tr-p-back {
+    animation: tr-back 2.4s linear infinite;
+  }
+
+  /* Arrows fade between contractions; without motion they stay solid. */
+  @keyframes tr-pulse {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Systole: blood leaves the ventricle up the pulmonary artery. */
+  @keyframes tr-forward {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -190px);
+    }
+  }
+
+  /* Regurgitation: in the same systole, blood squeezes through the gap and fans out in the atrium. */
+  @keyframes tr-back {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    30% {
+      opacity: 1;
+      transform: translate(0, -60px);
+    }
+
+    50% {
+      opacity: 1;
+      transform: translate(var(--tr-dx), -160px);
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--tr-dx), -175px);
+    }
+  }
+</style>

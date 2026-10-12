@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: Where is the narrowing in coarctation of the aorta usually found?
+    options:
+      - text: In the pulmonary artery
+      - text: Just beyond the left subclavian artery, at the start of the descending aorta
+        correct: true
+      - text: In the inferior vena cava
+    explanation: It is usually found at the start of the descending thoracic aorta, just beyond the point where the left subclavian artery leaves the aorta, opposite the ductus arteriosus.
+    cite: [1, 3]
+  - level: patient
+    prompt: Where does blood pressure rise because of the narrowing?
+    options:
+      - text: Above the narrowing, in the vessels of the arms and head
+        correct: true
+      - text: Below the narrowing, in the vessels of the legs
+    explanation: Above the narrowing, in the arteries to the head and arms, blood pressure is raised and the wall of the left ventricle thickens; below the narrowing the abdominal organs and legs receive less blood.
+    cite: [1, 3]
+  - level: patient
+    prompt: What simple check helps to suspect coarctation?
+    options:
+      - text: Measuring body temperature
+      - text: A blood test for cholesterol
+      - text: Checking blood pressure and comparing the pulses in the arms and legs
+        correct: true
+    explanation: A simple check of blood pressure in the arms and legs, and comparing the pulses in the arms and legs, helps to suspect the defect.
+    cite: [1, 3]
+  - level: patient
+    prompt: Is follow-up by a cardiologist needed after successful surgery?
+    options:
+      - text: No, not if the surgery was successful
+      - text: Yes, lifelong
+        correct: true
+      - text: Only for the first month after surgery
+    explanation: 'Even after successful surgery, lifelong follow-up by a cardiologist is needed: at least twice in the first year, then at least once a year.'
+    cite: [1]
+  - level: student
+    prompt: What hypertrophy does the ECG usually show in neonates and infants with severe CoA?
+    options:
+      - text: Left ventricular hypertrophy
+      - text: Right ventricular hypertrophy
+        correct: true
+    explanation: The ECG usually shows left ventricular hypertrophy but may be normal, and neonates and infants with severe CoA usually have right rather than left ventricular hypertrophy.
+    cite: [3]
+  - level: student
+    prompt: Is aortic catheterisation recommended for diagnosis in isolated CoA?
+    options:
+      - text: No; it is performed in the setting of interventional treatment
+        correct: true
+      - text: Yes, as the first diagnostic test
+    explanation: Aortic catheterisation is performed in the setting of interventional treatment; it is not recommended for diagnosis in isolated CoA.
+    cite: [1, 2]

@@ -1,0 +1,182 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// Lead names V1 and V2 and the wave letters QRS, ST and T are international ECG notation, the same
+// in every locale, so they are not in messages.
+
+// Long labels sit to the right of the trace, where one line does not fit: split them in two at
+// the space that gives the most even lines.
+const twoLines = (text: string): [string, string] => {
+  const words = text.split(' ');
+  let best: [string, string] = [text, ''];
+  for (let i = 1; i < words.length; i++) {
+    const lines: [string, string] = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+    const longest = Math.max(lines[0].length, lines[1].length);
+    if (best[1] === '' || longest < Math.max(best[0].length, best[1].length)) best = lines;
+  }
+  return best;
+};
+const covedLines = twoLines(t['diagram.label.coved-st']);
+const invertedLines = twoLines(t['diagram.label.inverted-t']);
+
+/*
+ * An ECG-like trace, not a measured one: there is no millimetre grid. One beat in each of the
+ * right precordial leads V1 and V2. Normally the ST segment after QRS runs along the baseline.
+ * In the type 1 Brugada pattern the J point and ST segment are raised, and the ST segment is
+ * coved and descends into an inverted T wave (the caption says so); the normal ST–T stays as a
+ * dashed outline for comparison. Type 2 is not drawn: it is not diagnostic.
+ */
+const start = 24;
+const end = 300;
+const jX = 134;
+const beat = (b: number, brugada: boolean) =>
+  [
+    `M${start},${b} L50,${b}`,
+    // P wave
+    `C56,${b - 10} 70,${b - 10} 76,${b} L96,${b}`,
+    // QRS: small r, deep S
+    `L102,${b - 18} L110,${b} L120,${b + 56}`,
+    brugada
+      ? // Up to a high J point, then a coved ST segment that runs into an inverted T wave.
+        `L${jX},${b - 62} C152,${b - 72} 176,${b - 48} 188,${b} C192,${b + 16} 212,${b + 26} 226,${b}`
+      : // Back to the baseline, a flat ST segment and a low T wave.
+        `L${jX},${b} L160,${b} C170,${b - 12} 190,${b - 12} 204,${b}`,
+    `L${end},${b}`,
+  ].join(' ');
+const ghostStT = (b: number) => `M${jX},${b} L160,${b} C170,${b - 12} 190,${b - 12} 204,${b}`;
+
+const v1 = 140;
+const v2 = 280;
+---
+
+<svg
+  viewBox="0 0 400 350"
+  role="img"
+  aria-label={t['diagram.brugada-syndrome.title']}
+  lang={locale}
+>
+  <!-- Baselines -->
+  <line class="brs-base" x1={start} y1={v1} x2={end} y2={v1}></line>
+  <line class="brs-base" x1={start} y1={v2} x2={end} y2={v2}></line>
+
+  <!-- Lead names -->
+  <text x={start} y={v1 - 44}>
+    V1
+  </text>
+  <text x={start} y={v2 - 44}>
+    V2
+  </text>
+
+  <!-- The beats -->
+  <path class="brs-trace normal-only" d={beat(v1, false)}></path>
+  <path class="brs-trace normal-only" d={beat(v2, false)}></path>
+  <path class="brs-ghost disease-only" d={ghostStT(v1)}></path>
+  <path class="brs-ghost disease-only" d={ghostStT(v2)}></path>
+  <path class="brs-trace disease-only" d={beat(v1, true)}></path>
+  <path class="brs-trace disease-only" d={beat(v2, true)}></path>
+
+  <!-- A bright mark runs along the trace, like the sweep of a monitor -->
+  <g class="flow">
+    <path class="brs-run normal-only" d={beat(v1, false)} pathLength="100"></path>
+    <path class="brs-run normal-only" d={beat(v2, false)} pathLength="100"></path>
+    <path class="brs-run disease-only" d={beat(v1, true)} pathLength="100"></path>
+    <path class="brs-run disease-only" d={beat(v2, true)} pathLength="100"></path>
+  </g>
+
+  <!-- Normal: the parts of the beat -->
+  <g class="normal-only">
+    <text class="diagram-small" x="112" y={v1 - 26} text-anchor="middle">
+      QRS
+    </text>
+    <text class="diagram-small" x="147" y={v1 - 8} text-anchor="middle">
+      ST
+    </text>
+    <text class="diagram-small" x="187" y={v1 - 16} text-anchor="middle">
+      T
+    </text>
+  </g>
+
+  <!-- Type 1 Brugada pattern: labels with leader lines to V1 -->
+  <g class="disease-only">
+    <path class="brs-leader" d={`M${jX},${v1 - 68} L${jX},${v1 - 92}`}></path>
+    <text x={jX} y={v1 - 98} text-anchor="middle">
+      {t['diagram.label.j-point']}
+    </text>
+
+    <path class="brs-leader" d={`M178,${v1 - 44} L246,${v1 - 66}`}></path>
+    <text x="252" y={v1 - 74}>
+      <tspan x="252">{covedLines[0]}</tspan>
+      <tspan x="252" dy="18">
+        {covedLines[1]}
+      </tspan>
+    </text>
+
+    <path class="brs-leader" d={`M214,${v1 + 22} L246,${v1 + 36}`}></path>
+    <text x="252" y={v1 + 42}>
+      <tspan x="252">{invertedLines[0]}</tspan>
+      <tspan x="252" dy="18">
+        {invertedLines[1]}
+      </tspan>
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .brs-base {
+    stroke: var(--color-muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 5;
+  }
+
+  .diagram .brs-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* The normal ST segment and T wave, kept as an outline next to the Brugada pattern. */
+  .diagram .brs-ghost {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+  }
+
+  .diagram .brs-leader {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 1.5;
+  }
+
+  /* The sweep: a short bright dash along the trace (pathLength is 100). */
+  .diagram .brs-run {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 5 95;
+    opacity: 0.85;
+    animation: brs-sweep 3s linear infinite;
+  }
+
+  @keyframes brs-sweep {
+    from {
+      stroke-dashoffset: 5;
+    }
+
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+</style>
