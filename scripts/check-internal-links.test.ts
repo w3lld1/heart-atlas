@@ -15,6 +15,25 @@ describe('extractLinks', () => {
     const html = `<a href="../a/">A</a><img src='/b.png'><pre><code>&lt;iframe src="x"&gt;<a href="/code/">c</a></code></pre>`;
     expect(extractLinks(html)).toEqual(['../a/', '/b.png']);
   });
+
+  it('reads srcset candidates, form actions and script src, decoding entities', () => {
+    const html = [
+      '<img srcset="/a.webp 1x, /b.webp 2x">',
+      '<form action="../search/">',
+      '<script src="/c.js"></script>',
+      '<script>el.innerHTML = \'<a href="/dyn/">\';</script>',
+      '<a href="/d/?x=1&amp;y=2">d</a>',
+      '<code-sample></code-sample><a href="/e/">e</a>',
+    ].join('');
+    expect(extractLinks(html)).toEqual([
+      '/a.webp',
+      '/b.webp',
+      '../search/',
+      '/c.js',
+      '/d/?x=1&y=2',
+      '/e/',
+    ]);
+  });
 });
 
 describe('isExternal', () => {
@@ -35,6 +54,7 @@ describe('isExternal', () => {
   it('treats absolute links to the site itself as internal', () => {
     expect(isExternal('https://example.org/base/ru/', 'https://example.org')).toBe(false);
     expect(isExternal('https://example.org.evil/base/', 'https://example.org')).toBe(true);
+    expect(isExternal('HTTPS://Example.org/base/', 'https://example.org')).toBe(false);
   });
 });
 
@@ -45,6 +65,7 @@ describe('pageUrl and targetPath', () => {
     expect(targetPath('../b/#x', '/base/ru/a/', '/base/')).toBe('ru/b/');
     expect(targetPath('/base/m%20n.png?v=1', '/base/', '/base/')).toBe('m n.png');
     expect(targetPath('/other/', '/base/', '/base/')).toBeUndefined();
+    expect(targetPath('/base/%E0%A4%A', '/base/', '/base/')).toBeUndefined();
   });
 });
 
