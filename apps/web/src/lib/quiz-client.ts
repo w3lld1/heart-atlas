@@ -4,6 +4,7 @@
 type QuizMessages = {
   correct: string;
   incorrect: string;
+  answer: string;
   choose: string;
   markCorrect: string;
   markChosen: string;
@@ -11,6 +12,8 @@ type QuizMessages = {
 };
 
 export type QuizResult = { correct: number; total: number; date: string };
+/** The last full result at each level: a level shows only its own questions. */
+export type QuizResults = Partial<Record<string, QuizResult>>;
 
 /** localStorage key of a quiz result; the id is `<locale>/<type>/<slug>`. */
 export const quizStorageKey = (id: string): string => `ha:quiz:${id}`;
@@ -30,12 +33,28 @@ function visibleQuestions(quiz: HTMLElement): HTMLElement[] {
   );
 }
 
-function saveResult(id: string, result: QuizResult): void {
+function saveResult(id: string, level: string, result: QuizResult): void {
   try {
-    localStorage.setItem(quizStorageKey(id), JSON.stringify(result));
+    const key = quizStorageKey(id);
+    let results: QuizResults = {};
+    try {
+      results = JSON.parse(localStorage.getItem(key) ?? '{}') as QuizResults;
+    } catch {
+      // A malformed entry is replaced.
+    }
+    results[level] = result;
+    localStorage.setItem(key, JSON.stringify(results));
   } catch {
     // Storage can be blocked; the quiz still works without remembering.
   }
+}
+
+/** Sets a live region's text so it is announced again even when the text repeats. */
+function announce(region: HTMLElement, text: string): void {
+  region.textContent = '';
+  requestAnimationFrame(() => {
+    region.textContent = text;
+  });
 }
 
 export function initQuiz(quiz: HTMLElement): void {
@@ -50,8 +69,10 @@ export function initQuiz(quiz: HTMLElement): void {
       return;
     }
     const correct = answered.filter((question) => question.dataset['result'] === 'correct').length;
-    score.textContent = formatScore(messages.score, correct, questions.length);
-    saveResult(quiz.dataset['quiz'] ?? '', {
+    const text = formatScore(messages.score, correct, questions.length);
+    if (score.textContent === text) return;
+    score.textContent = text;
+    saveResult(quiz.dataset['quiz'] ?? '', document.documentElement.dataset['level'] ?? 'all', {
       correct,
       total: questions.length,
       date: new Date().toISOString(),
@@ -80,7 +101,7 @@ export function initQuiz(quiz: HTMLElement): void {
     check.addEventListener('click', () => {
       const chosen = inputs.find((input) => input.checked);
       if (!chosen) {
-        feedback.textContent = messages.choose;
+        announce(feedback, messages.choose);
         return;
       }
       const right = chosen.dataset['correct'] !== undefined;
@@ -90,7 +111,10 @@ export function initQuiz(quiz: HTMLElement): void {
         else if (input === chosen) mark(input, 'chosen');
       }
       question.dataset['result'] = right ? 'correct' : 'incorrect';
-      feedback.textContent = right ? messages.correct : messages.incorrect;
+      const answerText =
+        inputs.find((input) => input.dataset['correct'] !== undefined)?.nextElementSibling
+          ?.textContent ?? '';
+      feedback.textContent = `${right ? messages.correct : messages.incorrect} ${messages.answer} ${answerText}`;
       answer.open = true;
       check.hidden = true;
       retry.hidden = false;
@@ -115,6 +139,11 @@ export function initQuiz(quiz: HTMLElement): void {
 
     actions.hidden = false;
   }
+
+  // The level switch changes which questions count; it sends no event, so watch the attribute.
+  new MutationObserver(updateScore).observe(document.documentElement, {
+    attributeFilter: ['data-level'],
+  });
 
   quiz.dataset['ready'] = '';
 }

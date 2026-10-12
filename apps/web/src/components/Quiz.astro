@@ -28,6 +28,7 @@ const messages = embed
   : JSON.stringify({
       correct: t['quiz.correct'],
       incorrect: t['quiz.incorrect'],
+      answer: t['quiz.answer'],
       choose: t['quiz.choose'],
       markCorrect: t['quiz.mark.correct'],
       markChosen: t['quiz.mark.chosen'],
@@ -69,7 +70,7 @@ const messages = embed
             <button type="button" data-quiz-check>
               {t['quiz.check']}
             </button>
-            <button type="button" data-quiz-retry hidden>
+            <button type="button" data-quiz-retry aria-describedby={`${titleId}-${q}-why`} hidden>
               {t['quiz.retry']}
             </button>
           </div>
@@ -79,7 +80,7 @@ const messages = embed
             <p>
               <strong lang={locale}>{t['quiz.answer']}</strong> {answer}
             </p>
-            <p>
+            <p id={`${titleId}-${q}-why`}>
               {question.explanation}
               <Cite n={question.cite} />
             </p>
@@ -208,8 +209,9 @@ const messages = embed
     font-weight: 600;
   }
 
+  /* Empty live regions stay rendered: screen readers skip a region that appears with its text. */
   .quiz-feedback:empty,
   .quiz-score:empty {
-    display: none;
+    margin: 0;
   }
 </style>

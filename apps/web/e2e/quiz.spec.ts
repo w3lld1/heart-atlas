@@ -26,7 +26,9 @@ test.describe('quiz', () => {
     await expect(first.locator('.quiz-feedback')).toHaveText(ru['quiz.choose']);
 
     await answer(first, 'Неверный вариант');
-    await expect(first.locator('.quiz-feedback')).toHaveText(ru['quiz.incorrect']);
+    await expect(first.locator('.quiz-feedback')).toHaveText(
+      `${ru['quiz.incorrect']} ${ru['quiz.answer']} Верный вариант`,
+    );
     await expect(first.locator('.quiz-option').nth(1)).toContainText(ru['quiz.mark.correct']);
     await expect(
       first.locator('.quiz-option', { hasText: 'Неверный вариант' }).first(),
@@ -61,7 +63,38 @@ test.describe('quiz', () => {
     const saved = await page.evaluate(() =>
       localStorage.getItem('ha:quiz:ru/disease/test-condition'),
     );
-    expect(JSON.parse(saved ?? '{}')).toMatchObject({ correct: 1, total: 2 });
+    expect(JSON.parse(saved ?? '{}')).toMatchObject({ patient: { correct: 1, total: 2 } });
+
+    // The student level shows its own question: the patient score no longer applies.
+    await page.getByRole('button', { name: ru['level.student'] }).click();
+    await expect(page.locator('.quiz-score')).toBeEmpty();
+    await answer(
+      questions(page).filter({ hasText: 'Вопрос для студентов?' }),
+      'Верный вариант для студентов',
+    );
+    await expect(page.locator('.quiz-score')).toHaveText('Правильных ответов: 1 из 1.');
+    await page.getByRole('button', { name: ru['level.patient'] }).click();
+    await expect(page.locator('.quiz-score')).toHaveText('Правильных ответов: 1 из 2.');
+
+    const both = await page.evaluate(() =>
+      localStorage.getItem('ha:quiz:ru/disease/test-condition'),
+    );
+    expect(JSON.parse(both ?? '{}')).toMatchObject({
+      patient: { correct: 1, total: 2 },
+      student: { correct: 1, total: 1 },
+    });
+  });
+
+  test('works when storage is blocked', async ({ page }) => {
+    await page.addInitScript(() => {
+      Storage.prototype.setItem = () => {
+        throw new DOMException('blocked', 'SecurityError');
+      };
+    });
+    await page.goto(article);
+    await answer(questions(page).nth(0), 'Верный вариант');
+    await answer(questions(page).nth(1), 'Верный вариант второго вопроса');
+    await expect(page.locator('.quiz-score')).toHaveText('Правильных ответов: 2 из 2.');
   });
 
   test('a fallback translation takes the quiz in the language of the text', async ({ page }) => {
@@ -92,8 +125,9 @@ test.describe('quiz without JavaScript', () => {
 test.describe('quiz in an embed', () => {
   test('stays static, with the answer behind "Show the answer"', async ({ page }) => {
     await page.goto('ru/embed/disease/test-condition/');
+    await expect(page.locator('.quiz')).not.toHaveAttribute('data-ready');
+    await expect(page.locator('.quiz')).not.toHaveAttribute('data-messages');
     const first = questions(page).first();
-    await expect(first.getByRole('button', { name: ru['quiz.check'] })).toBeHidden();
     await first.getByText(ru['quiz.showAnswer']).click();
     await expect(first.getByText('Разбор первого вопроса.')).toBeVisible();
   });
@@ -109,7 +143,7 @@ test.describe('quiz right to left', () => {
     await expect(quiz.getByRole('heading', { name: '[RTL] Check yourself' })).toBeVisible();
     await quiz.getByRole('radio', { name: 'The right option', exact: true }).check();
     await quiz.getByRole('button', { name: '[RTL] Check' }).click();
-    await expect(quiz.locator('.quiz-feedback')).toHaveText('[RTL] Correct.');
+    await expect(quiz.locator('.quiz-feedback')).toContainText('[RTL] Correct.');
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
   });

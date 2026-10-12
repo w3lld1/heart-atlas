@@ -53,9 +53,9 @@ for (const tree of trees) {
       // <Quiz /> needs <slug>.quiz.yaml, and a quiz file is useless without <Quiz />.
       const text = readFileSync(`${dir}${file}`, 'utf8');
       const quizFile = `${dir}${file.slice(0, -'.mdx'.length)}${QUIZ_FILE_SUFFIX}`;
-      expect(/<Quiz\s*\/>/.test(text), `<Quiz /> must match ${QUIZ_FILE_SUFFIX}`).toBe(
-        existsSync(quizFile),
-      );
+      const quizTags = text.match(/<Quiz\b/g)?.length ?? 0;
+      expect(quizTags, 'an article has at most one <Quiz />').toBeLessThanOrEqual(1);
+      expect(quizTags === 1, `<Quiz /> must match ${QUIZ_FILE_SUFFIX}`).toBe(existsSync(quizFile));
 
       if (isSourcesCheckStale(article.sources_checked)) {
         // Vitest hides console output of passing tests, so write straight to stdout. GitHub
