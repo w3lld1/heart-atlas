@@ -15,7 +15,8 @@ export function heartModelUrls(base: string): {
 } {
   return {
     models: { high: `${base}models/heart-lod0.glb`, low: `${base}models/heart-lod1.glb` },
-    poster: `${base}models/heart-poster.png`,
+    // The viewer shows the transparent WebP poster, taken with its own camera: 33 KB, not 122.
+    poster: `${base}models/heart-hero-poster.webp`,
     heroPoster: `${base}models/heart-hero-poster.webp`,
   };
 }
