@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { checkParams, createHeartClock, heartRateLimits } from '../src/clock.ts';
 import { defaultParams, paramRanges } from '../src/params.ts';
-import { isPresetId, presetIds, presetParams, presets } from '../src/presets.ts';
+import { isPresetId, presetIds, presetParams, presets, type PresetId } from '../src/presets.ts';
 import { soundEvents } from '../src/sounds.ts';
+
+// Presets that do not fit every heart rate: the wide QRS of atrial septal defect does not fit the
+// fastest rates, nor does the long PR of first-degree AV block.
+const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
+  'atrial-septal-defect': [40, 169],
+  'av-block-first-degree': [40, 96],
+};
 
 describe('presets', () => {
   it('has a parameter set for every id', () => {
@@ -13,9 +20,7 @@ describe('presets', () => {
   it('keeps every preset valid across its heart rate limits', () => {
     for (const id of presetIds) {
       const [min, max] = heartRateLimits(presetParams(id));
-      // The wide QRS of atrial septal defect is the only one that does not fit the fastest rates.
-      if (id === 'atrial-septal-defect') expect([min, max]).toEqual([40, 169]);
-      else expect([min, max]).toEqual(paramRanges.heartRate);
+      expect([min, max], id).toEqual(narrowedLimits[id] ?? paramRanges.heartRate);
       for (let heartRate = min; heartRate <= max; heartRate += 1) {
         expect(
           () => checkParams({ ...presetParams(id), heartRate }),
@@ -47,6 +52,18 @@ describe('presets', () => {
     const normal = createHeartClock();
     const plain = normal.beatAt(3000);
     expect(Math.abs(normal.sample(plain.start + plain.timing.jPoint).ecg)).toBeLessThan(0.02);
+  });
+
+  it('keeps PR above 0.20 s at every heart rate in first-degree AV block', () => {
+    const params = presetParams('av-block-first-degree');
+    const [min, max] = heartRateLimits(params);
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      const beat = createHeartClock({ ...params, heartRate }).beatAt(0);
+      // PR runs from the onset of the P wave to the onset of QRS.
+      expect(beat.timing.qOnset, `at ${heartRate}`).toBeGreaterThan(200);
+      expect(beat.params.pAmplitude).toBe(defaultParams.pAmplitude);
+    }
+    expect(createHeartClock(params).beatAt(0).timing.qOnset).toBeCloseTo(233, 0);
   });
 
   it('splits S2 on every beat in atrial septal defect', () => {

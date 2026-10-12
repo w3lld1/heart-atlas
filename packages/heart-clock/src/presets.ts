@@ -2,8 +2,9 @@ import { resolveParams, type HeartParams } from './params.ts';
 
 /**
  * Disease presets: parameter sets that show the textbook signs of each disease of the MVP.
- * Every number either comes from a source in docs/plans/2026-10-11-stage-3-sources.md (cited in
- * the comment next to it) or is marked `assumption`. Spec: docs/plans/2026-10-11-stage-3-presets.md.
+ * Every number either comes from a source in docs/plans/2026-10-11-stage-3-sources.md or the
+ * preset's own spec (cited in the comment next to it) or is marked `assumption`. Specs:
+ * docs/plans/2026-10-11-stage-3-presets.md, docs/plans/2026-10-12-more-ecg-presets.md.
  */
 export const presetIds = [
   'normal',
@@ -13,6 +14,7 @@ export const presetIds = [
   'hypertension',
   'aortic-stenosis',
   'atrial-septal-defect',
+  'av-block-first-degree',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -64,6 +66,14 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // Wide fixed split of S2 (StatPearls, Atrial Septal Defect; Minzdrav 2023, §2.2).
     // assumption: the split size; no source gives it in ms.
     s2Split: 50,
+  }),
+  'av-block-first-degree': Object.freeze({
+    // First-degree AV block: every P wave is followed by a QRS, but PR is longer than 0.20 s
+    // (MSD Manuals, Atrioventricular Block, 2024; source 2 of our AV block article). assumption:
+    // 260 ms at 60 bpm. The model scales PR with √RR, and 260 keeps PR above 200 ms at every
+    // heart rate this preset allows (40–96 bpm; about 233 ms at 75 and 205 ms at 96). With 240,
+    // PR would drop below 200 ms from 87 bpm. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    prInterval: 260,
   }),
 });
 

@@ -113,6 +113,20 @@ Modelling note: the guideline number is the **mean** Doppler gradient (≥40 mmH
 
 Modelling note: the model has no RV/PA curves. For ASD, the sourced changes we can show are fixed S2 splitting, an RBBB-like wide QRS (>120 ms is complete RBBB per StatPearls ECG), and right axis. Lead II polarity under right axis deviation is not stated by a source. Left-heart pressures: the only sourced fact is that LA pressure is slightly higher than RA pressure and the LV is volume-underloaded. **No number** is given for a change in LV/Ao pressures.
 
+## 8. First-degree AV block
+
+Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), PR 2. Sources are the `av-block` article's own (`content/{ru,en}/disease/av-block.mdx`). Access differs from the rest of this file: both pages were opened on 2026-10-12 with `curl` through the agent proxy, which now lets it through; the Minzdrav text came as JSON from `apicr.minzdrav.gov.ru/api.ashx?op=GetClinrec2&id=160_2` (the `cr.minzdrav.gov.ru/api.ashx` address returns only the site's HTML shell).
+
+| Fact | Value | Verbatim quote | Source | Access / verified |
+|---|---|---|---|---|
+| PR threshold | > 0.20 s | "All normal P waves are followed by QRS complexes, but the PR interval is longer than normal (> 0.20 second—see figure First-Degree Atrioventricular Block)." | MSD Manuals Professional, Atrioventricular Block (2024), source 2 of the article | curl, yes |
+| Same, figure caption | > 0.2 s, no skipped beats | "For first-degree block, conduction is slowed without skipped beats. All normal P waves are followed by QRS complexes, but the PR interval is longer than normal (> 0.2 second)." | MSD, same page | curl, yes |
+| Definition (Minzdrav) | every impulse conducted, more slowly | «ПЖБ I степени – замедление проведения импульса от предсердий к желудочкам с проведением каждого импульса.» | Минздрав 2025 «Брадиаритмии и нарушения проводимости» (cr.minzdrav.gov.ru/view-cr/160_2), source 1 of the article | curl JSON, yes |
+| PR threshold (Minzdrav) | **no number** | The text names no PR limit for first-degree block. PR numbers it does give are indication thresholds (PR > 240 ms in neuromuscular disease and after TAVI, PR > 300 ms with pacemaker-syndrome-like symptoms), not the definition | Минздрав 2025, same | curl JSON; searched for «PQ», «PR», «0,20», «200 мс» in the text and tables of the JSON; images were not read |
+| Article phrase | > 0.20 s | Article: «I степень: за каждым нормальным зубцом P следует QRS, но интервал PR длиннее нормы (более 0,20 с).» | Article av-block.mdx, Cite 2 (MSD) | Article |
+
+Modelling note: the preset value 260 ms at 60 bpm is an assumption, not a source number. The model scales PR with √RR (`timing.ts`); with 260 ms the preset fits 40–96 bpm (`heartRateLimits`), and PR is 232.6 ms at 75 bpm and 205.5 ms at 96 bpm, so it stays above 200 ms at every rate the preset allows. With 240 ms PR would drop below 200 ms from 87 bpm (199.3 ms). Minzdrav does not contradict the 0.20 s threshold; it gives none.
+
 ---
 
 ## Not verifiable
@@ -138,4 +152,5 @@ Modelling note: the model has no RV/PA curves. For ASD, the sourced changes we c
   - "rSR′" wording.
   - The size of S2 split in ms.
   - ESC 2020 ACHD §4.1: OUP page truncated.
+- **First-degree AV block**: a PR limit in Минздрав 2025 «Брадиаритмии» (none in its text).
 - **General**: the conversion of mm to mV and of /min to Hz is our arithmetic on sourced numbers.

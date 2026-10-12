@@ -103,4 +103,10 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://cr.minzdrav.gov.ru/view-cr/46_2',
     lang: 'ru',
   },
+  // First-degree AV block: docs/plans/2026-10-12-more-ecg-presets.md.
+  {
+    text: 'MSD Manuals, Professional Version. Atrioventricular Block. 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/atrioventricular-block',
+    lang: 'en',
+  },
 ];
