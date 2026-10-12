@@ -32,4 +32,5 @@ Plans and specs live in `docs/plans/`. Read the current stage spec before changi
 ## Tools
 
 - Plugins ECC, ponytail and the Claude Design Skillstack bundles (3D and animation skills) are enabled in `.claude/settings.json`. Do not copy ECC hooks into settings: the plugin loads them, and a copy runs them twice.
+- Design Skillstack examples use npm, physical CSS properties and root-absolute links; the repo rules above win (pnpm, logical properties, `BASE_URL`).
 - Prefer the smallest change that works (ponytail), but never cut validation, error handling, accessibility or source checks.
