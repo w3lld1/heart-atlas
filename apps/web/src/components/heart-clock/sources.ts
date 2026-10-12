@@ -125,4 +125,20 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/reentrant-paroxysmal-supraventricular-tachycardias-psvt',
     lang: 'en',
   },
+  // Long QT syndrome and ventricular tachycardia: docs/plans/2026-10-12-more-ecg-presets.md.
+  {
+    text: 'Минздрав России. Желудочковые нарушения ритма сердца. Внезапная сердечная смерть. Клинические рекомендации, 2025.',
+    href: 'https://cr.minzdrav.gov.ru/view-cr/569_2',
+    lang: 'ru',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Long QT Interval Syndromes. 2026.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/long-qt-interval-syndromes',
+    lang: 'en',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Ventricular Tachycardia (VT). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-tachycardia-vt',
+    lang: 'en',
+  },
 ];

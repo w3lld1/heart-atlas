@@ -161,6 +161,12 @@ test.describe('disease presets', () => {
         name: en['heartClock.preset.supraventricular-tachycardia'],
       }),
     ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }),
+    ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] }),
+    ).toHaveCount(1);
     await conditions
       .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
       .check();
@@ -215,6 +221,20 @@ test.describe('disease presets', () => {
     await slider.fill('90');
     await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
     await expect(slider).toHaveValue('90');
+
+    // VT sets its own rate and floor too; leaving it for long QT goes back to the default rate,
+    // under the long QT's upper limit.
+    await page
+      .getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] })
+      .check();
+    const [vtMin, vtMax] = presetRateLimits('ventricular-tachycardia');
+    await expect(slider).toHaveValue(String(presetParams('ventricular-tachycardia').heartRate));
+    await expect(slider).toHaveAttribute('min', String(vtMin));
+    await expect(slider).toHaveAttribute('max', String(vtMax));
+    await page.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }).check();
+    const [, longQtMax] = presetRateLimits('long-qt-syndrome');
+    await expect(slider).toHaveValue(String(defaultParams.heartRate));
+    await expect(slider).toHaveAttribute('max', String(longQtMax));
   });
 
   test('keep drawing when switched after playing for a while', async ({ page }) => {
