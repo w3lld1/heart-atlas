@@ -1,6 +1,11 @@
 import { parseLicenses } from '@heart-atlas/models/licenses';
 import { parseStructures } from '@heart-atlas/models/structures';
-import type { ViewerMessages, ViewerModels, ViewerStructure } from '@heart-atlas/viewer';
+import type {
+  AttributionPart,
+  ViewerMessages,
+  ViewerModels,
+  ViewerStructure,
+} from '@heart-atlas/viewer';
 import { viewerMessageKeys } from '@heart-atlas/viewer';
 import anchorsJson from '../../../../assets/models/heart/anchors.json';
 import licensesYaml from '../../../../assets/models/LICENSES.yaml?raw';
@@ -50,28 +55,34 @@ export function heartStructures(t: Messages): ViewerStructure[] {
 
 /**
  * The attributions the source licenses require, exactly as recorded in LICENSES.yaml. A source
- * published under two licenses gets both lines, since it is not settled which one applies.
+ * published under two licenses gets both lines, since it is not settled which one applies; the
+ * second carries its language, so pages can mark it with lang.
  */
-export function heartAttribution(file = 'heart/heart.glb'): string {
+export function heartAttribution(file = 'heart/heart.glb'): AttributionPart[] {
   const { entries, errors } = parseLicenses(licensesYaml);
   const model = entries.find((e) => e.file === file);
   const sources =
     model?.derived_from?.flatMap((d) =>
-      d.attribution_alt ? [d.attribution, d.attribution_alt] : [d.attribution],
+      d.attribution_alt
+        ? [
+            { text: d.attribution },
+            {
+              text: d.attribution_alt,
+              ...(d.attribution_alt_lang ? { lang: d.attribution_alt_lang } : {}),
+            },
+          ]
+        : [{ text: d.attribution }],
     ) ?? [];
   if (errors.length > 0 || sources.length === 0) {
     throw new Error(`LICENSES.yaml has no valid entry for ${file}: ${errors.join('; ')}`);
   }
-  return sources.join('; ');
+  return sources;
 }
 
-/** Viewer strings for a locale, with the model source filled into the attribution line. */
+/**
+ * Viewer strings for a locale. `viewer.attribution` keeps its `{source}` placeholder: the viewer
+ * fills in `heartAttribution()` from its `attribution` prop, each part with its language.
+ */
 export function viewerMessages(t: Messages): ViewerMessages {
-  const messages = Object.fromEntries(
-    viewerMessageKeys.map((key) => [key, t[key]]),
-  ) as ViewerMessages;
-  // A function, so `$` patterns in the data are never read as replacement syntax.
-  const source = heartAttribution();
-  messages['viewer.attribution'] = messages['viewer.attribution'].replace('{source}', () => source);
-  return messages;
+  return Object.fromEntries(viewerMessageKeys.map((key) => [key, t[key]])) as ViewerMessages;
 }

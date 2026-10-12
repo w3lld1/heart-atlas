@@ -1,6 +1,7 @@
 ---
 // Layout for pages shown inside an <iframe> on other sites: no header, footer or service worker,
 // only the module, the medical disclaimer, a link to the full page and the license.
+import type { AttributionPart } from '@heart-atlas/viewer';
 import { locales } from '../i18n/locales.ts';
 import { getMessages } from '../i18n/messages.ts';
 import '../styles/base.css';
@@ -12,13 +13,14 @@ interface Props {
   canonical: URL;
   /** Full page in the reader's language for "open on the site"; defaults to `canonical`. */
   fullPage?: URL;
-  /** Required credit for third-party material the module shows, e.g. a model's source. */
-  credits?: string;
+  /** Required credits for third-party material the module shows, e.g. a model's source. */
+  credits?: AttributionPart[];
 }
 
 const { locale, title, canonical, fullPage = canonical, credits } = Astro.props;
 const t = getMessages(locale);
 const dir = locales[locale]?.dir ?? 'ltr';
+const [creditsBefore = '', creditsAfter = ''] = t['embed.credits'].split('{credits}');
 ---
 
 <html lang={locale} dir={dir}>
@@ -45,7 +47,18 @@ const dir = locales[locale]?.dir ?? 'ltr';
         {' · '}
         {t['footer.license']}
       </p>
-      {credits && <p class="credits">{t['embed.credits'].replace('{credits}', () => credits)}</p>}
+      {credits && credits.length > 0 && (
+        <p class="credits">
+          {creditsBefore}
+          {credits.map((part, i) => (
+            <>
+              {i > 0 && '; '}
+              <span lang={part.lang}>{part.text}</span>
+            </>
+          ))}
+          {creditsAfter}
+        </p>
+      )}
     </footer>
     <script is:inline>
       // Links to other pages leave the frame: browsing inside a small iframe on someone else's
