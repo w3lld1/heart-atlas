@@ -20,6 +20,7 @@ import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
 import LongQtSyndrome from './LongQtSyndrome.astro';
 import MitralRegurgitation from './MitralRegurgitation.astro';
+import MitralStenosis from './MitralStenosis.astro';
 import Myocarditis from './Myocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
@@ -54,6 +55,7 @@ export const diagrams = {
   'infective-endocarditis': InfectiveEndocarditis,
   'long-qt-syndrome': LongQtSyndrome,
   'mitral-regurgitation': MitralRegurgitation,
+  'mitral-stenosis': MitralStenosis,
   myocarditis: Myocarditis,
   'natriuretic-peptides': NatriureticPeptides,
   'patent-ductus-arteriosus': PatentDuctusArteriosus,
