@@ -1,0 +1,485 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const venousArrowId = `${uid}-ca-arrow-venous`;
+const arterialArrowId = `${uid}-ca-arrow-arterial`;
+const clipId = `${uid}-ca-below-base`;
+
+// A four-chamber section in diastole: the atria on top empty into the ventricles below through
+// the open tricuspid (left of the picture) and mitral (right) valves. The heart is drawn in its
+// own coordinates and shifted right; labels sit in the free column on the left.
+const shift = 170;
+const at = (x: number) => x + shift;
+// The valve plane between atria and ventricles, and the middle of the septum.
+const base = 140;
+const mid = 150;
+
+type Point = readonly [x: number, y: number];
+type Curve = readonly [Point, Point, Point, Point];
+
+interface State {
+  /** Thickness of the ventricular walls; the septum between the cavities has the same. */
+  wall: number;
+  /** Fluid between the heart and the outer layer of the pericardium. */
+  effusion: number;
+  /** Thickness of the septum between the atria. */
+  atrialSeptum: number;
+  /** Left atrium half-width and half-height; the right atrium keeps its size in both states. */
+  la: { rx: number; ry: number };
+  /** Width of the valve leaflets. */
+  leaflet: number;
+  /** Amyloid deposits drawn in the walls. */
+  amyloid: boolean;
+  className: string;
+}
+
+// The cavities keep their size; in amyloidosis the walls, the septa and the valves thicken, a
+// thin layer of fluid lies in the pericardium and the left atrium is larger.
+const states: State[] = [
+  {
+    wall: 10,
+    effusion: 0,
+    atrialSeptum: 5,
+    la: { rx: 44, ry: 38 },
+    leaflet: 3,
+    amyloid: false,
+    className: 'normal-only',
+  },
+  {
+    wall: 22,
+    effusion: 7,
+    atrialSeptum: 12,
+    la: { rx: 54, ry: 46 },
+    leaflet: 7,
+    amyloid: true,
+    className: 'disease-only',
+  },
+];
+const ra = { rx: 44, ry: 38 };
+const atriumBottom = 130;
+// Atria are rounded boxes, so their sides along the septum between them run parallel.
+const atriumCorner = 26;
+
+// Free walls of the cavities as cubic curves, from the valve plane down to the septum.
+const rvWall = (r: number): Curve => [
+  [r - 78, base],
+  [r - 86, 205],
+  [r - 40, 262],
+  [r, 292],
+];
+const lvWall = (l: number): Curve => [
+  [l + 84, base],
+  [l + 92, 215],
+  [l + 50, 280],
+  [l, 298],
+];
+const cavityPath = ([p0, p1, p2, p3]: Curve) =>
+  `M${p3[0]},${base} L${p0[0]},${p0[1]} C${p1[0]},${p1[1]} ${p2[0]},${p2[1]} ${p3[0]},${p3[1]} Z`;
+
+// Points inside a wall, for the amyloid deposits: along the free wall, offset from the cavity
+// edge into the muscle, alternating depth so they look granular rather than in a row.
+const bezier = ([p0, p1, p2, p3]: Curve, s: number): Point => {
+  const u = 1 - s;
+  const a = u * u * u;
+  const b = 3 * u * u * s;
+  const c = 3 * u * s * s;
+  const d = s * s * s;
+  return [
+    a * p0[0] + b * p1[0] + c * p2[0] + d * p3[0],
+    a * p0[1] + b * p1[1] + c * p2[1] + d * p3[1],
+  ];
+};
+const tangent = ([p0, p1, p2, p3]: Curve, s: number): Point => {
+  const u = 1 - s;
+  const dx =
+    3 * u * u * (p1[0] - p0[0]) + 6 * u * s * (p2[0] - p1[0]) + 3 * s * s * (p3[0] - p2[0]);
+  const dy =
+    3 * u * u * (p1[1] - p0[1]) + 6 * u * s * (p2[1] - p1[1]) + 3 * s * s * (p3[1] - p2[1]);
+  const length = Math.hypot(dx, dy);
+  return [dx / length, dy / length];
+};
+const round = (n: number) => Math.round(n * 10) / 10;
+/** The point `depth` away from the curve at `s`, on the side away from the cavity centre. */
+const offset = (curve: Curve, s: number, centre: Point, depth: number): Point => {
+  const [x, y] = bezier(curve, s);
+  const [tx, ty] = tangent(curve, s);
+  const outward = (x - centre[0]) * -ty + (y - centre[1]) * tx > 0 ? 1 : -1;
+  return [round(x - ty * outward * depth), round(y + tx * outward * depth)];
+};
+const depositsAlong = (curve: Curve, centre: Point, wall: number): Point[] =>
+  [0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84].map((s, i) =>
+    offset(curve, s, centre, wall * (i % 2 === 0 ? 0.35 : 0.68)),
+  );
+
+const geometry = states.map((state) => {
+  const r = mid - state.wall / 2;
+  const l = mid + state.wall / 2;
+  const rv = rvWall(r);
+  const lv = lvWall(l);
+  const rvCentre: Point = [r - 35, 200];
+  const lvCentre: Point = [l + 40, 210];
+  const laCx = mid + state.atrialSeptum / 2 + state.la.rx;
+  const raCx = mid - state.atrialSeptum / 2 - ra.rx;
+  const tricuspid = { left: r - 62, right: r - 16 };
+  const mitral = { left: l + 18, right: l + 66 };
+  const septumDeposits: Point[] = [165, 190, 215, 240, 265].map((y, i) => [
+    round(mid + (i % 2 === 0 ? -0.2 : 0.2) * state.wall),
+    y,
+  ]);
+  return {
+    ...state,
+    cavities: { rv: cavityPath(rv), lv: cavityPath(lv) },
+    ra: { cx: raCx, cy: atriumBottom - ra.ry },
+    la: { cx: laCx, cy: atriumBottom - state.la.ry, ...state.la },
+    tricuspid,
+    mitral,
+    leaflets: [
+      `M${tricuspid.left},${base} L${tricuspid.left + 6},176`,
+      `M${tricuspid.right},${base} L${tricuspid.right - 6},176`,
+      `M${mitral.left},${base} L${mitral.left + 6},176`,
+      `M${mitral.right},${base} L${mitral.right - 6},176`,
+    ],
+    inflow: {
+      right: (tricuspid.left + tricuspid.right) / 2,
+      left: (mitral.left + mitral.right) / 2,
+    },
+    deposits: [
+      ...depositsAlong(rv, rvCentre, state.wall),
+      ...depositsAlong(lv, lvCentre, state.wall),
+      ...septumDeposits,
+    ],
+    // Points the leader lines end at: the outer edge of the free wall, one deposit, the pericardium.
+    rvFreeWall: offset(rv, 0.3, rvCentre, state.wall),
+    rvDeposit: offset(rv, 0.48, rvCentre, state.wall * 0.68),
+    rvPericardium: offset(rv, 0.75, rvCentre, state.wall + state.effusion / 2 + 0.75),
+    tricuspidLeaflet: [tricuspid.left + 3, 158] as Point,
+    // Where the two cavity strokes meet below the septum their round ends leave a notch; a line
+    // between the two apex points, stroked as wide as each layer, fills it.
+    apexLine: `M${rv[3][0]},${rv[3][1]} L${lv[3][0]},${lv[3][1]}`,
+  };
+});
+// Moving blood: two particles per side, the second trailing the first.
+const delays = [0, 0.9];
+---
+
+<svg
+  viewBox="0 0 460 340"
+  role="img"
+  aria-label={t['diagram.cardiac-amyloidosis.title']}
+  lang={locale}
+>
+  <defs>
+    {[
+      { id: venousArrowId, colour: 'var(--diagram-venous)' },
+      { id: arterialArrowId, colour: 'var(--diagram-arterial)' },
+    ].map(({ id, colour }) => (
+      <marker
+        id={id}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="4.5"
+        markerHeight="4.5"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={colour} />
+      </marker>
+    ))}
+    <!-- The pericardium and the fluid in it are drawn around the ventricles only -->
+    <clipPath id={clipId}>
+      <rect x="0" y={atriumBottom + 2} width="300" height="220"></rect>
+    </clipPath>
+  </defs>
+
+  <g transform={`translate(${shift} 0)`}>
+    {geometry.map((g) => (
+      <g class={g.className}>
+        {/* Walls are the cavity outlines stroked wide: half of each stroke lies outside the
+            cavity, so the muscle around it is exactly `wall` thick, and the septum between the
+            two cavities, `wall` apart, is as thick as the free walls. */}
+        <g stroke-linejoin="round" clip-path={`url(#${clipId})`}>
+          {[g.cavities.rv, g.cavities.lv].map((d) => (
+            <path
+              d={d}
+              fill="var(--color-muted)"
+              stroke="var(--color-muted)"
+              stroke-width={2 * (g.wall + g.effusion) + 3}
+            />
+          ))}
+          <path
+            d={g.apexLine}
+            stroke="var(--color-muted)"
+            stroke-width={2 * (g.wall + g.effusion + 1.5)}
+            stroke-linecap="round"
+          />
+          {g.effusion > 0 &&
+            [g.cavities.rv, g.cavities.lv].map((d) => (
+              <path
+                d={d}
+                fill="var(--diagram-venous-fill)"
+                stroke="var(--diagram-venous-fill)"
+                stroke-width={2 * (g.wall + g.effusion)}
+              />
+            ))}
+          {g.effusion > 0 && (
+            <path
+              d={g.apexLine}
+              stroke="var(--diagram-venous-fill)"
+              stroke-width={2 * (g.wall + g.effusion)}
+              stroke-linecap="round"
+            />
+          )}
+          {/* A thin muted ring between the fluid and the muscle, so the two stay apart. */}
+          {g.effusion > 0 &&
+            [g.cavities.rv, g.cavities.lv].map((d) => (
+              <path
+                d={d}
+                fill="var(--color-muted)"
+                stroke="var(--color-muted)"
+                stroke-width={2 * g.wall + 3}
+              />
+            ))}
+          {g.effusion > 0 && (
+            <path
+              d={g.apexLine}
+              stroke="var(--color-muted)"
+              stroke-width={2 * (g.wall + 1.5)}
+              stroke-linecap="round"
+            />
+          )}
+        </g>
+        <g stroke-linejoin="round">
+          {[g.cavities.rv, g.cavities.lv].map((d) => (
+            <path
+              d={d}
+              fill="var(--diagram-muscle)"
+              stroke="var(--diagram-muscle)"
+              stroke-width={2 * g.wall}
+            />
+          ))}
+          <path
+            d={g.apexLine}
+            stroke="var(--diagram-muscle)"
+            stroke-width={2 * g.wall}
+            stroke-linecap="round"
+          />
+        </g>
+
+        <!-- Septum between the atria -->
+        <rect
+          x={mid - g.atrialSeptum / 2 - 1}
+          y={atriumBottom - 2 * ra.ry + atriumCorner / 2}
+          width={g.atrialSeptum + 2}
+          height={2 * ra.ry - atriumCorner / 2}
+          fill="var(--diagram-muscle)"
+        ></rect>
+
+        <!-- Atria -->
+        <rect
+          x={g.ra.cx - ra.rx}
+          y={g.ra.cy - ra.ry}
+          width={2 * ra.rx}
+          height={2 * ra.ry}
+          rx={atriumCorner}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="2"
+        />
+        <rect
+          x={g.la.cx - g.la.rx}
+          y={g.la.cy - g.la.ry}
+          width={2 * g.la.rx}
+          height={2 * g.la.ry}
+          rx={atriumCorner}
+          fill="var(--diagram-arterial-fill)"
+          stroke="var(--diagram-arterial)"
+          stroke-width="2"
+        />
+
+        <!-- Ventricular cavities and the openings into them from the atria -->
+        <path
+          d={g.cavities.rv}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+        <path
+          d={g.cavities.lv}
+          fill="var(--diagram-arterial-fill)"
+          stroke="var(--diagram-arterial)"
+          stroke-width="1.5"
+        />
+        <rect
+          x={g.tricuspid.left}
+          y={atriumBottom - 12}
+          width={g.tricuspid.right - g.tricuspid.left}
+          height={base - atriumBottom + 13}
+          fill="var(--diagram-venous-fill)"
+        />
+        <rect
+          x={g.mitral.left}
+          y={atriumBottom - 12}
+          width={g.mitral.right - g.mitral.left}
+          height={base - atriumBottom + 13}
+          fill="var(--diagram-arterial-fill)"
+        />
+
+        <!-- Amyloid deposits in the thickened walls -->
+        {g.amyloid && (
+          <g fill="var(--color-text)">
+            {g.deposits.map(([x, y]) => (
+              <circle cx={x} cy={y} r="2" />
+            ))}
+          </g>
+        )}
+
+        <!-- Flow arrows, visible with and without motion -->
+        <g fill="none" stroke-width="3" stroke-linecap="round">
+          <path
+            d={`M${g.inflow.right},${g.ra.cy + 4} L${g.inflow.right},214`}
+            stroke="var(--diagram-venous)"
+            marker-end={`url(#${venousArrowId})`}
+          />
+          <path
+            d={`M${g.inflow.left},${g.la.cy + 4} L${g.inflow.left},226`}
+            stroke="var(--diagram-arterial)"
+            marker-end={`url(#${arterialArrowId})`}
+          />
+        </g>
+
+        <!-- Tricuspid and mitral leaflets, open in diastole -->
+        <g fill="none" stroke="var(--color-muted)" stroke-width={g.leaflet} stroke-linecap="round">
+          {g.leaflets.map((d) => (
+            <path d={d} />
+          ))}
+        </g>
+
+        <!-- Moving blood: from the atria through the open valves into the ventricles -->
+        <g class="flow">
+          {delays.map((delay) => (
+            <>
+              <circle
+                class="ca-p"
+                cx={g.inflow.right}
+                cy={g.ra.cy + 4}
+                r="5"
+                fill="var(--diagram-venous)"
+                style={`animation-delay: ${delay}s`}
+              />
+              <circle
+                class="ca-p"
+                cx={g.inflow.left}
+                cy={g.la.cy + 4}
+                r="5"
+                fill="var(--diagram-arterial)"
+                style={`animation-delay: ${delay}s`}
+              />
+            </>
+          ))}
+        </g>
+      </g>
+    ))}
+
+    <!-- Chamber labels beside the arrows: the atrial ones grow away from the arrow, and a halo in
+         the chamber colour keeps longer translations readable over lines and deposits -->
+    <text class="ca-label-v" x="92" y="98" text-anchor="end">
+      {t['diagram.label.ra']}
+    </text>
+    <text class="ca-label-a" x="212" y="98">
+      {t['diagram.label.la']}
+    </text>
+    <text class="ca-label-v" x="120" y="246" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text class="ca-label-a" x="178" y="268" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+    <text class="diagram-small disease-only" x="210" y="22" text-anchor="middle">
+      {t['diagram.label.la-dilated']}
+    </text>
+  </g>
+
+  <!-- Labels in the left column with leader lines into the drawing -->
+  {geometry.map((g) => (
+    <g class={g.className}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        <line x1="150" y1="158" x2={at(g.tricuspidLeaflet[0])} y2={g.tricuspidLeaflet[1]} />
+        <line x1="150" y1="204" x2={at(g.rvFreeWall[0])} y2={g.rvFreeWall[1]} />
+        <line x1="150" y1="294" x2={at(g.rvPericardium[0])} y2={g.rvPericardium[1]} />
+        {g.amyloid && <line x1="150" y1="250" x2={at(g.rvDeposit[0])} y2={g.rvDeposit[1]} />}
+      </g>
+    </g>
+  ))}
+  <text class="diagram-small normal-only" x="8" y="162">
+    {t['diagram.label.valves']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="162">
+    {t['diagram.label.thick-valves']}
+  </text>
+  <text class="diagram-small normal-only" x="8" y="208">
+    {t['diagram.label.wall']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="208">
+    {t['diagram.label.thick-walls']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="254">
+    {t['diagram.label.amyloid-deposits']}
+  </text>
+  <text class="diagram-small normal-only" x="8" y="298">
+    {t['diagram.label.pericardium']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="298">
+    {t['diagram.label.effusion']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ca-label-v,
+  .diagram .ca-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .ca-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .ca-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .ca-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: ca-inflow 1.8s linear infinite;
+  }
+
+  /* Diastole: blood runs from each atrium through the open valve into its ventricle. */
+  @keyframes ca-inflow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    70% {
+      opacity: 1;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 110px);
+    }
+  }
+</style>

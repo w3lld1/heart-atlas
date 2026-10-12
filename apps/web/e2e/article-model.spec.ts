@@ -49,6 +49,7 @@ test.describe('3D model in a disease article without signs on the model', () => 
       'right-atrium',
     ],
     'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
+    'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {

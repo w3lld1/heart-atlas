@@ -9,6 +9,7 @@ import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
 import BrugadaSyndrome from './BrugadaSyndrome.astro';
+import CardiacAmyloidosis from './CardiacAmyloidosis.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
@@ -55,6 +56,7 @@ export const diagrams = {
   'av-block': AvBlock,
   'blood-flow': BloodFlow,
   'brugada-syndrome': BrugadaSyndrome,
+  'cardiac-amyloidosis': CardiacAmyloidosis,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,

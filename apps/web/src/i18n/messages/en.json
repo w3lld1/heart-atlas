@@ -520,5 +520,10 @@
   "diagram.label.tricuspid-valve": "Tricuspid valve",
   "diagram.label.atria-about-300": "Atria: about 300 per minute",
   "diagram.label.every-second-impulse": "Every second impulse: about 150 per minute",
-  "diagram.atrial-flutter.title": "Diagram of the atria and ventricles: normally the impulse from the sinus node spreads over the atria and passes through the AV node to the ventricles; in typical atrial flutter the impulse runs in a large circle in the right atrium around the ring of the tricuspid valve, counterclockwise, through the isthmus between the inferior vena cava and the valve, and usually every second impulse reaches the ventricles"
+  "diagram.atrial-flutter.title": "Diagram of the atria and ventricles: normally the impulse from the sinus node spreads over the atria and passes through the AV node to the ventricles; in typical atrial flutter the impulse runs in a large circle in the right atrium around the ring of the tricuspid valve, counterclockwise, through the isthmus between the inferior vena cava and the valve, and usually every second impulse reaches the ventricles",
+  "diagram.label.valves": "Valves",
+  "diagram.label.thick-valves": "Thickened valves",
+  "diagram.label.thick-walls": "Thickened walls",
+  "diagram.label.amyloid-deposits": "Amyloid deposits",
+  "diagram.cardiac-amyloidosis.title": "Diagram of the heart cut through all four chambers while the ventricles fill: normally the ventricular walls are of normal thickness and the valves and the septum between the atria are thin; in cardiac amyloidosis there are amyloid deposits in the walls; the walls of both ventricles, the valves and the septum between the atria are thickened, there is a little fluid in the pericardium and the left atrium is enlarged"
 }
