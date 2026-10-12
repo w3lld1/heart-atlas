@@ -1,0 +1,23 @@
+---
+// Test fixture for HA_TEST_CONTENT=1 builds: a fictional diagram with the after-treatment state,
+// so the e2e can switch three states without touching a real disease diagram.
+interface Props {
+  locale: string;
+  uid: string;
+}
+
+const { locale } = Astro.props;
+---
+
+<svg viewBox="0 0 200 80" role="img" aria-label="Test diagram with three states" lang={locale}>
+  <rect x="10" y="10" width="180" height="60" rx="8" fill="var(--diagram-muscle)"></rect>
+  <text data-only="normal" x="100" y="46" text-anchor="middle">
+    Normal art
+  </text>
+  <text data-only="disease" x="100" y="46" text-anchor="middle">
+    Disease art
+  </text>
+  <text data-only="treated" x="100" y="46" text-anchor="middle">
+    Treated art
+  </text>
+</svg>
