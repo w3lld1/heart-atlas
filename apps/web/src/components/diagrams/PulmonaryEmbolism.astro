@@ -13,12 +13,17 @@ const arrowId = `${uid}-pe-arrow`;
 
 // Venous blood: deep leg vein → inferior vena cava → right atrium → right ventricle →
 // pulmonary artery, then one of three branches into the lung.
-const trunk = 'M40,290 V175 Q40,155 60,155 H140 L158,225 L185,205 V95 Q185,70 210,70 H262';
+const heartPath = 'V175 Q40,155 60,155 H140 L158,225 L185,205 V95 Q185,70 210,70 H262';
+const trunk = `M40,318 ${heartPath}`;
+// In disease the routes start above the leg-vein clot, so no particle passes through it.
+const trunkAboveClot = `M40,280 ${heartPath}`;
 const upper = `${trunk} L352,30`;
 const middle = `${trunk} L357,72`;
 const lower = `${trunk} L352,120`;
-// In disease the lower branch is blocked: blood reaches the embolus and goes no further.
-const lowerBlocked = `${trunk} L303,93`;
+const upperDisease = `${trunkAboveClot} L352,30`;
+const middleDisease = `${trunkAboveClot} L357,72`;
+// In disease the lower branch is blocked: blood stops just before the embolus.
+const lowerBlocked = `${trunkAboveClot} L292,87`;
 // Each particle: its route and a negative delay so the flow is already running.
 const normal = [
   { path: upper, delay: 0 },
@@ -29,16 +34,16 @@ const normal = [
   { path: lower, delay: -3.6 },
 ];
 const diseaseOpen = [
-  { path: upper, delay: 0 },
-  { path: upper, delay: -2.2 },
-  { path: middle, delay: -1.1 },
-  { path: middle, delay: -3.3 },
+  { path: upperDisease, delay: 0 },
+  { path: upperDisease, delay: -2.2 },
+  { path: middleDisease, delay: -1.1 },
+  { path: middleDisease, delay: -3.3 },
 ];
 const diseaseBlocked = [-0.5, -2.5];
 ---
 
 <svg
-  viewBox="0 0 392 300"
+  viewBox="0 0 392 330"
   role="img"
   aria-label={t['diagram.pulmonary-embolism.title']}
   lang={locale}
@@ -67,7 +72,7 @@ const diseaseBlocked = [-0.5, -2.5];
     fill="var(--diagram-muscle)"
     fill-opacity="0.45"
   ></rect>
-  <!-- Area beyond the blocked branch: no blood flow -->
+  <!-- Lung area beyond the blocked branch: reduced blood flow -->
   <rect
     class="disease-only"
     x="300"
@@ -105,16 +110,16 @@ const diseaseBlocked = [-0.5, -2.5];
 
   <!-- Vessels: the wall is drawn first, then the lumen -->
   <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
-    <path stroke-width="16" d="M40,292 V175 Q40,155 60,155 H118"></path>
+    <path stroke-width="16" d="M40,320 V175 Q40,155 60,155 H118"></path>
     <path stroke-width="16" d="M185,212 V95 Q185,70 210,70 H262"></path>
     <path stroke-width="10" d="M262,70 L352,30 M262,70 L357,72 M262,70 L352,120"></path>
   </g>
   <g fill="none" stroke="var(--diagram-venous-fill)" stroke-linecap="round">
-    <path stroke-width="10" d="M40,292 V175 Q40,155 60,155 H118"></path>
+    <path stroke-width="10" d="M40,320 V175 Q40,155 60,155 H118"></path>
     <path stroke-width="10" d="M185,212 V95 Q185,70 210,70 H262"></path>
     <path stroke-width="5" d="M262,70 L352,30 M262,70 L357,72 M262,70 L352,120"></path>
   </g>
-  <!-- Beyond the embolus the branch holds no moving blood -->
+  <!-- The occluded branch carries no blood beyond the embolus -->
   <path
     class="disease-only"
     d="M311,97 L352,120"
@@ -126,9 +131,9 @@ const diseaseBlocked = [-0.5, -2.5];
 
   <!-- Clot in a deep leg vein -->
   <g class="disease-only">
-    <ellipse cx="40" cy="262" rx="5" ry="18" fill="var(--diagram-arterial)"></ellipse>
-    <circle cx="39" cy="255" r="1.6" fill="var(--diagram-arterial-fill)"></circle>
-    <circle cx="41" cy="268" r="1.6" fill="var(--diagram-arterial-fill)"></circle>
+    <ellipse cx="40" cy="298" rx="5" ry="12" fill="var(--diagram-arterial)"></ellipse>
+    <circle cx="39" cy="294" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="41" cy="302" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
   </g>
   <!-- Embolus lodged in a branch of the pulmonary artery -->
   <g class="disease-only">
@@ -183,36 +188,36 @@ const diseaseBlocked = [-0.5, -2.5];
   </g>
 
   <!-- Labels -->
-  <text x="145" y="156" text-anchor="middle">
+  <text x="140" y="146" text-anchor="middle">
     {t['diagram.label.ra']}
   </text>
   <text x="150" y="232" text-anchor="middle">
     {t['diagram.label.rv']}
   </text>
-  <text x="205" y="52" text-anchor="middle">
+  <text x="252" y="52" text-anchor="end">
     {t['diagram.label.pulmonaryArtery']}
   </text>
-  <text class="normal-only" x="330" y="162" text-anchor="middle">
+  <text class="normal-only" x="384" y="164" text-anchor="end">
     {t['diagram.label.lungs']}
   </text>
-  <text class="diagram-small" x="24" y="188" text-anchor="middle" transform="rotate(-90 24 188)">
+  <text class="diagram-small" x="24" y="210" text-anchor="middle" transform="rotate(-90 24 210)">
     {t['diagram.label.ivc']}
   </text>
-  <text class="diagram-small" x="56" y="292">
+  <text class="diagram-small" x="56" y="324">
     {t['diagram.label.leg-vein']}
   </text>
   <g class="disease-only">
-    <text class="diagram-small" x="54" y="267">
+    <text class="diagram-small" x="54" y="302">
       {t['diagram.label.clot']}
     </text>
-    <line x1="298" y1="100" x2="274" y2="124" stroke="var(--color-text)" stroke-width="1.5"></line>
-    <text x="270" y="138" text-anchor="end">
+    <line x1="299" y1="100" x2="284" y2="114" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="214" y="128">
       {t['diagram.label.embolus']}
     </text>
-    <text class="diagram-small" x="330" y="158" text-anchor="middle">
+    <text class="diagram-small" x="384" y="160" text-anchor="end">
       {t['diagram.label.reduced-blood-flow']}
     </text>
-    <text x="330" y="180" text-anchor="middle">
+    <text x="384" y="184" text-anchor="end">
       {t['diagram.label.lungs']}
     </text>
   </g>
