@@ -152,7 +152,10 @@ const captions = await Promise.all(
     margin: 0;
     padding: 0;
     border: 1px solid var(--color-border);
-    border-radius: 999px;
+
+    /* Half a row: a pill on one row, and a second row (three states on a narrow screen) keeps
+       its corners instead of being clipped. */
+    border-radius: 1.125rem;
     overflow: hidden;
   }
 
@@ -202,8 +205,8 @@ const captions = await Promise.all(
 
   /* The state is pure CSS, so the toggle works without JavaScript. Elements marked
      data-only="<state>" (or the older normal-only / disease-only classes) show only in it. */
-  .diagram:has([value='normal']:checked) .disease-only,
-  .diagram:has([value='disease']:checked) .normal-only {
+  .diagram:has(.diagram-controls [type='radio']:checked:not([value='normal'])) .normal-only,
+  .diagram:has(.diagram-controls [type='radio']:checked:not([value='disease'])) .disease-only {
     display: none;
   }
 

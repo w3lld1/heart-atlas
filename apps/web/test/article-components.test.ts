@@ -2,7 +2,12 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
-import { diagramStates, diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
+import {
+  diagramStates,
+  diagrams,
+  withTreatment,
+  type DiagramName,
+} from '../src/components/diagrams/index.ts';
 import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
@@ -142,10 +147,13 @@ describe('Diagram', () => {
     async (name) => {
       const { states, initial } = diagramStates(name);
       expect(states).toContain(initial);
+      // A diagram with the treated state needs its caption, so every state gets one.
+      const slots = Object.fromEntries(states.map((state) => [state, `Caption ${state}`]));
       for (const locale of localeCodes) {
         const html = await container.renderToString(Diagram, {
           props: { name },
           locals: { locale },
+          slots,
         });
         expect(html).toContain('role="img"');
         const title = getMessages(locale)[`diagram.${name}.title` as MessageKey];
@@ -156,6 +164,14 @@ describe('Diagram', () => {
       }
     },
   );
+
+  it('adds "after treatment" only as Normal · Disease · After treatment, starting on Disease', () => {
+    expect(withTreatment).toEqual({ states: ['normal', 'disease', 'treated'], initial: 'disease' });
+    const treated = (Object.keys(diagrams) as DiagramName[])
+      .map(diagramStates)
+      .filter((spec) => spec.states.includes('treated'));
+    for (const spec of treated) expect(spec).toBe(withTreatment);
+  });
 
   it('fails the build on a caption for a state the diagram does not have', async () => {
     await expect(

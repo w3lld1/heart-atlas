@@ -89,6 +89,7 @@ export const stateIds = [
   'recording',
   'symptom',
   'scheme',
+  'treated',
 ] as const;
 export type StateId = (typeof stateIds)[number];
 
@@ -96,6 +97,15 @@ type StateSpec = { states: readonly StateId[]; initial: StateId };
 
 const single: StateSpec = { states: ['scheme'], initial: 'scheme' };
 const cycle: StateSpec = { states: ['diastole', 'systole'], initial: 'diastole' };
+/**
+ * A disease diagram that also shows the heart after a typical intervention. The only way to add
+ * the treated state, so the switch always reads Normal · Disease · After treatment.
+ * Spec: docs/plans/2026-10-12-after-treatment-mode.md.
+ */
+export const withTreatment: StateSpec = {
+  states: ['normal', 'disease', 'treated'],
+  initial: 'disease',
+};
 
 /** Diagrams that do not use the default normal / disease pair. One state means no switch. */
 const customStates: Partial<Record<DiagramName, StateSpec>> = {

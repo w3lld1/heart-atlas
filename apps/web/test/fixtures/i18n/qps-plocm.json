@@ -149,6 +149,7 @@
   "diagram.state.diastole": "[RTL] Diastole",
   "diagram.state.systole": "[RTL] Systole",
   "diagram.state.scheme": "[RTL] Diagram",
+  "diagram.state.treated": "[RTL] After treatment",
   "diagram.pause": "[RTL] Pause",
   "diagram.schematic": "[RTL] Simplified diagram, not to scale.",
   "diagram.label.ra": "[RTL] RA",
