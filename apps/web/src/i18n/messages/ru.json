@@ -367,5 +367,22 @@
   "quiz.choose": "Сначала выберите ответ.",
   "quiz.mark.correct": "правильный ответ",
   "quiz.mark.chosen": "ваш ответ",
-  "quiz.score": "Правильных ответов: {correct} из {total}."
+  "quiz.score": "Правильных ответов: {correct} из {total}.",
+  "diagram.label.atria": "Предсердия",
+  "diagram.label.av-node-and-below": "АВ-узел и ниже",
+  "diagram.label.ventricles": "Желудочки",
+  "diagram.label.impulse-blocked": "Импульс не прошёл",
+  "diagram.label.time": "Время →",
+  "diagram.av-block.title": "Схема проведения импульсов от синусового узла через предсердия и атриовентрикулярный узел к желудочкам: в норме доходит каждый импульс, при атриовентрикулярной блокаде II степени один импульс не проходит, и желудочки пропускают сокращение",
+  "diagram.label.av-node": "АВ-узел",
+  "diagram.label.slow-pathway": "Медленный путь",
+  "diagram.label.fast-pathway": "Быстрый путь",
+  "diagram.label.premature-beat": "Экстрасистола",
+  "diagram.label.normal-rhythm": "Обычный ритм",
+  "diagram.label.fast-regular-rhythm": "Частый ровный ритм",
+  "diagram.supraventricular-tachycardia.title": "Схема пути электрического импульса от предсердий через АВ-узел к желудочкам: в норме импульс проходит один раз и в одну сторону, при АВ-узловой реципрокной тахикардии ранний импульс идёт вниз по медленному пути, возвращается по быстрому и бежит по кругу, поэтому желудочки сокращаются часто и ровно",
+  "diagram.label.overriding-aorta": "Аорта над дефектом",
+  "diagram.label.rv-outflow-narrowing": "Сужение выхода из ПЖ",
+  "diagram.label.rv-hypertrophy": "Гипертрофия ПЖ",
+  "diagram.tetralogy-of-fallot.title": "Схема желудочков сердца, лёгочной артерии и аорты в норме и при тетраде Фалло: дефект межжелудочковой перегородки, сужение выхода из правого желудочка, аорта над дефектом и утолщённая стенка правого желудочка"
 }

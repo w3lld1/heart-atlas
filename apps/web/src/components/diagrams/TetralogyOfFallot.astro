@@ -1,0 +1,289 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-tof-arrow-v`;
+const arrowA = `${uid}-tof-arrow-a`;
+// The narrowed-outflow label is too long for one line in the label column: split it in two.
+const outflowWords = t['diagram.label.rv-outflow-narrowing'].split(' ');
+const outflowSplit = Math.ceil(outflowWords.length / 2);
+const outflowLines = [
+  outflowWords.slice(0, outflowSplit).join(' '),
+  outflowWords.slice(outflowSplit).join(' '),
+];
+// Paths of the blood, shared by the arrows and the moving dashes on top of them. The heart is
+// drawn in its own coordinates and shifted right by 160; labels sit in the free column on the left.
+const flow = {
+  // Normal: the right ventricle empties into a wide pulmonary artery, the left into the aorta.
+  toPulmonary: 'M100,282 L100,46',
+  toAorta: 'M225,282 L225,44',
+  // Tetralogy: a thin stream through the narrowed outflow, and venous blood crossing the defect
+  // into the aorta, which sits over the septum, next to the blood from the left ventricle.
+  toPulmonaryNarrow: 'M105,262 L105,46',
+  shunt: 'M130,262 Q150,215 158,170 L158,44',
+  toOverridingAorta: 'M235,270 Q185,230 180,170 L180,44',
+};
+---
+
+<svg
+  viewBox="0 0 470 345"
+  role="img"
+  aria-label={t['diagram.tetralogy-of-fallot.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <g transform="translate(160 0)">
+    <!-- Ventricles with the septum between them; the outer wall is the same in both states -->
+    <path
+      d="M30,150 L300,150 C312,220 266,302 165,324 C64,302 18,220 30,150 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+
+    <!-- Pulmonary artery from the right ventricle: wide in the normal heart, with a narrowed
+         outflow and a narrower trunk in tetralogy -->
+    <path
+      class="normal-only"
+      d="M75,172 L75,30 L125,30 L125,172 Z"
+      fill="var(--diagram-venous-fill)"
+    ></path>
+    <path
+      class="normal-only"
+      d="M75,150 L75,30 M125,30 L125,150"
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+    <path
+      class="disease-only"
+      d="M98,178 L98,140 C98,128 86,124 86,112 L86,30 L124,30 L124,112 C124,124 112,128 112,140 L112,178 Z"
+      fill="var(--diagram-venous-fill)"
+    ></path>
+    <path
+      class="disease-only"
+      d="M98,150 L98,140 C98,128 86,124 86,112 L86,30 M124,30 L124,112 C124,124 112,128 112,140 L112,150"
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+
+    <!-- Aorta: from the left ventricle in the normal heart; in tetralogy shifted towards the right
+         ventricle, over the septum, with less than half of it over the right ventricle -->
+    <path
+      class="normal-only"
+      d="M200,172 L200,26 L250,26 L250,172 Z"
+      fill="var(--diagram-arterial-fill)"
+    ></path>
+    <path
+      class="normal-only"
+      d="M200,150 L200,26 M250,26 L250,150"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+    <path
+      class="disease-only"
+      d="M143,172 L143,26 L193,26 L193,172 Z"
+      fill="var(--diagram-arterial-fill)"
+    ></path>
+    <path
+      class="disease-only"
+      d="M143,150 L143,26 M193,26 L193,150"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+
+    <!-- Right ventricle cavity: the wall is thicker in tetralogy, so the cavity is smaller -->
+    <path
+      class="normal-only"
+      d="M48,165 L155,165 L155,292 C100,284 52,242 48,165 Z"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+    <path
+      class="disease-only"
+      d="M78,172 L155,172 L155,276 C118,270 82,236 78,172 Z"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+    <!-- Openings from the cavities into the vessels -->
+    <rect
+      class="normal-only"
+      x="77"
+      y="163"
+      width="46"
+      height="4"
+      fill="var(--diagram-venous-fill)"
+    ></rect>
+    <rect
+      class="disease-only"
+      x="100"
+      y="170"
+      width="10"
+      height="4"
+      fill="var(--diagram-venous-fill)"
+    ></rect>
+
+    <!-- Left ventricle cavity: the same in both states -->
+    <path
+      d="M175,165 L284,165 C280,242 228,284 175,292 Z"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+    <rect
+      class="normal-only"
+      x="202"
+      y="163"
+      width="46"
+      height="4"
+      fill="var(--diagram-arterial-fill)"
+    ></rect>
+
+    <!-- Large defect at the top of the septum, under the aorta: the aorta opens into both
+         ventricles and the defect joins them -->
+    <g class="disease-only">
+      <rect x="145" y="168" width="12" height="8" fill="var(--diagram-venous-fill)"></rect>
+      <rect x="175" y="162" width="16" height="6" fill="var(--diagram-arterial-fill)"></rect>
+      <rect x="155" y="160" width="20" height="58" fill="var(--diagram-venous-fill)"></rect>
+      <path
+        d="M155,162 L155,218 L175,218 L175,162"
+        fill="none"
+        stroke="var(--color-text)"
+        stroke-width="1.5"
+        stroke-dasharray="3 2"
+      ></path>
+    </g>
+
+    <!-- Flow arrows, visible with and without motion -->
+    <g fill="none" stroke-linecap="round">
+      <path
+        class="normal-only"
+        d={flow.toPulmonary}
+        stroke="var(--diagram-venous)"
+        stroke-width="4"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        class="normal-only"
+        d={flow.toAorta}
+        stroke="var(--diagram-arterial)"
+        stroke-width="4"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.toPulmonaryNarrow}
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.shunt}
+        stroke="var(--diagram-venous)"
+        stroke-width="4"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.toOverridingAorta}
+        stroke="var(--diagram-arterial)"
+        stroke-width="4"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+    </g>
+
+    <!-- Moving blood: dashes running along the arrows -->
+    <g class="flow" stroke="var(--color-bg)">
+      <path class="dash-flow normal-only" d={flow.toPulmonary} stroke-width="2"></path>
+      <path class="dash-flow normal-only" d={flow.toAorta} stroke-width="2"></path>
+      <path class="dash-flow disease-only" d={flow.toPulmonaryNarrow} stroke-width="1"></path>
+      <path class="dash-flow disease-only" d={flow.shunt} stroke-width="2"></path>
+      <path class="dash-flow disease-only" d={flow.toOverridingAorta} stroke-width="2"></path>
+    </g>
+
+    <!-- Chamber and vessel labels inside the drawing -->
+    <text class="normal-only" x="68" y="240" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text class="disease-only" x="127" y="214" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text x="248" y="236" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+    <text class="normal-only" x="225" y="19" text-anchor="middle">
+      {t['diagram.label.aorta']}
+    </text>
+    <text class="diagram-small disease-only" x="168" y="19" text-anchor="middle">
+      {t['diagram.label.overriding-aorta']}
+    </text>
+
+    <!-- Septum (normal) or defect (tetralogy), labelled below the heart -->
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line class="normal-only" x1="165" y1="230" x2="165" y2="322"></line>
+      <line class="disease-only" x1="165" y1="220" x2="165" y2="322"></line>
+    </g>
+  </g>
+
+  <text class="normal-only" x="325" y="341" text-anchor="middle">
+    {t['diagram.label.septum']}
+  </text>
+  <text class="disease-only" x="325" y="341" text-anchor="middle">
+    {t['diagram.label.defect']}
+  </text>
+
+  <!-- Labels in the left column with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="150" y1="70" x2="233" y2="70"></line>
+    <line class="disease-only" x1="150" y1="70" x2="244" y2="70"></line>
+    <line class="disease-only" x1="150" y1="148" x2="256" y2="148"></line>
+    <line class="disease-only" x1="150" y1="226" x2="222" y2="226"></line>
+  </g>
+  <text class="diagram-small" x="8" y="74">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="145">
+    <tspan x="8">{outflowLines[0]}</tspan>
+    <tspan x="8" dy="15">
+      {outflowLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="8" y="230">
+    {t['diagram.label.rv-hypertrophy']}
+  </text>
+</svg>
