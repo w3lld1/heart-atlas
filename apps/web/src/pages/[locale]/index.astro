@@ -11,7 +11,12 @@ import { getMessages } from '../../i18n/messages.ts';
 import { localePath } from '../../i18n/paths.ts';
 import { formatCount } from '../../i18n/plural.ts';
 import { articlePages } from '../../lib/articles.ts';
-import { heartModelUrls, heroPoster, structureIds } from '../../lib/heart-model.ts';
+import {
+  heartModelUrls,
+  heartStructures,
+  heroPoster,
+  structureIds,
+} from '../../lib/heart-model.ts';
 import { handFontCss } from '../../lib/hand-font.ts';
 import { cardPath, stageCards, type SectionId } from '../../lib/home.ts';
 import { repoUrl } from '../../site.ts';
@@ -39,13 +44,23 @@ const has = {
 };
 
 const poster = heroPoster();
-const posterUrl = heartModelUrls(base).heroPoster;
+const modelUrls = heartModelUrls(base);
+const posterUrl = modelUrls.heroPoster;
 const cards = stageCards.flatMap((card) => {
   const path = cardPath(card, has);
   const anchor = poster.anchors[card.anchor];
   if (path === null || anchor === undefined) return [];
   const note = card.id === 'disease' ? count(card.note, readableOf('disease')) : t[card.note];
-  return [{ ...card, href: href(path), anchor, note, structures: structureIds(card.groups) }];
+  return [
+    {
+      ...card,
+      href: href(path),
+      anchorId: card.anchor,
+      anchor,
+      note,
+      structures: structureIds(card.groups),
+    },
+  ];
 });
 
 interface SectionCard {
@@ -94,6 +109,14 @@ const titleParts =
 const lines = (text: string) => text.split('\n');
 const handFont = await handFontCss(t['home.hand']);
 const arrow = 'M5 12h14M13 6l6 6-6 6';
+// What the live heart needs, read by the page script when the heart loads.
+const heroData = JSON.stringify({
+  models: modelUrls.models,
+  structures: heartStructures(t),
+  anchors: Object.fromEntries(cards.map((card) => [card.anchorId, card.anchor])),
+  posterAspect: poster.width / poster.height,
+  label: t['home.heart3d'],
+});
 ---
 
 <BaseLayout locale={locale} wide>
@@ -148,15 +171,25 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
         <BodyBackdrop />
       </div>
       <div class="glow" aria-hidden="true"></div>
-      <img
-        class="poster"
-        data-poster
-        src={posterUrl}
-        width={poster.width}
-        height={poster.height}
-        alt={t['home.posterAlt']}
-        fetchpriority="high"
-      />
+      <div class="heart" data-heart>
+        <img
+          class="poster"
+          data-poster
+          src={posterUrl}
+          width={poster.width}
+          height={poster.height}
+          alt={t['home.posterAlt']}
+          fetchpriority="high"
+        />
+        <div class="hero-mount" data-hero-mount></div>
+        <button class="load3d glass" type="button" data-load3d hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9" />
+          </svg>
+          {t['motion.load3d']}
+        </button>
+      </div>
+      <script type="application/json" data-hero-data set:html={heroData} />
       <svg class="links" data-links aria-hidden="true" focusable="false">
         {cards.map((card) => (
           <g class="link" data-card={card.id}>
@@ -174,6 +207,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
               class="node glass"
               href={card.href}
               data-card={card.id}
+              data-anchor-id={card.anchorId}
               data-anchor-x={card.anchor.x}
               data-anchor-y={card.anchor.y}
               data-structures={card.structures.join(' ')}
@@ -240,11 +274,17 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
 </BaseLayout>
 
 <script>
-  // Lines from each card to its structure on the poster. Drawn only while the cards sit around
+  import { highlightStructures } from '@heart-atlas/viewer/events';
+  import type { HeroHeartHandle, HeroHeartOptions } from '@heart-atlas/viewer/hero';
+  import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
+
+  // Lines from each card to its structure on the heart. Drawn only while the cards sit around
   // the heart (wide screens); on narrow screens the cards stack and CSS hides the lines.
   const stage = document.querySelector<HTMLElement>('[data-stage]');
   const svg = stage?.querySelector<SVGSVGElement>('[data-links]');
   const poster = stage?.querySelector<HTMLImageElement>('[data-poster]');
+  /** Where the live heart puts each anchor now, as shares of its canvas; empty before it loads. */
+  let live: Record<string, [number, number]> = {};
 
   function draw() {
     if (!stage || !svg || !poster || getComputedStyle(svg).display === 'none') return;
@@ -254,8 +294,12 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     for (const node of stage.querySelectorAll<HTMLElement>('.node')) {
       const link = svg.querySelector(`[data-card="${node.dataset['card']}"]`);
       if (!link) continue;
-      const ax = image.left - box.left + Number(node.dataset['anchorX']) * image.width;
-      const ay = image.top - box.top + Number(node.dataset['anchorY']) * image.height;
+      const [x, y] = live[node.dataset['anchorId'] ?? ''] ?? [
+        Number(node.dataset['anchorX']),
+        Number(node.dataset['anchorY']),
+      ];
+      const ax = image.left - box.left + x * image.width;
+      const ay = image.top - box.top + y * image.height;
       const card = node.getBoundingClientRect();
       // The line leaves the card from its edge facing the heart.
       const before = card.left + card.width / 2 < image.left + image.width / 2;
@@ -282,6 +326,99 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     observer.observe(stage);
     for (const node of stage.querySelectorAll('.node')) observer.observe(node);
     void document.fonts.ready.then(draw);
+  }
+
+  // Cards light their structures on the live heart.
+  for (const node of stage?.querySelectorAll<HTMLElement>('.node') ?? []) {
+    const ids = (node.dataset['structures'] ?? '').split(' ').filter(Boolean);
+    const on = () => highlightStructures(ids, { ghost: 'ghost' in node.dataset });
+    const off = () => highlightStructures([]);
+    node.addEventListener('pointerenter', on);
+    node.addEventListener('focus', on);
+    node.addEventListener('pointerleave', off);
+    node.addEventListener('blur', off);
+  }
+
+  // The live heart: with motion "full" it loads by itself once the stage is on screen and the
+  // page is idle; otherwise the poster stays and a button loads it.
+  const heart = stage?.querySelector<HTMLElement>('[data-heart]');
+  const mount = stage?.querySelector<HTMLElement>('[data-hero-mount]');
+  const button = stage?.querySelector<HTMLButtonElement>('[data-load3d]');
+  const data = stage?.querySelector('[data-hero-data]')?.textContent;
+  let handle: HeroHeartHandle | null = null;
+  let loading = false;
+  let onScreen = false;
+
+  function hasWebGL(): boolean {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      return gl !== null;
+    } catch {
+      return false;
+    }
+  }
+  const webgl = Boolean(heart && mount && data) && hasWebGL();
+
+  function showButton() {
+    if (button) button.hidden = !webgl || loading || currentMotion() === 'full';
+  }
+
+  async function load() {
+    if (loading || !webgl || !heart || !mount || !data) return;
+    loading = true;
+    showButton();
+    const fail = () => {
+      heart.classList.remove('live');
+      poster?.removeAttribute('aria-hidden');
+      live = {};
+      draw();
+    };
+    try {
+      const { mountHeroHeart } = await import('@heart-atlas/viewer/hero');
+      const options = JSON.parse(data) as Pick<
+        HeroHeartOptions,
+        'models' | 'structures' | 'anchors' | 'posterAspect' | 'label'
+      >;
+      handle = mountHeroHeart(mount, {
+        ...options,
+        motion: currentMotion(),
+        onReady: () => {
+          heart.classList.add('live');
+          // The live heart has its own name; the hidden poster leaves the accessibility tree.
+          poster?.setAttribute('aria-hidden', 'true');
+        },
+        onAnchors: (points) => {
+          live = points;
+          draw();
+        },
+        onError: fail,
+      });
+    } catch {
+      // The 3D code did not load (offline, stale deploy): the poster stays.
+      fail();
+    }
+  }
+
+  function loadWhenIdle() {
+    if (currentMotion() !== 'full' || !onScreen) return;
+    if ('requestIdleCallback' in window) requestIdleCallback(() => void load(), { timeout: 3000 });
+    else setTimeout(() => void load(), 1000);
+  }
+
+  if (heart && webgl) {
+    new IntersectionObserver(([entry]) => {
+      onScreen = entry?.isIntersecting ?? false;
+      loadWhenIdle();
+    }).observe(heart);
+    button?.addEventListener('click', () => void load());
+    window.addEventListener(MOTION_EVENT, () => {
+      handle?.setMotion(currentMotion());
+      showButton();
+      loadWhenIdle();
+    });
+    showButton();
   }
 </script>
 
@@ -512,7 +649,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     pointer-events: none;
   }
 
-  .poster {
+  .heart {
     position: absolute;
     z-index: 2;
     inset-block-start: 3rem;
@@ -520,14 +657,82 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
 
     /* Fits between the cards on either side; its transparent margins may run under them. */
     inline-size: clamp(16rem, 100% - 2 * var(--card-w) + 4rem, 25rem);
-    block-size: auto;
     translate: -50% 0;
+  }
+
+  .poster,
+  .hero-mount {
     mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  }
+
+  .poster {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    transition: opacity 0.4s;
+  }
+
+  /*
+   * The live heart draws over the poster with the same camera, so swapping them moves nothing.
+   * It is wider than the poster, so the turning heart is not cut at its sides.
+   */
+  .hero-mount {
+    position: absolute;
+    inset-block: 0;
+    inset-inline: -30%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .heart:global(.live) .hero-mount {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .heart:global(.live) .poster {
+    opacity: 0;
+  }
+
+  .hero-mount :global(.hero-heart-canvas) {
+    cursor: grab;
+  }
+
+  .hero-mount :global(.hero-heart-canvas:focus-visible) {
+    border-radius: 1.5rem;
+    outline: 2px solid var(--color-blue);
+    outline-offset: -2px;
+  }
+
+  .load3d {
+    position: absolute;
+    inset-block-end: 0.5rem;
+    inset-inline-start: 50%;
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    translate: -50% 0;
+    cursor: pointer;
+  }
+
+  .load3d[hidden] {
+    display: none;
+  }
+
+  .load3d svg {
+    color: var(--color-blue);
   }
 
   :global([dir='rtl']) .backdrop,
   :global([dir='rtl']) .glow,
-  :global([dir='rtl']) .poster {
+  :global([dir='rtl']) .heart,
+  :global([dir='rtl']) .load3d {
     translate: 50% 0;
   }
 
@@ -909,7 +1114,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
       block-size: 18rem;
     }
 
-    .poster {
+    .heart {
       inset-block-start: 0.5rem;
       inline-size: min(21rem, 90%);
     }

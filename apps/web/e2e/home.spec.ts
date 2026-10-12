@@ -109,15 +109,6 @@ for (const locale of Object.keys(productionLocales)) {
       });
     }
 
-    test('loads no 3D code', async ({ page }) => {
-      const scripts: Promise<string>[] = [];
-      page.on('response', (response) => {
-        if (response.url().endsWith('.js')) scripts.push(response.text());
-      });
-      await page.goto(`${locale}/`, { waitUntil: 'networkidle' });
-      for (const text of await Promise.all(scripts)) expect(text).not.toContain('WebGLRenderer');
-    });
-
     for (const colorScheme of ['light', 'dark'] as const) {
       test(`has no axe violations (${colorScheme})`, async ({ page }) => {
         await page.emulateMedia({ colorScheme });

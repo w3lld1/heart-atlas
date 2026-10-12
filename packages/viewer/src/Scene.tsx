@@ -223,7 +223,7 @@ function isShown(object: Object3D): boolean {
   return true;
 }
 
-function Model({ onLoaded, ...props }: ModelProps) {
+export function Model({ onLoaded, ...props }: ModelProps) {
   const gltf = useGLTF(props.url, false, true);
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);

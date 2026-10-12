@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fontUrls, jsReferences } from '../scripts/js-budget.ts';
+import { fontUrls, jsReferences, lazy3dEntry } from '../scripts/js-budget.ts';
 
 describe('jsReferences', () => {
   it('finds script, island and preload URLs in HTML', () => {
@@ -32,5 +32,14 @@ describe('fontUrls', () => {
   it('counts only the faces the text needs, reading minified wildcard ranges', () => {
     expect(fontUrls(css, 'Hello')).toEqual(['/a-latin.woff2']);
     expect(fontUrls(css, 'Привет, мир')).toEqual(['/a-latin.woff2', '/a-cyrillic.woff2']);
+  });
+});
+
+describe('lazy3dEntry', () => {
+  it('matches only the entry of the live 3D heart', () => {
+    expect(lazy3dEntry.test('hero.DZVkaJ9a.js')).toBe(true);
+    expect(lazy3dEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
+    expect(lazy3dEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
+    expect(lazy3dEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
   });
 });

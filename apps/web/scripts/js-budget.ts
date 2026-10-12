@@ -3,7 +3,7 @@
 // Run after `pnpm build`: `node scripts/js-budget.ts`. Measures dist/ itself, so the result does
 // not depend on whether the preview server compresses responses.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { articleTypes } from '../src/lib/content.ts';
@@ -47,7 +47,14 @@ function resolveFile(url: string, from: string): string | undefined {
   return join(dirname(from), url);
 }
 
-/** gzip bytes of inline scripts plus every JS file reachable from the page. */
+/**
+ * Entry of the live 3D heart on the home page (`@heart-atlas/viewer/hero`). The page imports it
+ * only on demand (motion "full", or the "Rotate in 3D" button), so it and what only it reaches are
+ * the 3D the budget leaves out.
+ */
+export const lazy3dEntry = /^hero\.[\w-]+\.js$/;
+
+/** gzip bytes of inline scripts plus every JS file reachable from the page, without the 3D heart. */
 export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] } {
   const html = readFileSync(htmlFile, 'utf8');
   let bytes = 0;
@@ -63,7 +70,7 @@ export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] 
   const seen = new Set<string>();
   while (pending.length > 0) {
     const file = pending.pop();
-    if (!file || seen.has(file)) continue;
+    if (!file || seen.has(file) || lazy3dEntry.test(basename(file))) continue;
     seen.add(file);
     const code = readFileSync(file);
     bytes += gzipSize(code);

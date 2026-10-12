@@ -6,12 +6,19 @@ export const HIGHLIGHT_EVENT = 'heart-atlas:highlight';
 
 export interface HighlightDetail {
   ids: string[];
+  /** Asks the home page heart to make everything else see-through; the viewer ignores it. */
+  ghost?: boolean;
 }
 
 /** Asks every viewer on the page to highlight these structure ids; an empty list clears it. */
-export function highlightStructures(ids: readonly string[]): void {
+export function highlightStructures(
+  ids: readonly string[],
+  options: { ghost?: boolean } = {},
+): void {
   window.dispatchEvent(
-    new CustomEvent<HighlightDetail>(HIGHLIGHT_EVENT, { detail: { ids: [...ids] } }),
+    new CustomEvent<HighlightDetail>(HIGHLIGHT_EVENT, {
+      detail: { ids: [...ids], ...(options.ghost ? { ghost: true } : {}) },
+    }),
   );
 }
 
