@@ -11,7 +11,8 @@ import {
   type ReactNode,
 } from 'react';
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
-import { diseaseShapes, hasStillSigns, type DiseaseId } from './disease.ts';
+import type { PresetId } from '@heart-atlas/heart-clock';
+import { diseaseShapes, hasStillSigns, presetShape, type DiseaseId } from './disease.ts';
 import { HIGHLIGHT_EVENT, isHighlightEvent } from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
@@ -124,6 +125,8 @@ export default function HeartViewer({
   // Decided after mount, since the build cannot know the screen: 'auto' turns into a click on phones.
   const [waitForClick, setWaitForClick] = useState(loadOn === 'click');
   const [cycle, setCycle] = useState<CycleSource | null>(null);
+  // Preset of the page's heart clock, as the model last read it.
+  const [cyclePreset, setCyclePreset] = useState<PresetId | null>(null);
   const [rate, setRate] = useState<number>(RATE.initial);
   const rateRef = useRef<number>(RATE.initial);
   const [startingClock, setStartingClock] = useState(false);
@@ -232,15 +235,18 @@ export default function HeartViewer({
   const showSchematic = active.some(
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
-  const shape = disease ? diseaseShapes[disease] : null;
-  const markerKey = disease && MARKER_KEY[disease];
-  // Captions say only what the model shows now. A sign from a clock preset waits for the preset
-  // to reach the viewer (docs/plans/2026-10-12-disease-signs-3d.md, PR 2).
+  // Without a disease of its own, a model that follows the page's clock shows the clock's preset.
+  const shown = disease ?? (cyclePreset ? presetShape[cyclePreset] : null);
+  const shape = shown ? diseaseShapes[shown] : null;
+  const markerKey = shown && MARKER_KEY[shown];
+  // Captions say only what the model shows now: motion signs while it beats, preset signs while
+  // the clock runs that preset.
   const captions: string[] = [];
-  if (disease && shape) {
-    if (hasStillSigns(shape)) captions.push(t[`viewer.disease.${disease}` as ViewerMessageKey]);
-    if (shape.beat === true && cycle) {
-      captions.push(t[`viewer.disease.${disease}.beat` as ViewerMessageKey]);
+  if (shown && shape) {
+    if (hasStillSigns(shape)) captions.push(t[`viewer.disease.${shown}` as ViewerMessageKey]);
+    const beating = shape.beat === true ? cycle !== null : shape.beat === cyclePreset;
+    if (shape.beat && beating) {
+      captions.push(t[`viewer.disease.${shown}.beat` as ViewerMessageKey]);
     }
   }
   const status = STATUS[phase];
@@ -278,6 +284,7 @@ export default function HeartViewer({
                 focusOnReady={focusOnReady}
                 cycle={cycle}
                 disease={shape}
+                onPreset={setCyclePreset}
                 {...(markerKey ? { markerLabel: t[markerKey] } : {})}
                 onReady={onReady}
                 onSelect={select}
@@ -328,7 +335,11 @@ export default function HeartViewer({
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
         {shape && captions.length > 0 && (
           <div className={styles.disease}>
-            <p id={`${id}-disease`}>{captions.join(' ')}</p>
+            <div id={`${id}-disease`}>
+              {captions.map((caption) => (
+                <p key={caption}>{caption}</p>
+              ))}
+            </div>
             <p className={styles.note}>{t['viewer.disease.note']}</p>
             {shape.sources.extra && (
               <>

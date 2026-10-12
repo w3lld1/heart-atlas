@@ -1,3 +1,4 @@
+import type { PresetId } from './presets.ts';
 import type { Phase } from './timing.ts';
 
 export type ChamberId = 'right-atrium' | 'left-atrium' | 'right-ventricle' | 'left-ventricle';
@@ -12,6 +13,8 @@ export interface CycleState {
   contraction: Record<ChamberId, number>;
   /** How far each valve is open, 0 (closed) to 1. */
   valveOpen: Record<ValveId, number>;
+  /** Preset the clock runs, when the page's clock knows it; a 3D model shows its disease signs. */
+  preset?: PresetId;
 }
 
 /** Current state of a running clock, or null when there is none. Knows its own clock time. */

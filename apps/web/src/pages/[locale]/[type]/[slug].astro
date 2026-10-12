@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
+import { isDiseaseId } from '@heart-atlas/viewer';
 import { articleComponents } from '../../../components/article-components.ts';
 import LevelScript from '../../../components/LevelScript.astro';
 import LevelSwitch from '../../../components/LevelSwitch.astro';
@@ -45,6 +46,8 @@ const canonical = new URL(
   Astro.site,
 );
 const { Content } = await render(entry);
+// Disease articles with a shape on the 3D model show it next to the heart clock.
+const disease = type === 'disease' && isDiseaseId(slug) ? slug : undefined;
 ---
 
 <BaseLayout
@@ -83,7 +86,13 @@ const { Content } = await render(entry);
       </div>
     )}
   </article>
-  {article.preset && <ArticleClock locale={locale} preset={article.preset} />}
+  {(article.preset || disease) && (
+    <ArticleClock
+      locale={locale}
+      {...(article.preset ? { preset: article.preset } : {})}
+      {...(disease ? { disease } : {})}
+    />
+  )}
   <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
 </BaseLayout>
 

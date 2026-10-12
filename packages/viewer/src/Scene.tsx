@@ -42,6 +42,7 @@ import {
   type CycleSource,
   type ValveId,
 } from './cycle.ts';
+import type { PresetId } from '@heart-atlas/heart-clock';
 import { nearestDistances, ZONE_FADE, zoneWeight, type DiseaseShape } from './disease.ts';
 import type { SectionAxis } from './types.ts';
 
@@ -72,6 +73,8 @@ export interface SceneProps {
   disease?: DiseaseShape | null;
   /** Text of the disease marker, when the shape has one. */
   markerLabel?: string;
+  /** Called when the preset of the cycle's clock changes, and with null when the cycle goes. */
+  onPreset?: (preset: PresetId | null) => void;
   onReady: () => void;
   onSelect: (id: string) => void;
 }
@@ -424,6 +427,13 @@ export function Model({ onLoaded, ...props }: ModelProps) {
   // and the conduction glow are eased here. While anything moves, each frame asks for the next.
   // A source has no change events, so while one is set a slow tick lets a paused clock resume.
   const lastState = useRef('');
+  const lastPreset = useRef<PresetId | null>(null);
+  const { onPreset } = props;
+  useEffect(() => {
+    if (props.cycle) return;
+    lastPreset.current = null;
+    onPreset?.(null);
+  }, [props.cycle, onPreset]);
   useEffect(() => {
     if (!props.cycle) return;
     const tick = window.setInterval(invalidate, 200);
@@ -432,6 +442,11 @@ export function Model({ onLoaded, ...props }: ModelProps) {
 
   useFrame((state, delta) => {
     const cycle = props.cycle?.() ?? null;
+    // A clock between two presets gives no state for a moment; the last preset holds meanwhile.
+    if (cycle && (cycle.preset ?? null) !== lastPreset.current) {
+      lastPreset.current = cycle.preset ?? null;
+      onPreset?.(lastPreset.current);
+    }
     const dt = delta * 1000;
     // A paused clock gives the same state every frame; only a change asks for the next frame.
     const signature = cycle ? JSON.stringify(cycle) : '';

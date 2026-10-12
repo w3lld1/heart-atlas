@@ -58,6 +58,11 @@
   border-inline-start: 4px solid #9b4dca;
 }
 
+.disease > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
 .disease p,
 .disease ul {
   margin: 0;

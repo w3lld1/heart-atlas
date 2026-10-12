@@ -189,14 +189,17 @@ export default function HeartClockDemo({
     return () => observer.disconnect();
   }, []);
 
-  // Lets a 3D viewer on the page beat with this clock. It reads the same time as the strip, so
-  // the model matches the monitor; a clock that nowRef has not moved to yet gives no state.
+  // Lets a 3D viewer on the page beat with this clock and show the preset's disease signs. It reads
+  // the same time as the strip, so the model matches the monitor; a clock that nowRef has not
+  // moved to yet gives no state.
   useEffect(() => {
     const source: CycleSource = () =>
-      nowClockRef.current === clock ? cycleState(clock, nowRef.current) : null;
+      nowClockRef.current === clock
+        ? { ...cycleState(clock, nowRef.current), preset: presetId }
+        : null;
     publishCycleSource(source);
     return () => withdrawCycleSource(source);
-  }, [clock]);
+  }, [clock, presetId]);
 
   // Draws one frame now and, while playing, on every animation frame.
   useEffect(() => {
