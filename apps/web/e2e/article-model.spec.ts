@@ -33,6 +33,9 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
     'aortic-dissection': ['aorta'],
     'sick-sinus-syndrome': ['sa-node'],
+    'coarctation-of-the-aorta': ['aorta'],
+    'patent-ductus-arteriosus': ['aorta', 'pulmonary-trunk'],
+    'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {

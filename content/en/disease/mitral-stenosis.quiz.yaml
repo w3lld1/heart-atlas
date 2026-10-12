@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What is the most common cause of mitral stenosis?
+    options:
+      - text: High cholesterol
+      - text: Past rheumatic fever
+        correct: true
+      - text: Smoking
+    explanation: The most common cause of mitral stenosis is past rheumatic fever.
+    cite: [2, 4]
+  - level: patient
+    prompt: How does mitral stenosis usually behave?
+    options:
+      - text: It can go without symptoms for a long time and progresses faster in later stages
+        correct: true
+      - text: It causes severe symptoms from the very start
+    explanation: The disease can go without symptoms for a long time, and progresses faster in its later stages.
+    cite: [2, 4]
+  - level: patient
+    prompt: What is the main symptom of mitral stenosis?
+    options:
+      - text: Headache
+      - text: Itchy skin
+      - text: Breathlessness
+        correct: true
+    explanation: 'The main symptom is breathlessness: at first during physical activity, later also at rest; over time it becomes hard to breathe when lying flat.'
+    cite: [2]
+  - level: patient
+    prompt: What is an ultrasound scan of the heart through the food pipe useful for?
+    options:
+      - text: It measures blood sugar
+      - text: It shows small clots in the left atrium better
+        correct: true
+    explanation: Sometimes an ultrasound scan through the food pipe (transoesophageal echocardiogram) is needed — it shows small clots in the left atrium better.
+    cite: [4]
+  - level: student
+    prompt: What does LA enlargement predispose to in MS?
+    options:
+      - text: Atrial fibrillation, a risk factor for thromboembolism
+        correct: true
+      - text: Aortic stenosis
+    explanation: LA enlargement predisposes to atrial fibrillation (AF), a risk factor for thromboembolism.
+    cite: [4]
+  - level: student
+    prompt: Why does balloon commissurotomy give no benefit in mitral annular calcification?
+    options:
+      - text: The calcification goes away by itself over time
+      - text: There is no commissural fusion
+        correct: true
+      - text: The leaflets are completely unaffected
+    explanation: When the cause is mitral annular calcification, balloon commissurotomy gives no benefit because there is no commissural fusion.
+    cite: [4]

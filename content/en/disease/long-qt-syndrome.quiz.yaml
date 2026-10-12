@@ -1,0 +1,50 @@
+questions:
+  - level: patient
+    prompt: What happens in the heart in long QT syndrome?
+    options:
+      - text: The aorta narrows
+      - text: The electrical activation of the ventricular cells lasts longer than usual
+        correct: true
+      - text: A heart valve does not close
+    explanation: LQTS is a disorder of the ion channels of heart cells in which the electrical activation of the ventricular cells lasts longer than usual and the QT interval on the ECG is prolonged.
+    cite: [2]
+  - level: patient
+    prompt: How does the syndrome show itself as long as there is no arrhythmia?
+    options:
+      - text: It does not, it causes no symptoms
+        correct: true
+      - text: With constant chest pain
+    explanation: As long as there is no arrhythmia, the syndrome causes no symptoms.
+    cite: [2]
+  - level: patient
+    prompt: Does one normal ECG rule out congenital LQTS?
+    options:
+      - text: Yes, it rules it out completely
+      - text: No, it does not
+        correct: true
+    explanation: 'One normal ECG does not rule out the congenital syndrome: the QTc is normal in 25–50% of people with a confirmed mutation.'
+    cite: [2]
+  - level: patient
+    prompt: If a mutation is found in a person with LQTS, who is tested for it?
+    options:
+      - text: All close relatives, even with no symptoms and a normal ECG
+        correct: true
+      - text: Only relatives who have symptoms
+    explanation: If a mutation is found, all close relatives are tested for it, even if they have no symptoms and a normal ECG.
+    cite: [1]
+  - level: student
+    prompt: How are the three main forms of LQTS (types 1, 2 and 3) inherited?
+    options:
+      - text: X-linked
+      - text: Autosomal dominant with incomplete penetrance
+        correct: true
+    explanation: The three main genes are KCNQ1, KCNH2 and SCN5A (types 1, 2 and 3); these three forms are inherited as autosomal dominant disorders with incomplete penetrance.
+    cite: [1, 2]
+  - level: student
+    prompt: Does a negative genetic test rule out LQTS?
+    options:
+      - text: No, mutations are found in about 75%
+        correct: true
+      - text: Yes, it does
+    explanation: Molecular genetic testing is recommended for all patients with a high probability of a clinical diagnosis; mutations are found in about 75%, so a negative result does not rule out LQTS.
+    cite: [1]
