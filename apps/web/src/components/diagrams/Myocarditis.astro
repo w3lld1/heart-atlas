@@ -1,0 +1,239 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. Unused: no ids here. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// A cross-section of the left ventricle: a ring of muscle around the cavity. The cavity has the
+// same size in both states (a dilated cavity would be dilated cardiomyopathy, not myocarditis).
+const centre = { x: 120, y: 160 };
+// Labels start here, right of the ring and its bulges.
+const labelX = 240;
+const leaderX = labelX - 5;
+const cavityR = 62;
+const outerR = 100;
+const midR = (cavityR + outerR) / 2;
+
+type Point = readonly [x: number, y: number];
+const at = (angle: number, r: number): Point => {
+  const rad = (angle * Math.PI) / 180;
+  return [centre.x + r * Math.cos(rad), centre.y + r * Math.sin(rad)];
+};
+
+// Patchy foci of inflammation in the wall. Their places are arbitrary: no location is typical.
+// Each focus lies along the wall; the wall there bulges a little outwards (oedema).
+interface Focus {
+  angle: number;
+  /** Half-length along the wall. */
+  len: number;
+}
+const foci: Focus[] = [
+  { angle: -48, len: 24 },
+  { angle: 35, len: 18 },
+  { angle: 175, len: 21 },
+];
+const placed = foci.map(({ angle, len }) => {
+  const [x, y] = at(angle, midR);
+  const [bx, by] = at(angle, outerR - 4);
+  return {
+    focus: `translate(${x} ${y}) rotate(${angle + 90})`,
+    bulge: `translate(${bx} ${by}) rotate(${angle + 90})`,
+    len,
+  };
+});
+
+const beatOrigin = `--myo-origin: ${centre.x}px ${centre.y}px`;
+const wallLabel = at(80, midR);
+const focusLabelA = at(-48, outerR + 8);
+const focusLabelB = at(35, outerR + 8);
+---
+
+<svg viewBox="0 30 490 275" role="img" aria-label={t['diagram.myocarditis.title']} lang={locale}>
+  <!-- Normal: a uniform wall that contracts evenly -->
+  <g class="normal-only" style={beatOrigin}>
+    <g class="myo-beat myo-beat-full">
+      <circle
+        cx={centre.x}
+        cy={centre.y}
+        r={outerR}
+        fill="var(--diagram-muscle)"
+        stroke="var(--color-muted)"
+        stroke-width="2"
+      ></circle>
+      <circle
+        cx={centre.x}
+        cy={centre.y}
+        r={cavityR}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></circle>
+    </g>
+  </g>
+
+  <!-- Disease: the same cavity; foci of inflammation in the wall; the beat may be weaker -->
+  <g class="disease-only" style={beatOrigin}>
+    <g class="myo-beat myo-beat-weak">
+      <circle
+        cx={centre.x}
+        cy={centre.y}
+        r={outerR}
+        fill="var(--diagram-muscle)"
+        stroke="var(--color-muted)"
+        stroke-width="2"
+      ></circle>
+      <!-- Oedema: the wall is slightly thicker over each focus -->
+      {placed.map(({ bulge, len }) => (
+        <ellipse
+          transform={bulge}
+          rx={len + 4}
+          ry="10"
+          fill="var(--diagram-muscle)"
+          stroke="var(--color-muted)"
+          stroke-width="2"
+        />
+      ))}
+      <circle cx={centre.x} cy={centre.y} r={outerR - 1} fill="var(--diagram-muscle)"></circle>
+      <circle
+        cx={centre.x}
+        cy={centre.y}
+        r={cavityR}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></circle>
+      {placed.map(({ focus, len }) => (
+        <g transform={focus}>
+          <ellipse
+            class="myo-halo"
+            rx={len + 5}
+            ry="20"
+            fill="var(--diagram-arterial)"
+            opacity="0.25"
+          />
+          <ellipse rx={len} ry="14" fill="var(--diagram-arterial)" opacity="0.55" />
+          <circle cx={-len / 2} cy="-3" r="2.5" fill="var(--diagram-arterial)" />
+          <circle cx="2" cy="4" r="2.5" fill="var(--diagram-arterial)" />
+          <circle cx={len / 2} cy="-2" r="2.5" fill="var(--diagram-arterial)" />
+        </g>
+      ))}
+    </g>
+  </g>
+
+  <!-- Normal size of the wall's outer edge, in both states, so a paused beat compares fairly -->
+  <circle
+    cx={centre.x}
+    cy={centre.y}
+    r={outerR}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-dasharray="1 5"
+    stroke-linecap="round"
+  ></circle>
+
+  <text x={centre.x} y={centre.y + 6} text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1={wallLabel[0]} y1={wallLabel[1]} x2={leaderX} y2="262"></line>
+    <line x1={focusLabelA[0]} y1={focusLabelA[1]} x2={leaderX} y2="66"></line>
+    <g class="disease-only">
+      <polyline
+        points={`${focusLabelB[0]},${focusLabelB[1]} ${leaderX},200 ${leaderX},74`}
+        fill="none"
+      ></polyline>
+    </g>
+  </g>
+  <text class="normal-only" x={labelX} y="74">
+    {t['diagram.label.uniform-wall']}
+  </text>
+  <text class="disease-only" x={labelX} y="74">
+    {t['diagram.label.inflammation-foci']}
+  </text>
+  <text x={labelX} y="267">
+    {t['diagram.label.heart-muscle']}
+  </text>
+  <text x={centre.x} y="292" text-anchor="middle" class="diagram-small">
+    {t['diagram.label.lv-cross-section']}
+  </text>
+
+  <!-- Legend for the dotted circle -->
+  <line
+    x1={labelX}
+    y1="292"
+    x2={labelX + 32}
+    y2="292"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-dasharray="1 5"
+    stroke-linecap="round"
+  ></line>
+  <text x={labelX + 40} y="297">
+    {t['diagram.label.normal-size']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .myo-beat {
+    transform-box: view-box;
+    transform-origin: var(--myo-origin);
+  }
+
+  .diagram .myo-beat-full {
+    animation: myo-beat-full 1.4s ease-in-out infinite;
+  }
+
+  /* Contraction may be weaker in myocarditis; the caption says "may". */
+  .diagram .myo-beat-weak {
+    animation: myo-beat-weak 1.4s ease-in-out infinite;
+  }
+
+  /* Inflamed foci: the halo pulses; without motion it stays at its drawn strength. */
+  .diagram .myo-halo {
+    animation: myo-halo 2.4s ease-in-out infinite;
+  }
+
+  @keyframes myo-beat-full {
+    0%,
+    65%,
+    100% {
+      transform: scale(1);
+    }
+
+    30% {
+      transform: scale(0.88);
+    }
+  }
+
+  @keyframes myo-beat-weak {
+    0%,
+    65%,
+    100% {
+      transform: scale(1);
+    }
+
+    30% {
+      transform: scale(0.94);
+    }
+  }
+
+  @keyframes myo-halo {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+
+    50% {
+      opacity: 0.08;
+    }
+  }
+</style>

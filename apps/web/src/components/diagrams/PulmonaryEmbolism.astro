@@ -1,0 +1,285 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-pe-arrow`;
+
+// Venous blood: deep leg vein → inferior vena cava → right atrium → right ventricle →
+// pulmonary artery, then one of three branches into the lung.
+const heartPath = 'V175 Q40,155 60,155 H140 L158,225 L185,205 V95 Q185,70 210,70 H262';
+const trunk = `M40,318 ${heartPath}`;
+// In disease the routes start above the leg-vein clot, so no particle passes through it.
+const trunkAboveClot = `M40,280 ${heartPath}`;
+const upper = `${trunk} L352,30`;
+const middle = `${trunk} L357,72`;
+const lower = `${trunk} L352,120`;
+const upperDisease = `${trunkAboveClot} L352,30`;
+const middleDisease = `${trunkAboveClot} L357,72`;
+// In disease the lower branch is blocked: blood stops just before the embolus.
+const lowerBlocked = `${trunkAboveClot} L292,87`;
+// Each particle: its route and a negative delay so the flow is already running.
+const normal = [
+  { path: upper, delay: 0 },
+  { path: upper, delay: -2.2 },
+  { path: middle, delay: -0.7 },
+  { path: middle, delay: -2.9 },
+  { path: lower, delay: -1.4 },
+  { path: lower, delay: -3.6 },
+];
+const diseaseOpen = [
+  { path: upperDisease, delay: 0 },
+  { path: upperDisease, delay: -2.2 },
+  { path: middleDisease, delay: -1.1 },
+  { path: middleDisease, delay: -3.3 },
+];
+const diseaseBlocked = [-0.5, -2.5];
+---
+
+<svg
+  viewBox="0 0 392 330"
+  role="img"
+  aria-label={t['diagram.pulmonary-embolism.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lung tissue supplied by the pulmonary artery branches -->
+  <rect
+    x="284"
+    y="12"
+    width="92"
+    height="130"
+    rx="18"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.45"
+  ></rect>
+  <!-- Lung area beyond the blocked branch: reduced blood flow -->
+  <rect
+    class="disease-only"
+    x="300"
+    y="98"
+    width="72"
+    height="40"
+    rx="8"
+    fill="var(--color-bg)"
+    fill-opacity="0.6"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+
+  <!-- Right side of the heart -->
+  <rect x="104" y="116" width="104" height="158" rx="40" fill="var(--diagram-muscle)"></rect>
+  <ellipse
+    cx="145"
+    cy="150"
+    rx="30"
+    ry="26"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="158"
+    cy="225"
+    rx="38"
+    ry="40"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Vessels: the wall is drawn first, then the lumen -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <path stroke-width="16" d="M40,320 V175 Q40,155 60,155 H118"></path>
+    <path stroke-width="16" d="M185,212 V95 Q185,70 210,70 H262"></path>
+    <path stroke-width="10" d="M262,70 L352,30 M262,70 L357,72 M262,70 L352,120"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-venous-fill)" stroke-linecap="round">
+    <path stroke-width="10" d="M40,320 V175 Q40,155 60,155 H118"></path>
+    <path stroke-width="10" d="M185,212 V95 Q185,70 210,70 H262"></path>
+    <path stroke-width="5" d="M262,70 L352,30 M262,70 L357,72 M262,70 L352,120"></path>
+  </g>
+  <!-- The occluded branch carries no blood beyond the embolus -->
+  <path
+    class="disease-only"
+    d="M311,97 L352,120"
+    fill="none"
+    stroke="var(--color-bg)"
+    stroke-width="5"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- Clot in a deep leg vein -->
+  <g class="disease-only">
+    <ellipse cx="40" cy="298" rx="5" ry="12" fill="var(--diagram-arterial)"></ellipse>
+    <circle cx="39" cy="294" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="41" cy="302" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+  <!-- Embolus lodged in a branch of the pulmonary artery -->
+  <g class="disease-only">
+    <ellipse
+      cx="305"
+      cy="94"
+      rx="8"
+      ry="5"
+      transform="rotate(29 305 94)"
+      fill="var(--diagram-arterial)"
+    ></ellipse>
+    <circle cx="303" cy="93" r="1.4" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2" marker-end={`url(#${arrowId})`}>
+    <path d="M40,226 V190"></path>
+    <path d="M185,190 V110"></path>
+    <path d="M272,66 L330,40"></path>
+    <path d="M274,70 L335,71"></path>
+    <path class="normal-only" d="M272,76 L340,113"></path>
+    <path class="disease-only" d="M272,76 L293,88"></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-venous)">
+    <g class="normal-only">
+      {normal.map(({ path, delay }) => (
+        <circle
+          class="pe-run"
+          r="3.5"
+          style={`offset-path: path('${path}'); animation-duration: 4.4s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseOpen.map(({ path, delay }) => (
+        <circle
+          class="pe-run"
+          r="3.5"
+          style={`offset-path: path('${path}'); animation-duration: 4.4s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+      {diseaseBlocked.map((delay) => (
+        <circle
+          class="pe-stop"
+          r="3.5"
+          style={`offset-path: path('${lowerBlocked}'); animation-duration: 4s; animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x="140" y="146" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="150" y="232" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="252" y="52" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="normal-only" x="384" y="164" text-anchor="end">
+    {t['diagram.label.lungs']}
+  </text>
+  <text class="diagram-small" x="24" y="210" text-anchor="middle" transform="rotate(-90 24 210)">
+    {t['diagram.label.ivc']}
+  </text>
+  <text class="diagram-small" x="56" y="324">
+    {t['diagram.label.leg-vein']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="54" y="302">
+      {t['diagram.label.clot']}
+    </text>
+    <line x1="299" y1="100" x2="284" y2="114" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="214" y="128">
+      {t['diagram.label.embolus']}
+    </text>
+    <text class="diagram-small" x="384" y="160" text-anchor="end">
+      {t['diagram.label.reduced-blood-flow']}
+    </text>
+    <text x="384" y="184" text-anchor="end">
+      {t['diagram.label.lungs']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .pe-run,
+  .diagram .pe-stop {
+    offset-rotate: 0deg;
+    animation-name: pe-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .diagram .pe-stop {
+    animation-name: pe-stop;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .pe-run,
+    .diagram .pe-stop {
+      display: none;
+    }
+  }
+
+  @keyframes pe-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6%,
+    88% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+
+  /* Blood reaches the embolus, stays there for a moment and fades: it cannot pass. */
+  @keyframes pe-stop {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6% {
+      opacity: 1;
+    }
+
+    80% {
+      offset-distance: 100%;
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>

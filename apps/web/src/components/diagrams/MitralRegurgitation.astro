@@ -1,0 +1,280 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-mr-arrow`;
+// The enlarged-atrium label is too long for one line to the right of the heart: split it in two.
+const laWords = t['diagram.label.la-enlarged'].split(' ');
+const laSplit = Math.ceil(laWords.length / 2);
+const laLines = [laWords.slice(0, laSplit).join(' '), laWords.slice(laSplit).join(' ')];
+// Both states show systole: the left ventricle contracts and the mitral valve should be closed.
+// Mitral leaflets hang from the annulus (x = 140 and 200, y = 165) into the ventricle.
+const closedLeaflets = ['M140,165 Q155,176 169,182', 'M200,165 Q185,176 171,182'];
+// In regurgitation the leaflets stop short of each other and leave a gap (x = 161–179).
+const gapLeaflets = ['M140,165 Q152,174 161,178', 'M200,165 Q188,174 179,178'];
+// Blood leaving the ventricle into the aorta: start column, row and delay.
+const forward = [
+  { x: 55, y: 236, delay: 0 },
+  { x: 75, y: 236, delay: 0 },
+  { x: 65, y: 254, delay: 0.2 },
+];
+// Blood pushed back through the gap; each particle fans out sideways (dx) inside the atrium.
+const back = [
+  { dx: -24, delay: 0 },
+  { dx: 0, delay: 0.15 },
+  { dx: 24, delay: 0.3 },
+];
+---
+
+<svg
+  viewBox="0 0 450 320"
+  role="img"
+  aria-label={t['diagram.mitral-regurgitation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle wall: the same in both states -->
+  <path
+    d="M30,160 L230,160 C246,205 224,286 140,306 C56,286 20,205 30,160 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Left atrium. It is drawn larger only in the disease state, which the caption ties to severe
+       regurgitation. -->
+  <ellipse
+    class="normal-only"
+    cx="170"
+    cy="82"
+    rx="62"
+    ry="46"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="170"
+    cy="76"
+    rx="78"
+    ry="58"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Left ventricle cavity, the opening to the atrium and the aorta as one lumen -->
+  <path
+    d="M45,22 L85,22 L85,165 L140,165 L140,118 L200,118 L200,165 L215,165 C228,205 210,270 140,288 C70,270 35,205 45,165 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path d="M45,22 L45,165 C35,205 70,270 140,288 C210,270 228,205 215,165 L200,165"></path>
+    <path d="M85,22 L85,165 L140,165"></path>
+    <!-- Sides of the opening between atrium and ventricle, up to where each atrium outline meets them -->
+    <path class="normal-only" d="M140,122 L140,165 M200,122 L200,165"></path>
+    <path class="disease-only" d="M140,129 L140,165 M200,129 L200,165"></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    class="mr-pulse"
+    d="M65,250 L65,34"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <g class="disease-only">
+    <!-- The regurgitant jet fans out into the atrium -->
+    <path
+      d="M164,182 L176,182 L208,40 L132,40 Z"
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.25"
+    ></path>
+    <path
+      class="mr-pulse"
+      d="M170,250 L170,48"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="4"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+  </g>
+
+  <!-- Mitral leaflets: closed in the normal state, a gap between them in regurgitation -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+    {closedLeaflets.map((d) => (
+      <path class="normal-only" d={d} />
+    ))}
+    {gapLeaflets.map((d) => (
+      <path class="disease-only" d={d} />
+    ))}
+  </g>
+  <circle cx="140" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="200" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Moving blood: always forward into the aorta, and in regurgitation also back into the atrium -->
+  <g class="flow">
+    {forward.map((p) => (
+      <circle
+        class="mr-p mr-p-forward"
+        cx={p.x}
+        cy={p.y}
+        r="5"
+        fill="var(--diagram-arterial)"
+        style={`animation-delay: ${p.delay}s`}
+      />
+    ))}
+    <g class="disease-only">
+      {back.map((p) => (
+        <circle
+          class="mr-p mr-p-back"
+          cx="170"
+          cy="240"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`--mr-dx: ${p.dx}px; animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="204" y1="168" x2="252" y2="172"></line>
+    <line class="disease-only" x1="196" y1="110" x2="252" y2="110"></line>
+    <line class="disease-only" x1="240" y1="48" x2="252" y2="44"></line>
+  </g>
+  <text x="65" y="15" text-anchor="middle">
+    {t['diagram.label.aorta']}
+  </text>
+  <text x="112" y="88" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="118" y="246" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small" x="258" y="176">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="258" y="194">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small disease-only" x="258" y="194">
+    {t['diagram.label.leaflets-gap']}
+  </text>
+  <text class="diagram-small disease-only" x="258" y="114">
+    {t['diagram.label.backflow']}
+  </text>
+  <text class="diagram-small disease-only" x="258" y="44">
+    <tspan x="258">{laLines[0]}</tspan>
+    <tspan x="258" dy="15">
+      {laLines[1]}
+    </tspan>
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .mr-pulse {
+    animation: mr-pulse 2.4s ease-in-out infinite;
+  }
+
+  .diagram .mr-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .mr-p-forward {
+    animation: mr-forward 2.4s linear infinite;
+  }
+
+  .diagram .mr-p-back {
+    animation: mr-back 2.4s linear infinite;
+  }
+
+  /* Arrows fade between contractions; without motion they stay solid. */
+  @keyframes mr-pulse {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Systole: blood leaves the ventricle up the aorta. */
+  @keyframes mr-forward {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  /* Regurgitation: in the same systole, blood squeezes through the gap and fans out in the atrium. */
+  @keyframes mr-back {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    30% {
+      opacity: 1;
+      transform: translate(0, -60px);
+    }
+
+    50% {
+      opacity: 1;
+      transform: translate(var(--mr-dx), -160px);
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--mr-dx), -175px);
+    }
+  }
+</style>

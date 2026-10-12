@@ -2,16 +2,39 @@ import { parseLicenses } from '@heart-atlas/models/licenses';
 import { parseStructures } from '@heart-atlas/models/structures';
 import type { ViewerMessages, ViewerModels, ViewerStructure } from '@heart-atlas/viewer';
 import { viewerMessageKeys } from '@heart-atlas/viewer';
+import anchorsJson from '../../../../assets/models/heart/anchors.json';
 import licensesYaml from '../../../../assets/models/LICENSES.yaml?raw';
 import structuresYaml from '../../../../assets/models/heart/structures.yaml?raw';
 import type { Messages } from '../i18n/messages.ts';
 
 /** Files written by `pnpm models` (packages/models/src/build.ts) into public/models/. */
-export function heartModelUrls(base: string): { models: ViewerModels; poster: string } {
+export function heartModelUrls(base: string): {
+  models: ViewerModels;
+  poster: string;
+  heroPoster: string;
+} {
   return {
     models: { high: `${base}models/heart-lod0.glb`, low: `${base}models/heart-lod1.glb` },
-    poster: `${base}models/heart-poster.png`,
+    // The viewer shows the transparent WebP poster, taken with its own camera: 33 KB, not 122.
+    poster: `${base}models/heart-hero-poster.webp`,
+    heroPoster: `${base}models/heart-hero-poster.webp`,
   };
+}
+
+/** The home page poster: its size and where each visible structure is on it (render-poster.ts). */
+export function heroPoster(): {
+  width: number;
+  height: number;
+  anchors: Partial<Record<string, { x: number; y: number; pixels: number }>>;
+} {
+  return anchorsJson;
+}
+
+/** Ids of the structures in the given groups of structures.yaml. */
+export function structureIds(groups: readonly string[]): string[] {
+  return parseStructures(structuresYaml)
+    .filter((s) => groups.includes(s.group))
+    .map((s) => s.id);
 }
 
 /** Structures from structures.yaml with names in the reader's language. */

@@ -1,0 +1,114 @@
+{
+  "width": 800,
+  "height": 880,
+  "camera": {
+    "home": [
+      0,
+      0.015,
+      0.36
+    ],
+    "target": [
+      0,
+      0.015,
+      0
+    ],
+    "fov": 35
+  },
+  "anchors": {
+    "right-atrium": {
+      "x": 0.3156,
+      "y": 0.5165,
+      "pixels": 31866
+    },
+    "left-atrium": {
+      "x": 0.6581,
+      "y": 0.4506,
+      "pixels": 5813
+    },
+    "right-ventricle": {
+      "x": 0.5006,
+      "y": 0.6097,
+      "pixels": 52544
+    },
+    "left-ventricle": {
+      "x": 0.7119,
+      "y": 0.6528,
+      "pixels": 7166
+    },
+    "tricuspid-valve": {
+      "x": 0.3081,
+      "y": 0.6722,
+      "pixels": 195
+    },
+    "pulmonary-valve": {
+      "x": 0.5356,
+      "y": 0.4369,
+      "pixels": 3707
+    },
+    "right-papillary-muscles": {
+      "x": 0.5694,
+      "y": 0.7528,
+      "pixels": 10926
+    },
+    "left-papillary-muscles": {
+      "x": 0.6869,
+      "y": 0.6892,
+      "pixels": 2944
+    },
+    "aorta": {
+      "x": 0.4544,
+      "y": 0.2938,
+      "pixels": 18092
+    },
+    "pulmonary-trunk": {
+      "x": 0.4606,
+      "y": 0.4006,
+      "pixels": 20484
+    },
+    "superior-vena-cava": {
+      "x": 0.3331,
+      "y": 0.2744,
+      "pixels": 8909
+    },
+    "inferior-vena-cava": {
+      "x": 0.3356,
+      "y": 0.8812,
+      "pixels": 17023
+    },
+    "pulmonary-veins": {
+      "x": 0.6481,
+      "y": 0.4994,
+      "pixels": 2095
+    },
+    "right-coronary-artery": {
+      "x": 0.4744,
+      "y": 0.5892,
+      "pixels": 8330
+    },
+    "left-anterior-descending-artery": {
+      "x": 0.6956,
+      "y": 0.6369,
+      "pixels": 9004
+    },
+    "circumflex-artery": {
+      "x": 0.7481,
+      "y": 0.6256,
+      "pixels": 385
+    },
+    "cardiac-veins": {
+      "x": 0.5119,
+      "y": 0.7415,
+      "pixels": 4351
+    },
+    "sa-node": {
+      "x": 0.2769,
+      "y": 0.3665,
+      "pixels": 27
+    },
+    "purkinje-fibers": {
+      "x": 0.7069,
+      "y": 0.754,
+      "pixels": 125
+    }
+  }
+}

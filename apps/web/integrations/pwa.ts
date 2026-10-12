@@ -42,8 +42,8 @@ export async function writeManifests(site: string, base: string) {
       lang: code,
       dir: locales[code]?.dir ?? 'ltr',
       display: 'standalone',
-      background_color: '#ffffff',
-      theme_color: '#b3123a',
+      background_color: '#f3f7fc',
+      theme_color: '#f3f7fc',
       icons: [
         { src: `${base}icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
         { src: `${base}icons/icon-512.png`, sizes: '512x512', type: 'image/png' },

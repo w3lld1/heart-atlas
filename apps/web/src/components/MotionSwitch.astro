@@ -1,0 +1,124 @@
+---
+import { getMessages } from '../i18n/messages.ts';
+import { motionChoices } from '../lib/motion.ts';
+
+interface Props {
+  locale: string;
+}
+
+const t = getMessages(Astro.props.locale);
+---
+
+<div class="motion-switch" role="group" data-pagefind-ignore aria-label={t['motion.label']}>
+  <span class="label" aria-hidden="true">
+    {t['motion.label']}
+  </span>
+  {motionChoices.map((choice) => (
+    <button
+      type="button"
+      data-set-motion={choice}
+      aria-pressed="false"
+      aria-describedby={choice === 'auto' ? 'motion-effective' : undefined}
+    >
+      {t[`motion.${choice}`]}
+    </button>
+  ))}
+  <span id="motion-effective" class="visually-hidden" data-motion-effective></span>
+</div>
+
+<script>
+  import { MOTION_EVENT, motionChoices, refreshMotion, setMotionChoice } from '../lib/motion.ts';
+
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-set-motion]');
+  // Tells screen readers which level "Auto" picked; sighted readers see the outlined button.
+  const effective = document.querySelector<HTMLElement>('[data-motion-effective]');
+
+  const currentChoice = () =>
+    motionChoices.find((c) => c === root.dataset['motionChoice']) ?? 'auto';
+
+  function show() {
+    const choice = currentChoice();
+    const level = root.dataset['motion'];
+    if (effective) effective.textContent = '';
+    for (const button of buttons) {
+      const value = button.dataset['setMotion'];
+      const isEffective = choice === 'auto' && value === level;
+      button.setAttribute('aria-pressed', String(value === choice));
+      // In "auto" the level in effect is marked without pressing its button.
+      button.classList.toggle('effective', isEffective);
+      if (isEffective && effective) effective.textContent = button.textContent?.trim() ?? '';
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const value = button.dataset['setMotion'];
+      const choice = motionChoices.find((c) => c === value);
+      if (choice) setMotionChoice(choice);
+    });
+  }
+  window.addEventListener(MOTION_EVENT, show);
+  // Keeps the current choice even when storage is blocked and cannot be read back.
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () =>
+    refreshMotion(currentChoice()),
+  );
+  show();
+</script>
+
+<style>
+  .motion-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  /* Without JavaScript the switch could not work, so it is hidden, like the level switch. */
+  :global(html:not([data-motion])) .motion-switch {
+    display: none;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .label {
+    margin-inline-end: 0.25rem;
+    color: var(--color-muted);
+  }
+
+  button {
+    padding-block: 0.25rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* In "auto" the level it chose is outlined without being pressed. */
+  button.effective {
+    border-color: var(--color-accent);
+    border-style: dashed;
+  }
+
+  button[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+</style>

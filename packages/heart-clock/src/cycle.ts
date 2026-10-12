@@ -1,4 +1,4 @@
-import type { HeartClock } from './clock.ts';
+import type { Beat, HeartClock } from './clock.ts';
 import type { CycleState } from './cycle-source.ts';
 import { phaseAt } from './timing.ts';
 
@@ -39,7 +39,7 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
   const aortic = phase === 'ejection' ? 1 : 0;
   // The pulmonary valve closes s2Split later, with the P2 sound; a long split can carry the
   // previous beat's closure past the start of this one.
-  const previous = beat.index > 0 ? clock.beatAt(beat.start - 1) : undefined;
+  const previous = beat.index > 0 ? keptBeat(clock, beat.start - 1) : undefined;
   const pulmonary =
     (tInBeat >= timing.ejectionStart && tInBeat < timing.aorticClosure + params.s2Split) ||
     (previous !== undefined &&
@@ -63,6 +63,16 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
       'aortic-valve': aortic,
     },
   };
+}
+
+/** The beat at `t`, or undefined when the clock no longer keeps it (after a jump in time). */
+function keptBeat(clock: HeartClock, t: number): Beat | undefined {
+  try {
+    return clock.beatAt(t);
+  } catch (error) {
+    if (error instanceof RangeError) return undefined;
+    throw error;
+  }
 }
 
 function clamp01(value: number): number {

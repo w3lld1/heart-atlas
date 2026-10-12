@@ -1,12 +1,20 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
+import BodyBackdrop from '../../components/home/BodyBackdrop.astro';
+import CardIcon from '../../components/home/CardIcon.astro';
+import EcgStrip from '../../components/home/EcgStrip.astro';
+import SectionArt from '../../components/home/SectionArt.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
 import { localePath } from '../../i18n/paths.ts';
-import { articlePages, typesListedElsewhere } from '../../lib/articles.ts';
-import { articleTypes } from '../../lib/content.ts';
+import { formatCount } from '../../i18n/plural.ts';
+import { articlePages } from '../../lib/articles.ts';
+import { heartModelUrls, heroPoster, structureIds } from '../../lib/heart-model.ts';
+import { handFontCss } from '../../lib/hand-font.ts';
+import { cardPath, stageCards, type SectionId } from '../../lib/home.ts';
+import { repoUrl } from '../../site.ts';
 
 export const getStaticPaths = (() =>
   localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
@@ -14,32 +22,944 @@ export const getStaticPaths = (() =>
 const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
-const pages = articlePages(await getCollection('articles'), locales);
-// Sections with at least one article readable in this locale, in the order of articleTypes.
-// Anatomy articles are listed on the anatomy page, which has its own link below.
-const types = articleTypes.filter(
-  (type) =>
-    !typesListedElsewhere.has(type) &&
-    pages.some((page) => page.locale === locale && page.type === type),
+const href = (path = '') => localePath(base, locale, path);
+const count = (key: keyof typeof t, n: number) => formatCount(t[key], locale, n);
+
+const pages = articlePages(await getCollection('articles'), locales).filter(
+  (page) => page.locale === locale,
 );
+// Articles written in this language; pages shown from a fallback language are not counted.
+const written = pages.filter((page) => page.contentLocale === locale);
+// Section notes count what a reader can open here, including articles shown in a fallback language.
+const readableOf = (type: string) => pages.filter((page) => page.type === type).length;
+const has = {
+  article: (path: string) => written.some((page) => `${page.type}/${page.slug}` === path),
+  // The anatomy page with the 3D viewer exists in every language; other sections need articles.
+  section: (type: string) => type === 'anatomy' || pages.some((page) => page.type === type),
+};
+
+const poster = heroPoster();
+const posterUrl = heartModelUrls(base).heroPoster;
+const cards = stageCards.flatMap((card) => {
+  const path = cardPath(card, has);
+  const anchor = poster.anchors[card.anchor];
+  if (path === null || anchor === undefined) return [];
+  const note = card.id === 'disease' ? count(card.note, readableOf('disease')) : t[card.note];
+  return [{ ...card, href: href(path), anchor, note, structures: structureIds(card.groups) }];
+});
+
+interface SectionCard {
+  id: SectionId;
+  href: string;
+  title: string;
+  note: string;
+}
+// Disease and diagnostics cards only for languages that have those sections.
+const sections: SectionCard[] = [
+  {
+    id: 'anatomy',
+    href: href('anatomy/'),
+    title: t['articles.type.anatomy'],
+    note: count('home.section.anatomyNote', readableOf('anatomy')),
+  },
+  ...(['disease', 'diagnostic'] as const)
+    .filter((type) => has.section(type))
+    .map((type) => ({
+      id: type,
+      href: href(`${type}/`),
+      title: t[`articles.type.${type}`],
+      note: count(`home.section.${type}Note`, readableOf(type)),
+    })),
+  {
+    id: 'model',
+    href: href('anatomy/'),
+    title: t['home.section.model'],
+    note: t['home.section.modelNote'],
+  },
+  {
+    id: 'clock',
+    href: href('heart-clock/'),
+    title: t['home.cta.clock'],
+    note: t['home.section.clockNote'],
+  },
+  { id: 'code', href: repoUrl, title: t['home.section.code'], note: t['home.section.codeNote'] },
+];
+
+// "Atlas <em>heart</em>": the accent word is set apart when the title contains it.
+const title = t['home.title'];
+const accent = t['home.titleAccent'];
+const at = title.indexOf(accent);
+const titleParts =
+  at === -1 ? [title, '', ''] : [title.slice(0, at), accent, title.slice(at + accent.length)];
+const lines = (text: string) => text.split('\n');
+const handFont = await handFontCss(t['home.hand']);
+const arrow = 'M5 12h14M13 6l6 6-6 6';
 ---
 
-<BaseLayout locale={locale} searchable>
-  <h1>{t['home.title']}</h1>
-  <p>{t['home.intro']}</p>
-  <nav aria-label={t['home.sections']}>
-    <ul>
-      {types.map((type) => (
+<BaseLayout locale={locale} wide>
+  <Fragment slot="head" set:html={`<style>${handFont}</style>`} />
+  <section class="hero" aria-labelledby="home-title">
+    <div class="copy">
+      <p class="eyebrow">{t['home.eyebrow']}</p>
+      <h1 id="home-title">
+        {[titleParts[0], titleParts[1] && <em>{titleParts[1]}</em>, titleParts[2]]}
+      </h1>
+      <p class="tagline">
+        {lines(t['home.tagline']).map((line, i) => (i === 0 ? line : [<br />, line]))}
+      </p>
+      <p class="lead">{t['home.lead']}</p>
+      <div class="ctas">
+        <a class="cta primary" href={href('anatomy/')}>
+          {t['home.cta.explore']}
+          <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path d={arrow} />
+          </svg>
+        </a>
+        <a class="cta ghost glass" href={href('heart-clock/')}>
+          <span class="cta-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path d="M2 12h4l2-5 4 10 3-7 2 2h5" />
+            </svg>
+          </span>
+          <span class="cta-text">
+            {t['home.cta.clock']}
+            <small>{t['home.cta.clockNote']}</small>
+          </span>
+        </a>
+      </div>
+      <ul class="facts">
         <li>
-          <a href={localePath(base, locale, `${type}/`)}>{t[`articles.type.${type}`]}</a>
+          <b>{count('home.fact.articles', written.length)}</b>
+          {t['home.fact.articlesNote']}
+        </li>
+        <li>
+          <b>{localeCodes.map((code) => locales[code]?.name ?? code).join(' · ')}</b>
+          {t['home.fact.languagesNote']}
+        </li>
+        <li>
+          <b>{t['home.fact.code']}</b>
+          {t['home.fact.codeNote']}
+        </li>
+      </ul>
+    </div>
+
+    <div class="stage" data-stage>
+      <div class="backdrop">
+        <BodyBackdrop />
+      </div>
+      <div class="glow" aria-hidden="true"></div>
+      <img
+        class="poster"
+        data-poster
+        src={posterUrl}
+        width={poster.width}
+        height={poster.height}
+        alt={t['home.posterAlt']}
+        fetchpriority="high"
+      />
+      <svg class="links" data-links aria-hidden="true" focusable="false">
+        {cards.map((card) => (
+          <g class="link" data-card={card.id}>
+            <line />
+            <circle class="halo" r="9" />
+            <circle class="dot" r="4" />
+            <circle class="end" r="2.5" />
+          </g>
+        ))}
+      </svg>
+      <ul class="nodes" aria-label={t['home.stage.label']}>
+        {cards.map((card) => (
+          <li class={`node-slot slot-${card.id}`}>
+            <a
+              class="node glass"
+              href={card.href}
+              data-card={card.id}
+              data-anchor-x={card.anchor.x}
+              data-anchor-y={card.anchor.y}
+              data-structures={card.structures.join(' ')}
+              data-ghost={card.ghost ? '' : undefined}
+            >
+              <span class="node-icon">
+                <CardIcon id={card.id} />
+              </span>
+              <span class="node-text">
+                <b>{t[card.title]}</b>
+                <small>{card.note}</small>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="hint glass">
+        <svg width="34" height="18" viewBox="0 0 34 18" aria-hidden="true">
+          <path d="M0 10h8l2-5 3 10 3-13 3 11 2-3h13" />
+        </svg>
+        <span class="tags">{t['home.stage.tags']}</span>
+        <span class="hint-text">{t['home.stage.hint']}</span>
+      </p>
+    </div>
+
+    <aside class="side">
+      <p class="hand">{t['home.hand']}</p>
+      <EcgStrip />
+      <p class="side-text">{t['home.side.text']}</p>
+      <p class="world">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" class="world-fill" />
+          <circle cx="20" cy="20" r="17" />
+          <path d="M8 14c4 1 6 4 10 3s3 5 7 5 5-4 8-2M11 28c3-2 6-1 8 1M24 9c-1 3 1 5 4 5" />
+        </svg>
+        <span>
+          {lines(t['home.side.world']).map((line, i) => (i === 0 ? line : [<br />, line]))}
+        </span>
+      </p>
+    </aside>
+  </section>
+
+  <section class="sections" aria-labelledby="home-sections">
+    <div class="sections-head">
+      <h2 id="home-sections">{t['home.sections.title']}</h2>
+      <p>{t['home.sections.note']}</p>
+    </div>
+    <ul class="section-cards">
+      {sections.map((s) => (
+        <li>
+          <a class="section-card glass" href={s.href}>
+            <span class="section-art">
+              <SectionArt id={s.id} />
+            </span>
+            <span class="section-text">
+              <b>{s.title}</b>
+              <small>{s.note}</small>
+            </span>
+          </a>
         </li>
       ))}
-      <li>
-        <a href={localePath(base, locale, 'anatomy/')}>{t['nav.anatomy']}</a>
-      </li>
-      <li>
-        <a href={localePath(base, locale, 'heart-clock/')}>{t['nav.heartClock']}</a>
-      </li>
     </ul>
-  </nav>
+  </section>
 </BaseLayout>
+
+<script>
+  // Lines from each card to its structure on the poster. Drawn only while the cards sit around
+  // the heart (wide screens); on narrow screens the cards stack and CSS hides the lines.
+  const stage = document.querySelector<HTMLElement>('[data-stage]');
+  const svg = stage?.querySelector<SVGSVGElement>('[data-links]');
+  const poster = stage?.querySelector<HTMLImageElement>('[data-poster]');
+
+  function draw() {
+    if (!stage || !svg || !poster || getComputedStyle(svg).display === 'none') return;
+    const box = stage.getBoundingClientRect();
+    const image = poster.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    for (const node of stage.querySelectorAll<HTMLElement>('.node')) {
+      const link = svg.querySelector(`[data-card="${node.dataset['card']}"]`);
+      if (!link) continue;
+      const ax = image.left - box.left + Number(node.dataset['anchorX']) * image.width;
+      const ay = image.top - box.top + Number(node.dataset['anchorY']) * image.height;
+      const card = node.getBoundingClientRect();
+      // The line leaves the card from its edge facing the heart.
+      const before = card.left + card.width / 2 < image.left + image.width / 2;
+      const cx = (before ? card.right : card.left) - box.left;
+      const cy = card.top + card.height / 2 - box.top;
+      const [line, halo, dot, end] = link.children;
+      line?.setAttribute('x1', String(cx));
+      line?.setAttribute('y1', String(cy));
+      line?.setAttribute('x2', String(ax));
+      line?.setAttribute('y2', String(ay));
+      for (const point of [halo, dot]) {
+        point?.setAttribute('cx', String(ax));
+        point?.setAttribute('cy', String(ay));
+      }
+      end?.setAttribute('cx', String(cx));
+      end?.setAttribute('cy', String(cy));
+    }
+    svg.classList.add('drawn');
+  }
+
+  if (stage) {
+    // Cards change size when the web fonts arrive, so lines are drawn again then too.
+    const observer = new ResizeObserver(draw);
+    observer.observe(stage);
+    for (const node of stage.querySelectorAll('.node')) observer.observe(node);
+    void document.fonts.ready.then(draw);
+  }
+</script>
+
+<style>
+  :global(:root) {
+    --body-fill: rgb(143 186 245 / 30%);
+    --body-line: rgb(110 160 235 / 55%);
+    --grid-line: rgb(31 95 209 / 10%);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root) {
+      --body-fill: rgb(70 120 230 / 22%);
+      --body-line: rgb(120 165 255 / 45%);
+      --grid-line: rgb(122 167 255 / 10%);
+    }
+  }
+
+  :global(body.wide) {
+    background:
+      radial-gradient(90% 70% at 55% 30%, var(--color-bg-2), var(--color-bg) 70%) fixed,
+      var(--color-bg);
+  }
+
+  .glass {
+    border: 1px solid var(--glass-line);
+    background: var(--glass);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  svg path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Hero: copy | stage | side column. */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr) minmax(0, 12rem);
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .copy {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-block-start: 1.25rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.75rem, 5vw, 4.75rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  h1 em {
+    background: linear-gradient(
+      100deg,
+      var(--color-blue),
+      color-mix(in srgb, var(--color-blue) 60%, #20b8ff)
+    );
+    background-clip: text;
+    color: transparent;
+    font-style: normal;
+  }
+
+  .tagline {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-text) 82%, var(--color-bg));
+    font-size: clamp(1.375rem, 2.2vw, 1.875rem);
+    line-height: 1.22;
+  }
+
+  .lead {
+    max-inline-size: 42ch;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 1.0625rem;
+  }
+
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .cta {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-block-size: 3.375rem;
+    padding-inline: 1.5rem;
+    border-radius: 0.875rem;
+    font-weight: 600;
+  }
+
+  .cta.primary {
+    background: var(--color-accent);
+    box-shadow: 0 12px 26px -10px color-mix(in srgb, var(--color-accent) 70%, transparent);
+    color: var(--color-on-accent);
+  }
+
+  .arrow {
+    transition: translate 0.2s;
+  }
+
+  :global([dir='rtl']) .arrow {
+    scale: -1 1;
+  }
+
+  .cta.primary:hover .arrow {
+    translate: 4px 0;
+  }
+
+  :global([dir='rtl']) .cta.primary:hover .arrow {
+    translate: -4px 0;
+  }
+
+  .cta.ghost {
+    padding-inline: 0.625rem 1.25rem;
+  }
+
+  .cta-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-blue) 14%, transparent);
+    color: var(--color-blue);
+  }
+
+  .cta-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .cta-text small {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem 1.375rem;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  .facts b {
+    display: block;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+  }
+
+  /* Stage: body backdrop, poster of the heart, cards around it with lines to their structures. */
+  .stage {
+    /* Width of the cards on either side of the heart; the poster takes the space between them. */
+    --card-w: 14.375rem;
+
+    position: relative;
+    block-size: 40rem;
+  }
+
+  .backdrop {
+    position: absolute;
+    z-index: 0;
+
+    /* Up to the top of <main>, so the body never runs under the header. */
+    inset-block-start: -2rem;
+    inset-inline-start: 50%;
+    inline-size: 51.25rem;
+    translate: -50% 0;
+
+    /* Fades out by the bottom of the stage, so no text below it runs over the drawing. */
+    mask-image: linear-gradient(to bottom, #000 60%, transparent 76%);
+    pointer-events: none;
+  }
+
+  .glow {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 7.5rem;
+    inset-inline-start: 50%;
+    inline-size: 22.5rem;
+    block-size: 22.5rem;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-accent) 30%, transparent),
+      transparent 65%
+    );
+    translate: -50% 0;
+    pointer-events: none;
+  }
+
+  .poster {
+    position: absolute;
+    z-index: 2;
+    inset-block-start: 3rem;
+    inset-inline-start: 50%;
+
+    /* Fits between the cards on either side; its transparent margins may run under them. */
+    inline-size: clamp(16rem, 100% - 2 * var(--card-w) + 4rem, 25rem);
+    block-size: auto;
+    translate: -50% 0;
+    mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  }
+
+  :global([dir='rtl']) .backdrop,
+  :global([dir='rtl']) .glow,
+  :global([dir='rtl']) .poster {
+    translate: 50% 0;
+  }
+
+  .links {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .links:global(.drawn) {
+    visibility: visible;
+  }
+
+  .link line {
+    stroke: color-mix(in srgb, var(--color-accent) 70%, transparent);
+    stroke-width: 1.2;
+    transition: stroke-width 0.2s;
+  }
+
+  .link .halo {
+    fill: color-mix(in srgb, var(--color-accent) 25%, transparent);
+    transition: r 0.2s;
+  }
+
+  .link :is(.dot, .end) {
+    fill: var(--color-accent);
+  }
+
+  .nodes {
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .node-slot {
+    position: absolute;
+    pointer-events: auto;
+    inline-size: var(--card-w);
+  }
+
+  .slot-anatomy {
+    inset-block-start: 1.25rem;
+    inset-inline-start: 0;
+  }
+
+  .slot-chambers {
+    inset-block-start: 1.25rem;
+    inset-inline-end: 0;
+  }
+
+  .slot-ecg {
+    inset-block-start: 12.5rem;
+    inset-inline-start: 0;
+  }
+
+  .slot-valves {
+    inset-block-start: 13rem;
+    inset-inline-end: 0;
+  }
+
+  .slot-flow {
+    inset-block-start: 23.75rem;
+    inset-inline-start: 0.625rem;
+  }
+
+  .slot-disease {
+    inset-block-start: 24.25rem;
+    inset-inline-end: 0.625rem;
+  }
+
+  .node {
+    display: grid;
+    grid-template-columns: 3.625rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 1.125rem;
+    transition:
+      transform 0.25s,
+      box-shadow 0.25s;
+  }
+
+  .node:is(:hover, :focus-visible) {
+    box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--color-accent) 55%, transparent);
+    transform: translateY(-3px);
+  }
+
+  .node-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 3.625rem;
+    block-size: 3.625rem;
+    border-radius: 0.875rem;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  }
+
+  .node-text b,
+  .section-text b {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.97rem;
+    line-height: 1.2;
+  }
+
+  .node-text small,
+  .section-text small {
+    display: block;
+    margin-block-start: 0.2rem;
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+
+  /* The hovered or focused card's line and point stand out. */
+  .stage:has(.node[data-card='anatomy']:is(:hover, :focus-visible)) .link[data-card='anatomy'],
+  .stage:has(.node[data-card='chambers']:is(:hover, :focus-visible)) .link[data-card='chambers'],
+  .stage:has(.node[data-card='ecg']:is(:hover, :focus-visible)) .link[data-card='ecg'],
+  .stage:has(.node[data-card='valves']:is(:hover, :focus-visible)) .link[data-card='valves'],
+  .stage:has(.node[data-card='flow']:is(:hover, :focus-visible)) .link[data-card='flow'],
+  .stage:has(.node[data-card='disease']:is(:hover, :focus-visible)) .link[data-card='disease'] {
+    & line {
+      stroke: var(--color-accent);
+      stroke-width: 2.2;
+    }
+
+    & .halo {
+      r: 14px;
+    }
+  }
+
+  .hint {
+    position: absolute;
+    z-index: 4;
+    inset-block-end: 0.375rem;
+    inset-inline: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.75rem 1.125rem;
+    border-radius: 1.125rem;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .hint svg {
+    flex: none;
+    color: var(--color-blue);
+  }
+
+  .hint svg path {
+    stroke-width: 1.6;
+  }
+
+  .tags {
+    flex: 0 1 auto;
+    padding-inline-end: 1rem;
+    border-inline-end: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  /* Touch screens have no pointer to point at a card with. */
+  @media (hover: none) {
+    .hint-text {
+      display: none;
+    }
+
+    .tags {
+      padding-inline-end: 0;
+      border-inline-end: 0;
+    }
+  }
+
+  /* Side column. */
+  .side {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-block-start: 1.875rem;
+  }
+
+  .hand {
+    margin: 0;
+    color: var(--color-blue);
+    font-family: 'Caveat Hand', cursive;
+    font-size: 2.125rem;
+    font-weight: 600;
+    line-height: 1.05;
+    rotate: -8deg;
+  }
+
+  .side-text {
+    margin: 0;
+    color: var(--color-muted);
+    line-height: 1.45;
+  }
+
+  .world {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  .world svg {
+    flex: none;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--color-blue);
+  }
+
+  .world circle {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+  }
+
+  .world .world-fill {
+    fill: currentcolor;
+    stroke: none;
+    opacity: 0.15;
+  }
+
+  .world svg path {
+    stroke-width: 1.6;
+  }
+
+  /* Section cards. */
+  .sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.375rem;
+    padding-block: 2rem 0.5rem;
+  }
+
+  .sections-head h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .sections-head p {
+    margin: 0.25rem 0 0;
+    color: var(--color-muted);
+  }
+
+  .section-cards {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .section-card {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    overflow: hidden;
+    border-radius: 1.125rem;
+    transition: transform 0.25s;
+  }
+
+  .section-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .section-art {
+    display: block;
+    block-size: 8.125rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-blue) 10%, transparent),
+      transparent
+    );
+  }
+
+  .section-text {
+    display: block;
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .node,
+    .section-card,
+    .arrow {
+      transition: none;
+    }
+  }
+
+  /* Copy | stage, the side column becomes a row under them. */
+  @media (width < 90rem) {
+    .hero {
+      grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    }
+
+    .side {
+      flex-flow: row wrap;
+      grid-column: 1 / -1;
+      gap: 1.5rem 2.5rem;
+      align-items: center;
+      padding-block-start: 0;
+    }
+
+    .side > :global(*) {
+      flex: 1 1 12.5rem;
+    }
+
+    .section-cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Copy on top, the stage under it at full width. */
+  @media (width <= 80rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .copy {
+      max-inline-size: 44rem;
+    }
+
+    .backdrop {
+      inset-block-start: 0;
+    }
+  }
+
+  @media (width <= 67.5rem) {
+    .stage {
+      --card-w: 12.5rem;
+    }
+
+    .node {
+      grid-template-columns: 2.875rem minmax(0, 1fr);
+    }
+
+    .node-icon {
+      inline-size: 2.875rem;
+      block-size: 2.875rem;
+    }
+  }
+
+  /* One column: the heart on top, cards in a grid under it, no lines. */
+  @media (width <= 56.25rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stage {
+      display: grid;
+      gap: 0.625rem;
+      block-size: auto;
+      padding-block: 25rem 0.5rem;
+    }
+
+    /* Fades out at the top too, so it never runs behind the copy above the stage. */
+    .backdrop {
+      inset-block-start: -9.5rem;
+      inline-size: 40rem;
+      mask-image: linear-gradient(to bottom, transparent 22%, #000 40%, #000 70%, transparent 90%);
+    }
+
+    .glow {
+      inset-block-start: 2.5rem;
+      inline-size: 18rem;
+      block-size: 18rem;
+    }
+
+    .poster {
+      inset-block-start: 0.5rem;
+      inline-size: min(21rem, 90%);
+    }
+
+    .links {
+      display: none;
+    }
+
+    .nodes {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.625rem;
+    }
+
+    .node-slot {
+      position: relative;
+      inset: auto;
+      inline-size: auto;
+    }
+
+    .hint {
+      position: relative;
+      inset: auto;
+      flex-wrap: wrap;
+    }
+
+    .tags {
+      flex: 1 1 12rem;
+      padding-inline-end: 0;
+      border-inline-end: 0;
+    }
+
+    .section-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (width <= 32.5rem) {
+    .nodes,
+    .section-cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .section-art {
+      block-size: 6.875rem;
+    }
+
+    .hand {
+      font-size: 1.875rem;
+    }
+  }
+</style>

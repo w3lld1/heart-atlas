@@ -1,5 +1,5 @@
 /**
- * Compresses assets/models/heart/heart.glb into the LOD files the site loads and copies the poster.
+ * Compresses assets/models/heart/heart.glb into the LOD files the site loads and copies the posters.
  * Usage: node src/build.ts <output dir>   (apps/web runs it before `astro build` and `astro dev`)
  */
 import {
@@ -100,4 +100,5 @@ if (script !== undefined && realpathSync(script) === realpathSync(fileURLToPath(
     console.log(`${lod.file}: ${kb(bytes.byteLength)} (gzip ${kb(gzipSync(bytes).byteLength)})`);
   }
   copyFileSync(join(assetsDir, 'heart/poster.png'), join(outDir, 'heart-poster.png'));
+  copyFileSync(join(assetsDir, 'heart/hero-poster.webp'), join(outDir, 'heart-hero-poster.webp'));
 }

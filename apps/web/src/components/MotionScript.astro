@@ -1,0 +1,6 @@
+---
+// Runs in <head> before the page renders, so animated parts start at the right motion level.
+import { motionScriptSource } from '../lib/motion.ts';
+---
+
+<script is:inline set:html={motionScriptSource()} />

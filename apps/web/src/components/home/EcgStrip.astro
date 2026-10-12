@@ -1,0 +1,39 @@
+---
+// Still ECG strip of the home page, computed at build time from the heart clock's waves.
+import { ecgStripPath } from '../../lib/ecg-strip.ts';
+
+const width = 240;
+const height = 110;
+const d = ecgStripPath({ durationMs: 2800, width, height, heartRate: 64, stepMs: 6 });
+---
+
+<svg
+  class="ecg-strip"
+  viewBox={`0 0 ${width} ${height}`}
+  preserveAspectRatio="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <linearGradient id="ecg-strip-fade" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="currentColor" stop-opacity="0" />
+      <stop offset="0.25" stop-color="currentColor" />
+    </linearGradient>
+  </defs>
+  <path d={d} stroke="url(#ecg-strip-fade)" vector-effect="non-scaling-stroke" />
+</svg>
+
+<style>
+  .ecg-strip {
+    display: block;
+    inline-size: 100%;
+    block-size: 6.875rem;
+    color: var(--color-blue);
+  }
+
+  path {
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+</style>

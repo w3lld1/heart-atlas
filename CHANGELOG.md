@@ -2,6 +2,12 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Articles
+
+- Four more disease articles in Russian and English, each with an animated "normal / disease" diagram: mitral regurgitation and ventricular septal defect ([#112](https://github.com/w3lld1/heart-atlas/pull/112)), pulmonary embolism and myocarditis ([#116](https://github.com/w3lld1/heart-atlas/pull/116)). The pulmonary embolism article has a section on when to call an ambulance.
+
 ## [0.1.0] - 2026-10-11
 
 The first public version: a working site in Russian and English with the 3D heart, the heart clock, disease articles, search, offline mode and embedding.
@@ -42,4 +48,5 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[Unreleased]: https://github.com/w3lld1/heart-atlas/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.1.0

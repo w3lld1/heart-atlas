@@ -1,5 +1,9 @@
 ---
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/onest';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import MotionScript from '../components/MotionScript.astro';
+import MotionSwitch from '../components/MotionSwitch.astro';
 import SearchForm from '../components/SearchForm.astro';
 import ServiceWorker from '../components/ServiceWorker.astro';
 import { defaultLocale, localeCodes, locales } from '../i18n/locales.ts';
@@ -20,6 +24,8 @@ interface Props {
   searchable?: boolean;
   /** Hides the header search form, for the search page itself. */
   hideSearch?: boolean;
+  /** Full-width layout for the home page instead of the reading column. */
+  wide?: boolean;
 }
 
 const {
@@ -30,6 +36,7 @@ const {
   translatedLocales = pageLocales,
   searchable = false,
   hideSearch = false,
+  wide = false,
 } = Astro.props;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
@@ -46,8 +53,8 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={`${base}icons/apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}manifest.${locale}.webmanifest`} />
-    <meta name="theme-color" content="#b3123a" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f7fc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#070d1c" media="(prefers-color-scheme: dark)" />
     {translatedLocales.map((code) => (
       <link
         rel="alternate"
@@ -61,9 +68,10 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
       href={new URL(localePath(base, defaultLocale), Astro.site)}
     />
     <title>{pageTitle}</title>
+    <MotionScript />
     <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ wide }}>
     <a class="skip-link" href="#content">
       {t['a11y.skipToContent']}
     </a>
@@ -72,6 +80,7 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
         {t['site.name']}
       </a>
       {!hideSearch && <SearchForm locale={locale} />}
+      <MotionSwitch locale={locale} />
       <LanguageSwitcher locale={locale} pageLocales={pageLocales} />
     </header>
     <main id="content" tabindex="-1" data-pagefind-body={searchable ? '' : undefined}>
@@ -121,6 +130,21 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
 
   main {
     padding-block: 2rem;
+  }
+
+  body.wide :is(header, main, footer) {
+    max-inline-size: 90rem;
+  }
+
+  @media (width >= 48rem) {
+    body.wide :is(header, main, footer) {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Decorations of the wide layout may reach past the edges; they never scroll the page. */
+  body.wide main {
+    overflow-x: clip;
   }
 
   footer {

@@ -9,7 +9,7 @@ import { parseStructures } from '../src/structures.ts';
 import { parse } from 'yaml';
 
 // Data and docs next to the models; every other file (models, buffers, textures) needs an entry.
-const NOT_A_MODEL = /\.(ya?ml|md)$/i;
+const NOT_A_MODEL = /\.(ya?ml|md|json)$/i;
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

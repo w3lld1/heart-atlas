@@ -131,6 +131,15 @@ describe('cycleState edge cases', () => {
   });
 });
 
+describe('cycleState after a jump in time', () => {
+  it('does not throw when the previous beat is no longer kept', () => {
+    const clock = createHeartClock({ heartRate: rate });
+    cycleState(clock, 1000);
+    expect(() => cycleState(clock, 60000)).not.toThrow();
+    expect(cycleState(clock, 60000).phase).toBe(clock.sample(60000).phase);
+  });
+});
+
 describe('cycle source', () => {
   it('hands the current source to a late subscriber and follows changes', () => {
     const source: CycleSource = () => null;
