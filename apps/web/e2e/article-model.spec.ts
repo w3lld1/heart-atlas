@@ -14,6 +14,20 @@ test.use({
 const LOAD = { timeout: 30_000 };
 
 // docs/plans/2026-10-12-article-interactivity.md: the 3D model with highlights inside articles.
+test.describe('3D model in a disease article without signs on the model', () => {
+  test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
+
+  test('highlights the place the article names', async ({ page }) => {
+    await page.goto('en/disease/ventricular-septal-defect/');
+    const load = page.getByRole('button', { name: en['viewer.load'] });
+    await load.scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
+    const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
+    await expect(selected).toContainText(en['structure.interventricular-septum']);
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+});
+
 test.describe('3D model in an anatomy article', () => {
   // Real articles; the HA_TEST_CONTENT build has fixture articles instead.
   test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
