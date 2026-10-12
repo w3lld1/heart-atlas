@@ -8,14 +8,14 @@ The 3D heart moves into the articles, every page gets the new header and footer,
 
 ### Design
 
-- A new header on every page: the heart mark, the site name and a short tagline, search, the animation switch and languages, and a section menu that marks the current section. The footer keeps the medical disclaimer and adds section and project links ([#139](https://github.com/w3lld1/heart-atlas/pull/139)).
-- The home page moves: the ECG in the column runs, the cards float with their lines, blood runs along the vessels and the section pictures move. With animation off nothing moves, the heart clock does not start by itself and article diagrams stand still ([#125](https://github.com/w3lld1/heart-atlas/pull/125)).
+- A new header on every page: the heart mark, the site name and a short tagline, search, the animation switch and languages, and a section menu that marks the current section. The footer keeps the medical disclaimer and adds section and project links and the content license ([#139](https://github.com/w3lld1/heart-atlas/pull/139)).
+- The home page moves: the ECG in the column runs, the cards float with their lines, blood runs along the vessels and the section pictures move. In the full and calm modes the poster heart beats lightly until the live model replaces it. With animation off nothing moves: the 3D viewer drops its inertia, the heart clock does not start by itself and pauses when animation is turned off, and article diagrams stand still ([#125](https://github.com/w3lld1/heart-atlas/pull/125)).
 
 ### 3D anatomy
 
-- Disease articles show the 3D model with the signs of the disease; in articles with a heart clock preset the model beats with the monitor. On the heart clock page the model follows the chosen preset ([#119](https://github.com/w3lld1/heart-atlas/pull/119)).
-- Anatomy articles show the 3D heart with the structures they describe already highlighted; in "Cardiac cycle" it beats with the article's ECG ([#133](https://github.com/w3lld1/heart-atlas/pull/133)).
-- The articles on ventricular septal defect, mitral regurgitation, pulmonary embolism and infective endocarditis show the 3D heart with the place their text names highlighted ([#136](https://github.com/w3lld1/heart-atlas/pull/136)).
+- Eight disease articles show the 3D model with the signs of the disease (it loads on click); in articles with a heart clock preset the model beats with the monitor. On the heart clock page the model follows the chosen preset ([#119](https://github.com/w3lld1/heart-atlas/pull/119)).
+- All six anatomy articles show the 3D heart with the structures they describe already highlighted; in "Cardiac cycle" it beats with the article's ECG ([#133](https://github.com/w3lld1/heart-atlas/pull/133)).
+- The articles on ventricular septal defect, mitral regurgitation, pulmonary embolism and infective endocarditis show the 3D heart with the place their text names highlighted. Myocarditis and pericarditis have no model yet, because the model has no pericardium ([#136](https://github.com/w3lld1/heart-atlas/pull/136)).
 - The home page credits the source of the 3D model, and the Japanese credit line is marked as Japanese for screen readers here, in the viewer and in embeds ([#140](https://github.com/w3lld1/heart-atlas/pull/140)).
 
 ### Learning
@@ -24,7 +24,7 @@ The 3D heart moves into the articles, every page gets the new header and footer,
 
 ### Fixed
 
-- The site build now checks every internal link, and the weekly link check no longer reports working article links as broken ([#129](https://github.com/w3lld1/heart-atlas/pull/129)).
+- CI now checks every internal link on the built site, and the weekly link check no longer reports working article links as broken ([#129](https://github.com/w3lld1/heart-atlas/pull/129)).
 
 ## [0.2.0] - 2026-10-12
 
