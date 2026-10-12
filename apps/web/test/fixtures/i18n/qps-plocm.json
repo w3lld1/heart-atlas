@@ -367,5 +367,13 @@
   "quiz.choose": "[RTL] Choose an answer first.",
   "quiz.mark.correct": "[RTL] correct answer",
   "quiz.mark.chosen": "[RTL] your answer",
-  "quiz.score": "[RTL] Correct answers: {correct} of {total}."
+  "quiz.score": "[RTL] Correct answers: {correct} of {total}.",
+  "nav.tracks": "[RTL] Tracks",
+  "tracks.title": "[RTL] Learning tracks",
+  "tracks.intro": "[RTL] Read a topic in order, one article after another.",
+  "tracks.level.patient": "[RTL] For patients",
+  "tracks.level.student": "[RTL] For students",
+  "tracks.level.all": "[RTL] For everyone",
+  "tracks.steps": "{count, plural, one {[RTL] # article} other {[RTL] # articles}}",
+  "tracks.translationMissing": "[RTL] This track has not been translated yet, so it is shown in another language."
 }

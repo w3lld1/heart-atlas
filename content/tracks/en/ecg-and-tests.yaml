@@ -1,0 +1,10 @@
+title: ECG and heart tests
+description: The conduction system and the cardiac cycle first, then the ECG, Holter monitoring, echocardiography and natriuretic peptides.
+level: student
+steps:
+  - anatomy/conduction-system
+  - anatomy/cardiac-cycle
+  - diagnostic/ecg
+  - diagnostic/holter-monitoring
+  - diagnostic/echocardiography
+  - diagnostic/natriuretic-peptides

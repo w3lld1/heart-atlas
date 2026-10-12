@@ -1,0 +1,10 @@
+title: Как устроено сердце
+description: Шесть статей об анатомии по порядку, от общего строения сердца до его кровоснабжения.
+level: all
+steps:
+  - anatomy/heart-structure
+  - anatomy/heart-chambers
+  - anatomy/heart-valves
+  - anatomy/conduction-system
+  - anatomy/cardiac-cycle
+  - anatomy/coronary-circulation

@@ -1,0 +1,7 @@
+# Test fixture for HA_TEST_CONTENT=1 builds: a fictional track.
+title: Тестовый трек
+description: Две вымышленные статьи по порядку.
+level: all
+steps:
+  - disease/test-condition
+  - disease/another-condition

@@ -367,5 +367,13 @@
   "quiz.choose": "Сначала выберите ответ.",
   "quiz.mark.correct": "правильный ответ",
   "quiz.mark.chosen": "ваш ответ",
-  "quiz.score": "Правильных ответов: {correct} из {total}."
+  "quiz.score": "Правильных ответов: {correct} из {total}.",
+  "nav.tracks": "Треки",
+  "tracks.title": "Учебные треки",
+  "tracks.intro": "Тема по порядку, статья за статьёй.",
+  "tracks.level.patient": "Для пациентов",
+  "tracks.level.student": "Для студентов",
+  "tracks.level.all": "Для всех",
+  "tracks.steps": "{count, plural, one {# статья} few {# статьи} many {# статей} other {# статьи}}",
+  "tracks.translationMissing": "Этот трек ещё не переведён, поэтому показан на другом языке."
 }

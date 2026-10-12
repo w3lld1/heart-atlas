@@ -19,6 +19,16 @@ describe('siteNav', () => {
     expect(siteNav([]).map((item) => item.id)).toEqual(['home', 'anatomy', 'heart-clock']);
   });
 
+  it('adds learning tracks before the heart clock when the language has any', () => {
+    expect(siteNav(['disease'], true).map((item) => item.id)).toEqual([
+      'home',
+      'anatomy',
+      'disease',
+      'tracks',
+      'heart-clock',
+    ]);
+  });
+
   it('ignores types that are not article sections', () => {
     expect(siteNav(['search', 'embed']).map((item) => item.id)).toEqual([
       'home',
@@ -56,6 +66,6 @@ describe('navCurrent', () => {
 describe('navLabel', () => {
   it('has a string for every item', () => {
     const t: Messages = en;
-    for (const item of siteNav(articleTypes)) expect(navLabel(t, item)).toBeTruthy();
+    for (const item of siteNav(articleTypes, true)) expect(navLabel(t, item)).toBeTruthy();
   });
 });
