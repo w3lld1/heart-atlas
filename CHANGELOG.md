@@ -8,18 +8,22 @@ A new home page with the live 3D heart, a site-wide animation setting, and four 
 
 ### Home page and design
 
-- A new palette with Manrope and Onest fonts, and an Animation switch in the header (Auto, Full, Calm, Off). Auto picks the level from reduced motion, data saving and the device; the choice is kept across pages ([#105](https://github.com/w3lld1/heart-atlas/pull/105)).
+- A new palette with Manrope and Onest fonts, and an Animation switch in the header (Auto, Full, Calm, Off). Auto picks the level from reduced motion, data saving and the device's memory, cores and screen; the choice is kept across pages ([#105](https://github.com/w3lld1/heart-atlas/pull/105)).
 - A new home page: a hero with the heart on a body silhouette, six cards linked by lines to the structures they describe, an ECG strip and sections. The page loads no 3D code on its first screen ([#107](https://github.com/w3lld1/heart-atlas/pull/107)).
-- At full animation the poster turns into the live 3D heart: it beats, turns with the mouse, a swipe or the arrow keys, and hovering a card lights its structures on the model. With calm animation it waits for a button, and without WebGL it stays a poster ([#113](https://github.com/w3lld1/heart-atlas/pull/113)).
+- At full animation the poster turns into the live 3D heart: it beats, turns with the mouse, a swipe or the arrow keys, and hovering or focusing a card lights its structures on the model. With calm or no animation a "Rotate in 3D" button loads a still model, and without WebGL it stays a poster ([#113](https://github.com/w3lld1/heart-atlas/pull/113)).
 
 ### 3D anatomy
 
-- The 3D viewer can show the signs of a disease on the same model, at rest and while it beats: an inferior infarct zone that contracts less, a tinted left ventricle in hypertension and hypertrophic cardiomyopathy, with a deeper septal zone in the latter, and an enlarged left ventricle in dilated cardiomyopathy. Numbers that no source gives are marked as model assumptions ([#103](https://github.com/w3lld1/heart-atlas/pull/103)).
-- The viewer poster is a 33 KB WebP instead of a 122 KB PNG, so the heart clock and anatomy pages load faster ([#113](https://github.com/w3lld1/heart-atlas/pull/113)).
+- Groundwork for showing disease signs on the 3D model: the viewer can draw an inferior infarct zone that contracts less, a tinted left ventricle in hypertension and hypertrophic cardiomyopathy (with a darker septal zone in the latter), an enlarged left ventricle in dilated cardiomyopathy, a narrowed aortic valve opening in aortic stenosis and a marker on the interatrial septum in atrial septal defect. Numbers that no source gives are marked as model assumptions. No page shows them yet ([#103](https://github.com/w3lld1/heart-atlas/pull/103)).
+- The 3D viewer poster is a 33 KB WebP instead of a 120 KB PNG, so the anatomy, heart clock and 3D embed pages load faster ([#112](https://github.com/w3lld1/heart-atlas/pull/112)).
 
 ### Articles
 
 - Four more disease articles in Russian and English, each with an animated "normal / disease" diagram: mitral regurgitation and ventricular septal defect ([#112](https://github.com/w3lld1/heart-atlas/pull/112)), pulmonary embolism and myocarditis ([#116](https://github.com/w3lld1/heart-atlas/pull/116)). The pulmonary embolism article has a section on when to call an ambulance. There are now fourteen disease articles.
+
+### Fixed
+
+- The heart clock no longer fails when its time jumps past the kept history in one step ([#93](https://github.com/w3lld1/heart-atlas/pull/93)).
 
 ## [0.1.0] - 2026-10-11
 
