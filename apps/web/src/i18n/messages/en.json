@@ -325,5 +325,6 @@
   "diagram.infective-endocarditis.title": "Diagram of a heart valve: normal, and in infective endocarditis with a vegetation, a damaged leaflet, backflow and a fragment breaking off",
   "diagram.label.leg-vein": "Deep leg vein",
   "diagram.label.ivc": "Inferior vena cava",
-  "diagram.pulmonary-embolism.title": "Diagram of venous blood flowing from a leg vein through the right side of the heart into the pulmonary artery branches: normal, and in pulmonary embolism with a clot in a leg vein and an embolus blocking one branch"
+  "diagram.pulmonary-embolism.title": "Diagram of venous blood flowing from a leg vein through the right side of the heart into the pulmonary artery branches: normal, and in pulmonary embolism with a clot in a leg vein and an embolus blocking one branch",
+  "diagram.label.reduced-blood-flow": "Reduced blood flow"
 }

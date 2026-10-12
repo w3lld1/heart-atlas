@@ -38,7 +38,7 @@ const diseaseBlocked = [-0.5, -2.5];
 ---
 
 <svg
-  viewBox="0 0 380 300"
+  viewBox="0 0 392 300"
   role="img"
   aria-label={t['diagram.pulmonary-embolism.title']}
   lang={locale}
@@ -192,7 +192,7 @@ const diseaseBlocked = [-0.5, -2.5];
   <text x="205" y="52" text-anchor="middle">
     {t['diagram.label.pulmonaryArtery']}
   </text>
-  <text x="330" y="162" text-anchor="middle">
+  <text class="normal-only" x="330" y="162" text-anchor="middle">
     {t['diagram.label.lungs']}
   </text>
   <text class="diagram-small" x="24" y="188" text-anchor="middle" transform="rotate(-90 24 188)">
@@ -209,8 +209,11 @@ const diseaseBlocked = [-0.5, -2.5];
     <text x="270" y="138" text-anchor="end">
       {t['diagram.label.embolus']}
     </text>
-    <text class="diagram-small" x="336" y="134" text-anchor="middle">
-      {t['diagram.label.no-blood-flow']}
+    <text class="diagram-small" x="330" y="158" text-anchor="middle">
+      {t['diagram.label.reduced-blood-flow']}
+    </text>
+    <text x="330" y="180" text-anchor="middle">
+      {t['diagram.label.lungs']}
     </text>
   </g>
 </svg>
