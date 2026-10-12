@@ -92,7 +92,9 @@ test('the long QT article shows a long QT at the reader heart rate', async ({ pa
   await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
   await expect(slider).toHaveValue('90');
   await expect(slider).toHaveAttribute('max', '180');
-  await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 90 /);
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.normal.ecg'].replace('{rate}', '90'),
+  );
 });
 
 test('the VT article starts at the preset heart rate and normal goes back to 75', async ({

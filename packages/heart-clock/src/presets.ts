@@ -96,8 +96,8 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // with QTc, especially above 500 ms (Minzdrav 2025, Ventricular arrhythmias, quoting the ESC
     // 2022 criteria; MSD Manuals, Long QT Interval Syndromes, 2026; sources 1 and 2 of our long QT
     // article). The model scales QT with √RR, as the Bazett formula does, so `qtc` is the Bazett
-    // QTc at every heart rate. assumption: 500 ms, above the diagnostic threshold; the QT of 500
-    // fits RR up to 137 bpm, so the preset allows 40–137 bpm. The heart rate stays the reader's.
+    // QTc at every heart rate. assumption: 500 ms, above the diagnostic threshold; a QTc of 500 ms
+    // fits the beat up to 137 bpm, so the preset allows 40–137 bpm. The heart rate stays the reader's.
     // Spec: docs/plans/2026-10-12-more-ecg-presets.md.
     qtc: 500,
   }),
