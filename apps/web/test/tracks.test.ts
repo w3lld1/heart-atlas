@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -83,8 +83,16 @@ for (const tree of trees) {
     .filter((file) => !file.startsWith('tracks/') && file.endsWith('.mdx'))
     .map((file) => ({ id: file.slice(0, -'.mdx'.length) }));
 
-  if (tracks.length > 0) {
-    describe(dir, () => {
+  describe(dir, () => {
+    // The collection only loads tracks/<locale>/<id>.yaml; anything else would vanish silently.
+    it('has track files only as tracks/<locale>/<id>.yaml', () => {
+      const files = all.filter(
+        (file) => file.startsWith('tracks/') && statSync(`${dir}${file}`).isFile(),
+      );
+      expect(files.filter((file) => !/^tracks\/[^/]+\/[^/]+\.yaml$/.test(file))).toEqual([]);
+    });
+
+    if (tracks.length > 0) {
       it.each(tracks)('%s is valid and every step has an article', (file) => {
         const id = trackId(file.slice('tracks/'.length));
         const [locale = ''] = id.split('/');
@@ -94,6 +102,6 @@ for (const tree of trees) {
           trackSteps(data, locale, articlePages(articles, productionLocales)),
         ).not.toThrow();
       });
-    });
-  }
+    }
+  });
 }

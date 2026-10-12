@@ -11,22 +11,28 @@ import { trackSteps } from '../../../lib/tracks.ts';
 export const getStaticPaths = (async () => {
   const articles = articlePages(await getCollection('articles'), locales);
   const tracks = articlePages(await getCollection('tracks'), locales);
+  const same = (slug: string) => tracks.filter((other) => other.slug === slug);
   return tracks.map((page) => ({
     params: { locale: page.locale, id: page.slug },
     props: {
       track: page.entry.data,
       contentLocale: page.contentLocale,
       steps: trackSteps(page.entry.data, page.locale, articles),
-      pageLocales: tracks.filter((other) => other.slug === page.slug).map((other) => other.locale),
+      pageLocales: same(page.slug).map((other) => other.locale),
+      translatedLocales: same(page.slug)
+        .filter((other) => other.locale === other.contentLocale)
+        .map((other) => other.locale),
     },
   }));
 }) satisfies GetStaticPaths;
 
-const { locale } = Astro.params;
-const { track, contentLocale, steps, pageLocales } = Astro.props;
+const { locale, id } = Astro.params;
+const { track, contentLocale, steps, pageLocales, translatedLocales } = Astro.props;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
 const fallback = contentLocale !== locale;
+// A fallback page points search engines at the original track.
+const canonical = new URL(localePath(base, contentLocale, `tracks/${id}/`), Astro.site);
 /** lang and dir for text written in another language than the page. */
 const langOf = (code: string) =>
   code === locale ? {} : { lang: code, dir: locales[code]?.dir ?? 'ltr' };
@@ -37,7 +43,9 @@ const langOf = (code: string) =>
   title={track.title}
   description={track.description}
   pageLocales={pageLocales}
+  translatedLocales={fallback ? [] : translatedLocales}
 >
+  {fallback && <link slot="head" rel="canonical" href={canonical} />}
   <p class="track-up">
     <a href={localePath(base, locale, 'tracks/')}>{t['tracks.title']}</a>
   </p>

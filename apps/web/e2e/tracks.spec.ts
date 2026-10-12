@@ -34,11 +34,31 @@ test.describe('learning tracks', () => {
     await page.goto('ru/tracks/english-track/');
     await expect(page.getByRole('note')).toHaveText(ru['tracks.translationMissing']);
     await expect(page.getByRole('heading', { level: 1 })).toHaveAttribute('lang', 'en');
+    // Search engines get the original, not a second copy.
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      /\/en\/tracks\/english-track\/$/,
+    );
+    await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveCount(0);
   });
 
   test('a language lists only the tracks it can show', async ({ page }) => {
     await page.goto('en/tracks/');
     await expect(page.getByRole('link', { name: 'English track' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Тестовый трек' })).toHaveCount(0);
+  });
+});
+
+test.describe('learning tracks right to left', () => {
+  test.skip(process.env['HA_TEST_LOCALES'] !== '1', 'needs the HA_TEST_LOCALES=1 build');
+
+  test('marks a fallback track left to right on a right-to-left page', async ({ page }) => {
+    await page.goto('qps-plocm/tracks/english-track/');
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    const heading = page.getByRole('heading', { level: 1 });
+    await expect(heading).toHaveAttribute('lang', 'en');
+    await expect(heading).toHaveAttribute('dir', 'ltr');
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
   });
 });

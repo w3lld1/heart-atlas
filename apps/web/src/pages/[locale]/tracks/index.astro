@@ -27,7 +27,13 @@ const { locale } = Astro.params;
 const { tracks, pageLocales } = Astro.props;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
-const sorted = [...tracks].sort((a, b) => a.slug.localeCompare(b.slug));
+// Tracks for everyone come first, then patient, then student ones.
+const levels = ['all', 'patient', 'student'];
+const sorted = [...tracks].sort(
+  (a, b) =>
+    levels.indexOf(a.entry.data.level) - levels.indexOf(b.entry.data.level) ||
+    a.slug.localeCompare(b.slug),
+);
 ---
 
 <BaseLayout
