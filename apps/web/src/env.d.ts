@@ -12,3 +12,10 @@ declare namespace App {
     diagramCount?: number;
   }
 }
+
+declare namespace Astro {
+  interface ClientDirectives {
+    /** Hydrates once the island is near the screen and its poster image has loaded. */
+    'client:after-poster'?: boolean;
+  }
+}
