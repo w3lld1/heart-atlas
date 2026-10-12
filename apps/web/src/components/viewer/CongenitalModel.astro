@@ -1,0 +1,87 @@
+---
+import { HeartViewer } from '@heart-atlas/viewer';
+import { defaultLocale } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+import {
+  congenitalModelEntry,
+  congenitalModelUrls,
+  congenitalStructures,
+  heartAttribution,
+  isCongenitalModelId,
+  viewerMessages,
+} from '../../lib/heart-model.ts';
+
+// A patient model of a congenital heart defect from the NIH 3D Heart Library, shown in layers and
+// cut open: docs/plans/2026-10-12-congenital-models.md.
+interface Props {
+  /** Model id from congenitalModelIds. */
+  model: string;
+  /** The page's locale; MDX articles leave it out and the article page provides it. */
+  locale?: string;
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { model, headingLevel = 3 } = Astro.props;
+if (!isCongenitalModelId(model)) throw new Error(`<CongenitalModel>: unknown model "${model}"`);
+const locale = Astro.props.locale ?? Astro.locals.locale ?? defaultLocale;
+const t = getMessages(locale);
+const { models, poster } = congenitalModelUrls(import.meta.env.BASE_URL, model);
+// The heart model's poster text and "see-through chambers" do not fit a cut patient model.
+const messages = {
+  ...viewerMessages(t),
+  'viewer.posterAlt': t[`congenital.${model}.posterAlt`],
+  'viewer.ghost': t['congenital.ghost'],
+};
+---
+
+<figure class="congenital-model">
+  <HeartViewer
+    client:visible={{ rootMargin: '200px' }}
+    models={models}
+    poster={poster}
+    structures={congenitalStructures(t)}
+    messages={messages}
+    attribution={heartAttribution(`congenital/${model}.glb`)}
+    loadOn="click"
+    headingLevel={headingLevel}
+    section="frontal"
+  />
+  <figcaption>
+    <p class="signs-title">{t[`congenital.${model}.signs`]}</p>
+    <ul>
+      {([1, 2, 3, 4] as const).map((n) => (
+        <li>{t[`congenital.${model}.sign${n}`]}</li>
+      ))}
+    </ul>
+    <p>{t['congenital.signsNote']}</p>
+    <p>
+      {t[`congenital.${model}.caption`]}{' '}
+      <a href={congenitalModelEntry(model)} rel="external">
+        {t['congenital.source']}
+      </a>
+    </p>
+  </figcaption>
+</figure>
+
+<style>
+  .congenital-model {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  figcaption {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+
+  figcaption p,
+  figcaption ul {
+    margin-block: 0 0.5rem;
+  }
+
+  .signs-title {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+</style>

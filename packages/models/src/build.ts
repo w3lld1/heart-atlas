@@ -46,6 +46,8 @@ export interface Model {
    * already simplified close to the default limit, so they need a looser one to reach the budget.
    */
   simplifyError?: number;
+  /** Poster copied next to the LODs as `<name>-poster.webp`, relative to assets/models/. */
+  poster?: string;
 }
 
 export const MODELS: readonly Model[] = [
@@ -55,6 +57,7 @@ export const MODELS: readonly Model[] = [
     source: 'congenital/tetralogy-of-fallot.glb',
     structures: 'congenital/structures.yaml',
     simplifyError: 0.005,
+    poster: 'congenital/tetralogy-of-fallot-poster.webp',
   },
 ];
 
@@ -132,6 +135,8 @@ if (script !== undefined && realpathSync(script) === realpathSync(fileURLToPath(
       const kb = (n: number): string => `${(n / 1024).toFixed(0)} KB`;
       console.log(`${file}: ${kb(bytes.byteLength)} (gzip ${kb(gzipSync(bytes).byteLength)})`);
     }
+    if (model.poster)
+      copyFileSync(join(assetsDir, model.poster), join(outDir, `${model.name}-poster.webp`));
   }
   copyFileSync(join(assetsDir, 'heart/poster.png'), join(outDir, 'heart-poster.png'));
   copyFileSync(join(assetsDir, 'heart/hero-poster.webp'), join(outDir, 'heart-hero-poster.webp'));

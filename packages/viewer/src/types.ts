@@ -31,6 +31,7 @@ export const viewerMessageKeys = [
   'viewer.group.coronary-artery',
   'viewer.group.cardiac-vein',
   'viewer.group.conduction',
+  'viewer.group.layer',
   'viewer.heartbeat.start',
   'viewer.heartbeat.stop',
   'viewer.heartbeat.rate',
@@ -108,4 +109,9 @@ export interface HeartViewerProps {
    * `viewer.attribution` and joined by "; ". Required so no page shows the model uncredited.
    */
   attribution: AttributionPart[];
+  /**
+   * Section shown on load. Congenital models open cut, since their defects are inside the heart:
+   * docs/plans/2026-10-12-congenital-models.md.
+   */
+  section?: SectionAxis;
 }

@@ -93,6 +93,8 @@ const ZONE = new Color('#5b1780');
 const ZONE_MIX = 0.9;
 const LV = 'left-ventricle';
 const GHOST_GROUPS = new Set(['chamber']);
+/** The muscle layer of congenital models: see-through, it shows the blood cast of the chambers. */
+const GHOST_MESHES = new Set(['myocardium']);
 const AXIS = { sagittal: 0, transverse: 1, frontal: 2 } as const;
 
 type KeyHandler = (key: string) => boolean;
@@ -390,7 +392,8 @@ export function Model({ onLoaded, ...props }: ModelProps) {
       const tint = !lit && tinted.has(mesh.name);
       material.emissive.copy(lit ? HIGHLIGHT : tint ? DISEASE : NO_EMISSION);
       material.emissiveIntensity = lit ? 0.45 : tint ? DISEASE_INTENSITY : 0;
-      const ghosted = props.ghost && GHOST_GROUPS.has(group) && !lit;
+      const ghosted =
+        props.ghost && (GHOST_GROUPS.has(group) || GHOST_MESHES.has(mesh.name)) && !lit;
       material.opacity = ghosted ? 0.18 : 1;
       material.depthWrite = !ghosted;
       // Only these two change the shader program, so only they need a recompile.

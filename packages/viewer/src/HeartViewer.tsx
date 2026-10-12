@@ -119,13 +119,14 @@ export default function HeartViewer({
   cycle: cycleMode,
   disease,
   attribution,
+  section: initialSection = 'off',
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
   const [external, setExternal] = useState<string[]>(highlight);
   const [ghost, setGhost] = useState(false);
   const [isolate, setIsolate] = useState(false);
-  const [section, setSection] = useState<SectionAxis>('off');
+  const [section, setSection] = useState<SectionAxis>(initialSection);
   const [sectionPosition, setSectionPosition] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   // Set when the reader pressed the load button, so focus follows them into the model.

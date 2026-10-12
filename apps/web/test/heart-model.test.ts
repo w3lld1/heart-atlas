@@ -3,6 +3,10 @@ import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages } from '../src/i18n/messages.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import {
+  congenitalModelEntry,
+  congenitalModelIds,
+  congenitalModelUrls,
+  congenitalStructures,
   heartAttribution,
   heartModelUrls,
   heartStructures,
@@ -51,5 +55,29 @@ describe('heart model data for the viewer', () => {
       poster: '/heart-atlas/models/heart-hero-poster.webp',
       heroPoster: '/heart-atlas/models/heart-hero-poster.webp',
     });
+  });
+});
+
+describe('congenital model data for the viewer', () => {
+  it('names every layer in every locale', () => {
+    for (const locale of localeCodes) {
+      const unnamed = congenitalStructures(getMessages(locale)).filter((s) => s.label === s.id);
+      expect(unnamed, locale).toEqual([]);
+    }
+  });
+
+  it('points at the built files, the model record and the attribution of each model', () => {
+    for (const id of congenitalModelIds) {
+      expect(congenitalModelUrls('/base/', id)).toEqual({
+        models: { high: `/base/models/${id}-lod0.glb`, low: `/base/models/${id}-lod1.glb` },
+        poster: `/base/models/${id}-poster.webp`,
+      });
+      expect(congenitalModelEntry(id)).toMatch(/^https:\/\/3d\.nih\.gov\/entries\//);
+      expect(
+        heartAttribution(`congenital/${id}.glb`)
+          .map((part) => part.text)
+          .join(' '),
+      ).toContain('NIH 3D Heart Library');
+    }
   });
 });

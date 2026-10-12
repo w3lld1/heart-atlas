@@ -5,8 +5,9 @@ import { defineConfig, devices } from '@playwright/test';
 const port = 4321;
 // Lets a machine with a preinstalled Chromium skip `playwright install`.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
-/** Specs that draw with WebGL, including the 3D model in articles. */
-const webgl = /(anatomy|article-model|disease-model|heart-clock|home-3d)\.spec\.ts$/;
+/** Specs that draw with WebGL, including the 3D models in articles. */
+const webgl =
+  /(anatomy|article-model|congenital-model|disease-model|heart-clock|home-3d)\.spec\.ts$/;
 const base = (process.env.BASE_PATH ?? '/heart-atlas').replace(/\/?$/, '/');
 
 export default defineConfig({

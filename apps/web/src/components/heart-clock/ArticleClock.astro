@@ -2,6 +2,8 @@
 import type { PresetId } from '@heart-atlas/heart-clock';
 import type { DiseaseId } from '@heart-atlas/viewer';
 import { getMessages } from '../../i18n/messages.ts';
+import type { CongenitalModelId } from '../../lib/heart-model.ts';
+import CongenitalModel from '../viewer/CongenitalModel.astro';
 import HeartModel from '../viewer/HeartModel.astro';
 import HeartClockDemo, {
   heartClockMessageKeys,
@@ -16,9 +18,11 @@ interface Props {
   preset?: Exclude<PresetId, 'normal'>;
   /** The disease whose signs the 3D model shows. */
   disease?: DiseaseId;
+  /** A patient model of the article's congenital defect: docs/plans/2026-10-12-congenital-models.md. */
+  congenital?: CongenitalModelId;
 }
 
-const { locale, preset, disease } = Astro.props;
+const { locale, preset, disease, congenital } = Astro.props;
 const t = getMessages(locale);
 const messages = Object.fromEntries(
   heartClockMessageKeys.map((key) => [key, t[key]]),
@@ -51,6 +55,12 @@ const messages = Object.fromEntries(
         headingLevel={4}
         {...(preset ? { cycle: 'page' as const } : {})}
       />
+    </>
+  )}
+  {congenital && (
+    <>
+      <h3>{t['heartClock.model3d']}</h3>
+      <CongenitalModel locale={locale} model={congenital} headingLevel={4} />
     </>
   )}
 </section>

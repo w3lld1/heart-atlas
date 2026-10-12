@@ -3,7 +3,10 @@
  * point of every mesh structure on it (assets/models/heart/anchors.json), so the cards around the
  * poster can draw lines to structures the reader can see.
  *
- * Usage: pnpm --filter @heart-atlas/models poster   (run by hand after the model changes)
+ * Usage: pnpm --filter @heart-atlas/models poster [congenital model id]   (run by hand after a model changes)
+ *
+ * With a congenital model id it renders that model's poster instead, cut along the frontal plane the
+ * way the viewer opens it (section="frontal" in CongenitalModel.astro), and writes no anchors.
  *
  * The page uses the camera of the viewer (packages/viewer/src/camera.ts) and the same lights and
  * renderer settings as react-three-fiber's defaults there, so the poster matches the live model.
@@ -18,6 +21,7 @@ import { dirname, extname, join, normalize } from 'node:path';
 import { chromium } from '@playwright/test';
 import { FOV, HOME, TARGET } from '@heart-atlas/viewer/camera';
 import { assetsDir } from '../src/paths.ts';
+import { MODELS } from '../src/build.ts';
 import { parseStructures } from '../src/structures.ts';
 
 /** Poster size in pixels: twice the largest size the home page shows it at (25rem), for 2x screens. */
@@ -34,7 +38,7 @@ const types: Record<string, string> = {
   '.glb': 'model/gltf-binary',
 };
 
-function page(meshIds: string[]): string {
+function page(meshIds: string[], cut: boolean): string {
   const settings = JSON.stringify({
     width: POSTER_WIDTH,
     height: POSTER_HEIGHT,
@@ -43,6 +47,7 @@ function page(meshIds: string[]): string {
     target: TARGET,
     fov: FOV,
     meshIds,
+    cut,
   });
   return `<!doctype html><meta charset="utf-8">
 <script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
@@ -69,8 +74,19 @@ sun.position.set(1, 2, 3);
 scene.add(sun);
 const gltf = await new GLTFLoader().loadAsync('/heart.glb');
 scene.add(gltf.scene);
+if (s.cut) {
+  // The viewer's frontal section at its default position: keeps the half behind the model's centre.
+  // Keep in step with the clipping plane in packages/viewer/src/Scene.tsx.
+  const box = new THREE.Box3().setFromObject(gltf.scene);
+  const centre = box.getCenter(new THREE.Vector3());
+  renderer.localClippingEnabled = true;
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, -1), centre.z);
+  gltf.scene.traverse((o) => { if (o.isMesh) o.material.clippingPlanes = [plane]; });
+}
 renderer.render(scene, camera);
 const poster = renderer.domElement.toDataURL('image/webp', s.quality);
+if (s.cut) window.result = { poster, anchors: {} };
+else {
 
 // Id buffer: structure i is drawn in colour i + 1, everything else in 0.
 const ids = new Map(s.meshIds.map((id, i) => [id, i + 1]));
@@ -112,14 +128,15 @@ s.meshIds.forEach((id, i) => {
   };
 });
 window.result = { poster, anchors };
+}
 </script>`;
 }
 
-function serve(html: string): Promise<Server> {
+function serve(html: string, model: string): Promise<Server> {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost').pathname;
     let file: string | undefined;
-    if (url === '/heart.glb') file = join(assetsDir, 'heart/heart.glb');
+    if (url === '/heart.glb') file = join(assetsDir, model);
     else if (url.startsWith('/three/')) {
       const path = normalize(join(threeDir, url.slice('/three/'.length)));
       if (path.startsWith(threeDir)) file = path;
@@ -141,11 +158,23 @@ function serve(html: string): Promise<Server> {
   return new Promise((done) => server.listen(0, '127.0.0.1', () => done(server)));
 }
 
-const structures = parseStructures(readFileSync(join(assetsDir, 'heart/structures.yaml'), 'utf8'));
+const congenital = process.argv[2];
+if (congenital !== undefined && !MODELS.some((m) => m.source === `congenital/${congenital}.glb`)) {
+  throw new Error(`Unknown congenital model ${congenital}`);
+}
+const structures = parseStructures(
+  readFileSync(
+    join(assetsDir, congenital ? 'congenital/structures.yaml' : 'heart/structures.yaml'),
+    'utf8',
+  ),
+);
 const meshIds = structures.filter((s) => s.kind === 'mesh').map((s) => s.id);
 if (meshIds.length > 255) throw new Error('The id buffer holds at most 255 structures');
 
-const server = await serve(page(meshIds));
+const server = await serve(
+  page(meshIds, congenital !== undefined),
+  congenital ? `congenital/${congenital}.glb` : 'heart/heart.glb',
+);
 const address = server.address();
 const port = typeof address === 'object' && address ? address.port : 0;
 const browser = await chromium.launch({
@@ -167,17 +196,22 @@ try {
     anchors: Record<string, { x: number; y: number; pixels: number }>;
   };
   const webp = Buffer.from(poster.replace(/^data:image\/webp;base64,/, ''), 'base64');
-  writeFileSync(join(assetsDir, 'heart/hero-poster.webp'), webp);
-  const json = {
-    width: POSTER_WIDTH,
-    height: POSTER_HEIGHT,
-    camera: { home: HOME, target: TARGET, fov: FOV },
-    anchors,
-  };
-  writeFileSync(join(assetsDir, 'heart/anchors.json'), `${JSON.stringify(json, null, 2)}\n`);
-  console.log(
-    `hero-poster.webp: ${(webp.byteLength / 1024).toFixed(0)} KB, ${Object.keys(anchors).length} anchors`,
-  );
+  if (congenital) {
+    writeFileSync(join(assetsDir, `congenital/${congenital}-poster.webp`), webp);
+    console.log(`${congenital}-poster.webp: ${(webp.byteLength / 1024).toFixed(0)} KB`);
+  } else {
+    writeFileSync(join(assetsDir, 'heart/hero-poster.webp'), webp);
+    const json = {
+      width: POSTER_WIDTH,
+      height: POSTER_HEIGHT,
+      camera: { home: HOME, target: TARGET, fov: FOV },
+      anchors,
+    };
+    writeFileSync(join(assetsDir, 'heart/anchors.json'), `${JSON.stringify(json, null, 2)}\n`);
+    console.log(
+      `hero-poster.webp: ${(webp.byteLength / 1024).toFixed(0)} KB, ${Object.keys(anchors).length} anchors`,
+    );
+  }
 } finally {
   await browser.close();
   server.close();

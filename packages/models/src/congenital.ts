@@ -38,11 +38,10 @@ const MIN_FRAGMENT_SHARE = 0.01;
 /** Largest simplification error, as a share of the mesh size. A loose cap: `keep` decides the size. */
 const SIMPLIFY_ERROR = 0.01;
 
-/** Base colours per layer, linear RGB, in the same muted range as the stage 1 heart. */
+/** Base colours per layer, linear RGB: muscle lighter than blood, so a cut shows the wall. */
 const LAYER_COLORS: Record<string, [number, number, number]> = {
-  myocardium: [0.45, 0.08, 0.08],
+  myocardium: [0.5, 0.2, 0.16],
   'blood-pool': [0.7, 0.05, 0.05],
-  lungs: [0.45, 0.55, 0.7],
 };
 
 export function parseSources(text: string): Record<string, CongenitalSource> {
