@@ -38,6 +38,8 @@ export interface HeroHeartOptions {
 
 export interface HeroHeartHandle {
   setMotion(motion: HeroMotion): void;
+  /** Removes the heart; the handle does nothing afterwards. */
+  destroy(): void;
 }
 
 async function ownClock(): Promise<CycleSource> {
@@ -138,6 +140,17 @@ export function mountHeroHeart(root: HTMLElement, options: HeroHeartOptions): He
         <HeroHeart options={options} motion={motion} root={root} />
       </StrictMode>,
     );
+  let live = true;
   render(options.motion);
-  return { setMotion: render };
+  return {
+    setMotion: (motion) => {
+      if (live) render(motion);
+    },
+    destroy: () => {
+      if (!live) return;
+      live = false;
+      // Not from inside React's own error callback, which may still be on the stack.
+      queueMicrotask(() => reactRoot.unmount());
+    },
+  };
 }

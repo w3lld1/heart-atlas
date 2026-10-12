@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ghostLook, heroBehaviour, ndcToShare, sharesChanged } from '../src/hero-state.ts';
+import {
+  anchorFollows,
+  ghostLook,
+  heroBehaviour,
+  ndcToShare,
+  sharesChanged,
+} from '../src/hero-state.ts';
 
 describe('heroBehaviour', () => {
   it('beats and turns only at full motion', () => {
@@ -31,5 +37,17 @@ describe('ghostLook', () => {
     expect(ghostLook(false, true)).toEqual({ opacity: 0.14, transparent: true });
     expect(ghostLook(true, true)).toEqual({ opacity: 1, transparent: false });
     expect(ghostLook(false, false)).toEqual({ opacity: 1, transparent: false });
+  });
+});
+
+describe('anchorFollows', () => {
+  it('moves points with the chambers that carry them', () => {
+    expect(anchorFollows('left-ventricle', 'chamber')).toEqual(['left-ventricle']);
+    expect(anchorFollows('sa-node', 'conduction')).toEqual(['right-atrium']);
+    expect(anchorFollows('right-coronary-artery', 'coronary-artery')).toEqual([
+      'right-ventricle',
+      'left-ventricle',
+    ]);
+    expect(anchorFollows('pulmonary-valve', 'valve')).toEqual([]);
   });
 });

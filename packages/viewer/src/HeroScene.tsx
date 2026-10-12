@@ -11,6 +11,7 @@ import {
   type RefObject,
 } from 'react';
 import {
+  Box3,
   Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
@@ -20,8 +21,8 @@ import {
   type Object3D,
 } from 'three';
 import { FOV, HOME, orbit, TARGET, type Vec3 } from './camera.ts';
-import type { CycleSource } from './cycle.ts';
-import { ghostLook, ndcToShare, sharesChanged, type Share } from './hero-state.ts';
+import { SQUEEZE, type ChamberId, type CycleSource } from './cycle.ts';
+import { anchorFollows, ghostLook, ndcToShare, sharesChanged, type Share } from './hero-state.ts';
 import { Model } from './Scene.tsx';
 
 export interface HeroSceneProps {
@@ -55,6 +56,8 @@ const STEP = Math.PI / 12;
 const TURN_SPEED = 0.5;
 
 const noop = () => {};
+const ATRIA: ChamberId[] = ['right-atrium', 'left-atrium'];
+const VENTRICLES: ChamberId[] = ['right-ventricle', 'left-ventricle'];
 
 type KeyHandler = (key: string) => boolean;
 
@@ -91,52 +94,100 @@ function Ghost({ highlighted, ghost }: { highlighted: ReadonlySet<string>; ghost
   return null;
 }
 
+interface AnchorPoint {
+  /** Point at rest, in model space. */
+  rest: Vector3;
+  /** Chambers whose squeeze moves it, and the centre they squeeze towards. */
+  follows: ChamberId[];
+  centre: Vector3 | null;
+}
+
+/** Centre of the joint box of the named meshes; null when the model lacks them. */
+function centreOf(scene: Object3D, names: readonly string[]): Vector3 | null {
+  const box = new Box3();
+  for (const name of names) {
+    const node = scene.getObjectByName(name);
+    if (node) box.expandByObject(node);
+  }
+  return box.isEmpty() ? null : box.getCenter(new Vector3());
+}
+
 /**
  * Finds where each poster point lies on the model, once: a ray from the poster's camera through
- * the point hits the visible surface of its structure. Every frame the points are projected with
- * the live camera, and the page hears of them when they move.
+ * the point hits the visible surface of its structure (or, failing that, the middle of it). Every
+ * frame each point moves with the heartbeat as the shader moves its mesh, is projected with the
+ * live camera, and the page hears of the points when they move.
  */
 function Anchors({
   anchors,
   posterAspect,
+  cycle,
   onAnchors,
-}: Pick<HeroSceneProps, 'anchors' | 'posterAspect' | 'onAnchors'>) {
+}: Pick<HeroSceneProps, 'anchors' | 'posterAspect' | 'cycle' | 'onAnchors'>) {
   const scene = useThree((s) => s.scene);
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
   // Found after the commit that puts the model into the scene.
-  const points = useRef<Record<string, Vector3>>({});
+  const points = useRef<Record<string, AnchorPoint>>({});
   useEffect(() => {
     const camera = new PerspectiveCamera(FOV, posterAspect, 0.01, 10);
     camera.position.set(...HOME);
     camera.lookAt(...TARGET);
     camera.updateMatrixWorld();
     const ray = new Raycaster();
-    const found: Record<string, Vector3> = {};
+    // Like the shader: everything on the atria squeezes towards their joint centre, and so for
+    // the ventricles, so shared walls move as one.
+    const atria = centreOf(scene, ATRIA);
+    const ventricles = centreOf(scene, VENTRICLES);
+    const found: Record<string, AnchorPoint> = {};
     for (const [id, { x, y }] of Object.entries(anchors)) {
       const node = scene.getObjectByName(id);
       if (!node) continue;
       ray.setFromCamera(new Vector2(x * 2 - 1, 1 - y * 2), camera);
-      const hit = ray.intersectObject(node, true)[0];
-      if (hit) found[id] = hit.point.clone();
+      const rest =
+        ray.intersectObject(node, true)[0]?.point.clone() ??
+        new Box3().setFromObject(node).getCenter(new Vector3());
+      const follows = anchorFollows(id, String(node.userData['group'] ?? ''));
+      const centre = follows[0] && ATRIA.includes(follows[0]) ? atria : ventricles;
+      found[id] = { rest, follows, centre };
     }
     points.current = found;
     invalidate();
   }, [scene, anchors, posterAspect, invalidate]);
 
   const last = useRef<Record<string, Share>>({});
-  const projected = useMemo(() => new Vector3(), []);
+  const point = useMemo(() => new Vector3(), []);
   useFrame(({ camera }) => {
+    const state = cycle?.() ?? null;
     // How much wider the canvas is than the poster; shares are given of the poster.
     const widen = size.width / (size.height * posterAspect);
     const next: Record<string, Share> = {};
-    for (const [id, point] of Object.entries(points.current)) {
-      projected.copy(point).project(camera);
-      next[id] = ndcToShare(projected.x * widen, projected.y);
+    for (const [id, { rest, follows, centre }] of Object.entries(points.current)) {
+      point.copy(rest);
+      if (state && centre && follows.length > 0) {
+        const squeeze =
+          follows.reduce((sum, c) => sum + (state.contraction[c] ?? 0) * SQUEEZE[c], 0) /
+          follows.length;
+        point.lerp(centre, squeeze);
+      }
+      point.project(camera);
+      next[id] = ndcToShare(point.x * widen, point.y);
     }
     if (!sharesChanged(last.current, next)) return;
     last.current = next;
     onAnchors(next);
+  });
+  return null;
+}
+
+/** Tells the page once the model has been drawn, so the poster leaves only then. */
+function FirstFrame({ ready, onReady }: { ready: boolean; onReady: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (!ready || done.current) return;
+    done.current = true;
+    // useFrame runs before the frame is drawn; the next animation frame comes after it.
+    requestAnimationFrame(onReady);
   });
   return null;
 }
@@ -193,9 +244,6 @@ export default function HeroScene({
   // The slow turn stops for good once the reader turns the heart.
   const [touched, setTouched] = useState(false);
   const onLoaded = useCallback(() => setReady(true), []);
-  useEffect(() => {
-    if (ready) onReady();
-  }, [ready, onReady]);
 
   const spinning = turn && !touched;
   const frameloop = !visible ? 'never' : spinning ? 'always' : 'demand';
@@ -203,7 +251,8 @@ export default function HeroScene({
   return (
     <div
       className="hero-heart-canvas"
-      tabIndex={0}
+      // Reachable with Tab only once the model shows; before that the poster is what is seen.
+      tabIndex={ready ? 0 : -1}
       role="img"
       aria-label={label}
       aria-busy={!ready}
@@ -239,7 +288,13 @@ export default function HeroScene({
             onLoaded={onLoaded}
           />
           <Ghost highlighted={highlighted} ghost={ghost} />
-          <Anchors anchors={anchors} posterAspect={posterAspect} onAnchors={onAnchors} />
+          <Anchors
+            anchors={anchors}
+            posterAspect={posterAspect}
+            cycle={cycle}
+            onAnchors={onAnchors}
+          />
+          <FirstFrame ready={ready} onReady={onReady} />
         </Suspense>
         <OrbitControls
           makeDefault

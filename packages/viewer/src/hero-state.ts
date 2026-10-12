@@ -35,3 +35,26 @@ export function ghostLook(lit: boolean, ghost: boolean): { opacity: number; tran
   const see = ghost && !lit;
   return { opacity: see ? 0.14 : 1, transparent: see };
 }
+
+type Chamber = 'right-atrium' | 'left-atrium' | 'right-ventricle' | 'left-ventricle';
+
+/**
+ * Chambers whose squeeze moves a line's point, as the heartbeat shader moves the mesh it lies
+ * on (`followsFor` in Scene.tsx, for the structures a home page line can point at).
+ */
+export function anchorFollows(name: string, group: string): Chamber[] {
+  switch (name) {
+    case 'right-atrium':
+    case 'left-atrium':
+    case 'right-ventricle':
+    case 'left-ventricle':
+      return [name];
+    case 'sa-node':
+    case 'av-node':
+      return ['right-atrium'];
+  }
+  if (group === 'coronary-artery' || group === 'cardiac-vein') {
+    return ['right-ventricle', 'left-ventricle'];
+  }
+  return [];
+}

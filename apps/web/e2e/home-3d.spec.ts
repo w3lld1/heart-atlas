@@ -18,11 +18,14 @@ test.use({
 const LOAD = { timeout: 20_000 };
 
 /** Opens the English home page with the reader's motion choice and records 3D requests. */
-async function open(page: Page, motion: 'full' | 'calm' | 'off') {
-  await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [
-    MOTION_STORAGE_KEY,
-    motion,
-  ] as const);
+async function open(page: Page, motion: 'full' | 'calm' | 'off' | 'reduced') {
+  if (motion === 'reduced') await page.emulateMedia({ reducedMotion: 'reduce' });
+  else {
+    await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [
+      MOTION_STORAGE_KEY,
+      motion,
+    ] as const);
+  }
   const requested: string[] = [];
   page.on('request', (r) => requested.push(r.url()));
   await page.goto('en/');
@@ -42,6 +45,9 @@ const lineEnd = (page: Page, card: string) =>
     .evaluate((el) => [Number(el.getAttribute('x2')), Number(el.getAttribute('y2'))]);
 
 test.describe('live heart on the home page', () => {
+  // Loading and drawing under SwiftShader on a CI runner is slow; the canvas keeps it busy too.
+  test.describe.configure({ timeout: 90_000 });
+
   test('loads by itself at full motion, beats and hides the poster', async ({ page }) => {
     await open(page, 'full');
     await expect(heart(page)).toBeVisible(LOAD);
@@ -51,6 +57,8 @@ test.describe('live heart on the home page', () => {
     await expect
       .poll(() => changedShare(page.locator('[data-hero-mount]')), { timeout: 30_000 })
       .toBeGreaterThan(MOVING);
+    // Still for axe: a beating, turning heart keeps a software GPU and axe's page script slow.
+    await page.locator('[data-set-motion="off"]').click();
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
   });
@@ -79,6 +87,30 @@ test.describe('live heart on the home page', () => {
     await expect(page.locator('[data-heart]')).toHaveClass(/live/, LOAD);
     await page.waitForTimeout(500);
     expect(await changedShare(page.locator('[data-hero-mount]'), 400)).toBeLessThan(MOVING);
+  });
+
+  test('moves keyboard focus from the button to the heart', async ({ page }) => {
+    await open(page, 'calm');
+    const button = page.getByRole('button', { name: en['motion.load3d'] });
+    await button.focus();
+    await page.keyboard.press('Enter');
+    await expect(heart(page)).toBeFocused(LOAD);
+  });
+
+  test('loads nothing under reduced motion until asked', async ({ page }) => {
+    const { threeD } = await open(page, 'reduced');
+    await expect(page.getByRole('button', { name: en['motion.load3d'] })).toBeVisible();
+    await page.waitForTimeout(1500);
+    expect(threeD()).toEqual([]);
+  });
+
+  test('keeps the poster when the model fails to load', async ({ page }) => {
+    await page.route('**/*.glb', (route) => route.fulfill({ status: 404 }));
+    await open(page, 'calm');
+    await page.getByRole('button', { name: en['motion.load3d'] }).click();
+    await expect(page.locator('[data-load3d]')).toBeHidden(LOAD);
+    await expect(page.locator('[data-heart]')).not.toHaveClass(/live/);
+    await expect(page.getByRole('img', { name: en['home.posterAlt'] })).toBeVisible();
   });
 
   test('loads when the reader switches to full motion', async ({ page }) => {

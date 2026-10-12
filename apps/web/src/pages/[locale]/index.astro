@@ -110,13 +110,14 @@ const lines = (text: string) => text.split('\n');
 const handFont = await handFontCss(t['home.hand']);
 const arrow = 'M5 12h14M13 6l6 6-6 6';
 // What the live heart needs, read by the page script when the heart loads.
+// "<" is escaped, so no text in it can close the script element it sits in.
 const heroData = JSON.stringify({
   models: modelUrls.models,
   structures: heartStructures(t),
   anchors: Object.fromEntries(cards.map((card) => [card.anchorId, card.anchor])),
   posterAspect: poster.width / poster.height,
   label: t['home.heart3d'],
-});
+}).replaceAll('<', '\\u003c');
 ---
 
 <BaseLayout locale={locale} wide>
@@ -283,28 +284,54 @@ const heroData = JSON.stringify({
   const stage = document.querySelector<HTMLElement>('[data-stage]');
   const svg = stage?.querySelector<SVGSVGElement>('[data-links]');
   const poster = stage?.querySelector<HTMLImageElement>('[data-poster]');
-  /** Where the live heart puts each anchor now, as shares of its canvas; empty before it loads. */
+  const nodes = [...(stage?.querySelectorAll<HTMLElement>('.node') ?? [])];
+  /** Where the live heart puts each anchor now, as shares of the poster; empty before it loads. */
   let live: Record<string, [number, number]> = {};
 
-  function draw() {
+  interface Box {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }
+  /** Card line starts and the poster box, relative to the stage; measured on layout changes. */
+  let layout: { image: Box; starts: [number, number][] } | null = null;
+
+  function measure() {
+    layout = null;
     if (!stage || !svg || !poster || getComputedStyle(svg).display === 'none') return;
     const box = stage.getBoundingClientRect();
-    const image = poster.getBoundingClientRect();
+    const rect = poster.getBoundingClientRect();
+    const image = {
+      left: rect.left - box.left,
+      top: rect.top - box.top,
+      width: rect.width,
+      height: rect.height,
+    };
+    const starts = nodes.map((node): [number, number] => {
+      const card = node.getBoundingClientRect();
+      // The line leaves the card from its edge facing the heart.
+      const before = card.left + card.width / 2 < rect.left + rect.width / 2;
+      return [(before ? card.right : card.left) - box.left, card.top + card.height / 2 - box.top];
+    });
     svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-    for (const node of stage.querySelectorAll<HTMLElement>('.node')) {
+    layout = { image, starts };
+  }
+
+  /** Writes the lines from the measured layout: no layout reads, so it can run every frame. */
+  function paint() {
+    if (!svg || !layout) return;
+    const { image, starts } = layout;
+    nodes.forEach((node, i) => {
       const link = svg.querySelector(`[data-card="${node.dataset['card']}"]`);
-      if (!link) continue;
+      const [cx, cy] = starts[i] ?? [0, 0];
+      if (!link) return;
       const [x, y] = live[node.dataset['anchorId'] ?? ''] ?? [
         Number(node.dataset['anchorX']),
         Number(node.dataset['anchorY']),
       ];
-      const ax = image.left - box.left + x * image.width;
-      const ay = image.top - box.top + y * image.height;
-      const card = node.getBoundingClientRect();
-      // The line leaves the card from its edge facing the heart.
-      const before = card.left + card.width / 2 < image.left + image.width / 2;
-      const cx = (before ? card.right : card.left) - box.left;
-      const cy = card.top + card.height / 2 - box.top;
+      const ax = image.left + x * image.width;
+      const ay = image.top + y * image.height;
       const [line, halo, dot, end] = link.children;
       line?.setAttribute('x1', String(cx));
       line?.setAttribute('y1', String(cy));
@@ -316,20 +343,25 @@ const heroData = JSON.stringify({
       }
       end?.setAttribute('cx', String(cx));
       end?.setAttribute('cy', String(cy));
-    }
+    });
     svg.classList.add('drawn');
+  }
+
+  function draw() {
+    measure();
+    paint();
   }
 
   if (stage) {
     // Cards change size when the web fonts arrive, so lines are drawn again then too.
     const observer = new ResizeObserver(draw);
     observer.observe(stage);
-    for (const node of stage.querySelectorAll('.node')) observer.observe(node);
+    for (const node of nodes) observer.observe(node);
     void document.fonts.ready.then(draw);
   }
 
   // Cards light their structures on the live heart.
-  for (const node of stage?.querySelectorAll<HTMLElement>('.node') ?? []) {
+  for (const node of nodes) {
     const ids = (node.dataset['structures'] ?? '').split(' ').filter(Boolean);
     const on = () => highlightStructures(ids, { ghost: 'ghost' in node.dataset });
     const off = () => highlightStructures([]);
@@ -346,34 +378,48 @@ const heroData = JSON.stringify({
   const button = stage?.querySelector<HTMLButtonElement>('[data-load3d]');
   const data = stage?.querySelector('[data-hero-data]')?.textContent;
   let handle: HeroHeartHandle | null = null;
-  let loading = false;
+  let state: 'poster' | 'loading' | 'live' | 'failed' = 'poster';
   let onScreen = false;
+  /** Checked once the page is idle: creating a WebGL context costs time on the first screen. */
+  let webgl: boolean | null = null;
 
   function hasWebGL(): boolean {
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
+      // Browsers cap live contexts, so the probe gives its context back at once.
       gl?.getExtension('WEBGL_lose_context')?.loseContext();
       return gl !== null;
     } catch {
       return false;
     }
   }
-  const webgl = Boolean(heart && mount && data) && hasWebGL();
 
+  const whenIdle = (task: () => void) => {
+    if ('requestIdleCallback' in window) requestIdleCallback(task, { timeout: 3000 });
+    else setTimeout(task, 1000);
+  };
+
+  // The button stays while the model loads, so keyboard focus has somewhere to be.
   function showButton() {
-    if (button) button.hidden = !webgl || loading || currentMotion() === 'full';
+    if (!button) return;
+    button.hidden = !webgl || state === 'live' || state === 'failed' || currentMotion() === 'full';
+    button.setAttribute('aria-disabled', String(state === 'loading'));
   }
 
   async function load() {
-    if (loading || !webgl || !heart || !mount || !data) return;
-    loading = true;
+    if (state !== 'poster' || !webgl || !heart || !mount || !data) return;
+    state = 'loading';
     showButton();
     const fail = () => {
+      state = 'failed';
+      handle?.destroy();
+      handle = null;
       heart.classList.remove('live');
       poster?.removeAttribute('aria-hidden');
       live = {};
-      draw();
+      paint();
+      showButton();
     };
     try {
       const { mountHeroHeart } = await import('@heart-atlas/viewer/hero');
@@ -385,13 +431,18 @@ const heroData = JSON.stringify({
         ...options,
         motion: currentMotion(),
         onReady: () => {
+          if (state !== 'loading') return;
+          state = 'live';
+          const hadFocus = document.activeElement === button;
           heart.classList.add('live');
           // The live heart has its own name; the hidden poster leaves the accessibility tree.
           poster?.setAttribute('aria-hidden', 'true');
+          showButton();
+          if (hadFocus) mount.querySelector<HTMLElement>('[role="img"]')?.focus();
         },
         onAnchors: (points) => {
           live = points;
-          draw();
+          paint();
         },
         onError: fail,
       });
@@ -402,23 +453,25 @@ const heroData = JSON.stringify({
   }
 
   function loadWhenIdle() {
-    if (currentMotion() !== 'full' || !onScreen) return;
-    if ('requestIdleCallback' in window) requestIdleCallback(() => void load(), { timeout: 3000 });
-    else setTimeout(() => void load(), 1000);
+    if (currentMotion() === 'full' && onScreen) whenIdle(() => void load());
   }
 
-  if (heart && webgl) {
-    new IntersectionObserver(([entry]) => {
-      onScreen = entry?.isIntersecting ?? false;
-      loadWhenIdle();
-    }).observe(heart);
-    button?.addEventListener('click', () => void load());
-    window.addEventListener(MOTION_EVENT, () => {
-      handle?.setMotion(currentMotion());
+  if (heart && mount && data) {
+    whenIdle(() => {
+      webgl = hasWebGL();
       showButton();
-      loadWhenIdle();
+      if (!webgl) return;
+      new IntersectionObserver(([entry]) => {
+        onScreen = entry?.isIntersecting ?? false;
+        loadWhenIdle();
+      }).observe(heart);
+      button?.addEventListener('click', () => void load());
+      window.addEventListener(MOTION_EVENT, () => {
+        handle?.setMotion(currentMotion());
+        showButton();
+        loadWhenIdle();
+      });
     });
-    showButton();
   }
 </script>
 
@@ -661,7 +714,7 @@ const heroData = JSON.stringify({
   }
 
   .poster,
-  .hero-mount {
+  .hero-mount :global(canvas) {
     mask-image: linear-gradient(to bottom, #000 82%, transparent);
   }
 
@@ -680,13 +733,12 @@ const heroData = JSON.stringify({
     position: absolute;
     inset-block: 0;
     inset-inline: -30%;
-    opacity: 0;
+
+    /* Its canvas is see-through until the model is drawn; the poster then fades out under it. */
     pointer-events: none;
-    transition: opacity 0.4s;
   }
 
   .heart:global(.live) .hero-mount {
-    opacity: 1;
     pointer-events: auto;
   }
 
@@ -719,6 +771,11 @@ const heroData = JSON.stringify({
     font-weight: 600;
     translate: -50% 0;
     cursor: pointer;
+  }
+
+  .load3d[aria-disabled='true'] {
+    opacity: 0.7;
+    cursor: progress;
   }
 
   .load3d[hidden] {
