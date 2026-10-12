@@ -77,6 +77,7 @@
   "articles.type.disease": "Болезни",
   "articles.type.diagnostic": "Диагностика",
   "articles.type.treatment": "Лечение",
+  "articles.showOnModel": "показать на 3D-модели",
   "sources.cite": "Источник {n}",
   "search.label": "Поиск по атласу",
   "search.submit": "Найти",

@@ -3,6 +3,8 @@
  * highlight structures without importing the viewer.
  */
 export const HIGHLIGHT_EVENT = 'heart-atlas:highlight';
+/** Set on a viewer's root once it listens for HIGHLIGHT_EVENT; events sent before are lost. */
+export const HIGHLIGHT_READY_ATTR = 'data-highlight-ready';
 
 export interface HighlightDetail {
   ids: string[];

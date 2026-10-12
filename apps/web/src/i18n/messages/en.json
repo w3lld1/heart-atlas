@@ -77,6 +77,7 @@
   "articles.type.disease": "Diseases",
   "articles.type.diagnostic": "Diagnostics",
   "articles.type.treatment": "Treatment",
+  "articles.showOnModel": "show on the 3D model",
   "sources.cite": "Source {n}",
   "search.label": "Search the atlas",
   "search.submit": "Search",
