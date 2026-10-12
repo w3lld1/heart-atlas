@@ -21,7 +21,7 @@ test.describe('learning tracks', () => {
     await expect(steps).toHaveCount(2);
     await expect(steps.nth(0).getByRole('link')).toHaveText('Тестовое состояние');
     // The second article is shown from its English original, and marked so.
-    await expect(steps.nth(1)).toHaveAttribute('lang', 'en');
+    await expect(steps.nth(1).locator('div')).toHaveAttribute('lang', 'en');
     await expect(steps.nth(1).getByRole('link')).toHaveAttribute(
       'href',
       /\/ru\/disease\/another-condition\/$/,
