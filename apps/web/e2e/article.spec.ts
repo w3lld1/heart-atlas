@@ -122,7 +122,7 @@ test.describe('article page', () => {
   });
 
   test('stands the diagram still with the site motion off', async ({ page }) => {
-    await page.addInitScript(([key]) => localStorage.setItem(key, 'off'), [MOTION_STORAGE_KEY]);
+    await page.addInitScript((key) => localStorage.setItem(key, 'off'), MOTION_STORAGE_KEY);
     await page.goto(article);
     const diagram = page.locator('figure.diagram');
     await expect(diagram.locator('.flow')).toBeHidden();

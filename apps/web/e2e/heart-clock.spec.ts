@@ -109,7 +109,7 @@ test.describe('heart clock controls', () => {
   });
 
   test('starts paused with motion off and pauses when motion is turned off', async ({ page }) => {
-    await page.addInitScript(([key]) => localStorage.setItem(key, 'off'), [MOTION_STORAGE_KEY]);
+    await page.addInitScript((key) => localStorage.setItem(key, 'off'), MOTION_STORAGE_KEY);
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('radio', { name: '×0.5' })).toBeVisible();
     await page.waitForTimeout(300);
