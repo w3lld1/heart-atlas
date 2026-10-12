@@ -351,5 +351,16 @@
   "diagram.label.leaflets-closed": "Leaflets closed",
   "diagram.label.leaflets-gap": "Leaflets do not close",
   "diagram.label.la-enlarged": "LA enlarged in severe regurgitation",
-  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation"
+  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation",
+  "quiz.title": "Check yourself",
+  "quiz.check": "Check",
+  "quiz.retry": "Try again",
+  "quiz.showAnswer": "Show the answer",
+  "quiz.answer": "Answer:",
+  "quiz.correct": "Correct.",
+  "quiz.incorrect": "Not quite.",
+  "quiz.choose": "Choose an answer first.",
+  "quiz.mark.correct": "correct answer",
+  "quiz.mark.chosen": "your answer",
+  "quiz.score": "Correct answers: {correct} of {total}."
 }

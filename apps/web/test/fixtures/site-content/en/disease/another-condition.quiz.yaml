@@ -1,0 +1,10 @@
+# Test fixture for HA_TEST_CONTENT=1 builds: fictional questions, not medical content.
+questions:
+  - level: patient
+    prompt: A question in English?
+    options:
+      - text: The right option
+        correct: true
+      - text: A wrong option
+    explanation: Why the right option is right.
+    cite: [1]
