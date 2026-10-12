@@ -326,5 +326,9 @@
   "diagram.label.leg-vein": "Deep leg vein",
   "diagram.label.ivc": "Inferior vena cava",
   "diagram.pulmonary-embolism.title": "Diagram of venous blood flowing from a leg vein through the right side of the heart into the pulmonary artery branches: normal, and in pulmonary embolism with a clot in a leg vein and an embolus blocking one branch",
-  "diagram.label.reduced-blood-flow": "Reduced blood flow"
+  "diagram.label.reduced-blood-flow": "Reduced blood flow",
+  "diagram.label.uniform-wall": "Uniform wall",
+  "diagram.label.inflammation-foci": "Foci of inflammation",
+  "diagram.label.lv-cross-section": "LV cross-section",
+  "diagram.myocarditis.title": "Diagram of a cross-section of the left ventricle: a uniform wall normally, and patchy foci of inflammation in the wall in myocarditis"
 }

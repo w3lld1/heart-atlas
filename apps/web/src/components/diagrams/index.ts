@@ -13,6 +13,7 @@ import HolterMonitor from './HolterMonitor.astro';
 import Hypertension from './Hypertension.astro';
 import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
+import Myocarditis from './Myocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
@@ -34,6 +35,7 @@ export const diagrams = {
   hypertension: Hypertension,
   'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
   'infective-endocarditis': InfectiveEndocarditis,
+  myocarditis: Myocarditis,
   'natriuretic-peptides': NatriureticPeptides,
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
