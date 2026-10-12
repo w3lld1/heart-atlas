@@ -433,6 +433,8 @@
   "diagram.label.long-qt-interval": "Long QT interval",
   "diagram.label.torsades": "Torsades de pointes",
   "diagram.long-qt-syndrome.title": "ECG diagram: normally the QT interval runs from the start of the QRS complex to the end of the T wave; in long QT syndrome the T wave ends later and the QT interval is longer; below, a normal rhythm and torsades de pointes ventricular tachycardia, with complexes that change around the baseline",
+  "diagram.label.sinus-pause": "Sinus pause",
+  "diagram.sick-sinus-syndrome.title": "Diagram of sinus node impulses travelling through the atria and the atrioventricular node to the ventricles: normally the sinus node fires regularly; in sick sinus syndrome two impulses in a row are missing and a pause follows; in the diagram neither the atria nor the ventricles are activated during the pause, and the beats from lower pacemakers that usually appear in a pause are not shown",
   "diagram.label.scar": "Scar",
   "diagram.label.isthmus": "Isthmus",
   "diagram.ventricular-tachycardia.title": "Diagram of the electrical impulse path from the sinus node through the atria and the AV node to the ventricles: normally every beat starts in the sinus node; in ventricular tachycardia the impulse circles in the scar zone of the ventricular wall through a narrow isthmus, and every lap excites the ventricles again, so they beat fast and regularly on their own, apart from the atria",

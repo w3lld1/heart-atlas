@@ -26,6 +26,7 @@ import NatriureticPeptides from './NatriureticPeptides.astro';
 import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
+import SickSinusSyndrome from './SickSinusSyndrome.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
 import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
@@ -61,6 +62,7 @@ export const diagrams = {
   'patent-ductus-arteriosus': PatentDuctusArteriosus,
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
+  'sick-sinus-syndrome': SickSinusSyndrome,
   'supraventricular-tachycardia': SupraventricularTachycardia,
   'tetralogy-of-fallot': TetralogyOfFallot,
   'ventricular-septal-defect': VentricularSeptalDefect,

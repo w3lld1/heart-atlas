@@ -1,0 +1,307 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-sss-arrow`;
+
+/*
+ * A ladder diagram in the style of the AV block one: time runs to the right, and each vertical
+ * path is one impulse from the sinus node down through the atria and the AV node to the
+ * ventricles. In the disease state the sinus node stops firing for two beats in a row (a sinus
+ * pause, as the caption says): no impulse leaves it, so neither the atria nor the ventricles are
+ * activated during the pause. Escape beats are not drawn; the caption says so. Conduction below
+ * the sinus node is the same in both states.
+ */
+const bands = {
+  atria: { y: 44, h: 52 },
+  av: { y: 118, h: 42 },
+  ventricles: { y: 196, h: 56 },
+};
+const sa = { x: 24, y: 30 };
+const beats = [190, 248, 306, 364, 422, 480];
+// Beats the sinus node skips in the disease state.
+const missing = new Set([2, 3]);
+const lastX = beats[beats.length - 1] ?? 0;
+// The pause runs from the last impulse before it to the first one after it.
+const pauseFrom = (beats[1] ?? 0) + 12;
+const pauseTo = (beats[4] ?? 0) - 12;
+const pauseY = 268;
+// The impulse slants in the AV band: the short delay before it reaches the ventricles.
+const shift = 10;
+const path = (x: number) =>
+  `M${x},${sa.y} L${x},${bands.av.y} L${x + shift},${bands.av.y + bands.av.h} L${x + shift},${bands.ventricles.y + 14}`;
+const aY = bands.atria.y + bands.atria.h / 2;
+const vY = bands.ventricles.y + bands.ventricles.h / 2 + 4;
+const cycle = 3.6;
+const delay = (i: number) => (i * cycle) / beats.length;
+---
+
+<svg
+  viewBox="0 0 540 300"
+  role="img"
+  aria-label={t['diagram.sick-sinus-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Bands: atria, the AV node and the conduction below it, ventricles -->
+  <rect
+    x="8"
+    y={bands.atria.y}
+    width="524"
+    height={bands.atria.h}
+    rx="8"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.55"
+  ></rect>
+  <rect
+    x="8"
+    y={bands.av.y}
+    width="524"
+    height={bands.av.h}
+    rx="8"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="6 4"
+  ></rect>
+  <rect
+    x="8"
+    y={bands.ventricles.y}
+    width="524"
+    height={bands.ventricles.h}
+    rx="8"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.55"
+  ></rect>
+
+  <!-- Sinus node and the line its impulses leave along -->
+  <line
+    x1={sa.x}
+    y1={sa.y}
+    x2={lastX}
+    y2={sa.y}
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="3 4"
+  ></line>
+  <circle class="sss-node" cx={sa.x} cy={sa.y} r="8"></circle>
+
+  <!-- Static impulse paths: they carry the meaning without motion -->
+  {beats.map((x, i) => (
+    <path class:list={['sss-mark-edge', { 'normal-only': missing.has(i) }]} d={path(x)} />
+  ))}
+  {beats.map((x, i) => (
+    <path
+      class:list={['sss-mark', { 'normal-only': missing.has(i) }]}
+      d={path(x)}
+      marker-end={`url(#${arrowId})`}
+    />
+  ))}
+
+  <!-- Each beat: the sinus impulse, the atria and the ventricles it activates. In the pause the
+       same places are empty dashed rings. -->
+  {beats.map((x, i) =>
+    missing.has(i) ? (
+      <g>
+        <g class="normal-only">
+          <circle class="sss-node" cx={x} cy={sa.y} r="6" />
+          <circle class="sss-node" cx={x} cy={aY} r="7" />
+          <circle class="sss-v" cx={x + shift} cy={vY} r="10" />
+        </g>
+        <g class="disease-only">
+          <circle class="sss-missing" cx={x} cy={sa.y} r="6" />
+          <circle class="sss-missing" cx={x} cy={aY} r="7" />
+          <circle class="sss-missing" cx={x + shift} cy={vY} r="10" />
+        </g>
+      </g>
+    ) : (
+      <g>
+        <circle class="sss-node" cx={x} cy={sa.y} r="6" />
+        <circle class="sss-node" cx={x} cy={aY} r="7" />
+        <circle class="sss-v" cx={x + shift} cy={vY} r="10" />
+      </g>
+    ),
+  )}
+
+  <!-- The pause: a span from the last impulse before it to the first one after it -->
+  <g class="disease-only">
+    <line class="sss-span" x1={pauseFrom} y1={pauseY} x2={pauseTo} y2={pauseY}></line>
+    <line class="sss-span" x1={pauseFrom} y1={pauseY - 6} x2={pauseFrom} y2={pauseY + 6}></line>
+    <line class="sss-span" x1={pauseTo} y1={pauseY - 6} x2={pauseTo} y2={pauseY + 6}></line>
+  </g>
+
+  <!-- Moving impulses; in the disease state the skipped beats have none -->
+  <g class="flow">
+    {beats.map((x, i) => (
+      <g class:list={{ 'normal-only': missing.has(i) }}>
+        <circle class="sss-dot" cx={x} cy={sa.y} r="5" style={`animation-delay: ${delay(i)}s`} />
+        <circle
+          class="sss-flash"
+          cx={x + shift}
+          cy={vY}
+          r="10"
+          style={`animation-delay: ${delay(i)}s`}
+        />
+      </g>
+    ))}
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="40" y="22">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="20" y={bands.atria.y + bands.atria.h / 2 + 6}>
+    {t['diagram.label.atria']}
+  </text>
+  <text class="diagram-small" x="20" y={bands.av.y + bands.av.h / 2 + 4}>
+    {t['diagram.label.av-node-and-below']}
+  </text>
+  <text x="20" y={bands.ventricles.y + bands.ventricles.h / 2 + 6}>
+    {t['diagram.label.ventricles']}
+  </text>
+  <text
+    class="diagram-small disease-only"
+    x={(pauseFrom + pauseTo) / 2}
+    y={pauseY + 18}
+    text-anchor="middle"
+  >
+    {t['diagram.label.sinus-pause']}
+  </text>
+  <text class="diagram-small" x="532" y="294" text-anchor="end">
+    {t['diagram.label.time']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .sss-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .sss-mark-edge {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-opacity: 0.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .diagram .sss-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .diagram .sss-v {
+    fill: var(--diagram-arterial);
+  }
+
+  .diagram .sss-missing {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+
+  .diagram .sss-span {
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .diagram .sss-dot {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    opacity: 0;
+    animation: sss-go 3.6s linear infinite;
+  }
+
+  .diagram .sss-flash {
+    fill: var(--diagram-arterial);
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sss-flash 3.6s ease-out infinite;
+  }
+
+  /* One impulse: down through the atria, a slower slant through the AV band, then the ventricles.
+     The offsets follow the path in the frontmatter (sinus line y = 30, AV band 118–160). */
+  @keyframes sss-go {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    8% {
+      opacity: 1;
+      transform: translate(0, 88px);
+    }
+
+    16% {
+      opacity: 1;
+      transform: translate(10px, 130px);
+    }
+
+    20% {
+      opacity: 1;
+      transform: translate(10px, 180px);
+    }
+
+    21%,
+    100% {
+      opacity: 0;
+      transform: translate(10px, 180px);
+    }
+  }
+
+  /* The ventricles light up when the impulse arrives. */
+  @keyframes sss-flash {
+    0%,
+    19% {
+      opacity: 0;
+      transform: scale(1);
+    }
+
+    21% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+
+    40%,
+    100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+</style>
