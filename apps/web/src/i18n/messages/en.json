@@ -392,5 +392,8 @@
   "diagram.label.overriding-aorta": "Overriding aorta",
   "diagram.label.rv-outflow-narrowing": "Narrowed RV outflow",
   "diagram.label.rv-hypertrophy": "RV hypertrophy",
-  "diagram.tetralogy-of-fallot.title": "Diagram of the ventricles, pulmonary artery and aorta, normally and in tetralogy of Fallot: a ventricular septal defect, a narrowed right ventricular outflow tract, an aorta overriding the defect and a thickened right ventricular wall"
+  "diagram.tetralogy-of-fallot.title": "Diagram of the ventricles, pulmonary artery and aorta, normally and in tetralogy of Fallot: a ventricular septal defect, a narrowed right ventricular outflow tract, an aorta overriding the defect and a thickened right ventricular wall",
+  "diagram.label.ldl-particles": "LDL particles",
+  "diagram.label.early-plaque": "Early plaque",
+  "diagram.dyslipidemia.title": "Diagram of an artery cut lengthwise: normally LDL particles pass along the lumen with the blood; with high LDL cholesterol there are more of them, they are retained in the wall and form an early plaque"
 }
