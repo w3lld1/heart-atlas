@@ -4,7 +4,7 @@
 
 An open-source interactive web app about the heart and heart disease: 3D anatomy, a live cardiac cycle with a synchronized ECG and heart sounds, and articles on heart conditions in "normal / disease" mode. Every article cites verified sources. Free, runs in the browser, and built so any language can be added.
 
-> **Status:** preparing the first release, v0.1 ([stage 4 spec](docs/plans/2026-10-11-stage-4-release.md)). Every change to `main` is deployed to [w3lld1.github.io/heart-atlas](https://w3lld1.github.io/heart-atlas/).
+> **Status:** early versions are out, see [releases](https://github.com/w3lld1/heart-atlas/releases) and the [changelog](CHANGELOG.md). In progress: quizzes and learning tracks ([stage 6 spec](docs/plans/2026-10-12-stage-6-quizzes-tracks.md)). Every change to `main` is deployed to [w3lld1.github.io/heart-atlas](https://w3lld1.github.io/heart-atlas/).
 >
 > Heart Atlas is an educational resource. It does not replace a consultation with a doctor. See [DISCLAIMER.md](DISCLAIMER.md).
 

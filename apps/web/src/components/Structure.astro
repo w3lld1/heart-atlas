@@ -1,0 +1,103 @@
+---
+import { defaultLocale } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+import { heartStructures } from '../lib/heart-model.ts';
+
+// A word in the article that shows its structure on the page's 3D model:
+// <Structure id="mitral-valve">митральный клапан</Structure>. Without a model on the page or
+// without JavaScript it stays plain text. Spec: docs/plans/2026-10-12-article-interactivity.md.
+interface Props {
+  /** Structure id from assets/models/heart/structures.yaml. */
+  id: string;
+}
+
+const { id } = Astro.props;
+const t = getMessages(Astro.locals.locale ?? defaultLocale);
+if (!heartStructures(t).some((s) => s.id === id)) {
+  throw new Error(`<Structure id="${id}">: unknown structure`);
+}
+---
+
+<!-- Inline element: line breaks around the slot would render as spaces around the word. -->
+<!-- prettier-ignore -->
+<span data-structure={id} data-hint={t['articles.showOnModel']}><slot /></span>
+
+<script>
+  import { HIGHLIGHT_READY_ATTR, highlightStructures } from '@heart-atlas/viewer/events';
+
+  // The viewer island hydrates when it comes into view and only then listens for highlights. It
+  // marks its root with HIGHLIGHT_READY_ATTR from that moment, so a click waits for the mark.
+  function whenReady(model: HTMLElement, run: () => void) {
+    const ready = () => model.querySelector(`[${HIGHLIGHT_READY_ATTR}]`) !== null;
+    if (ready()) return run();
+    const observer = new MutationObserver(() => {
+      if (!ready()) return;
+      observer.disconnect();
+      run();
+    });
+    observer.observe(model, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: [HIGHLIGHT_READY_ATTR],
+    });
+  }
+
+  const model = document.querySelector<HTMLElement>('[data-heart-model]');
+  if (model) {
+    for (const word of document.querySelectorAll<HTMLElement>('span[data-structure]')) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'structure-link';
+      button.dataset['structure'] = word.dataset['structure'];
+      button.append(...word.childNodes);
+      const hint = document.createElement('span');
+      hint.className = 'structure-hint';
+      // The hint is page UI text; the article around it may be in a fallback language.
+      hint.lang = document.documentElement.lang;
+      hint.textContent = ` (${word.dataset['hint'] ?? ''})`;
+      button.append(hint);
+      button.addEventListener('click', () => {
+        const id = button.dataset['structure'];
+        if (!id) return;
+        const smooth = document.documentElement.dataset['motion'] === 'full';
+        model.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+        whenReady(model, () => highlightStructures([id]));
+      });
+      word.replaceWith(button);
+    }
+  }
+</script>
+
+<style is:global>
+  /* Global: the button is created by the script, outside this component's scoped markup. */
+  .structure-link {
+    display: inline;
+    padding: 0;
+    border: 0;
+    border-block-end: 1px dashed currentcolor;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .structure-link:hover {
+    color: var(--color-accent);
+  }
+
+  .structure-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .structure-hint {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

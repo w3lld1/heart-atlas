@@ -1,0 +1,53 @@
+questions:
+  - level: patient
+    prompt: What is the main cause of coronary heart disease?
+    options:
+      - text: Atherosclerosis — plaques in the walls of the coronary arteries
+        correct: true
+      - text: A broken rib
+      - text: A skin rash
+    explanation: The main cause of CHD is atherosclerosis — plaques build up in the walls of the coronary arteries.
+    cite: [1, 3]
+  - level: patient
+    prompt: What happens to angina pain once the effort stops?
+    options:
+      - text: It gets worse
+      - text: It settles quickly
+        correct: true
+      - text: It becomes constant
+    explanation: Angina pain comes on with physical effort or strong emotion and settles quickly once the effort stops.
+    cite: [3]
+  - level: patient
+    prompt: Who is more likely than others to have a heart attack without chest pain?
+    options:
+      - text: No one — a heart attack always starts with chest pain
+      - text: Women, older people and people with diabetes
+        correct: true
+    explanation: Women, older people and people with diabetes are more likely than others to have atypical symptoms without chest pain — only breathlessness, pain in the upper abdomen, or tiredness.
+    cite: [5]
+  - level: patient
+    prompt: What should you do about sudden chest pain or pressure lasting more than 15 minutes?
+    options:
+      - text: Wait for it to pass
+      - text: Drive yourself to hospital
+      - text: Call your local emergency number straight away
+        correct: true
+    explanation: This is a sign of a heart attack — call your local emergency number straight away. Do not wait for it to pass, do not drive yourself, and do not make your own way to a hospital.
+    cite: [2, 5]
+  - level: student
+    prompt: In suspected ACS, within what time of first medical contact should an ECG be done?
+    options:
+      - text: Within 10 minutes
+        correct: true
+      - text: Within 24 hours
+      - text: The next day
+    explanation: In suspected ACS, an ECG should be performed within 10 minutes of first medical contact.
+    cite: [2]
+  - level: student
+    prompt: What distinguishes NSTEMI from unstable angina?
+    options:
+      - text: Persistent ST-segment elevation
+      - text: Elevated markers of myocardial necrosis
+        correct: true
+    explanation: NSTEMI is distinguished from unstable angina by elevated markers of myocardial necrosis. With persistent ST-segment elevation the working diagnosis is STEMI.
+    cite: [2, 5]

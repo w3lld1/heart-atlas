@@ -33,6 +33,7 @@ Every file under `assets/models/` except YAML and Markdown needs an entry in [`a
       attribution: 'BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International'
       also_published_as: CC-BY-SA-2.1-JP # optional; then attribution_alt is required
       attribution_alt: '…'
+      attribution_alt_lang: ja # language of attribution_alt, required with it
       retrieved: 2026-10-11
       sha256: … # of the downloaded archive; must match heart/sources.yaml
   changes: >- # what was changed, as CC licenses require

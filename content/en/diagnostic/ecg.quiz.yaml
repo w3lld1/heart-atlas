@@ -1,0 +1,51 @@
+questions:
+  - level: patient
+    prompt: What does an electrocardiogram (ECG) record?
+    options:
+      - text: An ultrasound image of the heart valves
+      - text: The heart's electrical activity, from the surface of the body
+        correct: true
+      - text: The level of substances in the blood
+    explanation: An ECG is a recording of the heart's electrical activity, taken from the surface of the body without entering it.
+    cite: [1]
+  - level: patient
+    prompt: What does the P wave on an ECG show?
+    options:
+      - text: The ventricles recovering
+      - text: The ventricles being activated
+      - text: The atria being activated
+        correct: true
+    explanation: The P wave is atrial depolarisation, the QRS complex is ventricular depolarisation, and the T wave is ventricular repolarisation.
+    cite: [1]
+  - level: patient
+    prompt: Does a normal resting ECG rule out heart disease?
+    options:
+      - text: No, for example the ECG is often normal after an angina attack
+        correct: true
+      - text: Yes, a normal resting ECG completely rules out heart disease
+    explanation: A normal resting ECG does not rule out heart disease; for example, the ECG is often normal after an angina attack.
+    cite: [3]
+  - level: patient
+    prompt: What happens to the automatic report printed by an ECG machine?
+    options:
+      - text: It is treated as final and no doctor looks at it
+      - text: Every computer-generated report must be checked by a doctor
+        correct: true
+    explanation: Many machines print an automatic report, but every computer-generated report must be checked by a doctor.
+    cite: [2]
+  - level: student
+    prompt: What does the ST segment depict?
+    options:
+      - text: Atrial depolarisation (the P wave)
+      - text: End of ventricular depolarisation, start of ventricular repolarisation
+        correct: true
+    explanation: The ST segment depicts the end of ventricular depolarisation and the beginning of ventricular repolarisation; normally it is isoelectric and at the level of the PR segment.
+    cite: [1]
+  - level: student
+    prompt: What is seen on the ECG in atrial fibrillation?
+    options:
+      - text: No discernible and regular P waves
+        correct: true
+      - text: A regular P wave before every QRS complex
+    explanation: In AF there are no discernible and regular P waves, and there is no specific pattern to RR intervals in the absence of AV block.
+    cite: [4]

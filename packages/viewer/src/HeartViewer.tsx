@@ -1,5 +1,6 @@
 import {
   Component,
+  Fragment,
   lazy,
   Suspense,
   useCallback,
@@ -13,7 +14,13 @@ import {
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import type { PresetId } from '@heart-atlas/heart-clock';
 import { diseaseShapes, diseaseView, type DiseaseId } from './disease.ts';
-import { HIGHLIGHT_EVENT, isHighlightEvent, MOTION_EVENT, motionIsOff } from './events.ts';
+import {
+  HIGHLIGHT_EVENT,
+  HIGHLIGHT_READY_ATTR,
+  isHighlightEvent,
+  MOTION_EVENT,
+  motionIsOff,
+} from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
 import type { HeartViewerProps, SectionAxis, ViewerMessageKey } from './types.ts';
@@ -111,6 +118,7 @@ export default function HeartViewer({
   headingLevel = 2,
   cycle: cycleMode,
   disease,
+  attribution,
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
@@ -224,6 +232,8 @@ export default function HeartViewer({
       setExternal(event.detail.ids.filter((x) => known.has(x)));
     };
     window.addEventListener(HIGHLIGHT_EVENT, onHighlight);
+    // Tells page scripts that highlight events now reach this viewer (HIGHLIGHT_READY_ATTR).
+    rootRef.current?.setAttribute(HIGHLIGHT_READY_ATTR, '');
     return () => window.removeEventListener(HIGHLIGHT_EVENT, onHighlight);
   }, [known]);
 
@@ -461,7 +471,20 @@ export default function HeartViewer({
             </ul>
           </div>
         ))}
-        <p className={styles.attribution}>{t['viewer.attribution']}</p>
+        <p className={styles.attribution}>
+          {t['viewer.attribution'].split('{source}').map((piece, i) => (
+            <Fragment key={i}>
+              {i > 0 &&
+                attribution.map((part, j) => (
+                  <Fragment key={j}>
+                    {j > 0 && '; '}
+                    <span lang={part.lang}>{part.text}</span>
+                  </Fragment>
+                ))}
+              {piece}
+            </Fragment>
+          ))}
+        </p>
       </div>
     </div>
   );

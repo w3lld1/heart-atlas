@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What happens in mitral regurgitation?
+    options:
+      - text: A hole in the wall between the ventricles lets blood through
+      - text: The aortic valve narrows
+      - text: The mitral leaflets do not close, so some blood flows back into the left atrium
+        correct: true
+    explanation: In mitral regurgitation the mitral valve leaflets do not close fully while the ventricles contract, so some blood flows back from the left ventricle into the left atrium.
+    cite: [2, 4]
+  - level: patient
+    prompt: What most often causes acute mitral regurgitation?
+    options:
+      - text: A torn valve cord or a papillary muscle damaged during a heart attack
+        correct: true
+      - text: A congenital hole in the wall of the heart
+      - text: Narrowing of the aortic valve
+    explanation: Acute regurgitation develops most often because a valve cord tears or a papillary muscle is damaged during a heart attack.
+    cite: [2]
+  - level: patient
+    prompt: What is the key test for mitral regurgitation?
+    options:
+      - text: A urine test
+      - text: An ultrasound scan of the heart (echocardiogram)
+        correct: true
+      - text: Measuring body temperature
+    explanation: The key test is an ultrasound scan of the heart. It shows why the valve lets blood leak back and how much.
+    cite: [2, 4]
+  - level: patient
+    prompt: According to the article, which sign is a reason to call an ambulance?
+    options:
+      - text: A heart murmur the doctor heard at a routine check-up
+      - text: Having no symptoms at all
+      - text: Sudden severe breathlessness at rest that gets worse when lying flat
+        correct: true
+    explanation: If sudden severe breathlessness at rest appears that gets worse when lying flat, or a cough with pink, frothy sputum, call your local emergency number.
+    cite: [4]
+  - level: student
+    prompt: What underlies secondary mitral regurgitation?
+    options:
+      - text: Leaflet perforation
+      - text: Severe systolic dysfunction and LV remodelling with a structurally normal valve
+        correct: true
+      - text: Chordal rupture in mitral valve prolapse
+    explanation: Secondary MR results from severe systolic dysfunction and global or regional LV remodelling with a structurally normal valve. Leaflet perforation and chordal damage are causes of primary MR.
+    cite: [2, 4]
+  - level: student
+    prompt: Which are haemodynamic consequences of severe mitral regurgitation?
+    options:
+      - text: A smaller left atrium and left ventricle
+      - text: LA dilatation, LV enlargement and pulmonary hypertension
+        correct: true
+    explanation: Haemodynamic consequences of severe MR are moderate or marked LA dilatation, LV enlargement, and pulmonary hypertension at rest or on exercise.
+    cite: [2]

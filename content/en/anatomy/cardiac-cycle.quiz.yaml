@@ -1,0 +1,45 @@
+questions:
+  - level: patient
+    prompt: What is systole?
+    options:
+      - text: The period of relaxation, when the chambers fill with blood
+      - text: The period of contraction
+        correct: true
+    explanation: The period of contraction is called systole, and the period of relaxation, when the chambers fill with blood, is called diastole.
+    cite: [2]
+  - level: patient
+    prompt: What makes the second heart sound?
+    options:
+      - text: Closure of the aortic and pulmonary valves
+        correct: true
+      - text: Closure of the mitral and tricuspid valves
+      - text: Contraction of the atria
+    explanation: As ventricular pressure falls, blood closes the aortic and pulmonary valves, and their closure makes the second heart sound. The mitral and tricuspid valves make the first.
+    cite: [1, 2]
+  - level: patient
+    prompt: What happens between the first and second heart sounds?
+    options:
+      - text: Diastole
+      - text: A pause when the heart does nothing
+      - text: Systole
+        correct: true
+    explanation: The interval between the first and second sounds is systole, and from the second sound to the next first sound is diastole.
+    cite: [1]
+  - level: student
+    prompt: Which lasts longer, systole or diastole?
+    options:
+      - text: Diastole
+        correct: true
+      - text: Systole
+      - text: They always last the same time
+    explanation: Diastole lasts longer than systole.
+    cite: [2]
+  - level: student
+    prompt: What is the usual stroke volume of the left ventricle in a resting adult?
+    options:
+      - text: About 130 mL
+      - text: 50–60 mL
+      - text: 70–80 mL
+        correct: true
+    explanation: At the end of diastole the left ventricle holds about 130 mL, a contraction normally ejects 70–80 mL (stroke volume), and 50–60 mL remains.
+    cite: [2]

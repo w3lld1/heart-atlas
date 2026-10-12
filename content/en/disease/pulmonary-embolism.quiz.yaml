@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: In PE, where does the clot that blocks the pulmonary arteries most often come from?
+    options:
+      - text: From the blood vessels of the brain
+      - text: From the deep veins of a leg
+        correct: true
+      - text: From the coronary arteries of the heart
+    explanation: In PE a clot that formed somewhere else blocks the pulmonary arteries; most often it comes from the deep veins of a leg.
+    cite: [2, 3]
+  - level: patient
+    prompt: What does a normal D-dimer blood test result mean?
+    options:
+      - text: PE is unlikely
+        correct: true
+      - text: PE is definitely confirmed
+      - text: The clot has already dissolved on its own
+    explanation: A normal D-dimer result makes PE unlikely, while a raised result does not confirm it on its own.
+    cite: [2]
+  - level: patient
+    prompt: What is the main test when PE is suspected?
+    options:
+      - text: A urine test
+      - text: Measuring body temperature
+      - text: A CT scan of the pulmonary arteries with contrast (CT pulmonary angiography)
+        correct: true
+    explanation: The main test is a CT scan of the pulmonary arteries with contrast dye (CT pulmonary angiography).
+    cite: [2]
+  - level: patient
+    prompt: When does the article advise calling an ambulance?
+    options:
+      - text: Only when there is a fever
+      - text: Shortness of breath, chest pain, coughing up blood, feeling faint or fainting
+        correct: true
+      - text: PE never needs an ambulance, a routine visit is enough
+    explanation: Call your local emergency number if shortness of breath, chest pain, coughing up blood, feeling faint or fainting appear. PE is life-threatening.
+    cite: [2, 3]
+  - level: student
+    prompt: What makes up the Virchow triad?
+    options:
+      - text: Hypercoagulability, venous stasis, endothelial injury
+        correct: true
+      - text: Hypocoagulability, faster venous flow, intact endothelium
+      - text: Fever, rash, joint pain
+    explanation: Clot formation is explained by the Virchow triad of hypercoagulability, venous stasis and endothelial injury.
+    cite: [3]
+  - level: student
+    prompt: What is considered the primary cause of death in severe PE?
+    options:
+      - text: Aortic rupture
+      - text: Right ventricular failure due to acute pressure overload
+        correct: true
+      - text: Hypoglycaemia
+    explanation: RV failure due to acute pressure overload is considered the primary cause of death in severe PE.
+    cite: [2]

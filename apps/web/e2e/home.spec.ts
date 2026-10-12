@@ -30,6 +30,17 @@ for (const locale of Object.keys(productionLocales)) {
         .toBeGreaterThan(0);
     });
 
+    test('credits the model source, the Japanese line marked with its language', async ({
+      page,
+    }) => {
+      await page.goto(`${locale}/`);
+      const credits = page.locator('.model-credits');
+      await expect(credits).toContainText('BodyParts3D, © The Database Center for Life Science');
+      await expect(credits.locator('[lang="ja"]')).toContainText(
+        'ライフサイエンス統合データベースセンター',
+      );
+    });
+
     test('links every card to a page that exists', async ({ page, request, baseURL }) => {
       await page.goto(`${locale}/`);
       // How many cards there are depends on the content (CI also runs on fictional test articles).

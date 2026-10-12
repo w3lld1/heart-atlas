@@ -1,0 +1,221 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ad-arrow`;
+// A segment of the aorta cut lengthwise, blood moving left to right. Each wall has three layers:
+// adventitia outside, media in the middle, intima lining the lumen.
+const x0 = 16;
+const x1 = 384;
+// Bottom-wall layer labels in both states: leader start on the layer, label x.
+const layers = [
+  { key: 'diagram.label.intima', x: 70, y: 175.5 },
+  { key: 'diagram.label.media', x: 200, y: 190 },
+  { key: 'diagram.label.adventitia', x: 330, y: 208 },
+] as const;
+// Particles: negative delays so the flow is already running.
+const forward = [0, -0.7, -1.4, -2.1];
+const entry = [0, -0.8, -1.6];
+---
+
+<svg
+  viewBox="0 0 400 266"
+  role="img"
+  aria-label={t['diagram.aortic-dissection.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Blood behind the walls: the lumen, and in dissection also the space opened inside the wall -->
+  <rect x={x0} y="60" width={x1 - x0} height="116" fill="var(--diagram-arterial-fill)"></rect>
+
+  <!-- Adventitia, the outer layer: intact in both states -->
+  <g
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.45"
+    stroke="var(--diagram-muscle)"
+    stroke-width="1.5"
+  >
+    <rect x={x0} y="44" width={x1 - x0} height="10"></rect>
+    <rect x={x0} y="203" width={x1 - x0} height="10"></rect>
+  </g>
+
+  <!-- Bottom wall media and intima: the same in both states -->
+  <rect x={x0} y="177" width={x1 - x0} height="26" fill="var(--diagram-muscle)"></rect>
+  <rect x={x0} y="174" width={x1 - x0} height="3" fill="var(--color-text)"></rect>
+
+  <!-- Top wall, normal: media and an intact intima -->
+  <g class="normal-only">
+    <rect x={x0} y="54" width={x1 - x0} height="26" fill="var(--diagram-muscle)"></rect>
+    <rect x={x0} y="80" width={x1 - x0} height="3" fill="var(--color-text)"></rect>
+  </g>
+
+  <!-- Top wall, dissection: the intima is torn, blood has split the media, and the torn intima with
+       the inner media forms a flap between the true lumen and the false lumen inside the wall -->
+  <g class="disease-only">
+    <path
+      d={`M${x0},54 H${x1} V64 H168 C154,64 146,70 140,80 H${x0} Z`}
+      fill="var(--diagram-muscle)"
+    ></path>
+    <rect x={x0} y="80" width={140 - x0} height="3" fill="var(--color-text)"></rect>
+    <path d={`M${x1},98 H170 C161,98 161,112 170,112 H${x1} Z`} fill="var(--diagram-muscle)"></path>
+    <rect x="170" y="109" width={x1 - 170} height="3" fill="var(--color-text)"></rect>
+    <!-- Edges facing the false lumen, so it reads without relying on fill contrast -->
+    <g stroke="var(--color-muted)" stroke-width="1">
+      <line x1="168" y1="64" x2={x1} y2="64"></line>
+      <line x1="170" y1="98" x2={x1} y2="98"></line>
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    class="normal-only"
+    d="M40,130 L350,130"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    <path d="M40,160 L350,160" marker-end={`url(#${arrowId})`}></path>
+    <!-- Blood passes through the tear into the wall -->
+    <path d="M108,148 C138,140 150,120 156,86" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Moving blood: forward along the lumen; in dissection some goes through the tear and stays in
+       the wall, where the false lumen has no forward flow -->
+  <g class="flow">
+    <g class="normal-only">
+      {forward.map((delay) => (
+        <circle
+          class="ad-forward"
+          cx="40"
+          cy="130"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {forward.map((delay) => (
+        <circle
+          class="ad-forward"
+          cx="40"
+          cy="160"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+      {entry.map((delay) => (
+        <circle
+          class="ad-entry"
+          cx="108"
+          cy="148"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x={x1} y="30" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <g class="disease-only">
+    <line x1="144" y1="31" x2="144" y2="76" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <circle cx="144" cy="76" r="2.5" fill="var(--color-muted)"></circle>
+    <text x="154" y="24" text-anchor="middle">
+      {t['diagram.label.intimal-tear']}
+    </text>
+    <text x="280" y="87" text-anchor="middle">
+      {t['diagram.label.false-lumen']}
+    </text>
+    <text x="280" y="142" text-anchor="middle">
+      {t['diagram.label.true-lumen']}
+    </text>
+  </g>
+  {layers.map(({ key, x, y }) => (
+    <>
+      <line x1={x} y1={y} x2={x} y2="238" stroke="var(--color-muted)" stroke-width="1.5" />
+      <circle cx={x} cy={y} r="2.5" fill="var(--color-muted)" />
+      <text class="diagram-small" x={x} y="254" text-anchor="middle">
+        {t[key]}
+      </text>
+    </>
+  ))}
+</svg>
+
+<style is:global>
+  .diagram .ad-forward {
+    animation: ad-forward 2.8s linear infinite;
+  }
+
+  .diagram .ad-entry {
+    animation: ad-entry 2.4s ease-out infinite;
+  }
+
+  @keyframes ad-forward {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(300px, 0);
+    }
+  }
+
+  @keyframes ad-entry {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    50% {
+      transform: translate(32px, -30px);
+    }
+
+    80% {
+      opacity: 1;
+      transform: translate(46px, -56px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(48px, -62px);
+    }
+  }
+</style>

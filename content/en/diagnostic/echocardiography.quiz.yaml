@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What does echocardiography use to show the structure and work of the heart?
+    options:
+      - text: X-rays
+      - text: Ultrasound
+        correct: true
+      - text: A blood test
+    explanation: Echocardiography (echo, heart ultrasound) is a non-invasive test that uses ultrasound to show the structure of the heart and how it works.
+    cite: [4]
+  - level: patient
+    prompt: What does colour Doppler show?
+    options:
+      - text: Blood flow, its direction, its speed and whether it is turbulent
+        correct: true
+      - text: The P wave, QRS complex and T wave
+      - text: The NT-proBNP level in the blood
+    explanation: Colour Doppler shows blood flow, its direction, its speed and whether it is turbulent.
+    cite: [5]
+  - level: patient
+    prompt: How does a transoesophageal echo differ from a standard one?
+    options:
+      - text: The probe is just held against the chest, left of the breastbone
+      - text: It is a blood test from a vein
+      - text: The probe is passed through the mouth into the oesophagus, so it is invasive
+        correct: true
+    explanation: In a transoesophageal echo the probe is passed through the mouth into the oesophagus, so it is an invasive test. It is done when a standard scan does not give an answer.
+    cite: [4]
+  - level: patient
+    prompt: How are images taken in stress echocardiography?
+    options:
+      - text: During sleep, at night
+      - text: During exercise, or after a medicine given in place of exercise
+        correct: true
+    explanation: In stress echo, images are taken during exercise on a treadmill or exercise bike, or after a medicine is given in place of exercise.
+    cite: [3, 4]
+  - level: student
+    prompt: According to StatPearls, which view is best for ASD, pericardial effusion and tamponade?
+    options:
+      - text: Suprasternal
+      - text: Subcostal
+        correct: true
+    explanation: The subcostal view is best for atrial septal defect, pericardial effusion and cardiac tamponade; the suprasternal view is for diseases of the aorta such as dissection and coarctation.
+    cite: [4]
+  - level: student
+    prompt: How does the ASE recommend calculating LV volumes and ejection fraction?
+    options:
+      - text: From linear measurements
+      - text: From 2D images using the biplane summation-of-discs method
+        correct: true
+    explanation: The ASE recommends calculating LV volumes and ejection fraction from 2D images using the biplane summation-of-discs method; calculation from linear measurements is not recommended.
+    cite: [5]
