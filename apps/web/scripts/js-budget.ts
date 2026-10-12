@@ -48,11 +48,12 @@ function resolveFile(url: string, from: string): string | undefined {
 }
 
 /**
- * Entry of the live 3D heart on the home page (`@heart-atlas/viewer/hero`). The page imports it
- * only on demand (motion "full", or the "Rotate in 3D" button), so it and what only it reaches are
- * the 3D the budget leaves out.
+ * Entries of 3D that pages import only on demand, so they and what only they reach are the 3D the
+ * budget leaves out: the live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or
+ * the "Rotate in 3D" button) and the viewer's scene (`Scene.tsx`, after the load button; disease
+ * articles show the viewer with its poster until then).
  */
-export const lazy3dEntry = /^hero\.[\w-]+\.js$/;
+export const lazy3dEntry = /^(hero|Scene)\.[\w-]+\.js$/;
 
 /** gzip bytes of inline scripts plus every JS file reachable from the page, without the 3D heart. */
 export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] } {

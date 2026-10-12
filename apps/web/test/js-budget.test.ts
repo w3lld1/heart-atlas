@@ -36,8 +36,9 @@ describe('fontUrls', () => {
 });
 
 describe('lazy3dEntry', () => {
-  it('matches only the entry of the live 3D heart', () => {
+  it('matches only the entries of 3D loaded on demand', () => {
     expect(lazy3dEntry.test('hero.DZVkaJ9a.js')).toBe(true);
+    expect(lazy3dEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
     expect(lazy3dEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
     expect(lazy3dEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
     expect(lazy3dEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
