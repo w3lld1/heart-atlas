@@ -172,5 +172,5 @@
 .group button[aria-pressed='true'] {
   border-color: var(--color-accent, #b3122e);
   background: var(--color-accent, #b3122e);
-  color: var(--color-bg, #fff);
+  color: var(--color-on-accent, #fff);
 }
