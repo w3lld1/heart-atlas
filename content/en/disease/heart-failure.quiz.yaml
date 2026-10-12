@@ -1,0 +1,53 @@
+questions:
+  - level: patient
+    prompt: What is heart failure?
+    options:
+      - text: A single disease of one heart valve
+      - text: A syndrome in which the heart fills with or pumps out blood less well
+        correct: true
+      - text: A blood clot in the pulmonary artery
+    explanation: Heart failure is not a single disease but a clinical syndrome — because of a problem with the structure or function of the heart, it fills with blood less well or pumps it out less well.
+    cite: [2, 5]
+  - level: patient
+    prompt: What is the most common symptom of heart failure?
+    options:
+      - text: A skin rash
+      - text: Hair loss
+      - text: Shortness of breath
+        correct: true
+    explanation: The most common symptom of heart failure is shortness of breath.
+    cite: [2, 5]
+  - level: patient
+    prompt: What does a normal natriuretic peptide level in the blood usually mean?
+    options:
+      - text: Heart failure is unlikely
+        correct: true
+      - text: Heart failure is confirmed
+    explanation: If the natriuretic peptide level is normal, heart failure is usually unlikely.
+    cite: [2, 3]
+  - level: patient
+    prompt: How does acute heart failure show itself?
+    options:
+      - text: Only mild tiredness in the evening, with no breathing problems
+      - text: Marked difficulty breathing, breathlessness lying flat, attacks at night
+        correct: true
+      - text: Itchy skin without any breathing problems
+    explanation: Acute heart failure shows itself as marked difficulty breathing, breathlessness when lying flat and attacks of breathlessness at night; it can be accompanied by cardiogenic shock, a sudden failure of blood supply to the organs.
+    cite: [5]
+  - level: student
+    prompt: Under the 2024 Russian guideline, which LVEF defines CHF with reduced ejection fraction?
+    options:
+      - text: 41–49%
+      - text: 50% or more
+      - text: 40% or less
+        correct: true
+    explanation: CHF with reduced ejection fraction is 40% or less, mildly reduced is 41–49% and preserved is 50% or more.
+    cite: [2]
+  - level: student
+    prompt: Which signs of HF does the Russian guideline call the most specific?
+    options:
+      - text: Breathlessness
+      - text: Elevated jugular venous pressure, hepatojugular reflux, third heart sound
+        correct: true
+    explanation: The most specific signs are elevated jugular venous pressure, hepatojugular reflux and a third heart sound (gallop rhythm). Breathlessness is the most common symptom, but it also occurs in many other conditions.
+    cite: [2]
