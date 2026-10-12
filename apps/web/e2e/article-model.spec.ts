@@ -32,6 +32,9 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'av-block': ['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch'],
     'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
     'aortic-dissection': ['aorta'],
+    'coarctation-of-the-aorta': ['aorta'],
+    'patent-ductus-arteriosus': ['aorta', 'pulmonary-trunk'],
+    'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {
