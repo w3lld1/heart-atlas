@@ -1,8 +1,12 @@
 {
   "site.name": "[RTL] Heart Atlas",
   "site.description": "[RTL] An open-source interactive atlas of the heart and heart disease.",
+  "site.tagline": "[RTL] Open knowledge about the heart",
   "a11y.skipToContent": "[RTL] Skip to content",
   "nav.language": "[RTL] Language",
+  "nav.sections": "[RTL] Sections",
+  "nav.home": "[RTL] Home",
+  "nav.clock": "[RTL] Heart clock",
   "home.title": "[RTL] Heart Atlas",
   "home.eyebrow": "[RTL] Where knowledge of the heart comes together",
   "home.titleAccent": "[RTL] Heart",
@@ -50,6 +54,7 @@
   "footer.disclaimerLink": "[RTL] Medical disclaimer",
   "footer.license": "[RTL] Code: MIT. Content: CC BY-SA 4.0.",
   "footer.source": "[RTL] Source code",
+  "footer.project": "[RTL] Project",
   "redirect.title": "[RTL] Heart Atlas",
   "redirect.text": "[RTL] Redirecting…",
   "redirect.link": "[RTL] Open the site",
@@ -358,5 +363,16 @@
   "diagram.label.intimal-tear": "[RTL] Intimal tear",
   "diagram.label.true-lumen": "[RTL] True lumen",
   "diagram.label.false-lumen": "[RTL] False lumen",
-  "diagram.aortic-dissection.title": "[RTL] Diagram of the aorta cut lengthwise: normally the three-layer wall is intact and blood flows in one lumen; in aortic dissection blood passes through an intimal tear into the middle layer of the wall, and a flap of intima separates the true lumen from the false lumen"
+  "diagram.aortic-dissection.title": "[RTL] Diagram of the aorta cut lengthwise: normally the three-layer wall is intact and blood flows in one lumen; in aortic dissection blood passes through an intimal tear into the middle layer of the wall, and a flap of intima separates the true lumen from the false lumen",
+  "quiz.title": "[RTL] Check yourself",
+  "quiz.check": "[RTL] Check",
+  "quiz.retry": "[RTL] Try again",
+  "quiz.showAnswer": "[RTL] Show the answer",
+  "quiz.answer": "[RTL] Answer:",
+  "quiz.correct": "[RTL] Correct.",
+  "quiz.incorrect": "[RTL] Not quite.",
+  "quiz.choose": "[RTL] Choose an answer first.",
+  "quiz.mark.correct": "[RTL] correct answer",
+  "quiz.mark.chosen": "[RTL] your answer",
+  "quiz.score": "[RTL] Correct answers: {correct} of {total}."
 }

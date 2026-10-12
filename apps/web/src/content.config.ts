@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { createArticleSchema } from './lib/content.ts';
+import { quizId, quizSchema } from './lib/quiz.ts';
 import { trustedSources } from './lib/trusted-sources.ts';
 
 // content/ lives in the repository root so LICENSE-CONTENT covers it. HA_TEST_CONTENT=1 swaps in
@@ -16,4 +17,14 @@ const articles = defineCollection({
   schema: createArticleSchema(trustedSources),
 });
 
-export const collections = { articles };
+// Quiz questions live next to their article: content/<locale>/<type>/<slug>.quiz.yaml.
+const quizzes = defineCollection({
+  loader: glob({
+    base: contentDir,
+    pattern: '**/*.quiz.yaml',
+    generateId: ({ entry }) => quizId(entry),
+  }),
+  schema: quizSchema,
+});
+
+export const collections = { articles, quizzes };

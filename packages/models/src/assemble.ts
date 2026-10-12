@@ -25,6 +25,7 @@ const GROUP_COLORS: Record<Group, [number, number, number]> = {
   'coronary-artery': [0.8, 0.1, 0.08],
   'cardiac-vein': [0.15, 0.25, 0.6],
   conduction: [0.95, 0.75, 0.1],
+  layer: [0.55, 0.12, 0.1],
 };
 
 /**

@@ -12,6 +12,8 @@ export const GROUPS = [
   'coronary-artery',
   'cardiac-vein',
   'conduction',
+  /** A whole segmentation layer of a congenital model (assets/models/congenital/structures.yaml). */
+  'layer',
 ] as const;
 export type Group = (typeof GROUPS)[number];
 

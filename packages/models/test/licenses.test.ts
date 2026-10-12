@@ -43,6 +43,14 @@ describe('parseLicenses', () => {
     expect(errors).toEqual(['a.glb / Source: attribution_alt is required']);
   });
 
+  it('requires the language of the second attribution', () => {
+    const alt = `${valid}      also_published_as: CC-BY-SA-2.1-JP\n      attribution_alt: 'x'\n`;
+    expect(parseLicenses(alt).errors).toEqual([
+      'a.glb / Source: attribution_alt_lang must be a language tag such as ja',
+    ]);
+    expect(parseLicenses(`${alt}      attribution_alt_lang: ja\n`).errors).toEqual([]);
+  });
+
   it('reports entries that are not mappings instead of throwing', () => {
     expect(parseLicenses('- 3\n- null\n').errors).toEqual([
       '#0: entry must be a mapping',

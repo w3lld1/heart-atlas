@@ -1,0 +1,27 @@
+# Test fixture for HA_TEST_CONTENT=1 builds: fictional questions, not medical content.
+questions:
+  - level: patient
+    prompt: Первый вопрос для пациентов?
+    options:
+      - text: Неверный вариант
+      - text: Верный вариант
+        correct: true
+      - text: Ещё один неверный вариант
+    explanation: Разбор первого вопроса.
+    cite: [1]
+  - level: patient
+    prompt: Второй вопрос для пациентов?
+    options:
+      - text: Верный вариант второго вопроса
+        correct: true
+      - text: Неверный вариант второго вопроса
+    explanation: Разбор второго вопроса.
+    cite: [1, 2]
+  - level: student
+    prompt: Вопрос для студентов?
+    options:
+      - text: Неверный вариант для студентов
+      - text: Верный вариант для студентов
+        correct: true
+    explanation: Разбор вопроса для студентов.
+    cite: [2]

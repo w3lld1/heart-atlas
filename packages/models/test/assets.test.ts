@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { validateBytes } from 'gltf-validator';
+import { MODELS } from '../src/build.ts';
+import { parseSources } from '../src/congenital.ts';
 import { parseLicenses } from '../src/licenses.ts';
 import { checkStructureNodes, readModel } from '../src/model-check.ts';
 import { assetsDir } from '../src/paths.ts';
@@ -19,8 +21,6 @@ function listFiles(dir: string): string[] {
 }
 
 const licenses = parseLicenses(readFileSync(join(assetsDir, 'LICENSES.yaml'), 'utf8'));
-const structures = parseStructures(readFileSync(join(assetsDir, 'heart/structures.yaml'), 'utf8'));
-const heartPath = join(assetsDir, 'heart/heart.glb');
 
 describe('assets/models/LICENSES.yaml', () => {
   it('follows the license rules', () => {
@@ -47,15 +47,29 @@ describe('assets/models/LICENSES.yaml', () => {
   });
 });
 
-describe('heart.glb', () => {
-  it('has one node per structure in structures.yaml', async () => {
-    const doc = await readModel(readFileSync(heartPath));
+describe.each(MODELS)('$source', (model) => {
+  const path = join(assetsDir, model.source);
+
+  it('has one node per structure in its structures.yaml', async () => {
+    const structures = parseStructures(readFileSync(join(assetsDir, model.structures), 'utf8'));
+    const doc = await readModel(readFileSync(path));
     expect(checkStructureNodes(doc, structures)).toEqual([]);
   });
 
   it('passes glTF-Validator without errors', async () => {
-    const report = await validateBytes(new Uint8Array(readFileSync(heartPath)));
+    const report = await validateBytes(new Uint8Array(readFileSync(path)));
     const errors = report.issues.messages.filter((m) => m.severity === 0);
     expect(errors).toEqual([]);
   });
+});
+
+it('every congenital model has a pinned source', () => {
+  const sources = parseSources(readFileSync(join(assetsDir, 'congenital/sources.yaml'), 'utf8'));
+  const congenital = MODELS.filter((m) => m.source.startsWith('congenital/'));
+  expect(congenital.map((m) => m.name).sort()).toEqual(Object.keys(sources).sort());
+  for (const m of congenital) {
+    const entry = licenses.entries.find((e) => e.file === m.source);
+    const source = sources[m.name];
+    expect(entry?.derived_from?.map((d) => d.sha256)).toContain(source?.sha256);
+  }
 });

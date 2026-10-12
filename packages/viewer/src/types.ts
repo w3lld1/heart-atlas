@@ -64,6 +64,12 @@ export interface ViewerStructure {
   meshes?: string[];
 }
 
+/** A model source credit; `lang` marks one written in another language than the page. */
+export interface AttributionPart {
+  text: string;
+  lang?: string;
+}
+
 export type SectionAxis = 'off' | 'sagittal' | 'frontal' | 'transverse';
 
 export interface ViewerModels {
@@ -97,4 +103,9 @@ export interface HeartViewerProps {
   cycle?: 'own' | 'page';
   /** Disease article id whose signs the model shows: docs/plans/2026-10-12-disease-signs-3d.md. */
   disease?: DiseaseId;
+  /**
+   * Model source credits the source licenses require, filled into `{source}` of
+   * `viewer.attribution` and joined by "; ". Required so no page shows the model uncredited.
+   */
+  attribution: AttributionPart[];
 }

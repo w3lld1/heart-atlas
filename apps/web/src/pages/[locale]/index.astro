@@ -12,6 +12,7 @@ import { localePath } from '../../i18n/paths.ts';
 import { formatCount } from '../../i18n/plural.ts';
 import { articlePages } from '../../lib/articles.ts';
 import {
+  heartAttribution,
   heartModelUrls,
   heartStructures,
   heroPoster,
@@ -44,6 +45,9 @@ const has = {
 };
 
 const poster = heroPoster();
+// The hero poster and the live heart come from BodyParts3D, whose licenses require this credit.
+const [creditBefore = '', creditAfter = ''] = t['viewer.attribution'].split('{source}');
+const credits = heartAttribution();
 const modelUrls = heartModelUrls(base);
 const posterUrl = modelUrls.heroPoster;
 const cards = stageCards.flatMap((card) => {
@@ -273,6 +277,16 @@ const heroData = JSON.stringify({
       ))}
     </ul>
   </section>
+  <p class="model-credits">
+    {creditBefore}
+    {credits.map((part, i) => (
+      <>
+        {i > 0 && '; '}
+        <span lang={part.lang}>{part.text}</span>
+      </>
+    ))}
+    {creditAfter}
+  </p>
 </BaseLayout>
 
 <script>
@@ -1144,6 +1158,12 @@ const heroData = JSON.stringify({
     flex-direction: column;
     gap: 1.375rem;
     padding-block: 2rem 0.5rem;
+  }
+
+  .model-credits {
+    margin-block: 1.5rem 0;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
   }
 
   .sections-head h2 {
