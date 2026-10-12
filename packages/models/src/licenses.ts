@@ -18,6 +18,8 @@ export interface SourceEntry {
   attribution: string;
   also_published_as?: string;
   attribution_alt?: string;
+  retrieved?: string;
+  sha256?: string;
 }
 
 export interface LicenseEntry {

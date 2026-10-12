@@ -10,7 +10,7 @@
  * so nothing is rotated.
  */
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Document, NodeIO, type Primitive } from '@gltf-transform/core';
@@ -35,7 +35,7 @@ export interface CongenitalSource {
 const TAUBIN = { iterations: 30, lambda: 0.5, mu: -0.53 };
 /** Pieces smaller than this share of a mesh's triangles are segmentation noise and are dropped. */
 const MIN_FRAGMENT_SHARE = 0.01;
-/** Largest simplification error, as a share of the mesh size; keeps thin vessels from collapsing. */
+/** Largest simplification error, as a share of the mesh size. A loose cap: `keep` decides the size. */
 const SIMPLIFY_ERROR = 0.01;
 
 /** Base colours per layer, linear RGB, in the same muted range as the stage 1 heart. */
@@ -48,14 +48,18 @@ const LAYER_COLORS: Record<string, [number, number, number]> = {
 export function parseSources(text: string): Record<string, CongenitalSource> {
   const data = parse(text) as Record<string, CongenitalSource> | null;
   if (data === null || typeof data !== 'object') throw new Error('sources.yaml must be a mapping');
+  const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
   for (const [id, s] of Object.entries(data)) {
     const ok =
+      s !== null &&
+      typeof s === 'object' &&
+      isText(s.file) &&
       /^https:\/\//.test(s.entry) &&
       /^https:\/\//.test(s.file_url) &&
       /^[0-9a-f]{64}$/.test(s.sha256) &&
       Array.isArray(s.meshes) &&
       s.meshes.length > 0 &&
-      s.meshes.every((m) => m.keep > 0 && m.keep <= 1) &&
+      s.meshes.every((m) => isText(m.node) && isText(m.id) && m.keep > 0 && m.keep <= 1) &&
       s.meshes.some((m) => m.id === s.center_on);
     if (!ok) throw new Error(`sources.yaml: ${id} is incomplete`);
   }
@@ -68,7 +72,7 @@ export function parseSources(text: string): Record<string, CongenitalSource> {
  */
 export function taubin(
   positions: Float32Array,
-  indices: Uint32Array,
+  indices: Uint16Array | Uint32Array,
   { iterations, lambda, mu } = TAUBIN,
 ): void {
   const count = positions.length / 3;
@@ -88,9 +92,9 @@ export function taubin(
     }
   }
   let current = positions.slice();
+  let next = positions.slice();
   for (let it = 0; it < iterations; it++) {
     for (const factor of [lambda, mu]) {
-      const next = current.slice();
       for (let v = 0; v < count; v++) {
         const from = degree[v] ?? 0;
         const to = degree[v + 1] ?? 0;
@@ -105,12 +109,13 @@ export function taubin(
           z += current[u + 2] ?? 0;
         }
         const k = to - from;
-        for (const [axis, sum] of [x, y, z].entries()) {
-          const i = v * 3 + axis;
-          next[i] = (current[i] ?? 0) + factor * (sum / k - (current[i] ?? 0));
-        }
+        const i = v * 3;
+        const [cx, cy, cz] = [current[i] ?? 0, current[i + 1] ?? 0, current[i + 2] ?? 0];
+        next[i] = cx + factor * (x / k - cx);
+        next[i + 1] = cy + factor * (y / k - cy);
+        next[i + 2] = cz + factor * (z / k - cz);
       }
-      current = next;
+      [current, next] = [next, current];
     }
   }
   positions.set(current);
@@ -122,7 +127,7 @@ export function taubin(
  */
 export function dropFragments(
   positions: Float32Array,
-  indices: Uint32Array,
+  indices: Uint16Array | Uint32Array,
   minShare = MIN_FRAGMENT_SHARE,
 ): { positions: Float32Array<ArrayBuffer>; indices: Uint32Array<ArrayBuffer> } {
   const parent = Int32Array.from({ length: positions.length / 3 }, (_, i) => i);
@@ -227,7 +232,7 @@ export async function prepare(id: string, sourceBytes: Uint8Array): Promise<Uint
     const index = primitive.getIndices();
     if (!position || !index) throw new Error(`source node ${mesh.node}: no indexed positions`);
     // In place: the accessor keeps the smoothed array.
-    taubin(position.getArray() as Float32Array, index.getArray() as Uint32Array);
+    taubin(position.getArray() as Float32Array, index.getArray() as Uint16Array | Uint32Array);
     simplifyPrimitive(primitive, {
       simplifier: MeshoptSimplifier,
       ratio: mesh.keep,
@@ -237,7 +242,7 @@ export async function prepare(id: string, sourceBytes: Uint8Array): Promise<Uint
       id: mesh.id,
       ...dropFragments(
         primitive.getAttribute('POSITION')?.getArray() as Float32Array,
-        primitive.getIndices()?.getArray() as Uint32Array,
+        primitive.getIndices()?.getArray() as Uint16Array | Uint32Array,
       ),
     });
   }
@@ -285,7 +290,9 @@ export async function prepare(id: string, sourceBytes: Uint8Array): Promise<Uint
   return new NodeIO().writeBinary(doc);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+const script = process.argv[1];
+// realpath on both sides, as in build.ts: argv keeps symlinks, import.meta.url does not.
+if (script !== undefined && realpathSync(script) === realpathSync(fileURLToPath(import.meta.url))) {
   const [id, sourcePath] = process.argv.slice(2);
   if (!id || !sourcePath) throw new Error('Usage: node src/congenital.ts <id> <source glb>');
   const glb = await prepare(id, readFileSync(sourcePath));

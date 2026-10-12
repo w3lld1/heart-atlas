@@ -70,8 +70,6 @@ it('every congenital model has a pinned source', () => {
   for (const m of congenital) {
     const entry = licenses.entries.find((e) => e.file === m.source);
     const source = sources[m.name];
-    expect(entry?.derived_from?.map((d) => (d as { sha256?: string }).sha256)).toContain(
-      source?.sha256,
-    );
+    expect(entry?.derived_from?.map((d) => d.sha256)).toContain(source?.sha256);
   }
 });
