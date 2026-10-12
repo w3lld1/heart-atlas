@@ -4,6 +4,7 @@ import AorticRegurgitation from './AorticRegurgitation.astro';
 import AorticStenosis from './AorticStenosis.astro';
 import ArrhythmogenicRightVentricularCardiomyopathy from './ArrhythmogenicRightVentricularCardiomyopathy.astro';
 import AtrialFibrillation from './AtrialFibrillation.astro';
+import AtrialFlutter from './AtrialFlutter.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
@@ -49,6 +50,7 @@ export const diagrams = {
   'aortic-stenosis': AorticStenosis,
   'arrhythmogenic-right-ventricular-cardiomyopathy': ArrhythmogenicRightVentricularCardiomyopathy,
   'atrial-fibrillation': AtrialFibrillation,
+  'atrial-flutter': AtrialFlutter,
   'atrial-septal-defect': AtrialSeptalDefect,
   'av-block': AvBlock,
   'blood-flow': BloodFlow,

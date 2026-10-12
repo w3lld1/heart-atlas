@@ -48,6 +48,7 @@ test.describe('3D model in a disease article without signs on the model', () => 
       'left-atrium',
       'right-atrium',
     ],
+    'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {

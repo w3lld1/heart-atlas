@@ -515,5 +515,9 @@
   "diagram.label.aorta-normal-diameter": "[RTL] 18–22 mm",
   "diagram.label.aneurysm-diameter": "[RTL] 3 cm or more",
   "diagram.label.aneurysm": "[RTL] Aneurysm",
-  "diagram.abdominal-aortic-aneurysm.title": "[RTL] Diagram of the abdominal aorta with the renal and iliac arteries: normally the aorta below the renal arteries is on average 18–22 mm across; in an abdominal aortic aneurysm this segment usually widens all round to 3 cm or more, and a blood clot often lines its wall from inside"
+  "diagram.abdominal-aortic-aneurysm.title": "[RTL] Diagram of the abdominal aorta with the renal and iliac arteries: normally the aorta below the renal arteries is on average 18–22 mm across; in an abdominal aortic aneurysm this segment usually widens all round to 3 cm or more, and a blood clot often lines its wall from inside",
+  "diagram.label.tricuspid-valve": "[RTL] Tricuspid valve",
+  "diagram.label.atria-about-300": "[RTL] Atria: about 300 per minute",
+  "diagram.label.every-second-impulse": "[RTL] Every second impulse: about 150 per minute",
+  "diagram.atrial-flutter.title": "[RTL] Diagram of the atria and ventricles: normally the impulse from the sinus node spreads over the atria and passes through the AV node to the ventricles; in typical atrial flutter the impulse runs in a large circle in the right atrium around the ring of the tricuspid valve, counterclockwise, through the isthmus between the inferior vena cava and the valve, and usually every second impulse reaches the ventricles"
 }

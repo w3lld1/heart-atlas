@@ -1,0 +1,438 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-afl-arrow`;
+const atriaId = `${uid}-afl-atria`;
+
+/*
+ * The atria from the front, the right atrium (on the viewer's left) drawn large around the ring of
+ * the tricuspid valve, the ventricles as a band below. Normal: one wave from the SA node spreads
+ * over both atria and goes through the AV node to the ventricles once per beat. Disease (typical
+ * flutter): one large loop in the right atrium around the tricuspid ring, counterclockwise: down
+ * the free wall (left), through the isthmus between the inferior vena cava and the ring (bottom),
+ * up the septum (right). Every second lap gets through the AV node to the ventricles (2:1).
+ */
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const valveLines = twoLines(t['diagram.label.tricuspid-valve']);
+// The ventricular rate label is split after its colon: the band has room for two short lines.
+const [rateHead = '', rateTail = ''] = t['diagram.label.every-second-impulse'].split(': ');
+
+// The loop around the tricuspid ring: centre, radius and points by angle (degrees, counted
+// counterclockwise from the right as on a clock face seen from the front).
+const loop = { cx: 175, cy: 185, r: 84 };
+const at = (deg: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return `${(loop.cx + loop.r * Math.cos(rad)).toFixed(1)},${(loop.cy - loop.r * Math.sin(rad)).toFixed(1)}`;
+};
+// Four arrows with gaps for the heads; sweep flag 0 draws each arc counterclockwise on screen.
+const arcAngles: [number, number][] = [
+  [96, 170],
+  [186, 260],
+  [276, 350],
+  [6, 80],
+];
+const loopArcs = arcAngles.map(([from, to]) => `M${at(from)} A${loop.r},${loop.r} 0 0 0 ${at(to)}`);
+// The whole loop as one closed path for the moving impulse: from the top, down the left side.
+const loopRun = `M${at(90)} A${loop.r},${loop.r} 0 0 0 ${at(270)} A${loop.r},${loop.r} 0 0 0 ${at(90)}`;
+
+// Normal: from the SA node down the free wall, across the top to the left atrium, and down the
+// septum to the AV node.
+const normalPaths = [
+  'M96,104 Q58,180 92,262',
+  'M112,100 Q210,112 316,150',
+  'M262,138 Q276,180 274,226',
+];
+// From the AV node down to the ventricles (both states).
+const avDown = 'M275,248 L275,350';
+// Flutter: from the loop on the septal side to the AV node.
+const loopToAv = `M${at(320)} L264,240`;
+---
+
+<svg viewBox="0 0 440 420" role="img" aria-label={t['diagram.atrial-flutter.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+    <clipPath id={atriaId}>
+      <ellipse cx="165" cy="190" rx="135" ry="130"></ellipse>
+      <ellipse cx="368" cy="165" rx="58" ry="72"></ellipse>
+    </clipPath>
+  </defs>
+
+  <!-- Right atrium (large, around the tricuspid ring) and left atrium -->
+  <ellipse
+    cx="165"
+    cy="190"
+    rx="135"
+    ry="130"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="368"
+    cy="165"
+    rx="58"
+    ry="72"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Ventricles as a band below -->
+  <rect x="16" y="352" width="408" height="56" rx="14" fill="var(--diagram-muscle)"></rect>
+
+  <!-- Moving impulse under the static marks -->
+  <g class="flow">
+    <g class="normal-only">
+      <g clip-path={`url(#${atriaId})`}>
+        <circle class="afl-wave" cx="100" cy="92" r="300"></circle>
+      </g>
+      <rect class="afl-beat afl-beat-normal" x="16" y="352" width="408" height="56" rx="14"></rect>
+    </g>
+    <rect
+      class="afl-beat afl-beat-flutter disease-only"
+      x="16"
+      y="352"
+      width="408"
+      height="56"
+      rx="14"
+    ></rect>
+  </g>
+
+  <!-- Tricuspid valve ring and the opening of the inferior vena cava -->
+  <circle class="afl-ring" cx={loop.cx} cy={loop.cy} r="58"></circle>
+  <ellipse class="afl-ivc" cx="175" cy="298" rx="36" ry="13"></ellipse>
+
+  <!-- Normal: one wave from the SA node over both atria and down to the AV node -->
+  <g class="normal-only">
+    {normalPaths.map((d) => (
+      <path class="afl-casing" d={d}></path>
+    ))}
+    {normalPaths.map((d) => (
+      <path class="afl-mark" d={d} marker-end={`url(#${arrowId})`}></path>
+    ))}
+  </g>
+
+  <!-- Typical flutter: the isthmus and one large counterclockwise loop around the ring -->
+  <g class="disease-only">
+    <rect class="afl-isthmus" x="150" y="247" width="50" height="36" rx="6"></rect>
+    {loopArcs.map((d) => (
+      <path class="afl-casing" d={d}></path>
+    ))}
+    <path class="afl-casing" d={loopToAv}></path>
+    <path class="afl-mark" d={loopToAv} marker-end={`url(#${arrowId})`}></path>
+    {loopArcs.map((d) => (
+      <path class="afl-mark" d={d} marker-end={`url(#${arrowId})`}></path>
+    ))}
+    <g class="flow">
+      <path class="afl-run afl-run-loop" d={loopRun} pathLength="100"></path>
+    </g>
+  </g>
+
+  <!-- AV node and the way down to the ventricles -->
+  <path class="afl-casing" d={avDown}></path>
+  <path class="afl-mark" d={avDown} marker-end={`url(#${arrowId})`}></path>
+  <g class="flow">
+    <path class="afl-run afl-run-normal normal-only" d={avDown} pathLength="100"></path>
+    <path class="afl-run afl-run-flutter disease-only" d={avDown} pathLength="100"></path>
+  </g>
+  <circle class="afl-node" cx="275" cy="240" r="7"></circle>
+  <circle class="afl-node" cx="100" cy="92" r="7"></circle>
+
+  <!-- Labels -->
+  <line x1="100" y1="84" x2="100" y2="38" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="16" y="30">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text class="diagram-small disease-only" x="424" y="30" text-anchor="end">
+    {t['diagram.label.atria-about-300']}
+  </text>
+  <text class="afl-label-v" x="190" y="90" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="afl-label-a" x="368" y="171" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text class="diagram-small" x={loop.cx} y="181" text-anchor="middle">
+    <tspan x={loop.cx}>{valveLines[0]}</tspan>
+    <tspan x={loop.cx} dy="15">
+      {valveLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only afl-label-v" x="144" y="284" text-anchor="end">
+    {t['diagram.label.isthmus']}
+  </text>
+  <text class="diagram-small" x="175" y="336" text-anchor="middle">
+    {t['diagram.label.ivc']}
+  </text>
+  <text class="diagram-small" x="286" y="262">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="30" y="386">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small normal-only" x="412" y="385" text-anchor="end">
+    {t['diagram.label.normal-rhythm']}
+  </text>
+  <text class="diagram-small disease-only" x="412" y="376" text-anchor="end">
+    <tspan x="412">{rateTail ? `${rateHead}:` : rateHead}</tspan>
+    <tspan x="412" dy="15">
+      {rateTail}
+    </tspan>
+  </text>
+</svg>
+
+<style is:global>
+  /* A halo in the chamber colour keeps labels readable over the marks. */
+  .diagram .afl-label-v,
+  .diagram .afl-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .afl-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .afl-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .afl-ring {
+    fill: var(--color-bg);
+    stroke: var(--diagram-venous);
+    stroke-width: 5;
+  }
+
+  .diagram .afl-ivc {
+    fill: var(--color-bg);
+    stroke: var(--diagram-venous);
+    stroke-width: 2;
+  }
+
+  /* The isthmus: the narrow strip between the vena cava and the ring that the loop must cross. */
+  .diagram .afl-isthmus {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 2.5;
+    stroke-dasharray: 6 4;
+  }
+
+  .diagram .afl-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .afl-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  /* A dark edge under the loop keeps it visible on the light chamber fill. */
+  .diagram .afl-casing {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 7;
+    stroke-linecap: round;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .afl-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  /* In the dark theme the text colour is light like the casing; the background colour stands out. */
+  @media (prefers-color-scheme: dark) {
+    .diagram .afl-run {
+      stroke: var(--color-bg);
+    }
+  }
+
+  .diagram .afl-run-loop {
+    opacity: 1;
+    animation: afl-run-loop 0.5s linear infinite;
+  }
+
+  .diagram .afl-run-normal {
+    animation: afl-run-normal 1.6s linear infinite;
+  }
+
+  .diagram .afl-run-flutter {
+    animation: afl-run-flutter 1s linear infinite;
+  }
+
+  .diagram .afl-wave {
+    fill: var(--diagram-impulse);
+    fill-opacity: 0.3;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: afl-wave 1.6s linear infinite;
+  }
+
+  .diagram .afl-beat {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+  }
+
+  .diagram .afl-beat-normal {
+    animation: afl-beat-normal 1.6s linear infinite;
+  }
+
+  .diagram .afl-beat-flutter {
+    animation: afl-beat-flutter 1s linear infinite;
+  }
+
+  /* Normal: one wave from the SA node fills both atria, then fades. */
+  @keyframes afl-wave {
+    0% {
+      opacity: 1;
+      transform: scale(0.03);
+    }
+
+    40% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  /* Normal: after the wave the impulse goes from the AV node down to the ventricles. */
+  @keyframes afl-run-normal {
+    0%,
+    39% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    40% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    62% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    63%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes afl-beat-normal {
+    0%,
+    61% {
+      opacity: 0;
+    }
+
+    65% {
+      opacity: 0.45;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Flutter: one lap of the loop every 0.5 s, without a pause. */
+  @keyframes afl-run-loop {
+    from {
+      stroke-dashoffset: 0;
+    }
+
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  /* Every second lap (1 s), as the loop passes the septum, the impulse goes down to the
+     ventricles. */
+  @keyframes afl-run-flutter {
+    0%,
+    30% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    31% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    55% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes afl-beat-flutter {
+    0%,
+    54% {
+      opacity: 0;
+    }
+
+    58% {
+      opacity: 0.45;
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
