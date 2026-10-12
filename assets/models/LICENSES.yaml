@@ -53,3 +53,21 @@
       retrieved: 2026-10-11
       sha256: 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97
   changes: Front view of heart/heart.glb with a transparent background, rendered by packages/models/scripts/render-poster.ts for the home page.
+
+- file: congenital/tetralogy-of-fallot.glb
+  title: Heart with tetralogy of Fallot (patient model)
+  license: CC-BY-SA-4.0
+  authors: [Heart Atlas contributors]
+  derived_from:
+    - name: NIH 3D Heart Library, Case Model 70 Tetralogy of Fallot (3DPX-016151, version 3)
+      url: https://3d.nih.gov/entries/3DPX-016151/3
+      license: CC0-1.0
+      attribution: 'Kopan, CT. Case Model #70 Tetralogy of Fallot, NIH 3D Heart Library (3DPX-016151), CC0 1.0'
+      retrieved: 2026-10-12
+      sha256: cfce90ed18d86855a890215d12f54d36ad01a253649bd52cd27291c961663e33
+  changes: >-
+    Prepared from the source file "CM0070 myo, bp, lung.glb" by packages/models/src/congenital.ts:
+    welded vertices, smoothed the voxel steps with a Taubin filter (30 iterations, lambda 0.5,
+    mu -0.53), simplified each mesh with meshoptimizer (keep shares in congenital/sources.yaml), dropped loose fragments smaller than 1% of a mesh,
+    renamed the nodes Myo, BP and Lungs to myocardium, blood-pool and lungs, centred the model on the
+    myocardium and added vertex normals. NIH has not reviewed or endorsed Heart Atlas.

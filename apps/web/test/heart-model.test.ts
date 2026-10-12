@@ -29,6 +29,10 @@ describe('heart model data for the viewer', () => {
     expect(heartAttribution()).toContain('ライフサイエンス統合データベースセンター');
   });
 
+  it('reads the attribution of another model file', () => {
+    expect(heartAttribution('congenital/tetralogy-of-fallot.glb')).toContain('Kopan, CT');
+  });
+
   it.each(localeCodes)('fills the model source into the attribution line (%s)', (locale) => {
     const line = viewerMessages(getMessages(locale))['viewer.attribution'];
     expect(line).toContain(heartAttribution());

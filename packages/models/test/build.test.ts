@@ -2,16 +2,25 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { validateBytes } from 'gltf-validator';
 import { describe, expect, it } from 'vitest';
-import { buildLod, LODS } from '../src/build.ts';
+import { buildLod, LODS, lodFile, MODELS } from '../src/build.ts';
 import { checkStructureNodes, readModel } from '../src/model-check.ts';
 import { assetsDir } from '../src/paths.ts';
 import { parseStructures } from '../src/structures.ts';
 
-const source = readFileSync(join(assetsDir, 'heart/heart.glb'));
-const structures = parseStructures(readFileSync(join(assetsDir, 'heart/structures.yaml'), 'utf8'));
+const cases = MODELS.flatMap((model) =>
+  LODS.map((lod) => ({ model, lod, file: lodFile(model, lod) })),
+);
 
 const built = new Map(
-  await Promise.all(LODS.map(async (lod) => [lod.file, await buildLod(source, lod)] as const)),
+  await Promise.all(
+    MODELS.map(async (model) => {
+      const source = readFileSync(join(assetsDir, model.source));
+      const lods = await Promise.all(LODS.map((lod) => buildLod(source, lod, model.simplifyError)));
+      return lods.map(
+        (bytes, i) => [lodFile(model, LODS[i] as (typeof LODS)[number]), bytes] as const,
+      );
+    }),
+  ).then((lists) => lists.flat()),
 );
 
 function triangles(bytes: Uint8Array): Promise<number> {
@@ -24,8 +33,9 @@ function triangles(bytes: Uint8Array): Promise<number> {
   );
 }
 
-describe.each(LODS)('$file', (lod) => {
-  const bytes = built.get(lod.file) ?? new Uint8Array();
+describe.each(cases)('$file', ({ model, lod, file }) => {
+  const bytes = built.get(file) ?? new Uint8Array();
+  const structures = parseStructures(readFileSync(join(assetsDir, model.structures), 'utf8'));
 
   it('stays within budget and keeps a node for every structure', async () => {
     expect(bytes.byteLength).toBeLessThanOrEqual(lod.maxBytes);
@@ -49,9 +59,9 @@ describe.each(LODS)('$file', (lod) => {
   });
 });
 
-it('the low LOD is actually simplified', async () => {
+it.each(MODELS)('the low LOD of $name is actually simplified', async (model) => {
   const [high, low] = await Promise.all(
-    LODS.map((lod) => triangles(built.get(lod.file) ?? new Uint8Array())),
+    LODS.map((lod) => triangles(built.get(lodFile(model, lod)) ?? new Uint8Array())),
   );
   expect(low).toBeLessThan(0.8 * (high ?? 0));
 });

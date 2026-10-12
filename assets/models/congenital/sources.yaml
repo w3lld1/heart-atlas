@@ -1,0 +1,14 @@
+# Source files of the congenital heart models. packages/models/src/congenital.ts checks the hash,
+# prepares the model and writes assets/models/congenital/<id>.glb. The sources are too large for the
+# repository (up to 200 MB); download them from file_url. Spec: docs/plans/2026-10-12-congenital-models.md.
+# keep: share of triangles the simplifier aims to keep in that mesh.
+tetralogy-of-fallot:
+  entry: https://3d.nih.gov/entries/3DPX-016151/3
+  file: CM0070 myo, bp, lung.glb
+  file_url: https://3d.nih.gov/api/files/1034581
+  sha256: cfce90ed18d86855a890215d12f54d36ad01a253649bd52cd27291c961663e33
+  center_on: myocardium
+  meshes:
+    - { node: Myo, id: myocardium, keep: 0.13 }
+    - { node: BP, id: blood-pool, keep: 0.17 }
+    - { node: Lungs, id: lungs, keep: 0.025 }

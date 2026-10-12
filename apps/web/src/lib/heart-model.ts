@@ -52,15 +52,15 @@ export function heartStructures(t: Messages): ViewerStructure[] {
  * The attributions the source licenses require, exactly as recorded in LICENSES.yaml. A source
  * published under two licenses gets both lines, since it is not settled which one applies.
  */
-export function heartAttribution(): string {
+export function heartAttribution(file = 'heart/heart.glb'): string {
   const { entries, errors } = parseLicenses(licensesYaml);
-  const heart = entries.find((e) => e.file === 'heart/heart.glb');
+  const model = entries.find((e) => e.file === file);
   const sources =
-    heart?.derived_from?.flatMap((d) =>
+    model?.derived_from?.flatMap((d) =>
       d.attribution_alt ? [d.attribution, d.attribution_alt] : [d.attribution],
     ) ?? [];
   if (errors.length > 0 || sources.length === 0) {
-    throw new Error(`LICENSES.yaml has no valid entry for heart/heart.glb: ${errors.join('; ')}`);
+    throw new Error(`LICENSES.yaml has no valid entry for ${file}: ${errors.join('; ')}`);
   }
   return sources.join('; ');
 }
