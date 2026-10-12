@@ -19,6 +19,12 @@ interface Props {
 const { highlight, disease, cycle, headingLevel = 3 } = Astro.props;
 const locale = Astro.props.locale ?? Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
+const structures = heartStructures(t);
+for (const id of highlight ?? []) {
+  if (!structures.some((s) => s.id === id)) {
+    throw new Error(`<HeartModel>: unknown structure "${id}"`);
+  }
+}
 const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
 ---
 
@@ -26,7 +32,7 @@ const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
   client:visible={{ rootMargin: '200px' }}
   models={models}
   poster={poster}
-  structures={heartStructures(t)}
+  structures={structures}
   messages={viewerMessages(t)}
   loadOn="click"
   headingLevel={headingLevel}

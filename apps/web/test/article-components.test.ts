@@ -9,6 +9,7 @@ import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Student from '../src/components/Student.astro';
+import HeartModel from '../src/components/viewer/HeartModel.astro';
 
 let container: AstroContainer;
 beforeAll(async () => {
@@ -167,5 +168,15 @@ describe('Diagram', () => {
     await expect(
       container.renderToString(Diagram, { props: { name: 'nope' as DiagramName } }),
     ).rejects.toThrow('Unknown diagram "nope"');
+  });
+});
+
+describe('HeartModel', () => {
+  it('fails the build for an unknown structure', async () => {
+    await expect(
+      container.renderToString(HeartModel, {
+        props: { locale: 'en', highlight: ['mitral-valve', 'no-such-part'] },
+      }),
+    ).rejects.toThrow('unknown structure "no-such-part"');
   });
 });
