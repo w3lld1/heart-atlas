@@ -142,6 +142,34 @@ Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), PR 
 
 Modelling note: 170 bpm is an assumption inside 120–250 and below the model's limit of 180 (`paramRanges.heartRate`); the article and MSD give no single typical rate (MSD gives "most commonly 180 to 210 beats/minute" on examination, above the model's limit). The preset's slider floor of 120 is the lower end of the MSD range. `pAmplitude: 0` stands for "no separate P wave": the model cannot draw a P′ at the end of QRS or after it. QRS stays at the default 90 ms and RR stays regular.
 
+## 10. Long QT syndrome
+
+Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), section «Дополнение: ЖТ и удлинённый QT». Sources are the `long-qt-syndrome` article's own (`content/{ru,en}/disease/long-qt-syndrome.mdx`). Both pages were opened on 2026-10-12 with `curl` through the agent proxy; the Minzdrav text came as JSON from `apicr.minzdrav.gov.ru/api.ashx?op=GetClinrec2&id=569_2`.
+
+| Fact | Value | Verbatim quote | Source | Access / verified |
+|---|---|---|---|---|
+| Diagnosis | QTc ≥ 480 ms | «Группа экспертов ЕОК, разрабатывающая клинические рекомендации по лечению ЖА 2022 г., подтвердила диагностические критерии для установления клинического диагноза СУИQT [8]: QTc ≥ 480 мс или наличие > 3 баллов по шкале оценки риска для СУИQT ( Приложение Г1 ) [567]. При наличии аритмогенного обморока или сердечного ареста QTc ≥ 460 мс достаточно для постановки диагноза СУИQT.» | Минздрав 2025 «Желудочковые нарушения ритма сердца. Внезапная сердечная смерть» (cr.minzdrav.gov.ru/view-cr/569_2), source 1 of the article | curl JSON, yes |
+| Risk | especially > 0.50 s | "The risk of TdP VT is dependent on the degree of QTc prolongation, particularly if it is > 0.50 second ( 1 , 2 )." | MSD Manuals Professional, Long QT Interval Syndromes (2026), source 2 of the article | curl, yes |
+| Rate correction | Bazett | "…prolongation of the rate-corrected QT interval on the ECG (QTc, typically calculated using Bazett formula)." | MSD, same page | curl, yes |
+| Article phrases | ≥ 480 ms, > 500 ms | «…диагноз ставят при QTc 480 мс и больше или при сумме больше 3 баллов по шкале Шварца…<Cite n={1} />»; «Риск тахикардии типа «пируэт» тем выше, чем длиннее QTc, особенно больше 500 мс…<Cite n={[1, 2]} />» | Article long-qt-syndrome.mdx, diagram caption | Article |
+
+Modelling note: the preset value 500 ms is an assumption, not a source number: it is above the 480 ms threshold and at the point where the article says the risk rises. The model scales QT with √RR (`timing.ts`), which is the Bazett correction, so the model's QTc is exactly 500 ms at every rate. A QT this long fits the beat only up to 137 bpm (`heartRateLimits`: 40–137); at 75 bpm the QT is 447 ms against 358 ms in the normal preset. The preset does not draw torsades de pointes or any other change of the T wave.
+
+## 11. Ventricular tachycardia (monomorphic)
+
+Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), section «Дополнение: ЖТ и удлинённый QT». Sources are the `ventricular-tachycardia` article's own (`content/{ru,en}/disease/ventricular-tachycardia.mdx`). Access as in section 10 (same Minzdrav guideline, 569_2).
+
+| Fact | Value | Verbatim quote | Source | Access / verified |
+|---|---|---|---|---|
+| Definition | ≥ 3 beats, > 100 per minute | «Желудочковая тахикардия – ≥ 3 последовательных сокращения с частотой более 100 ударов в мин., исходящие из желудочков, независимо от предсердного и АВ-узлового проведения [8].» | Минздрав 2025 «Желудочковые нарушения ритма сердца. Внезапная сердечная смерть», §1.1; source 1 of the article | curl JSON, yes |
+| ECG signs | QRS ≥ 120 ms, no P, discordant T | «Общими ЭКГ-признаками для всех ЖНР являются: 1) широкий деформированный комплекс QRS (≥ 120 мс), который чаще бывает преждевременным, реже – своевременным или выскальзывающим; 2) отсутствие предшествующего зубца P; 3) дискордантность зубца Т по отношению к основному зубцу желудочкового комплекса; 4) наличие сливных комплексов.» | Минздрав 2025, same | curl JSON, yes |
+| Monomorphic (Minzdrav) | identical QRS | «Мономорфная ЖТ – ЖТ при наличии одинаковой конфигурации QRS-комплексов.» | Минздрав 2025, same | curl JSON, yes |
+| Monomorphic (MSD) | regular, identical QRS | "Monomorphic VT: Single abnormal focus or reentrant pathway and thus regular, identical-appearing QRS complexes" | MSD Manuals Professional, Ventricular Tachycardia (VT) (2024), source 2 of the article | curl, yes |
+| Rate (MSD) | ≥ 120 per minute | "Ventricular tachycardia is ≥ 3 consecutive ventricular beats at a rate ≥ 120 beats/minute." | MSD, same page | curl, yes |
+| Article phrases | > 100, ≥ 120 ms, no P, discordant T, regular, identical | «Российские рекомендации называют ЖТ три и более сокращения подряд из желудочков с частотой более 100 в минуту.<Cite n={1} />»; «Общие ЭКГ-признаки желудочковых нарушений ритма: широкий деформированный комплекс QRS (≥ 120 мс), отсутствие предшествующего зубца P, дискордантность зубца T по отношению к основному зубцу комплекса, сливные комплексы.<Cite n={1} />»; «…поэтому ритм частый и ровный, а комплексы QRS на ЭКГ одинаковые (мономорфная ЖТ).<Cite n={[1, 2]} />» | Article ventricular-tachycardia.mdx | Article |
+
+Modelling note: the article gives the Minzdrav threshold (> 100 per minute), so the preset floor is 101, the lowest whole rate above it; MSD's ≥ 120 is not in the article, and rates 101–119 count as VT by Minzdrav only. 150 bpm, QRS 130 ms and T −0.3 mV are assumptions: no source gives a single typical rate, QRS width or T amplitude. The model's QRS is mainly positive (R 1 mV, S −0.25 mV, `ecg.ts`), so a negative T is discordant to it. QRS 130 ms fits up to 169 bpm (the R peak must come before the aortic valve opens, `timing.ts`). The model keeps the P-to-QRS delay as a flat stretch, and its Wiggers diagram keeps the atrial share of filling in step with every beat: it cannot show AV dissociation or fusion complexes.
+
 ---
 
 ## Not verifiable
@@ -169,4 +197,6 @@ Modelling note: 170 bpm is an assumption inside 120–250 and below the model's 
   - ESC 2020 ACHD §4.1: OUP page truncated.
 - **First-degree AV block**: a PR limit in Минздрав 2025 «Брадиаритмии» (none in its text).
 - **SVT**: a single typical heart rate (none in the article's sources inside the model's range).
+- **Long QT syndrome**: a typical QTc value for the model (sources give thresholds only).
+- **VT**: a single typical heart rate, QRS width and T-wave amplitude (sources give thresholds and directions only).
 - **General**: the conversion of mm to mV and of /min to Hz is our arithmetic on sourced numbers.
