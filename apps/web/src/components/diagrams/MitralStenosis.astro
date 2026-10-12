@@ -1,0 +1,272 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ms-arrow`;
+// The fused-leaflets label is too long for one line in the label column: split it in two.
+const fusedWords = t['diagram.label.leaflets-fused'].split(' ');
+const fusedSplit = Math.ceil(fusedWords.length / 2);
+const fusedLines = [
+  fusedWords.slice(0, fusedSplit).join(' '),
+  fusedWords.slice(fusedSplit).join(' '),
+];
+// Both states show diastole: the left ventricle fills and blood flows down from the atrium.
+// The mitral annulus spans x = 120–180 at y = 165; the leaflets hang from it into the ventricle.
+// Normal: thin leaflets open wide, almost parallel, leaving the whole opening free.
+const openLeaflets = ['M120,165 Q123,190 127,214', 'M180,165 Q177,190 173,214'];
+// Stenosis: thickened leaflets fused into a funnel; their tips leave a narrow opening (x 146–154).
+const fusedLeaflets = ['M120,165 Q132,190 141,206', 'M180,165 Q168,190 159,206'];
+// Flow paths: a wide even stream in the normal state, a stream converging on the narrow opening in
+// stenosis. Arrows and moving particles use the same columns.
+const normalColumns = [135, 150, 165];
+const diseaseColumns = [122, 150, 178];
+const converging = [
+  'M122,40 C122,110 146,140 148,190',
+  'M150,40 L150,190',
+  'M178,40 C178,110 154,140 152,190',
+];
+---
+
+<svg viewBox="0 0 450 320" role="img" aria-label={t['diagram.mitral-stenosis.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle wall: the same in both states -->
+  <path
+    d="M64,158 L236,158 C250,205 232,288 150,306 C68,288 50,205 64,158 Z"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Left atrium: larger in stenosis, as the caption says -->
+  <ellipse
+    class="normal-only"
+    cx="150"
+    cy="82"
+    rx="62"
+    ry="46"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="150"
+    cy="72"
+    rx="84"
+    ry="62"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Left ventricle cavity and the opening to the atrium as one lumen; the same in both states -->
+  <path
+    d="M80,165 L120,165 L120,118 L180,118 L180,165 L220,165 C232,205 216,268 150,288 C84,268 68,205 80,165 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path d="M120,165 L80,165 C68,205 84,268 150,288 C216,268 232,205 220,165 L180,165"></path>
+    <!-- Sides of the opening between atrium and ventricle, up to where each atrium outline meets them -->
+    <path class="normal-only" d="M120,122 L120,165 M180,122 L180,165"></path>
+    <path class="disease-only" d="M120,130 L120,165 M180,130 L180,165"></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g
+    class="normal-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  >
+    {normalColumns.map((x) => (
+      <path d={`M${x},48 L${x},246`} marker-end={`url(#${arrowId})`} />
+    ))}
+  </g>
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <!-- Blood converges on the narrow opening -->
+    {converging.map((d) => (
+      <path d={d} stroke-width="3" />
+    ))}
+    <!-- A narrow stream leaves the funnel into the ventricle -->
+    <path
+      d="M146,204 L154,204 L162,262 L138,262 Z"
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M150,196 L150,258" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Mitral leaflets: thin and wide open normally, thick and fused into a funnel in stenosis -->
+  <g fill="none" stroke="var(--color-text)" stroke-linecap="round">
+    {openLeaflets.map((d) => (
+      <path class="normal-only" d={d} stroke-width="4" />
+    ))}
+    {fusedLeaflets.map((d) => (
+      <path class="disease-only" d={d} stroke-width="9" />
+    ))}
+  </g>
+  <circle cx="120" cy="165" r="3.5" fill="var(--color-text)"></circle>
+  <circle cx="180" cy="165" r="3.5" fill="var(--color-text)"></circle>
+
+  <!-- Moving blood: an even stream through the open valve, a stream squeezed through the funnel -->
+  <g class="flow">
+    <g class="normal-only">
+      {normalColumns.map((x, i) => (
+        <circle
+          class="ms-p ms-p-normal"
+          cx={x}
+          cy="58"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${i * 0.15}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseColumns.map((x, i) => (
+        <circle
+          class="ms-p ms-p-jet"
+          cx={x}
+          cy="50"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`--ms-dx: ${150 - x}px; animation-delay: ${i * 0.15}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels in the column on the right, with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="204" y1="106" x2="256" y2="106"></line>
+    <line class="disease-only" x1="221" y1="106" x2="256" y2="106"></line>
+    <line x1="196" y1="262" x2="256" y2="276"></line>
+    <line x1="184" y1="167" x2="256" y2="172"></line>
+    <line class="disease-only" x1="157" y1="213" x2="256" y2="232"></line>
+  </g>
+  <!-- In stenosis the atrium label says that it is enlarged -->
+  <text class="normal-only" x="262" y="112">
+    {t['diagram.label.la']}
+  </text>
+  <text class="disease-only" x="262" y="112">
+    {t['diagram.label.la-dilated']}
+  </text>
+  <text x="262" y="282">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small" x="262" y="176">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="262" y="194">
+    {t['diagram.label.leaflets-open']}
+  </text>
+  <text class="diagram-small disease-only" x="262" y="194">
+    <tspan x="262">{fusedLines[0]}</tspan>
+    <tspan x="262" dy="15">
+      {fusedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="262" y="236">
+    {t['diagram.label.narrow-opening']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ms-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .ms-p-normal {
+    animation: ms-normal 2.4s linear infinite;
+  }
+
+  .diagram .ms-p-jet {
+    animation: ms-jet 2.4s linear infinite;
+  }
+
+  /* Normal diastole: blood falls from the atrium into the ventricle at an even pace. */
+  @keyframes ms-normal {
+    0%,
+    6% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    12%,
+    56% {
+      opacity: 1;
+    }
+
+    64%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 186px);
+    }
+  }
+
+  /* Stenosis: blood crowds into the funnel, then squeezes through the narrow opening. */
+  @keyframes ms-jet {
+    0%,
+    6% {
+      opacity: 0;
+      transform: translate(0, 0) scale(1, 1);
+    }
+
+    12% {
+      opacity: 1;
+    }
+
+    /* Side particles follow the drawn converging curves: first down, then in towards the opening. */
+    18% {
+      transform: translate(calc(var(--ms-dx) * 0.19), 44px) scale(1, 1);
+    }
+
+    26% {
+      transform: translate(calc(var(--ms-dx) * 0.44), 72px) scale(0.95, 1);
+    }
+
+    33% {
+      transform: translate(calc(var(--ms-dx) * 0.7), 99px) scale(0.9, 1);
+    }
+
+    44% {
+      opacity: 1;
+      transform: translate(var(--ms-dx), 140px) scale(0.8, 1);
+    }
+
+    54% {
+      opacity: 1;
+      transform: translate(var(--ms-dx), 180px) scale(0.6, 2);
+    }
+
+    62%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--ms-dx), 200px) scale(0.6, 2);
+    }
+  }
+</style>

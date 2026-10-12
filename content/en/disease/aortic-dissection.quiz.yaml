@@ -1,0 +1,43 @@
+questions:
+  - level: patient
+    prompt: What is the most typical feature of the pain in aortic dissection?
+    options:
+      - text: The pain builds up slowly and is worst after a few hours
+      - text: How suddenly it begins
+        correct: true
+      - text: The pain is mild and barely noticeable
+    explanation: The main symptom is sudden, severe pain in the chest and/or back, sometimes in the abdomen. The pain is worst at the very start; the most typical feature is how suddenly it begins.
+    cite: [2, 3]
+  - level: patient
+    prompt: Who gets aortic dissection more often?
+    options:
+      - text: Men, and dissection becomes more common with age
+        correct: true
+      - text: Women, and dissection becomes less common with age
+    explanation: Men are affected more often, and dissection becomes more common with age.
+    cite: [3]
+  - level: patient
+    prompt: What is true about the ECG in aortic dissection?
+    options:
+      - text: The ECG shows the dissection and confirms the diagnosis
+      - text: An ECG is recorded, but it does not show the dissection itself
+        correct: true
+    explanation: An ECG is recorded, but it does not show the dissection itself.
+    cite: [3, 4]
+  - level: patient
+    prompt: What does type A dissection, which involves the ascending aorta, need?
+    options:
+      - text: Urgent surgery
+        correct: true
+      - text: No surgery is needed; the dissection goes away by itself
+    explanation: Untreated dissection of the ascending aorta is highly lethal. Type A dissection, which involves the ascending aorta, needs urgent surgery.
+    cite: [1, 2]
+  - level: student
+    prompt: In the Stanford classification, how does type A differ from type B?
+    options:
+      - text: The type depends only on the site of the primary intimal tear
+      - text: Type B involves the ascending aorta; type A does not
+      - text: Type A involves the ascending aorta; type B does not
+        correct: true
+    explanation: In the Stanford classification, type A involves the ascending aorta irrespective of the site of the primary intimal tear, and type B does not involve the ascending aorta.
+    cite: [2, 3]

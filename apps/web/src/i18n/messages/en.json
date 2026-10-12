@@ -429,5 +429,10 @@
   "diagram.long-qt-syndrome.title": "ECG diagram: normally the QT interval runs from the start of the QRS complex to the end of the T wave; in long QT syndrome the T wave ends later and the QT interval is longer; below, a normal rhythm and torsades de pointes ventricular tachycardia, with complexes that change around the baseline",
   "diagram.label.scar": "Scar",
   "diagram.label.isthmus": "Isthmus",
-  "diagram.ventricular-tachycardia.title": "Diagram of the electrical impulse path from the sinus node through the atria and the AV node to the ventricles: normally every beat starts in the sinus node; in ventricular tachycardia the impulse circles in the scar zone of the ventricular wall through a narrow isthmus, and every lap excites the ventricles again, so they beat fast and regularly on their own, apart from the atria"
+  "diagram.ventricular-tachycardia.title": "Diagram of the electrical impulse path from the sinus node through the atria and the AV node to the ventricles: normally every beat starts in the sinus node; in ventricular tachycardia the impulse circles in the scar zone of the ventricular wall through a narrow isthmus, and every lap excites the ventricles again, so they beat fast and regularly on their own, apart from the atria",
+  "diagram.label.leaflets-open": "Leaflets open wide",
+  "diagram.label.leaflets-fused": "Thickened, fused leaflets",
+  "diagram.label.narrow-opening": "Narrow opening",
+  "diagram.label.la-dilated": "Enlarged LA",
+  "diagram.mitral-stenosis.title": "Diagram of the mitral valve while the left ventricle fills (diastole): normally the leaflets open wide and blood flows freely from the left atrium into the ventricle; in rheumatic mitral stenosis the leaflets are thickened and fused into a funnel with a narrow opening, and the left atrium is enlarged"
 }
