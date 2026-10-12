@@ -40,6 +40,29 @@
   white-space: nowrap;
 }
 
+.stage :global(.heart-viewer-marker) {
+  padding: 0.125rem 0.5rem;
+  border: 2px solid #9b4dca;
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 90%);
+  color: #4a1a6b;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.disease {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 4px solid #9b4dca;
+}
+
+.disease p,
+.disease ul {
+  margin: 0;
+}
+
 .poster {
   position: absolute;
   inset: 0;

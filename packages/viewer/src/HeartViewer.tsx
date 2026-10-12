@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
+import { diseaseShapes } from './disease.ts';
 import { HIGHLIGHT_EVENT, isHighlightEvent } from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
@@ -103,6 +104,7 @@ export default function HeartViewer({
   loadOn = 'visible',
   headingLevel = 2,
   cycle: cycleMode,
+  disease,
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
@@ -225,6 +227,7 @@ export default function HeartViewer({
   const showSchematic = active.some(
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
+  const shape = disease ? diseaseShapes[disease] : null;
   const status = STATUS[phase];
   const rateText = t['viewer.heartbeat.rateValue'].replace('{rate}', () => String(rate));
   const Title = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
@@ -259,6 +262,10 @@ export default function HeartViewer({
                 reducedMotion={reducedMotion}
                 focusOnReady={focusOnReady}
                 cycle={cycle}
+                disease={shape}
+                {...(shape?.marker && disease
+                  ? { markerLabel: t[`viewer.disease.marker.${disease}` as ViewerMessageKey] }
+                  : {})}
                 onReady={onReady}
                 onSelect={select}
               />
@@ -306,6 +313,26 @@ export default function HeartViewer({
           )}
         </div>
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
+        {disease && shape && (
+          <div className={styles.disease}>
+            <p>{t[`viewer.disease.${disease}`]}</p>
+            <p className={styles.note}>{t['viewer.disease.note']}</p>
+            {shape.sources.extra && (
+              <>
+                <p className={styles.note}>{t['viewer.disease.sources']}:</p>
+                <ul className={styles.note}>
+                  {shape.sources.extra.map((source) => (
+                    <li key={source.url}>
+                      <a href={source.url} rel="noopener">
+                        {source.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         {phase === 'ready' && (
           <div className={styles.options}>

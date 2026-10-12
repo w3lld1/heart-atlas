@@ -179,7 +179,9 @@ export function openValvePoint(p: Vec3, frame: ValveFrame, amount: number): Vec3
 
 /**
  * GLSL for the deformation; `transformed` is three's local vertex position. A valve first opens
- * in its own frame, then every deformed mesh is squeezed with the chambers it follows.
+ * in its own frame, a diseased left ventricle and what it carries grow, then every deformed mesh
+ * is squeezed with the chambers it follows. A mesh with zone weights (HAS_ZONE, the left
+ * ventricle) squeezes less inside its zone by `uZoneMotion` and tints it in the fragment shader.
  */
 export const DEFORM_UNIFORMS = /* glsl */ `
 uniform float uSqueeze;
@@ -189,6 +191,15 @@ uniform float uOpen;
 uniform vec3 uCenter;
 uniform vec3 uNormal;
 uniform float uRadius;
+uniform float uEnlarge;
+uniform vec3 uEnlargeCenter;
+#ifdef HAS_ZONE
+attribute float zoneInferior;
+attribute float zoneSeptal;
+uniform vec2 uZoneSelect;
+uniform float uZoneMotion;
+varying float vZone;
+#endif
 `;
 
 export const DEFORM_VERTEX = /* glsl */ `
@@ -201,5 +212,32 @@ if (uValve == 1) {
     transformed = uCenter + h * uNormal + inPlane * ((r + uOpen * (uRadius - r)) / r);
   }
 }
-transformed = uSqueezeCenter + (transformed - uSqueezeCenter) * (1.0 - uSqueeze);
+transformed = uEnlargeCenter + (transformed - uEnlargeCenter) * uEnlarge;
+float squeeze = uSqueeze;
+#ifdef HAS_ZONE
+vZone = dot(vec2(zoneInferior, zoneSeptal), uZoneSelect);
+squeeze *= 1.0 - vZone * (1.0 - uZoneMotion);
+#endif
+transformed = uSqueezeCenter + (transformed - uSqueezeCenter) * (1.0 - squeeze);
+`;
+
+export const ZONE_FRAGMENT_UNIFORMS = /* glsl */ `
+#ifdef HAS_ZONE
+uniform vec3 uZoneColor;
+uniform float uZoneMix;
+varying float vZone;
+#endif
+`;
+
+export const ZONE_FRAGMENT = /* glsl */ `
+#ifdef HAS_ZONE
+diffuseColor.rgb = mix(diffuseColor.rgb, uZoneColor, vZone * uZoneMix);
+#endif
+`;
+
+/** The zone also glows a little, so it reads in the shade as well. */
+export const ZONE_EMISSIVE = /* glsl */ `
+#ifdef HAS_ZONE
+totalEmissiveRadiance += uZoneColor * vZone * uZoneMix * 0.5;
+#endif
 `;

@@ -11,10 +11,12 @@ import {
 } from 'react';
 import {
   Box3,
+  BufferAttribute,
   Color,
   Mesh,
   MeshStandardMaterial,
   Plane,
+  Vector2,
   Vector3,
   type Intersection,
   type Object3D,
@@ -33,10 +35,14 @@ import {
   VALVE_SPREAD,
   VALVES,
   valveFrame,
+  ZONE_EMISSIVE,
+  ZONE_FRAGMENT,
+  ZONE_FRAGMENT_UNIFORMS,
   type ChamberId,
   type CycleSource,
   type ValveId,
 } from './cycle.ts';
+import { nearestDistances, ZONE_FADE, zoneWeight, type DiseaseShape } from './disease.ts';
 import type { SectionAxis } from './types.ts';
 
 export interface SceneProps {
@@ -62,6 +68,10 @@ export interface SceneProps {
    * HeartViewer wires it once the heart clock publishes cycle states.
    */
   cycle?: CycleSource | null;
+  /** Signs of a disease drawn on the model; they stay without a heartbeat. */
+  disease?: DiseaseShape | null;
+  /** Text of the disease marker, when the shape has one. */
+  markerLabel?: string;
   onReady: () => void;
   onSelect: (id: string) => void;
 }
@@ -74,6 +84,13 @@ const NO_EMISSION = new Color(0);
 /** Soft glow of excited conduction parts: a fade, never a flash (WCAG 2.3.1). */
 const PULSE = new Color('#5ec8ff');
 const PULSE_INTENSITY = 0.6;
+/** Colour of disease signs: distinct from the reader's highlight and the conduction glow. */
+const DISEASE = new Color('#9b4dca');
+const DISEASE_INTENSITY = 0.35;
+/** A deeper shade for a zone, so it stands out on a ventricle already lit with DISEASE. */
+const ZONE = new Color('#5b1780');
+const ZONE_MIX = 0.9;
+const LV = 'left-ventricle';
 const GHOST_GROUPS = new Set(['chamber']);
 const AXIS = { sagittal: 0, transverse: 1, frontal: 2 } as const;
 
@@ -121,6 +138,12 @@ interface DeformUniforms {
   uCenter: { value: Vector3 };
   uNormal: { value: Vector3 };
   uRadius: { value: number };
+  uEnlarge: { value: number };
+  uEnlargeCenter: { value: Vector3 };
+  uZoneSelect: { value: Vector2 };
+  uZoneMotion: { value: number };
+  uZoneColor: { value: Color };
+  uZoneMix: { value: number };
 }
 
 interface MeshState {
@@ -185,6 +208,12 @@ function newUniforms(): DeformUniforms {
     uCenter: { value: new Vector3() },
     uNormal: { value: new Vector3(0, 1, 0) },
     uRadius: { value: 0 },
+    uEnlarge: { value: 1 },
+    uEnlargeCenter: { value: new Vector3() },
+    uZoneSelect: { value: new Vector2() },
+    uZoneMotion: { value: 1 },
+    uZoneColor: { value: ZONE },
+    uZoneMix: { value: 0 },
   };
 }
 
@@ -206,13 +235,56 @@ function setValveFrame(mesh: Mesh, uniforms: DeformUniforms, axis?: Vec3) {
   uniforms.uRadius.value = frame.radius;
 }
 
-function addDeformation(material: MeshStandardMaterial, uniforms: DeformUniforms) {
+function addDeformation(material: MeshStandardMaterial, uniforms: DeformUniforms, zone: boolean) {
+  if (zone) material.defines = { ...material.defines, HAS_ZONE: '' };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${DEFORM_UNIFORMS}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${DEFORM_VERTEX}`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\n${ZONE_FRAGMENT_UNIFORMS}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>\n${ZONE_FRAGMENT}`)
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>\n${ZONE_EMISSIVE}`,
+      );
   };
+}
+
+/** Positions of a mesh in model space, undoing quantization and node transforms. */
+function worldPositions(mesh: Mesh): Float32Array {
+  const position = mesh.geometry.getAttribute('position');
+  const out = new Float32Array((position?.count ?? 0) * 3);
+  const v = new Vector3();
+  for (let i = 0; position && i < position.count; i++) {
+    v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
+    out.set([v.x, v.y, v.z], i * 3);
+  }
+  return out;
+}
+
+/**
+ * Zone weights of the left ventricle as vertex attributes. They depend only on the geometry, so
+ * the copy shared with the loader cache gets them once and every viewer reuses them.
+ */
+function addZoneWeights(lv: Mesh, scene: Object3D) {
+  const geometry = lv.geometry;
+  const points = worldPositions(lv);
+  for (const [kind, attribute] of [
+    ['inferior', 'zoneInferior'],
+    ['septal', 'zoneSeptal'],
+  ] as const) {
+    if (geometry.getAttribute(attribute)) continue;
+    const { near, full, none } = ZONE_FADE[kind];
+    const target = scene.getObjectByName(near);
+    const weights = new Float32Array(points.length / 3);
+    if (target instanceof Mesh) {
+      const distances = nearestDistances(points, worldPositions(target), none * 2);
+      distances.forEach((d, i) => (weights[i] = zoneWeight(d, full, none)));
+    }
+    geometry.setAttribute(attribute, new BufferAttribute(weights, 1));
+  }
 }
 
 type ModelProps = Omit<
@@ -246,6 +318,7 @@ function Model({ onLoaded, ...props }: ModelProps) {
     };
     const atria = centreOf(ATRIA);
     const ventricles = centreOf(VENTRICLES);
+    const leftVentricle = centreOf([LV]);
     const list: MeshState[] = [];
     copy.traverse((o: Object3D) => {
       if (!(o instanceof Mesh) || !(o.material instanceof MeshStandardMaterial)) return;
@@ -262,7 +335,10 @@ function Model({ onLoaded, ...props }: ModelProps) {
         // so squeezing there about the mapped centre equals squeezing in model space.
         const squeezeCentre = follows?.[0] ? centre(follows[0]) : null;
         if (squeezeCentre) deform.uSqueezeCenter.value.copy(o.worldToLocal(squeezeCentre.clone()));
+        if (leftVentricle) deform.uEnlargeCenter.value.copy(o.worldToLocal(leftVentricle.clone()));
       }
+      const zone = o.name === LV && deform !== undefined;
+      if (zone) addZoneWeights(o, copy);
       if (deform && isValve(o.name)) {
         const ends = AV_AXIS[o.name];
         const from = ends && centreOf([ends[0]]);
@@ -273,7 +349,7 @@ function Model({ onLoaded, ...props }: ModelProps) {
             : undefined;
         setValveFrame(o, deform, axis);
       }
-      if (deform) addDeformation(material, deform);
+      if (deform) addDeformation(material, deform, zone);
       list.push({
         mesh: o,
         material,
@@ -306,10 +382,13 @@ function Model({ onLoaded, ...props }: ModelProps) {
 
   useLayoutEffect(() => {
     gl.localClippingEnabled = true;
+    const tinted = new Set(props.disease?.tint);
     for (const { mesh, material, group } of meshes) {
       const lit = props.highlighted.has(mesh.name);
-      material.emissive.copy(lit ? HIGHLIGHT : NO_EMISSION);
-      material.emissiveIntensity = lit ? 0.45 : 0;
+      // The reader's highlight wins over the disease colour.
+      const tint = !lit && tinted.has(mesh.name);
+      material.emissive.copy(lit ? HIGHLIGHT : tint ? DISEASE : NO_EMISSION);
+      material.emissiveIntensity = lit ? 0.45 : tint ? DISEASE_INTENSITY : 0;
       const ghosted = props.ghost && GHOST_GROUPS.has(group) && !lit;
       material.opacity = ghosted ? 0.18 : 1;
       material.depthWrite = !ghosted;
@@ -323,7 +402,22 @@ function Model({ onLoaded, ...props }: ModelProps) {
       // Transparent chambers draw after the structures inside them.
       mesh.renderOrder = ghosted ? 1 : 0;
     }
-  }, [meshes, plane, gl, cutting, isolating, props.highlighted, props.ghost]);
+  }, [meshes, plane, gl, cutting, isolating, props.highlighted, props.ghost, props.disease]);
+
+  // Static signs of a disease: they hold at rest, the heartbeat only adds to them.
+  useLayoutEffect(() => {
+    const shape = props.disease;
+    const growing = new Set(shape?.enlarge ? [LV, ...shape.enlarge.with] : []);
+    for (const { mesh, deform } of meshes) {
+      if (!deform) continue;
+      deform.uEnlarge.value = growing.has(mesh.name) ? (shape?.enlarge?.scale ?? 1) : 1;
+      if (mesh.name !== LV) continue;
+      const kind = shape?.zone?.kind;
+      deform.uZoneSelect.value.set(kind === 'inferior' ? 1 : 0, kind === 'septal' ? 1 : 0);
+      deform.uZoneMotion.value = shape?.zone?.motion ?? 1;
+      deform.uZoneMix.value = kind ? ZONE_MIX : 0;
+    }
+  }, [meshes, props.disease]);
   // The canvas draws on demand: any change of props (highlight, cut position, label) needs a frame.
   useEffect(() => invalidate());
 
@@ -357,7 +451,8 @@ function Model({ onLoaded, ...props }: ModelProps) {
       if (m.deform && isValve(name)) {
         const target = cycle?.valveOpen[name] ?? 0;
         m.level = ease(m.level, target, dt, VALVE_EASE_MS);
-        m.deform.uOpen.value = m.level * VALVE_SPREAD;
+        const narrowed = name === 'aortic-valve' ? (props.disease?.aorticOpening ?? 1) : 1;
+        m.deform.uOpen.value = m.level * VALVE_SPREAD * narrowed;
         if (Math.abs(m.level - target) > 1e-4) moving = true;
       } else if (m.group === 'conduction') {
         const target = cycle?.excited.includes(name) ? 1 : 0;
@@ -381,6 +476,11 @@ function Model({ onLoaded, ...props }: ModelProps) {
     return node.getWorldPosition(new Vector3());
   }, [scene, props.labelFor]);
   const labelShown = anchor !== null && (!cutting || plane.distanceToPoint(anchor) >= 0);
+  const marker = useMemo(() => {
+    const node = props.disease?.marker ? scene.getObjectByName(props.disease.marker) : undefined;
+    return node ? node.getWorldPosition(new Vector3()) : null;
+  }, [scene, props.disease]);
+  const markerShown = marker !== null && (!cutting || plane.distanceToPoint(marker) >= 0);
 
   // three's raycaster ignores visibility, clipping and opacity, so pick the first hit the reader
   // can actually see: not hidden, not cut away and not a see-through chamber.
@@ -402,6 +502,11 @@ function Model({ onLoaded, ...props }: ModelProps) {
       {labelShown && props.label && (
         <Html position={anchor} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
           <span className="heart-viewer-label">{props.label}</span>
+        </Html>
+      )}
+      {markerShown && props.markerLabel && (
+        <Html position={marker} center zIndexRange={[9, 0]} style={{ pointerEvents: 'none' }}>
+          <span className="heart-viewer-marker">{props.markerLabel}</span>
         </Html>
       )}
     </>

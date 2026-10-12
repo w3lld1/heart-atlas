@@ -1,3 +1,5 @@
+import type { DiseaseId } from './disease.ts';
+
 export const viewerMessageKeys = [
   'viewer.load',
   'viewer.loading',
@@ -34,6 +36,17 @@ export const viewerMessageKeys = [
   'viewer.heartbeat.rate',
   'viewer.heartbeat.rateValue',
   'viewer.heartbeat.note',
+  'viewer.disease.note',
+  'viewer.disease.sources',
+  'viewer.disease.marker.atrial-septal-defect',
+  'viewer.disease.heart-failure',
+  'viewer.disease.atrial-fibrillation',
+  'viewer.disease.coronary-heart-disease',
+  'viewer.disease.hypertension',
+  'viewer.disease.aortic-stenosis',
+  'viewer.disease.hypertrophic-cardiomyopathy',
+  'viewer.disease.dilated-cardiomyopathy',
+  'viewer.disease.atrial-septal-defect',
 ] as const;
 
 export type ViewerMessageKey = (typeof viewerMessageKeys)[number];
@@ -80,4 +93,6 @@ export interface HeartViewerProps {
    * `@heart-atlas/heart-clock/cycle-source`. Absent: the model never moves.
    */
   cycle?: 'own' | 'page';
+  /** Disease article id whose signs the model shows: docs/plans/2026-10-12-disease-signs-3d.md. */
+  disease?: DiseaseId;
 }
