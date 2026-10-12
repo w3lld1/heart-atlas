@@ -107,6 +107,29 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'atrial-septal-defect': 'atrial-septal-defect',
 };
 
+/** What the model shows of a disease: its id, and whether its still and heartbeat captions apply. */
+export interface DiseaseView {
+  id: DiseaseId;
+  still: boolean;
+  beat: boolean;
+}
+
+/**
+ * The disease a viewer shows: its own, or else the preset of the clock it follows. Heartbeat
+ * signs apply while the model beats; preset signs only while the clock runs that preset.
+ */
+export function diseaseView(
+  own: DiseaseId | undefined,
+  preset: PresetId | null,
+  beating: boolean,
+): DiseaseView | null {
+  const id = own ?? (preset ? presetShape[preset] : null);
+  if (!id) return null;
+  const shape = diseaseShapes[id];
+  const beat = shape.beat === true ? beating : shape.beat !== undefined && shape.beat === preset;
+  return { id, still: hasStillSigns(shape), beat };
+}
+
 /**
  * Distances in model space (metres) over which a zone fades from full to none. In heart.glb the
  * nearest left ventricle vertex is 7.9 mm from the right coronary artery and 2.1 mm from the right

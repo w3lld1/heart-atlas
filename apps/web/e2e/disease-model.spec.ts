@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
+import ru from '../src/i18n/messages/ru.json' with { type: 'json' };
 import { axe } from './axe.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
@@ -37,6 +38,18 @@ test.describe('disease signs on the 3D model', () => {
     await expect(model).toHaveAccessibleDescription(
       new RegExp(en['viewer.disease.hypertrophic-cardiomyopathy'].slice(0, 40)),
     );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
+  test('loads three.js and the model only after the button', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', (r) => requested.push(r.url()));
+    await page.goto('ru/disease/hypertrophic-cardiomyopathy/');
+    const load = page.getByRole('button', { name: ru['viewer.load'] });
+    await load.scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
+    await page.waitForLoadState('networkidle');
+    expect(requested.filter((url) => url.includes('/Scene.') || url.endsWith('.glb'))).toEqual([]);
   });
 
   test('a sign from the clock preset shows only while the clock runs it', async ({ page }) => {
@@ -50,6 +63,7 @@ test.describe('disease signs on the 3D model', () => {
     await expect(caption).toHaveCount(0);
     await loadModel(page);
     await expect(caption).toBeVisible(LOAD);
+    // A click event without scrolling the page up to the clock and back.
     await page
       .getByRole('region', { name: en['heartClock.inModel'] })
       .getByRole('radio', { name: en['heartClock.preset.normal'] })
@@ -68,11 +82,14 @@ test.describe('disease signs on the 3D model', () => {
   test('the heart clock page model follows the chosen preset', async ({ page }) => {
     test.slow();
     await page.goto('en/heart-clock/');
+    // The clock island must have hydrated, or React never sees the choice.
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
     const caption = page.getByText(en['viewer.disease.coronary-heart-disease'], { exact: true });
     await expect(caption).toHaveCount(0);
     await loadModel(page);
     await expect(caption).toBeVisible(LOAD);
+    // A click event without scrolling the page up to the clock and back.
     await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).dispatchEvent('click');
     await expect(caption).toHaveCount(0, LOAD);
   });

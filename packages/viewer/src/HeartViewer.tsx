@@ -12,7 +12,7 @@ import {
 } from 'react';
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import type { PresetId } from '@heart-atlas/heart-clock';
-import { diseaseShapes, hasStillSigns, presetShape, type DiseaseId } from './disease.ts';
+import { diseaseShapes, diseaseView, type DiseaseId } from './disease.ts';
 import { HIGHLIGHT_EVENT, isHighlightEvent } from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
@@ -235,20 +235,16 @@ export default function HeartViewer({
   const showSchematic = active.some(
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
-  // Without a disease of its own, a model that follows the page's clock shows the clock's preset.
-  const shown = disease ?? (cyclePreset ? presetShape[cyclePreset] : null);
-  const shape = shown ? diseaseShapes[shown] : null;
-  const markerKey = shown && MARKER_KEY[shown];
-  // Captions say only what the model shows now: motion signs while it beats, preset signs while
-  // the clock runs that preset.
+  // The scene draws the disease at once; captions wait until the model is on screen, so they never
+  // describe a poster or a model that failed to load.
+  const sceneView = diseaseView(disease, cyclePreset, cycle !== null);
+  const view = phase === 'ready' ? sceneView : diseaseView(disease, null, false);
+  const shape = sceneView ? diseaseShapes[sceneView.id] : null;
+  const markerKey = sceneView && MARKER_KEY[sceneView.id];
   const captions: string[] = [];
-  if (shown && shape) {
-    if (hasStillSigns(shape)) captions.push(t[`viewer.disease.${shown}` as ViewerMessageKey]);
-    const beating = shape.beat === true ? cycle !== null : shape.beat === cyclePreset;
-    if (shape.beat && beating) {
-      captions.push(t[`viewer.disease.${shown}.beat` as ViewerMessageKey]);
-    }
-  }
+  if (view?.still) captions.push(t[`viewer.disease.${view.id}` as ViewerMessageKey]);
+  if (view?.beat) captions.push(t[`viewer.disease.${view.id}.beat` as ViewerMessageKey]);
+  const extraSources = view ? diseaseShapes[view.id].sources.extra : undefined;
   const status = STATUS[phase];
   const rateText = t['viewer.heartbeat.rateValue'].replace('{rate}', () => String(rate));
   const Title = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
@@ -333,21 +329,22 @@ export default function HeartViewer({
           )}
         </div>
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
-        {shape && captions.length > 0 && (
+        {captions.length > 0 && (
           <div className={styles.disease}>
-            <div id={`${id}-disease`}>
+            {/* Polite, so a preset switched on the clock is read out. */}
+            <div id={`${id}-disease`} aria-live="polite">
               {captions.map((caption) => (
                 <p key={caption}>{caption}</p>
               ))}
             </div>
             <p className={styles.note}>{t['viewer.disease.note']}</p>
-            {shape.sources.extra && (
+            {extraSources && (
               <>
                 <p id={`${id}-disease-sources`} className={styles.note}>
                   {t['viewer.disease.sources']}
                 </p>
                 <ul className={styles.note} aria-labelledby={`${id}-disease-sources`}>
-                  {shape.sources.extra.map((source) => (
+                  {extraSources.map((source) => (
                     <li key={source.url}>
                       <a href={source.url} rel="noopener">
                         {source.label}

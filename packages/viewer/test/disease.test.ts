@@ -5,6 +5,7 @@ import { viewerMessageKeys } from '../src/types.ts';
 import {
   diseaseIds,
   diseaseShapes,
+  diseaseView,
   hasStillSigns,
   isDiseaseId,
   ZONE_FADE,
@@ -105,5 +106,36 @@ describe('disease shapes', () => {
       if (shape.beat) expect(keys, id).toContain(`viewer.disease.${id}.beat`);
       if (shape.marker) expect(keys, id).toContain(`viewer.disease.marker.${id}`);
     }
+  });
+});
+
+describe('diseaseView', () => {
+  it("prefers the viewer's own disease over the clock preset", () => {
+    expect(diseaseView('hypertension', 'stemi', true)?.id).toBe('hypertension');
+  });
+
+  it('follows the preset without a disease of its own', () => {
+    expect(diseaseView(undefined, 'stemi', true)).toEqual({
+      id: 'coronary-heart-disease',
+      still: true,
+      beat: true,
+    });
+    expect(diseaseView(undefined, 'normal', true)).toBeNull();
+    expect(diseaseView(undefined, null, false)).toBeNull();
+  });
+
+  it('captions heartbeat signs only while beating and preset signs only with the preset', () => {
+    expect(diseaseView('coronary-heart-disease', null, false)?.beat).toBe(false);
+    expect(diseaseView('dilated-cardiomyopathy', 'heart-failure', true)).toEqual({
+      id: 'dilated-cardiomyopathy',
+      still: true,
+      beat: true,
+    });
+    expect(diseaseView('dilated-cardiomyopathy', 'normal', true)?.beat).toBe(false);
+    expect(diseaseView('heart-failure', null, true)).toEqual({
+      id: 'heart-failure',
+      still: false,
+      beat: false,
+    });
   });
 });
