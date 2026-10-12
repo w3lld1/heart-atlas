@@ -24,6 +24,8 @@ interface Props {
   searchable?: boolean;
   /** Hides the header search form, for the search page itself. */
   hideSearch?: boolean;
+  /** Full-width layout for the home page instead of the reading column. */
+  wide?: boolean;
 }
 
 const {
@@ -34,6 +36,7 @@ const {
   translatedLocales = pageLocales,
   searchable = false,
   hideSearch = false,
+  wide = false,
 } = Astro.props;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
@@ -68,7 +71,7 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
     <MotionScript />
     <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ wide }}>
     <a class="skip-link" href="#content">
       {t['a11y.skipToContent']}
     </a>
@@ -127,6 +130,21 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
 
   main {
     padding-block: 2rem;
+  }
+
+  body.wide :is(header, main, footer) {
+    max-inline-size: 90rem;
+  }
+
+  @media (width >= 48rem) {
+    body.wide :is(header, main, footer) {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Decorations of the wide layout may reach past the edges; they never scroll the page. */
+  body.wide main {
+    overflow-x: clip;
   }
 
   footer {

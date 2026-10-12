@@ -6,24 +6,46 @@
 /*
  * Fallback faces sized to match the web fonts, so text keeps its place when they arrive
  * (Lighthouse caught a layout shift of 0.3 with a wide system fallback). Arial and its metric
- * twins Liberation Sans and Arimo are on almost every system. Values come from the fonts' own
- * metrics: size-adjust = average width ratio to Arial, overrides = font metrics / size-adjust.
+ * twins Liberation Sans and Arimo are on almost every system. size-adjust is the measured width
+ * of a Russian or English UI sentence in the web font over Arial at weight 400; the overrides are
+ * the font's ascent and descent divided by it. Cyrillic letters are narrower relative to Arial than
+ * Latin ones, so they get their own face; the later face wins for the characters in its range.
  */
 @font-face {
   font-family: 'Onest Fallback';
   src: local('Arial'), local('Liberation Sans'), local('Arimo');
-  size-adjust: 105.2%;
-  ascent-override: 92.2%;
-  descent-override: 29%;
+  size-adjust: 106.1%;
+  ascent-override: 91.4%;
+  descent-override: 28.7%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Onest Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  size-adjust: 103.5%;
+  ascent-override: 93.7%;
+  descent-override: 29.5%;
   line-gap-override: 0%;
 }
 
 @font-face {
   font-family: 'Manrope Fallback';
   src: local('Arial'), local('Liberation Sans'), local('Arimo');
-  size-adjust: 99.5%;
-  ascent-override: 107.1%;
-  descent-override: 30.2%;
+  size-adjust: 102.8%;
+  ascent-override: 103.7%;
+  descent-override: 29.2%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Manrope Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  size-adjust: 101.6%;
+  ascent-override: 104.9%;
+  descent-override: 29.5%;
   line-gap-override: 0%;
 }
 

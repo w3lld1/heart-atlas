@@ -20,7 +20,8 @@ for (const locale of Object.keys(productionLocales)) {
   test.describe(`anatomy page (${locale})`, () => {
     test('is linked from the home page', async ({ page }) => {
       await page.goto(`${locale}/`);
-      await page.locator('main a[href$="/anatomy/"]').click();
+      // The first link is the main button of the hero.
+      await page.locator('main a[href$="/anatomy/"]').first().click();
       await expect(page).toHaveURL(new RegExp(`/${locale}/anatomy/$`));
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });

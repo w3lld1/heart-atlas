@@ -3,3 +3,5 @@ dist
 .astro
 *.md
 *.mdx
+# Written by packages/models/scripts/render-poster.ts
+assets/models/heart/anchors.json

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { jsReferences } from '../scripts/js-budget.ts';
+import { fontUrls, jsReferences } from '../scripts/js-budget.ts';
 
 describe('jsReferences', () => {
   it('finds script, island and preload URLs in HTML', () => {
@@ -20,5 +20,17 @@ describe('jsReferences', () => {
       'import{a as b}from"./e.js";import"./f.js";const g=()=>import("./g.js");' +
       'const h=()=>import(`./h.js`);';
     expect(jsReferences(js).sort()).toEqual(['./e.js', './f.js', './g.js', './h.js']);
+  });
+});
+
+describe('fontUrls', () => {
+  const css =
+    '@font-face{font-family:A;src:url(/a-latin.woff2)format("woff2");unicode-range:U+??,U+131}' +
+    '@font-face{font-family:A;src:url(/a-cyrillic.woff2)format("woff2");unicode-range:U+0400-045F}' +
+    '@font-face{font-family:A;src:url(/a-greek.woff2)format("woff2");unicode-range:U+0370-03FF}';
+
+  it('counts only the faces the text needs, reading minified wildcard ranges', () => {
+    expect(fontUrls(css, 'Hello')).toEqual(['/a-latin.woff2']);
+    expect(fontUrls(css, 'Привет, мир')).toEqual(['/a-latin.woff2', '/a-cyrillic.woff2']);
   });
 });

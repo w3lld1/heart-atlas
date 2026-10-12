@@ -1,5 +1,14 @@
 export type Vec3 = [number, number, number];
 
+/**
+ * Default view of the heart model: camera position, the point it looks at and the vertical field
+ * of view in degrees. The viewer, the home page heart and the poster script share them, so the
+ * poster and its anchors match the live model.
+ */
+export const HOME: Vec3 = [0, 0.015, 0.36];
+export const TARGET: Vec3 = [0, 0.015, 0];
+export const FOV = 35;
+
 /** Keeps the camera away from the poles, where orbit controls flip. */
 const MIN_POLAR = 0.05;
 const MAX_POLAR = Math.PI - 0.05;

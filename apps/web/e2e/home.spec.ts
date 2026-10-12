@@ -20,10 +20,76 @@ for (const locale of Object.keys(productionLocales)) {
       expect(icon.status()).toBe(200);
     });
 
-    test('has no axe violations', async ({ page }) => {
+    test('shows the heart poster', async ({ page }) => {
       await page.goto(`${locale}/`);
-      const results = await axe(page).analyze();
-      expect(results.violations).toEqual([]);
+      const poster = page.locator('[data-poster]');
+      await expect(poster).toBeVisible();
+      await expect
+        .poll(() => poster.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0);
     });
+
+    test('links every card to a page that exists', async ({ page, request, baseURL }) => {
+      await page.goto(`${locale}/`);
+      const cards = page.locator('.node, .section-card');
+      expect(await cards.count()).toBe(12);
+      const base = new URL(baseURL ?? '').pathname;
+      for (const href of await cards.evaluateAll((links) =>
+        links.map((link) => link.getAttribute('href') ?? ''),
+      )) {
+        if (href.startsWith('https://')) continue;
+        expect(href.startsWith(`${base}${locale}/`), href).toBe(true);
+        expect((await request.get(href)).status(), href).toBe(200);
+      }
+    });
+
+    test('draws a line from each card to the heart and stresses it on hover', async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.goto(`${locale}/`);
+      await expect(page.locator('[data-links]')).toHaveClass(/drawn/);
+      const line = page.locator('.link[data-card="valves"] line');
+      const width = () => line.evaluate((el) => parseFloat(getComputedStyle(el).strokeWidth));
+      // The line ends on the poster, where the card's structure is.
+      const end = await line.evaluate((el: SVGLineElement) => {
+        const svg = el.ownerSVGElement?.getBoundingClientRect();
+        const x = Number(el.getAttribute('x2')) + (svg?.left ?? 0);
+        const y = Number(el.getAttribute('y2')) + (svg?.top ?? 0);
+        const img = document.querySelector('[data-poster]')?.getBoundingClientRect();
+        return img && x > img.left && x < img.right && y > img.top && y < img.bottom;
+      });
+      expect(end).toBe(true);
+      const before = await width();
+      await page.locator('.node[data-card="valves"]').hover();
+      await expect.poll(width).toBeGreaterThan(before);
+    });
+
+    test('has no horizontal scroll at 320 px', async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 800 });
+      await page.goto(`${locale}/`);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBe(0);
+    });
+
+    for (const colorScheme of ['light', 'dark'] as const) {
+      test(`has no axe violations (${colorScheme})`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme });
+        await page.goto(`${locale}/`);
+        const results = await axe(page).analyze();
+        expect(results.violations).toEqual([]);
+      });
+    }
   });
 }
+
+test.describe('home page without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('shows the cards and the poster, without lines', async ({ page }) => {
+    await page.goto('ru/');
+    await expect(page.locator('.node')).toHaveCount(6);
+    await expect(page.locator('[data-poster]')).toBeVisible();
+    await expect(page.locator('[data-links]')).toBeHidden();
+  });
+});

@@ -1,0 +1,94 @@
+---
+// Decorative body behind the heart, drawn at build time (see lib/body-backdrop.ts).
+import { BODY_HEIGHT, BODY_WIDTH, bodyArt } from '../../lib/body-backdrop.ts';
+
+const art = bodyArt();
+---
+
+<svg
+  class="body-backdrop"
+  viewBox={`0 0 ${BODY_WIDTH} ${BODY_HEIGHT}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <linearGradient id="body-fade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff" />
+      <stop offset="0.72" stop-color="#fff" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <mask id="body-fade-mask">
+      <rect width={BODY_WIDTH} height={BODY_HEIGHT} fill="url(#body-fade)" />
+    </mask>
+  </defs>
+  <g mask="url(#body-fade-mask)">
+    <path class="silhouette" d={art.silhouette} />
+    <g class="ribs">
+      {art.ribs.map((d) => (
+        <path d={d} />
+      ))}
+      <path class="spine" d={art.spine} />
+    </g>
+    <g class="arteries">
+      {art.arteries.map((v) => (
+        <path d={v.d} stroke-width={v.width} opacity={v.opacity} />
+      ))}
+    </g>
+    <g class="veins">
+      {art.veins.map((v) => (
+        <path d={v.d} stroke-width={v.width} opacity={v.opacity} />
+      ))}
+    </g>
+    <g class="flow">
+      {art.trunks.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+</svg>
+
+<style>
+  .body-backdrop {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  .silhouette {
+    fill: var(--body-fill);
+    stroke: var(--body-line);
+    stroke-width: 1.8;
+  }
+
+  .ribs path {
+    fill: none;
+    stroke: var(--body-line);
+    stroke-width: 0.8;
+    opacity: 0.35;
+  }
+
+  .ribs .spine {
+    stroke-width: 6;
+    opacity: 0.25;
+  }
+
+  .arteries,
+  .veins {
+    fill: none;
+    stroke-linecap: round;
+    opacity: 0.75;
+  }
+
+  .arteries {
+    stroke: var(--color-vessel-a);
+  }
+
+  .veins {
+    stroke: var(--color-vessel-v);
+  }
+
+  /* Blood flow runs along the trunks only in full motion (PR 4 of the home page spec adds the animation). */
+  .flow {
+    display: none;
+  }
+</style>

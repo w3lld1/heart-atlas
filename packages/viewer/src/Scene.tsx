@@ -20,7 +20,7 @@ import {
   type Object3D,
   type PerspectiveCamera,
 } from 'three';
-import { keyAction, orbit, type Vec3 } from './camera.ts';
+import { FOV, HOME, keyAction, orbit, TARGET, type Vec3 } from './camera.ts';
 import {
   CHAMBERS,
   DEFORM_UNIFORMS,
@@ -66,8 +66,6 @@ export interface SceneProps {
   onSelect: (id: string) => void;
 }
 
-const HOME: Vec3 = [0, 0.015, 0.36];
-const TARGET: Vec3 = [0, 0.015, 0];
 const LIMITS = { minDistance: 0.08, maxDistance: 0.8 };
 const HIGHLIGHT = new Color('#ffb000');
 const NO_EMISSION = new Color(0);
@@ -447,7 +445,7 @@ export default function Scene({
       {/* Draw only when something changes: a constant render loop keeps the CPU busy for nothing. */}
       <Canvas
         frameloop="demand"
-        camera={{ position: HOME, fov: 35, near: 0.01, far: 10 }}
+        camera={{ position: HOME, fov: FOV, near: 0.01, far: 10 }}
         dpr={[1, 2]}
         onCreated={({ camera }) => (camera as PerspectiveCamera).lookAt(...TARGET)}
       >

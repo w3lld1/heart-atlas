@@ -1,0 +1,156 @@
+---
+// Pictures of the section cards. Decorative: the card's title and note say where it leads.
+import type { SectionId } from '../../lib/home.ts';
+
+interface Props {
+  id: SectionId;
+}
+
+const { id } = Astro.props;
+const heart =
+  'M120 118C78 90 60 66 60 46c0-17 13-29 28-29 13 0 23 8 32 19 9-11 19-19 32-19 15 0 28 12 28 29 0 20-18 44-60 72Z';
+---
+
+<svg
+  class:list={['section-art', { grid: id === 'diagnostic' }]}
+  viewBox="0 0 240 130"
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  {id === 'anatomy' && (
+    <>
+      <path d={heart} fill="var(--color-accent)" opacity=".16" />
+      <path d={heart} fill="none" stroke="var(--color-accent)" stroke-width="2" />
+      <path
+        d="M120 36v70M86 50c12 6 22 18 24 40M154 50c-12 6-22 18-24 40"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="1.2"
+        opacity=".6"
+      />
+    </>
+  )}
+  {id === 'disease' && (
+    <>
+      <rect y="40" width="240" height="50" rx="25" fill="var(--color-accent)" opacity=".14" />
+      <circle cx="40" cy="58" r="7" fill="var(--color-accent)" />
+      <circle cx="70" cy="70" r="7" fill="var(--color-accent)" opacity=".8" />
+      <circle cx="100" cy="56" r="6" fill="var(--color-accent)" opacity=".7" />
+      <path d="M120 90c6-20 34-20 44 0Z" fill="#e0a526" />
+      <rect
+        y="40"
+        width="240"
+        height="50"
+        rx="25"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="2"
+      />
+    </>
+  )}
+  {id === 'diagnostic' && (
+    <path
+      d="M0 75h30l6-10 6 10h10l4 6 8-52 8 62 6-16h18l10-12 10 12h30l6-10 6 10h10l4 6 8-52 8 62 6-16h18l10-12 10 12h10"
+      fill="none"
+      stroke="var(--color-blue)"
+      stroke-width="2"
+      stroke-linejoin="round"
+    />
+  )}
+  {id === 'model' && (
+    <>
+      <ellipse
+        cx="120"
+        cy="65"
+        rx="46"
+        ry="46"
+        fill="none"
+        stroke="var(--color-blue)"
+        stroke-width="2"
+        opacity=".7"
+      />
+      <ellipse
+        cx="120"
+        cy="65"
+        rx="22"
+        ry="46"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="2"
+        opacity=".7"
+      />
+      <ellipse
+        cx="120"
+        cy="65"
+        rx="46"
+        ry="14"
+        fill="none"
+        stroke="var(--color-blue)"
+        stroke-width="2"
+        opacity=".7"
+      />
+      <circle cx="120" cy="65" r="9" fill="var(--color-accent)" />
+    </>
+  )}
+  {id === 'clock' && (
+    <>
+      <circle cx="120" cy="65" r="46" fill="none" stroke="var(--color-border)" stroke-width="10" />
+      <path
+        d="M120 19a46 46 0 0 1 40 23"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="10"
+      />
+      <path
+        d="M160 42a46 46 0 0 1 4 37"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="10"
+        opacity=".55"
+      />
+      <path
+        d="M164 79A46 46 0 1 1 120 19"
+        fill="none"
+        stroke="var(--color-blue)"
+        stroke-width="10"
+        opacity=".45"
+      />
+      <line
+        x1="120"
+        y1="65"
+        x2="120"
+        y2="28"
+        stroke="var(--color-text)"
+        stroke-width="3"
+        stroke-linecap="round"
+      />
+      <circle cx="120" cy="65" r="5" fill="var(--color-text)" />
+    </>
+  )}
+  {id === 'code' && (
+    <path
+      d="M92 40 64 65l28 25M148 40l28 25-28 25M130 30l-20 70"
+      fill="none"
+      stroke="var(--color-blue)"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  )}
+</svg>
+
+<style>
+  .section-art {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .grid {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 10px 10px;
+  }
+</style>

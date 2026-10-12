@@ -42,6 +42,7 @@ describe('heart model data for the viewer', () => {
         low: '/heart-atlas/models/heart-lod1.glb',
       },
       poster: '/heart-atlas/models/heart-poster.png',
+      heroPoster: '/heart-atlas/models/heart-hero-poster.webp',
     });
   });
 });

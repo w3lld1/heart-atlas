@@ -1,0 +1,114 @@
+{
+  "width": 640,
+  "height": 704,
+  "camera": {
+    "home": [
+      0,
+      0.015,
+      0.36
+    ],
+    "target": [
+      0,
+      0.015,
+      0
+    ],
+    "fov": 35
+  },
+  "anchors": {
+    "right-atrium": {
+      "x": 0.3164,
+      "y": 0.5163,
+      "pixels": 20407
+    },
+    "left-atrium": {
+      "x": 0.657,
+      "y": 0.4496,
+      "pixels": 3716
+    },
+    "right-ventricle": {
+      "x": 0.5008,
+      "y": 0.6101,
+      "pixels": 33639
+    },
+    "left-ventricle": {
+      "x": 0.7117,
+      "y": 0.6527,
+      "pixels": 4595
+    },
+    "tricuspid-valve": {
+      "x": 0.307,
+      "y": 0.6726,
+      "pixels": 125
+    },
+    "pulmonary-valve": {
+      "x": 0.5352,
+      "y": 0.4368,
+      "pixels": 2374
+    },
+    "right-papillary-muscles": {
+      "x": 0.5695,
+      "y": 0.7521,
+      "pixels": 6989
+    },
+    "left-papillary-muscles": {
+      "x": 0.6867,
+      "y": 0.6896,
+      "pixels": 1869
+    },
+    "aorta": {
+      "x": 0.4539,
+      "y": 0.2933,
+      "pixels": 11575
+    },
+    "pulmonary-trunk": {
+      "x": 0.4617,
+      "y": 0.3999,
+      "pixels": 13115
+    },
+    "superior-vena-cava": {
+      "x": 0.3336,
+      "y": 0.2749,
+      "pixels": 5700
+    },
+    "inferior-vena-cava": {
+      "x": 0.3352,
+      "y": 0.8814,
+      "pixels": 10898
+    },
+    "pulmonary-veins": {
+      "x": 0.6492,
+      "y": 0.4993,
+      "pixels": 1337
+    },
+    "right-coronary-artery": {
+      "x": 0.4742,
+      "y": 0.5888,
+      "pixels": 5329
+    },
+    "left-anterior-descending-artery": {
+      "x": 0.6961,
+      "y": 0.6371,
+      "pixels": 5760
+    },
+    "circumflex-artery": {
+      "x": 0.7492,
+      "y": 0.6271,
+      "pixels": 242
+    },
+    "cardiac-veins": {
+      "x": 0.5133,
+      "y": 0.7422,
+      "pixels": 2799
+    },
+    "sa-node": {
+      "x": 0.2773,
+      "y": 0.3672,
+      "pixels": 15
+    },
+    "purkinje-fibers": {
+      "x": 0.7055,
+      "y": 0.7536,
+      "pixels": 85
+    }
+  }
+}
