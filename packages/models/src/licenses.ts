@@ -20,6 +20,8 @@ export interface SourceEntry {
   attribution_alt?: string;
   retrieved?: string;
   sha256?: string;
+  /** Language of attribution_alt (BCP 47), so pages can mark it with lang. */
+  attribution_alt_lang?: string;
 }
 
 export interface LicenseEntry {
@@ -82,6 +84,11 @@ export function parseLicenses(text: string): { entries: LicenseEntry[]; errors: 
         }
         if (!isText(s['attribution_alt']))
           errors.push(`${where} / ${name}: attribution_alt is required`);
+      }
+      if (s['attribution_alt'] !== undefined) {
+        const lang = s['attribution_alt_lang'];
+        if (typeof lang !== 'string' || !/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(lang))
+          errors.push(`${where} / ${name}: attribution_alt_lang must be a language tag such as ja`);
       }
     }
   }

@@ -58,6 +58,12 @@ for (const locale of Object.keys(productionLocales)) {
       await expect(page.locator('footer .credits')).toContainText(
         'BodyParts3D, © The Database Center for Life Science',
       );
+      // The Japanese attribution is read with a Japanese voice, here and in the viewer.
+      for (const where of ['footer .credits', 'main']) {
+        await expect(page.locator(`${where} [lang="ja"]`)).toContainText(
+          'ライフサイエンス統合データベースセンター',
+        );
+      }
       const results = await axe(page).analyze();
       expect(results.violations).toEqual([]);
     });

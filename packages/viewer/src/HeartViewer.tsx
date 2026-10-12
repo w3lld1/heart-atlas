@@ -1,5 +1,6 @@
 import {
   Component,
+  Fragment,
   lazy,
   Suspense,
   useCallback,
@@ -117,6 +118,7 @@ export default function HeartViewer({
   headingLevel = 2,
   cycle: cycleMode,
   disease,
+  attribution,
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);
@@ -469,7 +471,20 @@ export default function HeartViewer({
             </ul>
           </div>
         ))}
-        <p className={styles.attribution}>{t['viewer.attribution']}</p>
+        <p className={styles.attribution}>
+          {t['viewer.attribution'].split('{source}').map((piece, i) => (
+            <Fragment key={i}>
+              {i > 0 &&
+                attribution.map((part, j) => (
+                  <Fragment key={j}>
+                    {j > 0 && '; '}
+                    <span lang={part.lang}>{part.text}</span>
+                  </Fragment>
+                ))}
+              {piece}
+            </Fragment>
+          ))}
+        </p>
       </div>
     </div>
   );

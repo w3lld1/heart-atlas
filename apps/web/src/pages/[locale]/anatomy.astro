@@ -7,7 +7,12 @@ import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
 import { localePath } from '../../i18n/paths.ts';
 import { articlePages } from '../../lib/articles.ts';
-import { heartModelUrls, heartStructures, viewerMessages } from '../../lib/heart-model.ts';
+import {
+  heartAttribution,
+  heartModelUrls,
+  heartStructures,
+  viewerMessages,
+} from '../../lib/heart-model.ts';
 
 export const getStaticPaths = (() =>
   localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
@@ -31,6 +36,7 @@ const articles = articlePages(await getCollection('articles'), locales)
     poster={poster}
     structures={heartStructures(t)}
     messages={viewerMessages(t)}
+    attribution={heartAttribution()}
     loadOn="auto"
     cycle="own"
   />

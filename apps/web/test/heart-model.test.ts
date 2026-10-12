@@ -24,19 +24,22 @@ describe('heart model data for the viewer', () => {
     expect(septum).toMatchObject({ kind: 'zone', meshes: ['right-ventricle', 'left-ventricle'] });
   });
 
-  it('shows both attributions of a source published under two licenses', () => {
-    expect(heartAttribution()).toContain('The Database Center for Life Science');
-    expect(heartAttribution()).toContain('ライフサイエンス統合データベースセンター');
+  it('shows both attributions of a source published under two licenses, marking the language', () => {
+    const [main, alt] = heartAttribution();
+    expect(main?.text).toContain('The Database Center for Life Science');
+    expect(main?.lang).toBeUndefined();
+    expect(alt?.text).toContain('ライフサイエンス統合データベースセンター');
+    expect(alt?.lang).toBe('ja');
   });
 
   it('reads the attribution of another model file', () => {
-    expect(heartAttribution('congenital/tetralogy-of-fallot.glb')).toContain('Kopan, CT');
+    expect(heartAttribution('congenital/tetralogy-of-fallot.glb')[0]?.text).toContain('Kopan, CT');
   });
 
-  it.each(localeCodes)('fills the model source into the attribution line (%s)', (locale) => {
+  it.each(localeCodes)('leaves one {source} slot in the attribution line (%s)', (locale) => {
     const line = viewerMessages(getMessages(locale))['viewer.attribution'];
-    expect(line).toContain(heartAttribution());
-    expect(line).not.toContain('{source}');
+    expect(line.split('{source}')).toHaveLength(2);
+    expect(getMessages(locale)['embed.credits'].split('{credits}')).toHaveLength(2);
   });
 
   it('builds model paths from the base URL', () => {
