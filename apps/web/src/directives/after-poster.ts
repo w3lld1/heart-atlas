@@ -5,8 +5,14 @@ import type { ClientDirective } from 'astro';
  * on screen. The island's script (React and the viewer) then never competes with the poster,
  * the largest paint of the page, for the network or the main thread.
  */
+/** Longest wait for the poster; the viewer's controls work without it. */
+const POSTER_WAIT_MS = 3000;
+
 const afterPoster: ClientDirective = (load, _options, el) => {
+  let started = false;
   const hydrate = async () => {
+    if (started) return;
+    started = true;
     const run = await load();
     await run();
   };
@@ -18,8 +24,9 @@ const afterPoster: ClientDirective = (load, _options, el) => {
       void hydrate();
       return;
     }
-    // A poster that fails still starts the viewer, which then shows its own error state.
+    // A poster that fails or stalls still starts the viewer.
     poster.decode().then(afterPaint, afterPaint);
+    setTimeout(() => void hydrate(), POSTER_WAIT_MS);
   };
   const observer = new IntersectionObserver(
     (entries) => {
