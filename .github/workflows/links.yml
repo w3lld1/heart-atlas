@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Relative links in the sources only resolve on the built site, so lychee skips
+      # them (file://) and CI checks them with scripts/check-internal-links.mjs.
       # doi.org is skipped here and checked through Crossref below. Publisher sites
       # answer 403 or 429 to CI bots, and lychee cannot scope accepted codes to a host,
       # so those two codes count as reachable everywhere.
@@ -27,6 +29,7 @@ jobs:
           args: >-
             --no-progress
             --exclude-loopback
+            --exclude '^file://'
             --exclude '^https?://(dx\.)?doi\.org/'
             --accept '200..=299,403,429'
             --max-retries 3
