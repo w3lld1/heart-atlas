@@ -1,0 +1,231 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-pda-arrow-v`;
+const arrowA = `${uid}-pda-arrow-a`;
+// Labels inside the arch are too long for one line: split each in two.
+function twoLines(text: string): [string, string] {
+  const words = text.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const ligamentLines = twoLines(t['diagram.label.ligamentum-arteriosum']);
+const ductLines = twoLines(t['diagram.label.open-duct']);
+// The vessels are drawn in their own coordinates and shifted right by 150; the branch to the
+// right lung runs on into the left column, where its label sits. The aorta rises, arches over and
+// descends; the pulmonary trunk rises between its two limbs and divides under the arch. The duct
+// joins the underside of the arch to the start of the left pulmonary artery (the branch on the
+// viewer's right).
+const vessel = {
+  aorta: 'M45,335 L45,150 C45,92 100,70 160,70 C215,70 260,95 260,150 L260,335',
+  trunk: 'M150,335 L150,185',
+  rightPa: 'M150,190 C150,174 130,170 100,170 L-130,170',
+  leftPa: 'M150,190 C150,170 175,166 210,166 L320,166',
+  // From the arch wall to the pulmonary artery wall (wall to wall, for the ligament and duct).
+  duct: 'M219,101 L203,152',
+};
+// Paths of the blood, shared by the arrows and the moving dashes on top of them.
+const flow = {
+  aorta: 'M45,320 L45,150 C45,92 100,70 160,70 C215,70 260,95 260,150 L260,322',
+  // Up the trunk, then into each branch. Split so the branch to the right lung can run behind
+  // the ascending aorta and the branch to the left lung in front of the descending aorta.
+  trunk: 'M150,320 L150,190',
+  toRightLung: 'M150,190 C150,174 130,170 100,170 L-120,170',
+  toLeftLung: 'M150,190 C150,170 175,166 210,166 L312,166',
+  // The start of the right branch again, in front, up to the edge of the ascending aorta.
+  rightStart: 'M150,190 C150,174 130,170 100,170 L64,170',
+  // Patent duct: blood leaves the aorta and enters the pulmonary artery.
+  shunt: 'M221,93 L200,160',
+};
+---
+
+<svg
+  viewBox="0 0 480 340"
+  role="img"
+  aria-label={t['diagram.patent-ductus-arteriosus.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <g transform="translate(150 0)" fill="none">
+    <!-- The right pulmonary artery passes behind the ascending aorta, so it and its blood are
+         drawn first. Each tube is an outline stroke with a narrower fill stroke on top. Thicker
+         arrows: more blood goes on to the lungs with a patent duct. -->
+    <path d={vessel.rightPa} stroke="var(--diagram-venous)" stroke-width="24"></path>
+    <path d={vessel.rightPa} stroke="var(--diagram-venous-fill)" stroke-width="20"></path>
+    <g stroke-linecap="round">
+      <path
+        class="normal-only"
+        d={flow.toRightLung}
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.toRightLung}
+        stroke="var(--diagram-venous)"
+        stroke-width="5"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+    </g>
+    <g class="flow" stroke="var(--color-bg)">
+      <path class="dash-flow normal-only" d={flow.toRightLung} stroke-width="1.5"></path>
+      <path class="dash-flow disease-only" d={flow.toRightLung} stroke-width="2.5"></path>
+    </g>
+
+    <!-- Aorta and its blood, the same in both states -->
+    <path d={vessel.aorta} stroke="var(--diagram-arterial)" stroke-width="38"></path>
+    <path d={vessel.aorta} stroke="var(--diagram-arterial-fill)" stroke-width="34"></path>
+    <path
+      d={flow.aorta}
+      stroke="var(--diagram-arterial)"
+      stroke-width="4"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <g class="flow" stroke="var(--color-bg)">
+      <path class="dash-flow" d={flow.aorta} stroke-width="2"></path>
+    </g>
+
+    <!-- The trunk and the left pulmonary artery, which runs in front of the descending aorta -->
+    <path d={vessel.leftPa} stroke="var(--diagram-venous)" stroke-width="24"></path>
+    <path d={vessel.leftPa} stroke="var(--diagram-venous-fill)" stroke-width="20"></path>
+    <path d={vessel.trunk} stroke="var(--diagram-venous)" stroke-width="34"></path>
+    <path d={vessel.trunk} stroke="var(--diagram-venous-fill)" stroke-width="30"></path>
+    <path
+      d="M150,192 C150,176 132,172 104,172 M150,192 C150,172 175,168 208,168"
+      stroke="var(--diagram-venous-fill)"
+      stroke-width="18"
+    ></path>
+    <g stroke-linecap="round">
+      <path
+        class="normal-only"
+        d={flow.trunk}
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+      ></path>
+      <path
+        class="normal-only"
+        d={flow.rightStart}
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+      ></path>
+      <path
+        class="normal-only"
+        d={flow.toLeftLung}
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.trunk}
+        stroke="var(--diagram-venous)"
+        stroke-width="5"
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.rightStart}
+        stroke="var(--diagram-venous)"
+        stroke-width="5"
+      ></path>
+      <path
+        class="disease-only"
+        d={flow.toLeftLung}
+        stroke="var(--diagram-venous)"
+        stroke-width="5"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+    </g>
+    <g class="flow" stroke="var(--color-bg)">
+      <path class="dash-flow normal-only" d={flow.trunk} stroke-width="1.5"></path>
+      <path class="dash-flow normal-only" d={flow.rightStart} stroke-width="1.5"></path>
+      <path class="dash-flow normal-only" d={flow.toLeftLung} stroke-width="1.5"></path>
+      <path class="dash-flow disease-only" d={flow.trunk} stroke-width="2.5"></path>
+      <path class="dash-flow disease-only" d={flow.rightStart} stroke-width="2.5"></path>
+      <path class="dash-flow disease-only" d={flow.toLeftLung} stroke-width="2.5"></path>
+    </g>
+
+    <!-- Normal: the duct has closed and become a thin ligament between the two vessels -->
+    <path
+      class="normal-only"
+      d={vessel.duct}
+      stroke="var(--color-muted)"
+      stroke-width="4"
+      stroke-linecap="round"
+    ></path>
+
+    <!-- Patent duct: an open vessel between the arch and the pulmonary artery, with blood flowing
+         from the aorta into the pulmonary artery. The fill runs a little into both vessels so
+         that their walls look open at the ends of the duct. -->
+    <g class="disease-only">
+      <path d={vessel.duct} stroke="var(--diagram-arterial)" stroke-width="16"></path>
+      <path d="M220,97 L202,156" stroke="var(--diagram-arterial-fill)" stroke-width="12"></path>
+      <path
+        d={flow.shunt}
+        stroke="var(--diagram-arterial)"
+        stroke-width="4"
+        stroke-linecap="round"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <g class="flow" stroke="var(--color-bg)">
+        <path class="dash-flow" d={flow.shunt} stroke-width="2"></path>
+      </g>
+    </g>
+
+    <text x="160" y="38" text-anchor="middle">
+      {t['diagram.label.aorta']}
+    </text>
+
+    <!-- Ligament or duct, labelled inside the arch to the left of it -->
+    <text class="diagram-small normal-only" x="195" y="118" text-anchor="end">
+      <tspan x="195">{ligamentLines[0]}</tspan>
+      <tspan x="195" dy="15">
+        {ligamentLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small disease-only" x="195" y="118" text-anchor="end">
+      <tspan x="195">{ductLines[0]}</tspan>
+      <tspan x="195" dy="15">
+        {ductLines[1]}
+      </tspan>
+    </text>
+  </g>
+
+  <!-- Pulmonary artery label in the left column, right above its branch -->
+  <text class="diagram-small" x="8" y="150">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+</svg>
