@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: Which chamber receives blood from the superior and inferior venae cavae?
+    options:
+      - text: The left atrium
+      - text: The right atrium
+        correct: true
+      - text: The left ventricle
+    explanation: The right atrium receives oxygen-poor blood from the whole body except the lungs, arriving through the superior and inferior venae cavae.
+    cite: [1, 2]
+  - level: patient
+    prompt: Which ventricle has the thicker wall?
+    options:
+      - text: The right ventricle
+      - text: Both walls are equally thick
+      - text: The left ventricle
+        correct: true
+    explanation: The wall of the left ventricle is much thicker than that of the right. It pumps blood around the long systemic circulation and must generate high pressure.
+    cite: [3]
+  - level: patient
+    prompt: How much of ventricular filling comes from atrial contraction?
+    options:
+      - text: About 20–30%
+        correct: true
+      - text: Almost 100%
+      - text: About 70–80%
+    explanation: Atrial contraction accounts for about 20–30% of ventricular filling, and the remaining 70–80% flows in passively.
+    cite: [3, 4]
+  - level: student
+    prompt: How many papillary muscles are there in the right ventricle?
+    options:
+      - text: One
+      - text: Three
+        correct: true
+      - text: Five
+    explanation: There are three papillary muscles in the right ventricle and two in the left.
+    cite: [3]
+  - level: student
+    prompt: Which chamber has a moderator band?
+    options:
+      - text: The left ventricle
+      - text: Both ventricles
+      - text: The right ventricle
+        correct: true
+    explanation: The right ventricle has a moderator band, a band of cardiac muscle covered by endocardium; the left ventricle has none.
+    cite: [3]
+  - level: student
+    prompt: Which ECG feature is ventricular systole linked to?
+    options:
+      - text: The QRS complex
+        correct: true
+      - text: The T wave
+    explanation: Ventricular systole follows depolarisation and is represented by the QRS complex; ventricular diastole is represented by the T wave.
+    cite: [4]

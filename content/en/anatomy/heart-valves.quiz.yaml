@@ -1,0 +1,46 @@
+questions:
+  - level: patient
+    prompt: What is the shared job of the heart valves?
+    options:
+      - text: To produce electrical impulses
+      - text: To make sure blood flows through the heart in one direction only
+        correct: true
+      - text: To supply blood to the heart muscle
+    explanation: The heart has four valves, and together they make sure that blood flows through the heart in one direction only.
+    cite: [1]
+  - level: patient
+    prompt: Which valve lies between the left atrium and the left ventricle?
+    options:
+      - text: The tricuspid valve
+      - text: The aortic valve
+      - text: The mitral valve
+        correct: true
+    explanation: The mitral valve lies between the left atrium and the left ventricle. The tricuspid valve is on the right, and the aortic valve lies between the left ventricle and the aorta.
+    cite: [1, 2, 3, 4]
+  - level: patient
+    prompt: When does the first heart sound occur?
+    options:
+      - text: When the tricuspid and mitral valves close
+        correct: true
+      - text: When the aortic and pulmonary valves close
+      - text: When the aortic valve opens
+    explanation: The first heart sound comes from the tricuspid and mitral valves closing as the ventricles contract. The second comes from the aortic and pulmonary valves closing.
+    cite: [1, 4]
+  - level: student
+    prompt: Which valves are the semilunar valves?
+    options:
+      - text: The mitral and tricuspid valves
+      - text: The aortic and pulmonary valves
+        correct: true
+      - text: The mitral and aortic valves
+    explanation: The valves fall into the atrioventricular valves (mitral and tricuspid) and the semilunar valves (aortic and pulmonary).
+    cite: [4]
+  - level: student
+    prompt: What is true of isovolumic contraction?
+    options:
+      - text: All valves are open and blood flows freely into the aorta
+      - text: Only the atrioventricular valves are open
+      - text: All valves are closed, pressure rises and ventricular volume stays constant
+        correct: true
+    explanation: Between closure of the atrioventricular valves and opening of the semilunar valves, all valves are closed, ventricular pressure rises and the volume stays constant.
+    cite: [1]
