@@ -103,6 +103,9 @@ export interface HeartViewerProps {
   cycle?: 'own' | 'page';
   /** Disease article id whose signs the model shows: docs/plans/2026-10-12-disease-signs-3d.md. */
   disease?: DiseaseId;
-  /** Model source credits, filled into `{source}` of `viewer.attribution` and joined by "; ". */
-  attribution?: AttributionPart[];
+  /**
+   * Model source credits the source licenses require, filled into `{source}` of
+   * `viewer.attribution` and joined by "; ". Required so no page shows the model uncredited.
+   */
+  attribution: AttributionPart[];
 }

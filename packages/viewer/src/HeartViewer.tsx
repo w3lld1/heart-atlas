@@ -112,7 +112,7 @@ export default function HeartViewer({
   headingLevel = 2,
   cycle: cycleMode,
   disease,
-  attribution = [],
+  attribution,
 }: HeartViewerProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [selected, setSelected] = useState<string | null>(null);

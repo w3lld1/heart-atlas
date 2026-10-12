@@ -88,7 +88,7 @@ export function parseLicenses(text: string): { entries: LicenseEntry[]; errors: 
       if (s['attribution_alt'] !== undefined) {
         const lang = s['attribution_alt_lang'];
         if (typeof lang !== 'string' || !/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(lang))
-          errors.push(`${where} / ${name}: attribution_alt_lang is required (e.g. ja)`);
+          errors.push(`${where} / ${name}: attribution_alt_lang must be a language tag such as ja`);
       }
     }
   }

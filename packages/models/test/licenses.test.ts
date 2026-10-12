@@ -46,7 +46,7 @@ describe('parseLicenses', () => {
   it('requires the language of the second attribution', () => {
     const alt = `${valid}      also_published_as: CC-BY-SA-2.1-JP\n      attribution_alt: 'x'\n`;
     expect(parseLicenses(alt).errors).toEqual([
-      'a.glb / Source: attribution_alt_lang is required (e.g. ja)',
+      'a.glb / Source: attribution_alt_lang must be a language tag such as ja',
     ]);
     expect(parseLicenses(`${alt}      attribution_alt_lang: ja\n`).errors).toEqual([]);
   });

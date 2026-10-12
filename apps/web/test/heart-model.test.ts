@@ -39,6 +39,7 @@ describe('heart model data for the viewer', () => {
   it.each(localeCodes)('leaves one {source} slot in the attribution line (%s)', (locale) => {
     const line = viewerMessages(getMessages(locale))['viewer.attribution'];
     expect(line.split('{source}')).toHaveLength(2);
+    expect(getMessages(locale)['embed.credits'].split('{credits}')).toHaveLength(2);
   });
 
   it('builds model paths from the base URL', () => {
