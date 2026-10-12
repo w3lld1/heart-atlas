@@ -6,24 +6,43 @@
   :root {
     color-scheme: light dark;
 
-    --color-bg: #fff;
-    --color-text: #1b1b1f;
-    --color-muted: #55565c;
-    --color-accent: #b3122e;
-    --color-border: #d9d9de;
+    /* Palette of the home page redesign, docs/plans/2026-10-12-home-redesign.md. */
+    --color-bg: #f3f7fc;
+    --color-bg-2: #e6effa;
+    --color-text: #10213f;
+    --color-muted: #5a6b86;
+    --color-blue: #1f5fd1;
+    --color-accent: #c2332e;
+    --color-on-accent: #fff;
+    --color-vessel-a: #ef4b4b;
+    --color-vessel-v: #3b78e7;
+    --color-border: #d3deed;
     --color-notice-bg: #fff4e5;
+    --glass: rgb(255 255 255 / 62%);
+    --glass-line: rgb(255 255 255 / 95%);
+    --shadow: 0 10px 30px -12px rgb(31 95 209 / 28%);
+    --font-body: 'Onest Variable', system-ui, sans-serif;
+    --font-display: 'Manrope Variable', system-ui, sans-serif;
 
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body);
     line-height: 1.5;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --color-bg: #121214;
-      --color-text: #ececf0;
-      --color-muted: #a9aab2;
-      --color-accent: #ff7a8a;
-      --color-border: #34353b;
+      --color-bg: #070d1c;
+      --color-bg-2: #0d1932;
+      --color-text: #e8eefc;
+      --color-muted: #9fb0d4;
+      --color-blue: #7aa7ff;
+      --color-accent: #ff6b70;
+      --color-on-accent: #070d1c;
+      --color-vessel-a: #ff4d5e;
+      --color-vessel-v: #4c7dff;
+      --color-border: #22314f;
+      --glass: rgb(16 28 56 / 62%);
+      --glass-line: rgb(140 175 255 / 22%);
+      --shadow: 0 10px 30px -12px rgb(0 0 0 / 60%);
       --color-notice-bg: #2a2117;
     }
   }
@@ -32,6 +51,13 @@
     margin: 0;
     background: var(--color-bg);
     color: var(--color-text);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
   }
 
   a {

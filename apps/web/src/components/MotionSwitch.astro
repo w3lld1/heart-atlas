@@ -1,0 +1,93 @@
+---
+import { getMessages } from '../i18n/messages.ts';
+import { motionChoices } from '../lib/motion.ts';
+
+interface Props {
+  locale: string;
+}
+
+const t = getMessages(Astro.props.locale);
+---
+
+<div class="motion-switch" role="group" data-pagefind-ignore aria-label={t['motion.label']}>
+  <span class="label" aria-hidden="true">
+    {t['motion.label']}
+  </span>
+  {motionChoices.map((choice) => (
+    <button type="button" data-set-motion={choice} aria-pressed="false">
+      {t[`motion.${choice}`]}
+    </button>
+  ))}
+</div>
+
+<script>
+  import { MOTION_EVENT, motionChoices, refreshMotion, setMotionChoice } from '../lib/motion.ts';
+
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-set-motion]');
+
+  function show() {
+    const choice = root.dataset['motionChoice'] ?? 'auto';
+    const level = root.dataset['motion'];
+    for (const button of buttons) {
+      const value = button.dataset['setMotion'];
+      button.setAttribute('aria-pressed', String(value === choice));
+      // In "auto" the level in effect is marked without pressing its button.
+      button.classList.toggle('effective', choice === 'auto' && value === level);
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const value = button.dataset['setMotion'];
+      const choice = motionChoices.find((c) => c === value);
+      if (choice) setMotionChoice(choice);
+    });
+  }
+  window.addEventListener(MOTION_EVENT, show);
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => refreshMotion());
+  show();
+</script>
+
+<style>
+  .motion-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  .label {
+    margin-inline-end: 0.25rem;
+    color: var(--color-muted);
+  }
+
+  button {
+    padding-block: 0.25rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* In "auto" the level it chose is outlined without being pressed. */
+  button.effective {
+    border-color: var(--color-accent);
+    border-style: dashed;
+  }
+
+  button[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+</style>

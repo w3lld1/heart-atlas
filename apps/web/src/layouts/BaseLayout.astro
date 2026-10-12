@@ -1,5 +1,9 @@
 ---
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/onest';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import MotionScript from '../components/MotionScript.astro';
+import MotionSwitch from '../components/MotionSwitch.astro';
 import SearchForm from '../components/SearchForm.astro';
 import ServiceWorker from '../components/ServiceWorker.astro';
 import { defaultLocale, localeCodes, locales } from '../i18n/locales.ts';
@@ -46,8 +50,8 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={`${base}icons/apple-touch-icon.png`} />
     <link rel="manifest" href={`${base}manifest.${locale}.webmanifest`} />
-    <meta name="theme-color" content="#b3123a" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f7fc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#070d1c" media="(prefers-color-scheme: dark)" />
     {translatedLocales.map((code) => (
       <link
         rel="alternate"
@@ -61,6 +65,7 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
       href={new URL(localePath(base, defaultLocale), Astro.site)}
     />
     <title>{pageTitle}</title>
+    <MotionScript />
     <slot name="head" />
   </head>
   <body>
@@ -72,6 +77,7 @@ const pageTitle = title ? `${title} · ${t['site.name']}` : t['site.name'];
         {t['site.name']}
       </a>
       {!hideSearch && <SearchForm locale={locale} />}
+      <MotionSwitch locale={locale} />
       <LanguageSwitcher locale={locale} pageLocales={pageLocales} />
     </header>
     <main id="content" tabindex="-1" data-pagefind-body={searchable ? '' : undefined}>
