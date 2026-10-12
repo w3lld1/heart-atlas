@@ -76,6 +76,7 @@ const gltf = await new GLTFLoader().loadAsync('/heart.glb');
 scene.add(gltf.scene);
 if (s.cut) {
   // The viewer's frontal section at its default position: keeps the half behind the model's centre.
+  // Keep in step with the clipping plane in packages/viewer/src/Scene.tsx.
   const box = new THREE.Box3().setFromObject(gltf.scene);
   const centre = box.getCenter(new THREE.Vector3());
   renderer.localClippingEnabled = true;

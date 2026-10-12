@@ -356,5 +356,7 @@
   "structure.myocardium": "Сердечная мышца (миокард)",
   "structure.blood-pool": "Кровь в камерах и сосудах",
   "congenital.tetralogy-of-fallot.caption": "Сердце пациента с тетрадой Фалло: модель по данным МРТ из коллекции NIH 3D Heart Library. Это сердце одного человека, у других пациентов форма и размеры другие. NIH не участвовал в создании Heart Atlas и не одобрял его.",
-  "congenital.source": "Запись модели в NIH 3D Heart Library"
+  "congenital.source": "Запись модели в NIH 3D Heart Library",
+  "congenital.tetralogy-of-fallot.posterAlt": "Сердце пациента с тетрадой Фалло в разрезе спереди: сердечная мышца и кровь в камерах и сосудах",
+  "congenital.ghost": "Прозрачная мышца"
 }

@@ -26,6 +26,12 @@ test.describe('congenital heart model', () => {
       'href',
       'https://3d.nih.gov/entries/3DPX-016151/3',
     );
+    const posterImage = figure.getByRole('img', {
+      name: en['congenital.tetralogy-of-fallot.posterAlt'],
+    });
+    await expect
+      .poll(() => posterImage.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
     const load = figure.getByRole('button', { name: en['viewer.load'] });
     await load.scrollIntoViewIfNeeded();
     await expect(figure.locator('astro-island')).not.toHaveAttribute('ssr');
@@ -37,6 +43,8 @@ test.describe('congenital heart model', () => {
     const model = figure.getByRole('application', { name: en['viewer.canvasLabel'] });
     await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
     await expect(figure.getByLabel(en['viewer.section'], { exact: true })).toHaveValue('frontal');
+    await expect(figure.getByLabel(en['viewer.section.position'])).toBeVisible();
+    await figure.getByLabel(en['congenital.ghost']).check();
     for (const id of ['myocardium', 'blood-pool'] as const) {
       await expect(figure.getByRole('button', { name: en[`structure.${id}`] })).toBeVisible();
     }
