@@ -1,6 +1,7 @@
 import { heartRateLimits, presetParams } from '@heart-atlas/heart-clock';
 import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
+import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
 import { changedShare, MOVING } from './pixels.ts';
@@ -105,6 +106,21 @@ test.describe('heart clock controls', () => {
     await expect(page.getByRole('radio', { name: '×0.5' })).toBeVisible();
     await page.waitForTimeout(300);
     await expect(page.getByRole('button', { name: en['heartClock.play'] })).toBeVisible();
+  });
+
+  test('starts paused with motion off and pauses when motion is turned off', async ({ page }) => {
+    await page.addInitScript((key) => localStorage.setItem(key, 'off'), MOTION_STORAGE_KEY);
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('radio', { name: '×0.5' })).toBeVisible();
+    await page.waitForTimeout(300);
+    const play = page.getByRole('button', { name: en['heartClock.play'] });
+    await expect(play).toBeVisible();
+    await play.click();
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    await page.locator('[data-set-motion="full"]').click();
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    await page.locator('[data-set-motion="off"]').click();
+    await expect(play).toBeVisible();
   });
 
   test('shows a phase that changes while playing', async ({ page }) => {

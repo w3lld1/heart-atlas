@@ -1,11 +1,19 @@
 {
   "extraKnownMarketplaces": {
     "ecc": { "source": { "source": "github", "repo": "affaan-m/ECC" } },
-    "ponytail": { "source": { "source": "github", "repo": "DietrichGebert/ponytail" } }
+    "ponytail": { "source": { "source": "github", "repo": "DietrichGebert/ponytail" } },
+    "claude-design-skillstack": {
+      "source": { "source": "github", "repo": "freshtechbro/claudedesignskills" }
+    }
   },
   "enabledPlugins": {
     "ecc@ecc": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "core-3d-animation@claude-design-skillstack": true,
+    "extended-3d-scroll@claude-design-skillstack": true,
+    "animation-components@claude-design-skillstack": true,
+    "authoring-motion@claude-design-skillstack": true,
+    "meta-skills@claude-design-skillstack": true
   },
   "hooks": {
     "SessionStart": [

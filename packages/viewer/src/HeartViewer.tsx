@@ -13,7 +13,7 @@ import {
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import type { PresetId } from '@heart-atlas/heart-clock';
 import { diseaseShapes, diseaseView, type DiseaseId } from './disease.ts';
-import { HIGHLIGHT_EVENT, isHighlightEvent } from './events.ts';
+import { HIGHLIGHT_EVENT, isHighlightEvent, MOTION_EVENT, motionIsOff } from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
 import type { HeartViewerProps, SectionAxis, ViewerMessageKey } from './types.ts';
@@ -139,8 +139,20 @@ export default function HeartViewer({
     setPhase((p) => (p === 'idle' ? (hasWebGL() ? 'loading' : 'unsupported') : p));
   }, []);
 
+  // No inertia when the reader asked for reduced motion or turned the site's motion off.
   useEffect(() => {
-    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const update = () => setReducedMotion(motionIsOff());
+    update();
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    query.addEventListener('change', update);
+    window.addEventListener(MOTION_EVENT, update);
+    return () => {
+      query.removeEventListener('change', update);
+      window.removeEventListener(MOTION_EVENT, update);
+    };
+  }, []);
+
+  useEffect(() => {
     const click = loadOn === 'click' || (loadOn === 'auto' && prefersLowDetail());
     setWaitForClick(click);
     if (click || !rootRef.current) return;

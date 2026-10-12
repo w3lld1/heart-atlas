@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import ru from '../src/i18n/messages/ru.json' with { type: 'json' };
+import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import { axe } from './axe.ts';
 
 // Runs against the fixture build: `pnpm build:test-content`, then `HA_TEST_CONTENT=1 pnpm e2e`.
@@ -117,6 +118,15 @@ test.describe('article page', () => {
     await expect(diagram.getByText('Пауза')).toBeHidden();
     // A straight arrow has a zero-width box, so check that it is rendered rather than "visible".
     await expect(diagram.getByRole('img')).toBeVisible();
+    await expect(diagram.locator('path[marker-end]').first()).not.toHaveCSS('display', 'none');
+  });
+
+  test('stands the diagram still with the site motion off', async ({ page }) => {
+    await page.addInitScript((key) => localStorage.setItem(key, 'off'), MOTION_STORAGE_KEY);
+    await page.goto(article);
+    const diagram = page.locator('figure.diagram');
+    await expect(diagram.locator('.flow')).toBeHidden();
+    await expect(diagram.getByText(ru['diagram.pause'])).toBeHidden();
     await expect(diagram.locator('path[marker-end]').first()).not.toHaveCSS('display', 'none');
   });
 

@@ -52,9 +52,10 @@ Add an entry to the locale registry `apps/web/src/i18n/locales.ts`, translate `a
 
 ## Using Claude Code
 
-The repository ships `.claude/settings.json`, which enables two plugins for everyone who opens the project in Claude Code:
+The repository ships `.claude/settings.json`, which enables these plugins for everyone who opens the project in Claude Code:
 
 - [ECC (Everything Claude Code)](https://github.com/affaan-m/ECC): agents and skills for planning, TDD, code review and security checks.
 - [ponytail](https://github.com/DietrichGebert/ponytail): keeps the agent on the smallest solution that works; run `/ponytail-review` on your diff.
+- [Claude Design Skillstack](https://github.com/freshtechbro/claudedesignskills): skills for 3D and animation (three.js, React Three Fiber, GSAP, Motion, Lottie, Blender-to-web and others), enabled as its five bundles, which together hold all 22 skills. It ships no hooks or MCP servers; skills may suggest running their bundled Python helper scripts, which go through the normal permission prompt. The marketplace has no tags, so it follows its default branch; it was reviewed at commit `1da73fe`. Its examples use npm and physical CSS: follow this repository's rules (pnpm, logical properties, `BASE_URL`). Starter code copied from it into `apps/` needs attribution (MIT), and nothing from it goes into `content/` or `assets/`.
 
 Claude Code asks you to trust the plugin marketplaces the first time. `CLAUDE.md` describes the project rules for the agent. Plugin hooks need Node.js on your PATH.

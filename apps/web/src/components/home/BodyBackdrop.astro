@@ -40,8 +40,8 @@ const art = bodyArt();
       ))}
     </g>
     <g class="flow">
-      {art.trunks.map((d) => (
-        <path d={d} />
+      {art.trunks.map(({ d, vein }) => (
+        <path d={d} class:list={{ vein }} />
       ))}
     </g>
   </g>
@@ -87,8 +87,36 @@ const art = bodyArt();
     stroke: var(--color-vessel-v);
   }
 
-  /* Blood flow runs along the trunks only in full motion (PR 4 of the home page spec adds the animation). */
+  /* Blood flow runs along the main trunks, in full motion only. */
   .flow {
     display: none;
+    fill: none;
+    stroke: var(--color-vessel-a);
+    stroke-dasharray: 2 18;
+    stroke-linecap: round;
+    stroke-width: 3;
+  }
+
+  :global(html[data-motion='full']) .flow {
+    display: inline;
+  }
+
+  :global(html[data-motion='full']) .flow path {
+    animation: flow 1.6s linear infinite;
+  }
+
+  /* Trunks are drawn from the heart outwards; venous blood runs back to it. */
+  .flow .vein {
+    stroke: var(--color-vessel-v);
+  }
+
+  :global(html[data-motion='full']) .flow .vein {
+    animation-direction: reverse;
+  }
+
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -40;
+    }
   }
 </style>
