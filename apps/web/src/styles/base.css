@@ -2,6 +2,31 @@
  * Colours and base typography shared by the site layout and the embed layout. In a layer, so any
  * unlayered rule wins over it regardless of the order of stylesheets.
  */
+
+/*
+ * Fallback faces sized to match the web fonts, so text keeps its place when they arrive
+ * (Lighthouse caught a layout shift of 0.3 with a wide system fallback). Arial and its metric
+ * twins Liberation Sans and Arimo are on almost every system. Values come from the fonts' own
+ * metrics: size-adjust = average width ratio to Arial, overrides = font metrics / size-adjust.
+ */
+@font-face {
+  font-family: 'Onest Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo');
+  size-adjust: 105.2%;
+  ascent-override: 92.2%;
+  descent-override: 29%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Manrope Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Arimo');
+  size-adjust: 99.5%;
+  ascent-override: 107.1%;
+  descent-override: 30.2%;
+  line-gap-override: 0%;
+}
+
 @layer base {
   :root {
     color-scheme: light dark;
@@ -21,8 +46,8 @@
     --glass: rgb(255 255 255 / 62%);
     --glass-line: rgb(255 255 255 / 95%);
     --shadow: 0 10px 30px -12px rgb(31 95 209 / 28%);
-    --font-body: 'Onest Variable', system-ui, sans-serif;
-    --font-display: 'Manrope Variable', system-ui, sans-serif;
+    --font-body: 'Onest Variable', 'Onest Fallback', system-ui, sans-serif;
+    --font-display: 'Manrope Variable', 'Manrope Fallback', system-ui, sans-serif;
 
     font-family: var(--font-body);
     line-height: 1.5;
