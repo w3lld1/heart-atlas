@@ -121,8 +121,9 @@ describe('diseaseView', () => {
       beat: true,
     });
     expect(diseaseView(undefined, 'normal', true)).toBeNull();
-    // A preset with no shape in the model, such as first-degree AV block.
+    // Presets with no shape in the model: first-degree AV block and SVT.
     expect(diseaseView(undefined, 'av-block-first-degree', true)).toBeNull();
+    expect(diseaseView(undefined, 'supraventricular-tachycardia', true)).toBeNull();
     expect(diseaseView(undefined, null, false)).toBeNull();
   });
 

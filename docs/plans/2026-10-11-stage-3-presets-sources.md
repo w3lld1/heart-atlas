@@ -127,6 +127,21 @@ Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), PR 
 
 Modelling note: the preset value 260 ms at 60 bpm is an assumption, not a source number. The model scales PR with √RR (`timing.ts`); with 260 ms the preset fits 40–96 bpm (`heartRateLimits`), and PR is 232.6 ms at 75 bpm and 205.5 ms at 96 bpm, so it stays above 200 ms at every rate the preset allows. With 240 ms PR would drop below 200 ms from 87 bpm (199.3 ms). Minzdrav does not contradict the 0.20 s threshold; it gives none.
 
+## 9. Supraventricular tachycardia (typical AVNRT)
+
+Added 2026-10-12 for [the ECG presets spec](2026-10-12-more-ecg-presets.md), PR 3. Sources are the `supraventricular-tachycardia` article's own (`content/{ru,en}/disease/supraventricular-tachycardia.mdx`). Both pages were opened on 2026-10-12 with `curl` through the agent proxy; the Minzdrav text came as JSON from `apicr.minzdrav.gov.ru/api.ashx?op=GetClinrec2&id=619_3`.
+
+| Fact | Value | Verbatim quote | Source | Access / verified |
+|---|---|---|---|---|
+| Rate, rhythm, QRS | 120–250 bpm, regular, narrow | "Reentrant (paroxysmal) supraventricular tachycardias are defined as the sudden-onset, sudden-offset, rapid (120 to 250 beats per minute), regular (successive RR interval variations ≤ 0.04 seconds), narrow QRS complex (or wide QRS complex with bundle branch block) tachycardias that are not sinus tachycardia, atrial fibrillation, or atrial flutter." | MSD Manuals Professional, Reentrant (Paroxysmal) Supraventricular Tachycardias (PSVT) (2024), Pathophysiology; source 3 of the article | curl, yes |
+| Retrograde P (MSD) | at the end of QRS | "In most cases of typical (slow-fast) AV nodal reentrant tachycardia, retrograde P waves are in the terminal portion of the QRS complex (often producing a pseudo-R′ deflection in lead V1); about one-third occur just after the QRS complex, and very few occur immediately before." | MSD, same page, Diagnosis | curl, yes |
+| Definition (Minzdrav) | > 100 per minute | «НЖТ – три и более (по некоторым литературным источникам 5 и более) последовательных сокращения сердца с частотой сердечных сокращений (ЧСС) > 100 в 1 минуту…» | Минздрав 2025 «Наджелудочковые тахикардии» (cr.minzdrav.gov.ru/view-cr/619_3), §1.1; source 1 of the article | curl JSON, yes |
+| Narrow QRS (Minzdrav) | ≤ 120 ms | «Термин «тахикардия с узким комплексом QRS» означает, что продолжительность QRS-комплексов в цепи тахикардии составляет ≤ 120 мс.» | Минздрав 2025, same | curl JSON, yes |
+| Retrograde P′ (Minzdrav) | merges with QRS | «При типичной форме АВУРТ, называемой «медленно-быстрой» («slow- fast»), ретроградные зубцы P’ постоянно связаны с комплексами QRS и сливаются с ними, реже определяются в конце QRS-комплекса.» | Минздрав 2025, same | curl JSON, yes |
+| Article phrases | 120–250, regular, ≤ 120 ms, P′ merges | «…ритм частый — от 120 до 250 ударов в минуту — и ровный.<Cite n={3} />»; «Узкие комплексы QRS (≤120 мс)…<Cite n={1} />»; «При типичной АВУРТ ретроградные зубцы P′ обычно сливаются с QRS или видны в его конце…<Cite n={[1, 3]} />» | Article supraventricular-tachycardia.mdx | Article |
+
+Modelling note: 170 bpm is an assumption inside 120–250 and below the model's limit of 180 (`paramRanges.heartRate`); the article and MSD give no single typical rate (MSD gives "most commonly 180 to 210 beats/minute" on examination, above the model's limit). The preset's slider floor of 120 is the lower end of the MSD range. `pAmplitude: 0` stands for "no separate P wave": the model cannot draw a P′ at the end of QRS or after it. QRS stays at the default 90 ms and RR stays regular.
+
 ---
 
 ## Not verifiable
@@ -153,4 +168,5 @@ Modelling note: the preset value 260 ms at 60 bpm is an assumption, not a source
   - The size of S2 split in ms.
   - ESC 2020 ACHD §4.1: OUP page truncated.
 - **First-degree AV block**: a PR limit in Минздрав 2025 «Брадиаритмии» (none in its text).
+- **SVT**: a single typical heart rate (none in the article's sources inside the model's range).
 - **General**: the conversion of mm to mV and of /min to Hz is our arithmetic on sourced numbers.

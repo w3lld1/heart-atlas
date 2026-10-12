@@ -1,3 +1,4 @@
+import { heartRateLimits } from './clock.ts';
 import { resolveParams, type HeartParams } from './params.ts';
 
 /**
@@ -15,6 +16,7 @@ export const presetIds = [
   'aortic-stenosis',
   'atrial-septal-defect',
   'av-block-first-degree',
+  'supraventricular-tachycardia',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -75,6 +77,27 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // PR would drop below 200 ms from 87 bpm. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
     prInterval: 260,
   }),
+  'supraventricular-tachycardia': Object.freeze({
+    // Typical AV nodal re-entrant tachycardia. The rate is the sign, so this preset sets it:
+    // reentrant SVT runs at 120–250 bpm (MSD Manuals, Reentrant (Paroxysmal) SVT, 2024; source 3
+    // of our SVT article). assumption: 170, inside that range and below the model's limit of 180.
+    // The rhythm is regular (MSD, same), so rrIrregularity stays 0, and the QRS is narrow, ≤120 ms
+    // (Minzdrav 2025, Supraventricular tachycardias; source 1), so qrsDuration stays 90.
+    heartRate: 170,
+    // In typical AVNRT retrograde P′ waves merge with the QRS complex or sit at its end (Minzdrav
+    // 2025; MSD). assumption: 0 draws "no separate P wave"; the model cannot draw P′ at the end of
+    // QRS, and it has no retrograde P′ at all.
+    pAmplitude: 0,
+  }),
+});
+
+/**
+ * The lowest heart rate, bpm, a preset allows, for presets whose rate is itself the sign. With
+ * `heartRate` in the preset, switching to it starts at that rate (see `switchedHeartRate`).
+ */
+export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({
+  // Reentrant SVT is 120–250 bpm (MSD Manuals, Reentrant (Paroxysmal) SVT, 2024).
+  'supraventricular-tachycardia': 120,
 });
 
 export function isPresetId(value: string): value is PresetId {
@@ -87,4 +110,39 @@ export function isPresetId(value: string): value is PresetId {
  */
 export function presetParams(id: PresetId): Readonly<HeartParams> {
   return resolveParams(presets[id]);
+}
+
+/**
+ * Heart rates, bpm, a heart rate control offers for a preset: `heartRateLimits` of its parameters,
+ * raised to the preset's floor. `params` are the preset's own by default; pass them when a caller
+ * changed some. Throws RangeError when the floor is above every rate the parameters fit.
+ */
+export function presetRateLimits(
+  id: PresetId,
+  params: Readonly<HeartParams> = presetParams(id),
+): readonly [min: number, max: number] {
+  const [min, max] = heartRateLimits(params);
+  const floor = presetRateFloors[id] ?? min;
+  if (floor > max) throw new RangeError(`Preset ${id} does not fit any heart rate from ${floor}`);
+  return [Math.max(min, floor), max];
+}
+
+/** Whether a preset sets its own heart rate. */
+export function setsHeartRate(id: PresetId): boolean {
+  return presets[id].heartRate !== undefined;
+}
+
+/**
+ * Heart rate after switching from one preset to another. Switching to a preset that sets its own
+ * rate starts at that rate, and leaving one goes back to the next preset's rate (75 by default);
+ * between other presets the reader's rate stays. `startRate` is the next preset's starting rate,
+ * when a caller changed it. The caller keeps the result inside `presetRateLimits`.
+ */
+export function switchedHeartRate(
+  from: PresetId,
+  to: PresetId,
+  rate: number,
+  startRate: number = presetParams(to).heartRate,
+): number {
+  return setsHeartRate(from) || setsHeartRate(to) ? startRate : rate;
 }

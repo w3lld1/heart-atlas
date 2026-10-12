@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { heartRateLimits, paramRanges, presetIds, presetParams } from '@heart-atlas/heart-clock';
+import { paramRanges, presetIds, presetRateLimits } from '@heart-atlas/heart-clock';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
@@ -77,8 +77,8 @@ const [minRate, maxRate] = paramRanges.heartRate;
       {t['heartClock.condition']}
       <select name="preset">
         {presetIds.map((id) => {
-          // Some presets allow a narrower heart rate range than the clock itself.
-          const [min, max] = heartRateLimits(presetParams(id));
+          // Some presets allow a narrower heart rate range than the clock itself, and SVT has a floor.
+          const [min, max] = presetRateLimits(id);
           return (
             <option value={id} data-min={min} data-max={max}>
               {t[`heartClock.preset.${id}`]}

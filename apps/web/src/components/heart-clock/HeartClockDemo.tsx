@@ -1,10 +1,11 @@
 import {
   createHeartClock,
   cycleState,
-  heartRateLimits,
   presetIds,
   presetParams,
+  presetRateLimits,
   publishCycleSource,
+  switchedHeartRate,
   withdrawCycleSource,
   type CycleSource,
   type HeartParams,
@@ -74,9 +75,10 @@ export interface HeartClockDemoProps {
 function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined) {
   const merged = { ...presetParams(id), ...params };
   try {
-    const limits = heartRateLimits(merged);
-    // heartRateLimits checks every rate itself, so a caller's rate outside them would only fail
-    // later, when the clock is created; keep it inside instead.
+    const limits = presetRateLimits(id, merged);
+    // presetRateLimits checks every rate itself, so a caller's rate outside them would only fail
+    // later, when the clock is created; keep it inside instead. A preset with a rate floor
+    // (SVT) also keeps a caller's slower rate at the floor.
     return { params: { ...merged, heartRate: clamp(merged.heartRate, limits) }, limits };
   } catch (error) {
     if (error instanceof RangeError) return undefined;
@@ -109,7 +111,8 @@ export default function HeartClockDemo({
       return merged ? [{ id, ...merged }] : [];
     });
   }, [presets, preset, params]);
-  // The reader's choice, with the heart rate they had when they made it.
+  // The reader's choice, with the heart rate it starts at: the reader's own, or the preset's when
+  // switching to or from a preset that sets its rate (switchedHeartRate).
   const [selection, setSelection] = useState<{ id: PresetId; rate: number } | undefined>();
   const choice = choices.find((item) => item.id === (selection?.id ?? preset)) ?? choices[0];
   if (!choice) throw new RangeError('No preset fits these heart clock parameters');
@@ -284,7 +287,10 @@ export default function HeartClockDemo({
   function changePreset(next: PresetId) {
     const nextChoice = choices.find((item) => item.id === next);
     if (!nextChoice) return;
-    const rate = clamp(heartRate, nextChoice.limits);
+    const rate = clamp(
+      switchedHeartRate(presetId, next, heartRate, nextChoice.params.heartRate),
+      nextChoice.limits,
+    );
     // Sounds queued for the old clock would play out of step.
     playerRef.current?.cancel();
     setSelection({ id: next, rate });
