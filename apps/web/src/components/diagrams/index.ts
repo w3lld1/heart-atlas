@@ -15,6 +15,7 @@ import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 import Pericarditis from './Pericarditis.astro';
+import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
@@ -35,6 +36,7 @@ export const diagrams = {
   'infective-endocarditis': InfectiveEndocarditis,
   'natriuretic-peptides': NatriureticPeptides,
   pericarditis: Pericarditis,
+  'pulmonary-embolism': PulmonaryEmbolism,
 } as const;
 
 export type DiagramName = keyof typeof diagrams;

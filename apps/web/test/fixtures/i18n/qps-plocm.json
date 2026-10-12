@@ -322,5 +322,8 @@
   "diagram.label.vegetation": "[RTL] Vegetation",
   "diagram.label.damaged-leaflet": "[RTL] Damaged leaflet",
   "diagram.label.embolus": "[RTL] Embolus",
-  "diagram.infective-endocarditis.title": "[RTL] Diagram of a heart valve: normal, and in infective endocarditis with a vegetation, a damaged leaflet, backflow and a fragment breaking off"
+  "diagram.infective-endocarditis.title": "[RTL] Diagram of a heart valve: normal, and in infective endocarditis with a vegetation, a damaged leaflet, backflow and a fragment breaking off",
+  "diagram.label.leg-vein": "[RTL] Deep leg vein",
+  "diagram.label.ivc": "[RTL] Inferior vena cava",
+  "diagram.pulmonary-embolism.title": "[RTL] Diagram of venous blood flowing from a leg vein through the right side of the heart into the pulmonary artery branches: normal, and in pulmonary embolism with a clot in a leg vein and an embolus blocking one branch"
 }
