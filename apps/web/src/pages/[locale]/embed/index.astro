@@ -77,7 +77,8 @@ const [minRate, maxRate] = paramRanges.heartRate;
       {t['heartClock.condition']}
       <select name="preset">
         {presetIds.map((id) => {
-          // Some presets allow a narrower heart rate range than the clock itself, and SVT has a floor.
+          // Some presets allow a narrower heart rate range than the clock itself, and SVT has a
+          // floor.
           const [min, max] = presetRateLimits(id);
           return (
             <option value={id} data-min={min} data-max={max}>

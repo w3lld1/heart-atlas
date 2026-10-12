@@ -5,6 +5,7 @@ import {
   presetParams,
   presetRateLimits,
   publishCycleSource,
+  setsHeartRate,
   switchedHeartRate,
   withdrawCycleSource,
   type CycleSource,
@@ -86,6 +87,13 @@ function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined) {
   }
 }
 
+/** The caller's parameters without their heart rate. */
+function withoutHeartRate(params: Partial<HeartParams> | undefined): Partial<HeartParams> {
+  const rest = { ...params };
+  delete rest.heartRate;
+  return rest;
+}
+
 function clamp(value: number, [min, max]: readonly [number, number]): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -106,8 +114,12 @@ export default function HeartClockDemo({
   // Presets that fit the caller's parameters, with their parameters and heart rate limits.
   const choices = useMemo(() => {
     const ids = presets ?? [preset ?? 'normal'];
+    const initial = preset ?? ids[0];
+    // A caller's rate (an embed's ?rate=) applies to the preset the monitor starts with; a preset
+    // that sets its own rate (SVT) still starts at it when the reader switches to it later.
+    const rateless = withoutHeartRate(params);
     return ids.flatMap((id) => {
-      const merged = mergedParams(id, params);
+      const merged = mergedParams(id, setsHeartRate(id) && id !== initial ? rateless : params);
       return merged ? [{ id, ...merged }] : [];
     });
   }, [presets, preset, params]);

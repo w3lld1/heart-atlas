@@ -148,6 +148,15 @@ test.describe('embed parameters', () => {
     await hydrated(page);
     await expect(svt).toBeChecked();
     await expect(slider(page)).toHaveValue(String(min));
+
+    // A URL rate belongs to the preset the embed starts with; switching to SVT sets its own rate.
+    await page.goto('en/embed/ecg/?rate=90');
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue('90');
+    await svt.check();
+    await expect(slider(page)).toHaveValue(
+      String(presetParams('supraventricular-tachycardia').heartRate),
+    );
   });
 
   test('the reader can change the rate set by the URL', async ({ page }) => {

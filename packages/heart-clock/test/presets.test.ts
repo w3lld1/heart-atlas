@@ -33,9 +33,9 @@ describe('presets', () => {
     for (const id of presetIds) {
       const [min, max] = presetRateLimits(id);
       expect([min, max], id).toEqual(narrowedLimits[id] ?? paramRanges.heartRate);
-      const { heartRate } = presetParams(id);
-      expect(heartRate, `${id} starting rate`).toBeGreaterThanOrEqual(min);
-      expect(heartRate, `${id} starting rate`).toBeLessThanOrEqual(max);
+      const start = presetParams(id).heartRate;
+      expect(start, `${id} starting rate`).toBeGreaterThanOrEqual(min);
+      expect(start, `${id} starting rate`).toBeLessThanOrEqual(max);
       for (let heartRate = min; heartRate <= max; heartRate += 1) {
         expect(
           () => checkParams({ ...presetParams(id), heartRate }),
