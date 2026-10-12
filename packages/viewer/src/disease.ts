@@ -107,6 +107,8 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'atrial-septal-defect': 'atrial-septal-defect',
   'av-block-first-degree': null,
   'supraventricular-tachycardia': null,
+  'long-qt-syndrome': null,
+  'ventricular-tachycardia': null,
 };
 
 /** What the model shows of a disease: its id, and whether its still and heartbeat captions apply. */
