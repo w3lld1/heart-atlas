@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: How does high cholesterol on its own usually show itself?
+    options:
+      - text: It always causes noticeable complaints right away
+      - text: Usually it causes no symptoms; many people have no complaints at all
+        correct: true
+    explanation: High cholesterol on its own usually causes no symptoms; many people with high lipid levels have no complaints at all.
+    cite: [1, 4]
+  - level: patient
+    prompt: How is dyslipidaemia detected?
+    options:
+      - text: With a blood test called a lipid profile
+        correct: true
+      - text: By measuring blood pressure
+      - text: With a chest X-ray
+    explanation: Dyslipidaemia is detected with a blood test called a lipid profile, which measures total cholesterol, LDL and HDL cholesterol, and triglycerides.
+    cite: [1, 3, 4]
+  - level: patient
+    prompt: Who is advised to have a lipid profile to assess their risk of heart and blood vessel disease?
+    options:
+      - text: Only people who already have heart complaints
+      - text: Only people who are overweight
+      - text: Everyone over 40
+        correct: true
+    explanation: Everyone over 40 is advised to have this test to assess their risk of heart and blood vessel disease.
+    cite: [1]
+  - level: patient
+    prompt: Which disease of the arteries does dyslipidaemia contribute to?
+    options:
+      - text: Myocarditis, an inflammation of the heart muscle
+      - text: Atherosclerosis, which leads to heart attacks and strokes
+        correct: true
+      - text: Varicose veins
+    explanation: Dyslipidaemia contributes to atherosclerosis, a disease of the arteries that leads to heart attacks and strokes.
+    cite: [1, 4]
+  - level: student
+    prompt: What is the mode of inheritance of familial hypercholesterolaemia (FH)?
+    options:
+      - text: X-linked recessive
+      - text: Mitochondrial
+      - text: Autosomal dominant
+        correct: true
+    explanation: FH is an autosomal dominant disease caused by mutations in the LDLR, APOB and PCSK9 genes, with persistently raised LDL-C and early atherosclerosis.
+    cite: [1]
+  - level: student
+    prompt: How is lowering LDL-C related to the risk of atherosclerotic CVD?
+    options:
+      - text: It reduces the risk in proportion to the absolute reduction in LDL-C
+        correct: true
+      - text: It does not affect the risk
+      - text: It increases the risk
+    explanation: LDL-C is causally associated with the risk of atherosclerotic CVD, and lowering LDL-C reduces this risk in proportion to the absolute reduction in LDL-C.
+    cite: [2]
