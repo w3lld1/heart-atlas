@@ -1,0 +1,192 @@
+---
+import { getMessages } from '../i18n/messages.ts';
+import { localePath } from '../i18n/paths.ts';
+import { navCurrent, navLabel, type NavItem } from '../lib/site-nav.ts';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import MotionSwitch from './MotionSwitch.astro';
+import SearchForm from './SearchForm.astro';
+
+interface Props {
+  locale: string;
+  nav: readonly NavItem[];
+  /** The page path after the locale segment, for the current menu item. */
+  pagePath: string;
+  pageLocales: readonly string[];
+  hideSearch: boolean;
+}
+
+const { locale, nav, pagePath, pageLocales, hideSearch } = Astro.props;
+const t = getMessages(locale);
+const base = import.meta.env.BASE_URL;
+---
+
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href={localePath(base, locale)}>
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <path
+          d="M20 35C8 26 4 19 4 13.5 4 8.8 7.6 5 12.3 5c3.3 0 5.9 1.9 7.7 4.6C21.8 6.9 24.4 5 27.7 5 32.4 5 36 8.8 36 13.5 36 19 32 26 20 35Z"
+          stroke-width="2.4"
+        ></path>
+        <path d="M8 19h7l2-4 3 9 3-11 2 6h7" stroke-width="2"></path>
+      </svg>
+      <span class="brand-text">
+        <span class="site-name">{t['site.name']}</span>
+        <span class="tagline">{t['site.tagline']}</span>
+      </span>
+    </a>
+    <div class="tools">
+      {!hideSearch && <SearchForm locale={locale} />}
+      <MotionSwitch locale={locale} />
+      <LanguageSwitcher locale={locale} pageLocales={pageLocales} />
+    </div>
+  </div>
+  <nav class="sections-nav" aria-label={t['nav.sections']} data-pagefind-ignore>
+    <ul>
+      {nav.map((item) => (
+        <li>
+          <a href={localePath(base, locale, item.path)} aria-current={navCurrent(item, pagePath)}>
+            {navLabel(t, item)}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    border-block-end: 1px solid var(--glass-line);
+    background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    box-shadow: 0 1px 0 var(--color-border);
+  }
+
+  .bar,
+  .sections-nav ul {
+    max-inline-size: var(--site-width);
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 0.875rem 0.5rem;
+  }
+
+  .brand {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .mark {
+    flex: none;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .site-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    line-height: 1.1;
+  }
+
+  .tagline {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+  }
+
+  .tools {
+    display: flex;
+    margin-inline-start: auto;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+  }
+
+  /* Header links are "knowledge" blue, as in the token table of the redesign spec. */
+  .tools :global(a) {
+    color: var(--color-blue);
+  }
+
+  /* The wide home page has a wider gutter; header and footer line up with it. */
+  @media (width >= 48rem) {
+    :global(body.wide) .bar,
+    :global(body.wide) .sections-nav ul {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* The menu scrolls sideways inside itself on narrow screens, never the page. */
+  .sections-nav {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .sections-nav ul {
+    display: flex;
+    gap: 0.25rem;
+    margin-block: 0;
+    padding-block: 0;
+    list-style: none;
+  }
+
+  .sections-nav a {
+    position: relative;
+    display: block;
+    padding-block: 0.5rem 0.625rem;
+    padding-inline: 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--color-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .sections-nav a:hover,
+  .sections-nav a[aria-current] {
+    color: var(--color-text);
+  }
+
+  .sections-nav a[aria-current]::after {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0.75rem;
+    block-size: 2px;
+    border-radius: 2px;
+    background: var(--color-accent);
+    content: '';
+  }
+
+  .sections-nav a:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  @media (width < 36rem) {
+    .tagline {
+      display: none;
+    }
+
+    /* Keeps the motion buttons on one row; the group keeps its name for screen readers. */
+    .tools :global(.motion-switch .label) {
+      display: none;
+    }
+  }
+</style>

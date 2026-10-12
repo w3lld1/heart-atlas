@@ -13,6 +13,7 @@
       attribution: 'BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International'
       also_published_as: CC-BY-SA-2.1-JP
       attribution_alt: 'BodyParts3D, Copyright© 2008 ライフサイエンス統合データベースセンター licensed by CC表示－継承2.1 日本'
+      attribution_alt_lang: ja
       retrieved: 2026-10-11
       sha256: 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97
   changes: >-
@@ -35,6 +36,7 @@
       attribution: 'BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International'
       also_published_as: CC-BY-SA-2.1-JP
       attribution_alt: 'BodyParts3D, Copyright© 2008 ライフサイエンス統合データベースセンター licensed by CC表示－継承2.1 日本'
+      attribution_alt_lang: ja
       retrieved: 2026-10-11
       sha256: 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97
   changes: Front view of heart/heart.glb rendered with three.js, shown until the 3D viewer loads.
@@ -50,6 +52,7 @@
       attribution: 'BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International'
       also_published_as: CC-BY-SA-2.1-JP
       attribution_alt: 'BodyParts3D, Copyright© 2008 ライフサイエンス統合データベースセンター licensed by CC表示－継承2.1 日本'
+      attribution_alt_lang: ja
       retrieved: 2026-10-11
       sha256: 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97
   changes: Front view of heart/heart.glb with a transparent background, rendered by packages/models/scripts/render-poster.ts for the home page.

@@ -1,0 +1,110 @@
+import { readFileSync } from 'node:fs';
+import { expect, test, type Page } from '@playwright/test';
+import { localeCodes, productionLocales } from '../src/i18n/locales.ts';
+import { axe } from './axe.ts';
+
+// messages.ts relies on Vite's import.meta.glob, so tests read the strings files directly.
+const messages = (locale: string): Record<string, string> => {
+  const file =
+    locale in productionLocales
+      ? `../src/i18n/messages/${locale}.json`
+      : `../test/fixtures/i18n/${locale}.json`;
+  return JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8')) as Record<string, string>;
+};
+const text = (locale: string, key: string): string => messages(locale)[key] ?? key;
+
+const menu = (page: Page, locale: string) =>
+  page.getByRole('banner').getByRole('navigation', { name: text(locale, 'nav.sections') });
+
+/**
+ * The first article listed under a section of the menu, and its type. Which
+ * sections have articles depends on the content (CI also runs on fictional test articles).
+ */
+async function firstArticle(page: Page, locale: string): Promise<{ href: string; type: string }> {
+  await page.goto(`${locale}/`);
+  const sections = await menu(page, locale)
+    .getByRole('link')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+  for (const section of sections) {
+    const type = /\/([a-z-]+)\/$/.exec(section)?.[1];
+    if (!type || type === 'heart-clock' || type === locale) continue;
+    await page.goto(section);
+    const href = await page
+      .locator('main a')
+      .evaluateAll(
+        (links, prefix) =>
+          links
+            .map((link) => link.getAttribute('href') ?? '')
+            .find((href) => href.startsWith(prefix) && /^[^/]+\/$/.test(href.slice(prefix.length))),
+        section,
+      );
+    if (href) return { href, type };
+  }
+  throw new Error('No section lists an article');
+}
+
+// localeCodes includes the right-to-left test locale in a build with HA_TEST_LOCALES=1.
+for (const locale of localeCodes) {
+  test.describe(`header and footer (${locale})`, () => {
+    test('menu marks the current page and its section', async ({ page }) => {
+      await page.goto(`${locale}/`);
+      await expect(
+        menu(page, locale).getByRole('link', { name: text(locale, 'nav.home'), exact: true }),
+      ).toHaveAttribute('aria-current', 'page');
+
+      await page.goto(`${locale}/heart-clock/`);
+      const clock = menu(page, locale).getByRole('link', {
+        name: text(locale, 'nav.clock'),
+        exact: true,
+      });
+      await expect(clock).toHaveAttribute('aria-current', 'page');
+      await expect(menu(page, locale).locator('[aria-current]')).toHaveCount(1);
+
+      const article = await firstArticle(page, locale);
+      await page.goto(article.href);
+      const section = menu(page, locale).getByRole('link', {
+        name: text(locale, `articles.type.${article.type}`),
+        exact: true,
+      });
+      await expect(section).toHaveAttribute('aria-current', 'true');
+    });
+
+    test('menu and footer links open pages that exist', async ({ page, request, baseURL }) => {
+      await page.goto(`${locale}/`);
+      const base = new URL(baseURL ?? '').pathname;
+      const hrefs = await page
+        .locator('header nav a, footer a')
+        .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+      const internal = [...new Set(hrefs.filter((href) => href.startsWith('/')))];
+      expect(internal.length).toBeGreaterThan(4);
+      for (const href of internal) {
+        expect(href.startsWith(base), href).toBe(true);
+        expect((await request.get(href)).status(), href).toBe(200);
+      }
+    });
+
+    test('nothing scrolls the page sideways at 320 px', async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 640 });
+      for (const path of [`${locale}/`, `${locale}/heart-clock/`, `${locale}/search/`]) {
+        await page.goto(path);
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+        expect(overflow, path).toBeLessThanOrEqual(0);
+      }
+      // The menu keeps every item: the ones that do not fit scroll inside the menu.
+      const last = menu(page, locale).getByRole('listitem').last().getByRole('link');
+      await last.focus();
+      await expect(last).toBeInViewport();
+    });
+
+    for (const colorScheme of ['light', 'dark'] as const) {
+      test(`article page has no axe violations (${colorScheme})`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme });
+        await page.goto((await firstArticle(page, locale)).href);
+        const results = await axe(page).analyze();
+        expect(results.violations).toEqual([]);
+      });
+    }
+  });
+}

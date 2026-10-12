@@ -2,7 +2,12 @@
 import { HeartViewer, type DiseaseId } from '@heart-atlas/viewer';
 import { defaultLocale } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
-import { heartModelUrls, heartStructures, viewerMessages } from '../../lib/heart-model.ts';
+import {
+  heartAttribution,
+  heartModelUrls,
+  heartStructures,
+  viewerMessages,
+} from '../../lib/heart-model.ts';
 
 interface Props {
   /** The page's locale; MDX articles leave it out and the article page provides it. */
@@ -34,6 +39,7 @@ const { models, poster } = heartModelUrls(import.meta.env.BASE_URL);
   poster={poster}
   structures={structures}
   messages={viewerMessages(t)}
+  attribution={heartAttribution()}
   loadOn="click"
   headingLevel={headingLevel}
   {...(highlight ? { highlight } : {})}

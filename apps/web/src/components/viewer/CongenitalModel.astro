@@ -6,6 +6,7 @@ import {
   congenitalModelEntry,
   congenitalModelUrls,
   congenitalStructures,
+  heartAttribution,
   isCongenitalModelId,
   viewerMessages,
 } from '../../lib/heart-model.ts';
@@ -27,7 +28,7 @@ const t = getMessages(locale);
 const { models, poster } = congenitalModelUrls(import.meta.env.BASE_URL, model);
 // The heart model's poster text and "see-through chambers" do not fit a cut patient model.
 const messages = {
-  ...viewerMessages(t, `congenital/${model}.glb`),
+  ...viewerMessages(t),
   'viewer.posterAlt': t[`congenital.${model}.posterAlt`],
   'viewer.ghost': t['congenital.ghost'],
 };
@@ -40,6 +41,7 @@ const messages = {
     poster={poster}
     structures={congenitalStructures(t)}
     messages={messages}
+    attribution={heartAttribution(`congenital/${model}.glb`)}
     loadOn="click"
     headingLevel={headingLevel}
     section="frontal"

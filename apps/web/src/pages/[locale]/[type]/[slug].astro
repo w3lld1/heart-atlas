@@ -41,6 +41,7 @@ const translated = contentLocale === locale;
 // MDX components read these from locals.
 Astro.locals.locale = locale;
 Astro.locals.sourceCount = article.sources.length;
+Astro.locals.article = { locale: contentLocale, type, slug };
 const canonical = new URL(
   localePath(import.meta.env.BASE_URL, contentLocale, `${type}/${slug}/`),
   Astro.site,

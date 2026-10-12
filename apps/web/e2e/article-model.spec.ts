@@ -14,6 +14,35 @@ test.use({
 const LOAD = { timeout: 30_000 };
 
 // docs/plans/2026-10-12-article-interactivity.md: the 3D model with highlights inside articles.
+test.describe('3D model in a disease article without signs on the model', () => {
+  test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
+
+  const places: Record<string, string[]> = {
+    'ventricular-septal-defect': ['interventricular-septum'],
+    'mitral-regurgitation': ['mitral-valve'],
+    'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
+    'infective-endocarditis': [
+      'mitral-valve',
+      'aortic-valve',
+      'tricuspid-valve',
+      'pulmonary-valve',
+    ],
+  };
+  for (const [slug, ids] of Object.entries(places)) {
+    test(`${slug} highlights the place the article names`, async ({ page }) => {
+      await page.goto(`en/disease/${slug}/`);
+      const load = page.getByRole('button', { name: en['viewer.load'] });
+      await load.scrollIntoViewIfNeeded();
+      await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
+      const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
+      for (const id of ids) {
+        await expect(selected).toContainText(en[`structure.${id}` as keyof typeof en]);
+      }
+      expect((await axe(page).analyze()).violations).toEqual([]);
+    });
+  }
+});
+
 test.describe('3D model in an anatomy article', () => {
   // Real articles; the HA_TEST_CONTENT build has fixture articles instead.
   test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');

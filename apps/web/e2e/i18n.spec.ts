@@ -25,7 +25,7 @@ test('language switcher opens the same page in every locale', async ({ page, bas
   for (const from of codes) {
     for (const to of codes.filter((code) => code !== from)) {
       await page.goto(`${from}/`);
-      const nav = page.getByRole('navigation', { name: /./ });
+      const nav = page.getByRole('navigation', { name: messages(from)['nav.language'] ?? '' });
       await expect(nav.locator('[aria-current="page"]')).toHaveAttribute('lang', from);
       await nav.locator(`a[lang="${to}"]`).click();
       await expect(page).toHaveURL(`${baseURL}${to}/`);

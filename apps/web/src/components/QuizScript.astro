@@ -1,0 +1,12 @@
+---
+// Interactive checking for <Quiz />. A separate component so embed pages, which render the
+// quiz without it, do not load the script at all.
+---
+
+<script>
+  import { initQuiz } from '../lib/quiz-client.ts';
+
+  for (const quiz of document.querySelectorAll<HTMLElement>('.quiz[data-messages]')) {
+    initQuiz(quiz);
+  }
+</script>

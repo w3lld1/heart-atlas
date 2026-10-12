@@ -1,0 +1,217 @@
+---
+import { getEntry } from 'astro:content';
+import { defaultLocale } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+import { quizCitationErrors } from '../lib/quiz.ts';
+import Cite from './Cite.astro';
+import QuizScript from './QuizScript.astro';
+
+// The questions of the current article, from <slug>.quiz.yaml next to it. Articles use it as
+// <Quiz /> with no props. Spec: docs/plans/2026-10-12-stage-6-quizzes-tracks.md.
+const { article, embed = false, sourceCount = 0 } = Astro.locals;
+if (article === undefined) throw new Error('<Quiz /> works only on article pages');
+const id = `${article.locale}/${article.type}/${article.slug}`;
+const entry = await getEntry('quizzes', id);
+if (entry === undefined) {
+  throw new Error(`<Quiz />: ${id} has no quiz file (content/${id}.quiz.yaml)`);
+}
+const errors = quizCitationErrors(entry.data, sourceCount);
+if (errors.length > 0) throw new Error(`content/${id}.quiz.yaml: ${errors.join('; ')}`);
+
+const locale = Astro.locals.locale ?? defaultLocale;
+const t = getMessages(locale);
+const titleId = `quiz-${article.slug}`;
+// Strings for the script. Embeds get none and stay static: storage in a third-party frame is
+// often partitioned or blocked.
+const messages = embed
+  ? undefined
+  : JSON.stringify({
+      correct: t['quiz.correct'],
+      incorrect: t['quiz.incorrect'],
+      answer: t['quiz.answer'],
+      choose: t['quiz.choose'],
+      markCorrect: t['quiz.mark.correct'],
+      markChosen: t['quiz.mark.chosen'],
+      score: t['quiz.score'],
+    });
+---
+
+<section
+  class="quiz"
+  aria-labelledby={titleId}
+  data-quiz={id}
+  data-messages={messages}
+  data-pagefind-ignore
+>
+  <h2 id={titleId} lang={locale}>
+    {t['quiz.title']}
+  </h2>
+  <ol class="quiz-questions">
+    {entry.data.questions.map((question, q) => {
+      const answer = question.options.find((option) => option.correct)?.text ?? '';
+      return (
+        <li class="quiz-question" data-level={question.level}>
+          <fieldset>
+            <legend>{question.prompt}</legend>
+            {question.options.map((option, o) => (
+              <label class="quiz-option">
+                <input
+                  type="radio"
+                  name={`${titleId}-${q}`}
+                  value={o}
+                  data-correct={option.correct ? '' : undefined}
+                />
+                <span>{option.text}</span>
+                <span class="quiz-mark" lang={locale} />
+              </label>
+            ))}
+          </fieldset>
+          <div class="quiz-actions" lang={locale} hidden>
+            <button type="button" data-quiz-check>
+              {t['quiz.check']}
+            </button>
+            <button type="button" data-quiz-retry aria-describedby={`${titleId}-${q}-why`} hidden>
+              {t['quiz.retry']}
+            </button>
+          </div>
+          <p class="quiz-feedback" lang={locale} aria-live="polite" />
+          <details class="quiz-answer">
+            <summary lang={locale}>{t['quiz.showAnswer']}</summary>
+            <p>
+              <strong lang={locale}>{t['quiz.answer']}</strong> {answer}
+            </p>
+            <p id={`${titleId}-${q}-why`}>
+              {question.explanation}
+              <Cite n={question.cite} />
+            </p>
+          </details>
+        </li>
+      );
+    })}
+  </ol>
+  <p class="quiz-score" lang={locale} aria-live="polite"></p>
+  {!embed && <QuizScript />}
+</section>
+
+<style>
+  .quiz {
+    margin-block: 2rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-2);
+  }
+
+  .quiz-questions {
+    padding-inline-start: 1.25rem;
+  }
+
+  .quiz-question + .quiz-question {
+    margin-block-start: 1.5rem;
+  }
+
+  /* The level switch shows one level at a time once JavaScript runs, as in Level.astro. */
+  :global(html[data-level='patient']) .quiz-question[data-level='student'],
+  :global(html[data-level='student']) .quiz-question[data-level='patient'] {
+    display: none;
+  }
+
+  fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-block-end: 0.5rem;
+    font-weight: 600;
+  }
+
+  .quiz-option {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding-block: 0.25rem;
+    padding-inline: 0.5rem;
+    border-inline-start: 4px solid transparent;
+    cursor: pointer;
+  }
+
+  .quiz-option input {
+    flex: none;
+  }
+
+  .quiz-option[data-state='correct'] {
+    border-inline-start-color: var(--color-blue);
+  }
+
+  .quiz-option[data-state='chosen'] {
+    border-inline-start-color: var(--color-accent);
+  }
+
+  .quiz-mark {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .quiz-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: 0.5rem;
+  }
+
+  .quiz-actions[hidden],
+  .quiz-actions button[hidden] {
+    display: none;
+  }
+
+  button {
+    padding-block: 0.375rem;
+    padding-inline: 0.875rem;
+    border: 1px solid var(--color-accent);
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button[data-quiz-retry] {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .quiz-feedback {
+    margin-block: 0.5rem 0;
+    font-weight: 600;
+  }
+
+  summary {
+    margin-block-start: 0.5rem;
+    color: var(--color-accent);
+    cursor: pointer;
+  }
+
+  button:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Once the script runs, the answer opens only after "Check". */
+  .quiz[data-ready] summary {
+    display: none;
+  }
+
+  .quiz-score {
+    margin-block: 1rem 0;
+    font-weight: 600;
+  }
+
+  /* Empty live regions stay rendered: screen readers skip a region that appears with its text. */
+  .quiz-feedback:empty,
+  .quiz-score:empty {
+    margin: 0;
+  }
+</style>

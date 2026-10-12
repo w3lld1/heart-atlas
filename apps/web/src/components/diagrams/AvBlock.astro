@@ -1,0 +1,339 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-avb-arrow`;
+
+/*
+ * A ladder diagram: time runs to the right, and each vertical path is one impulse from the sinus
+ * node going down through the atria, the AV node and below, to the ventricles. The disease state
+ * shows second-degree block (the caption says so): the third impulse stops in the AV band and the
+ * ventricles skip that beat. The other impulses are the same in both states.
+ */
+const bands = {
+  atria: { y: 44, h: 52 },
+  av: { y: 118, h: 42 },
+  ventricles: { y: 196, h: 56 },
+};
+const sa = { x: 24, y: 30 };
+// Impulse columns; the third one is blocked in the disease state.
+const beats = [260, 330, 400, 470];
+const blocked = 2;
+const blockedX = beats[blocked] ?? 0;
+const lastX = beats[beats.length - 1] ?? 0;
+// The impulse slants in the AV band: the short delay before it reaches the ventricles.
+const shift = 10;
+const conducted = (x: number) =>
+  `M${x},${sa.y} L${x},${bands.av.y} L${x + shift},${bands.av.y + bands.av.h} L${x + shift},${bands.ventricles.y + 14}`;
+const blockY = bands.av.y + 22;
+const stopped = (x: number) => `M${x},${sa.y} L${x},${bands.av.y} L${x + shift / 2},${blockY}`;
+const vY = bands.ventricles.y + bands.ventricles.h / 2 + 4;
+const cycle = 3.2;
+const delay = (i: number) => (i * cycle) / beats.length;
+---
+
+<svg viewBox="0 0 540 300" role="img" aria-label={t['diagram.av-block.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Bands: atria, the AV node and the conduction below it, ventricles -->
+  <rect
+    x="8"
+    y={bands.atria.y}
+    width="524"
+    height={bands.atria.h}
+    rx="8"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.55"
+  ></rect>
+  <rect
+    x="8"
+    y={bands.av.y}
+    width="524"
+    height={bands.av.h}
+    rx="8"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="6 4"
+  ></rect>
+  <rect
+    x="8"
+    y={bands.ventricles.y}
+    width="524"
+    height={bands.ventricles.h}
+    rx="8"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.55"
+  ></rect>
+
+  <!-- Sinus node and the line its impulses leave along -->
+  <line
+    x1={sa.x}
+    y1={sa.y}
+    x2={lastX}
+    y2={sa.y}
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="3 4"
+  ></line>
+  <circle class="avb-node" cx={sa.x} cy={sa.y} r="8"></circle>
+
+  <!-- Static impulse paths: they carry the meaning without motion -->
+  {beats.map((x, i) =>
+    i === blocked ? (
+      <g>
+        <path class="avb-mark normal-only" d={conducted(x)} marker-end={`url(#${arrowId})`} />
+        <path class="avb-mark disease-only" d={stopped(x)} />
+        <line
+          class="avb-block disease-only"
+          x1={x + shift / 2 - 13}
+          y1={blockY}
+          x2={x + shift / 2 + 13}
+          y2={blockY}
+        />
+      </g>
+    ) : (
+      <path class="avb-mark" d={conducted(x)} marker-end={`url(#${arrowId})`} />
+    ),
+  )}
+
+  <!-- Atria are activated by every impulse -->
+  {beats.map((x) => (
+    <circle class="avb-node" cx={x} cy={bands.atria.y + bands.atria.h / 2} r="7" />
+  ))}
+
+  <!-- Ventricles: activated after each conducted impulse; an empty ring where a beat is dropped -->
+  {beats.map((x, i) =>
+    i === blocked ? (
+      <g>
+        <circle class="avb-v normal-only" cx={x + shift} cy={vY} r="10" />
+        <circle class="avb-v-missing disease-only" cx={x + shift} cy={vY} r="10" />
+      </g>
+    ) : (
+      <circle class="avb-v" cx={x + shift} cy={vY} r="10" />
+    ),
+  )}
+
+  <!-- Moving impulses -->
+  <g class="flow">
+    {beats.map((x, i) =>
+      i === blocked ? (
+        <g>
+          <circle
+            class="avb-dot avb-dot-go normal-only"
+            cx={x}
+            cy={sa.y}
+            r="5"
+            style={`animation-delay: ${delay(i)}s`}
+          />
+          <circle
+            class="avb-dot avb-dot-stop disease-only"
+            cx={x}
+            cy={sa.y}
+            r="5"
+            style={`animation-delay: ${delay(i)}s`}
+          />
+          <circle
+            class="avb-flash normal-only"
+            cx={x + shift}
+            cy={vY}
+            r="10"
+            style={`animation-delay: ${delay(i)}s`}
+          />
+        </g>
+      ) : (
+        <g>
+          <circle
+            class="avb-dot avb-dot-go"
+            cx={x}
+            cy={sa.y}
+            r="5"
+            style={`animation-delay: ${delay(i)}s`}
+          />
+          <circle
+            class="avb-flash"
+            cx={x + shift}
+            cy={vY}
+            r="10"
+            style={`animation-delay: ${delay(i)}s`}
+          />
+        </g>
+      ),
+    )}
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="40" y="22">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="20" y={bands.atria.y + bands.atria.h / 2 + 6}>
+    {t['diagram.label.atria']}
+  </text>
+  <text class="diagram-small" x="20" y={bands.av.y + bands.av.h / 2 + 4}>
+    {t['diagram.label.av-node-and-below']}
+  </text>
+  <text x="20" y={bands.ventricles.y + bands.ventricles.h / 2 + 6}>
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small disease-only" x={blockedX + shift} y="272" text-anchor="middle">
+    {t['diagram.label.impulse-blocked']}
+  </text>
+  <text class="diagram-small" x="532" y="294" text-anchor="end">
+    {t['diagram.label.time']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .avb-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .avb-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .diagram .avb-block {
+    stroke: var(--color-text);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .diagram .avb-v {
+    fill: var(--diagram-arterial);
+  }
+
+  .diagram .avb-v-missing {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+
+  .diagram .avb-dot {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    opacity: 0;
+  }
+
+  .diagram .avb-dot-go {
+    animation: avb-go 3.2s linear infinite;
+  }
+
+  .diagram .avb-dot-stop {
+    animation: avb-stop 3.2s linear infinite;
+  }
+
+  .diagram .avb-flash {
+    fill: var(--diagram-arterial);
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: avb-flash 3.2s ease-out infinite;
+  }
+
+  /* One impulse: down through the atria, a slower slant through the AV band, then the ventricles.
+     The offsets follow the path in the frontmatter (sinus line y = 30, AV band 118–160). */
+  @keyframes avb-go {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    8% {
+      opacity: 1;
+      transform: translate(0, 88px);
+    }
+
+    16% {
+      opacity: 1;
+      transform: translate(10px, 130px);
+    }
+
+    20% {
+      opacity: 1;
+      transform: translate(10px, 180px);
+    }
+
+    21%,
+    100% {
+      opacity: 0;
+      transform: translate(10px, 180px);
+    }
+  }
+
+  /* A blocked impulse stops in the AV band and fades without reaching the ventricles. */
+  @keyframes avb-stop {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    8% {
+      opacity: 1;
+      transform: translate(0, 88px);
+    }
+
+    11% {
+      opacity: 1;
+      transform: translate(5px, 110px);
+    }
+
+    18%,
+    100% {
+      opacity: 0;
+      transform: translate(5px, 110px);
+    }
+  }
+
+  /* The ventricles light up when a conducted impulse arrives. */
+  @keyframes avb-flash {
+    0%,
+    19% {
+      opacity: 0;
+      transform: scale(1);
+    }
+
+    21% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+
+    40%,
+    100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+</style>
