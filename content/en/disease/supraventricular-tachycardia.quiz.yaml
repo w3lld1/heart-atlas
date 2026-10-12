@@ -1,0 +1,49 @@
+questions:
+  - level: patient
+    prompt: What is the main sign of supraventricular tachycardia?
+    options:
+      - text: Slow heartbeats that come on and wear off gradually
+      - text: Fast, regular palpitations that start suddenly and stop suddenly
+        correct: true
+    explanation: The main sign is an episode of fast, regular palpitations that starts suddenly and stops just as suddenly.
+    cite: [1, 3]
+  - level: patient
+    prompt: What is true about AV nodal re-entrant tachycardia (AVNRT)?
+    options:
+      - text: It is more common in women and is usually not linked to heart disease
+        correct: true
+      - text: It is more common in men and is almost always linked to heart disease
+    explanation: AVNRT is more common in women and is usually not linked to heart disease.
+    cite: [1]
+  - level: patient
+    prompt: What happens to many episodes before treatment?
+    options:
+      - text: An episode never stops without treatment
+      - text: Many episodes stop on their own
+        correct: true
+    explanation: Many episodes stop on their own before treatment.
+    cite: [3]
+  - level: patient
+    prompt: How is catheter ablation done?
+    options:
+      - text: A catheter is passed through a vessel to treat the area where the circuit closes
+        correct: true
+      - text: The chest is opened and part of the heart is removed
+    explanation: In catheter ablation a catheter is passed through a blood vessel to the heart and used to treat the precise area where the circuit closes; it usually cures the tachycardia.
+    cite: [1, 3]
+  - level: student
+    prompt: What does WPW syndrome comprise?
+    options:
+      - text: A long PR interval, a narrow QRS and no recurrent SVT
+      - text: PR under 120 ms, QRS over 120 ms, a delta wave and recurrent SVT
+        correct: true
+    explanation: WPW syndrome comprises a PR interval shorter than 120 ms, QRS wider than 120 ms, a delta wave at the start of the R wave and recurrent SVT.
+    cite: [1]
+  - level: student
+    prompt: What do narrow QRS complexes (≤120 ms) in a tachycardia indicate?
+    options:
+      - text: The arrhythmia originates above or within the bundle of His
+        correct: true
+      - text: The arrhythmia originates below the bundle of His, in the ventricles
+    explanation: Narrow QRS complexes (≤120 ms) result from rapid ventricular activation via the His–Purkinje system and indicate that the arrhythmia originates above or within the bundle of His.
+    cite: [1]

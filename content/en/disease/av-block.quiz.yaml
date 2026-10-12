@@ -1,0 +1,50 @@
+questions:
+  - level: patient
+    prompt: What is atrioventricular (AV) block?
+    options:
+      - text: Partial or complete interruption of conduction from the atria to the ventricles
+        correct: true
+      - text: Faster impulse conduction from the atria to the ventricles
+    explanation: AV block is a partial or complete interruption of the conduction of the electrical impulse from the atria to the ventricles.
+    cite: [1, 2]
+  - level: patient
+    prompt: Which degree of AV block is complete?
+    options:
+      - text: First degree
+      - text: Second degree
+      - text: Third degree
+        correct: true
+    explanation: There are three degrees — first- and second-degree block are partial, third-degree block is complete.
+    cite: [2]
+  - level: patient
+    prompt: Does first-degree block usually need treatment?
+    options:
+      - text: Yes, a permanent pacemaker is always needed
+      - text: No, it usually needs no treatment
+        correct: true
+    explanation: First-degree block usually needs no treatment.
+    cite: [2]
+  - level: patient
+    prompt: How is a permanent pacemaker fitted?
+    options:
+      - text: Only during open-heart surgery
+      - text: Placed under the skin, usually below the collarbone, without open-heart surgery
+        correct: true
+    explanation: A pacemaker is a small device placed under the skin, usually below the collarbone. Fitting it does not require open-heart surgery.
+    cite: [1]
+  - level: student
+    prompt: How does the PR interval change in second-degree Mobitz type I block (Wenckebach phenomenon)?
+    options:
+      - text: It lengthens from beat to beat until a QRS complex is dropped
+        correct: true
+      - text: It shortens from beat to beat until a QRS complex is dropped
+    explanation: In Mobitz type I the PR interval lengthens from beat to beat until the atrial impulse is not conducted and the QRS complex is dropped; the next conducted beat has the shortest PR interval, and the sequence repeats.
+    cite: [1, 2]
+  - level: student
+    prompt: In third-degree block, which escape rhythm produces wide QRS complexes and a slower, unreliable heart rate?
+    options:
+      - text: One originating above the bifurcation of the His bundle
+      - text: One originating below the bifurcation of the His bundle
+        correct: true
+    explanation: An escape rhythm originating below the bifurcation produces wider QRS complexes and a slower, unreliable heart rate, with more severe symptoms. One originating above the bifurcation produces narrow QRS complexes and a relatively rapid and reliable heart rate.
+    cite: [2]
