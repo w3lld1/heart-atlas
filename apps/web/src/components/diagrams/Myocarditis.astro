@@ -12,7 +12,10 @@ const t = getMessages(locale);
 
 // A cross-section of the left ventricle: a ring of muscle around the cavity. The cavity has the
 // same size in both states (a dilated cavity would be dilated cardiomyopathy, not myocarditis).
-const centre = { x: 150, y: 160 };
+const centre = { x: 120, y: 160 };
+// Labels start here, right of the ring and its bulges.
+const labelX = 240;
+const leaderX = labelX - 5;
 const cavityR = 62;
 const outerR = 100;
 const midR = (cavityR + outerR) / 2;
@@ -51,7 +54,7 @@ const focusLabelA = at(-48, outerR + 8);
 const focusLabelB = at(35, outerR + 8);
 ---
 
-<svg viewBox="0 30 470 275" role="img" aria-label={t['diagram.myocarditis.title']} lang={locale}>
+<svg viewBox="0 30 490 275" role="img" aria-label={t['diagram.myocarditis.title']} lang={locale}>
   <!-- Normal: a uniform wall that contracts evenly -->
   <g class="normal-only" style={beatOrigin}>
     <g class="myo-beat myo-beat-full">
@@ -141,26 +144,41 @@ const focusLabelB = at(35, outerR + 8);
 
   <!-- Labels -->
   <g stroke="var(--color-muted)" stroke-width="1.5">
-    <line x1={wallLabel[0]} y1={wallLabel[1]} x2="285" y2="262"></line>
-    <line x1={focusLabelA[0]} y1={focusLabelA[1]} x2="285" y2="66"></line>
+    <line x1={wallLabel[0]} y1={wallLabel[1]} x2={leaderX} y2="262"></line>
+    <line x1={focusLabelA[0]} y1={focusLabelA[1]} x2={leaderX} y2="66"></line>
     <g class="disease-only">
       <polyline
-        points={`${focusLabelB[0]},${focusLabelB[1]} 285,200 285,74`}
+        points={`${focusLabelB[0]},${focusLabelB[1]} ${leaderX},200 ${leaderX},74`}
         fill="none"
       ></polyline>
     </g>
   </g>
-  <text class="normal-only" x="290" y="74">
+  <text class="normal-only" x={labelX} y="74">
     {t['diagram.label.uniform-wall']}
   </text>
-  <text class="disease-only" x="290" y="74">
+  <text class="disease-only" x={labelX} y="74">
     {t['diagram.label.inflammation-foci']}
   </text>
-  <text x="290" y="267">
+  <text x={labelX} y="267">
     {t['diagram.label.heart-muscle']}
   </text>
   <text x={centre.x} y="292" text-anchor="middle" class="diagram-small">
     {t['diagram.label.lv-cross-section']}
+  </text>
+
+  <!-- Legend for the dotted circle -->
+  <line
+    x1={labelX}
+    y1="292"
+    x2={labelX + 32}
+    y2="292"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-dasharray="1 5"
+    stroke-linecap="round"
+  ></line>
+  <text x={labelX + 40} y="297">
+    {t['diagram.label.normal-size']}
   </text>
 </svg>
 
