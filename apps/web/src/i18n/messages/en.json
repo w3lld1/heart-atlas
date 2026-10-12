@@ -365,6 +365,8 @@
   "diagram.label.true-lumen": "True lumen",
   "diagram.label.false-lumen": "False lumen",
   "diagram.aortic-dissection.title": "Diagram of the aorta cut lengthwise: normally the three-layer wall is intact and blood flows in one lumen; in aortic dissection blood passes through an intimal tear into the middle layer of the wall, and a flap of intima separates the true lumen from the false lumen",
+  "diagram.aortic-regurgitation.title": "Diagram of the left heart in diastole, while the left ventricle fills from the left atrium: normally the aortic valve leaflets are closed; in aortic regurgitation they do not close and blood flows back from the aorta into the left ventricle",
+  "diagram.label.aortic-valve": "Aortic valve",
   "quiz.title": "Check yourself",
   "quiz.check": "Check",
   "quiz.retry": "Try again",

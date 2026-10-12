@@ -20,6 +20,7 @@ test.describe('3D model in a disease article without signs on the model', () => 
   const places: Record<string, string[]> = {
     'ventricular-septal-defect': ['interventricular-septum'],
     'mitral-regurgitation': ['mitral-valve'],
+    'aortic-regurgitation': ['aortic-valve'],
     'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
     'infective-endocarditis': [
       'mitral-valve',
