@@ -103,4 +103,26 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://cr.minzdrav.gov.ru/view-cr/46_2',
     lang: 'ru',
   },
+  // First-degree AV block: docs/plans/2026-10-12-more-ecg-presets.md.
+  {
+    text: 'Минздрав России. Брадиаритмии и нарушения проводимости. Клинические рекомендации, 2025.',
+    href: 'https://cr.minzdrav.gov.ru/view-cr/160_2',
+    lang: 'ru',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Atrioventricular Block. 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/atrioventricular-block',
+    lang: 'en',
+  },
+  // Supraventricular tachycardia: docs/plans/2026-10-12-more-ecg-presets.md.
+  {
+    text: 'Минздрав России. Наджелудочковые тахикардии. Клинические рекомендации, 2025.',
+    href: 'https://cr.minzdrav.gov.ru/view-cr/619_3',
+    lang: 'ru',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Reentrant (Paroxysmal) Supraventricular Tachycardias (PSVT). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/reentrant-paroxysmal-supraventricular-tachycardias-psvt',
+    lang: 'en',
+  },
 ];

@@ -1,0 +1,10 @@
+title: ЭКГ и обследования
+description: Сначала проводящая система и сердечный цикл, затем ЭКГ, холтеровское мониторирование, УЗИ сердца и натрийуретические пептиды.
+level: student
+steps:
+  - anatomy/conduction-system
+  - anatomy/cardiac-cycle
+  - diagnostic/ecg
+  - diagnostic/holter-monitoring
+  - diagnostic/echocardiography
+  - diagnostic/natriuretic-peptides

@@ -20,6 +20,8 @@ test.describe('3D model in a disease article without signs on the model', () => 
   const places: Record<string, string[]> = {
     'ventricular-septal-defect': ['interventricular-septum'],
     'mitral-regurgitation': ['mitral-valve'],
+    'aortic-regurgitation': ['aortic-valve'],
+    'mitral-stenosis': ['mitral-valve'],
     'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
     'infective-endocarditis': [
       'mitral-valve',
@@ -27,6 +29,9 @@ test.describe('3D model in a disease article without signs on the model', () => 
       'tricuspid-valve',
       'pulmonary-valve',
     ],
+    'av-block': ['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch'],
+    'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
+    'aortic-dissection': ['aorta'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {
@@ -41,6 +46,19 @@ test.describe('3D model in a disease article without signs on the model', () => 
       expect((await axe(page).analyze()).violations).toEqual([]);
     });
   }
+
+  test('a structure word in a diagram caption highlights it on the model', async ({ page }) => {
+    await page.goto('en/disease/av-block/');
+    // The ECG monitor's preset switch has a "Normal" radio too.
+    await page
+      .getByRole('group', { name: en['diagram.state'] })
+      .getByRole('radio', { name: en['diagram.state.normal'] })
+      .check();
+    await page.getByRole('button', { name: /^atrioventricular node/ }).click();
+    const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
+    await expect(selected).toContainText(en['structure.av-node']);
+    await expect(selected).not.toContainText(en['structure.left-bundle-branch']);
+  });
 });
 
 test.describe('3D model in an anatomy article', () => {
@@ -73,5 +91,26 @@ test.describe('3D model in an anatomy article', () => {
     const model = page.getByRole('application', { name: en['viewer.canvasLabel'] });
     await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
     expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
+  test('a structure word in the text highlights it on the model', async ({ page }) => {
+    await page.goto('en/anatomy/heart-valves/');
+    const word = page.getByRole('button', { name: /^mitral valve/ });
+    await word.click();
+    const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
+    await expect(selected).toContainText(en['structure.mitral-valve']);
+    await expect(selected).not.toContainText(en['structure.aortic-valve']);
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+});
+
+test.describe('structure words without JavaScript', () => {
+  test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
+  test.use({ javaScriptEnabled: false });
+
+  test('stay plain text', async ({ page }) => {
+    await page.goto('en/anatomy/heart-valves/');
+    await expect(page.getByRole('button', { name: /^mitral valve/ })).toHaveCount(0);
+    await expect(page.locator('[data-structure="mitral-valve"]')).toHaveText('mitral valve');
   });
 });

@@ -48,6 +48,7 @@ const nav = siteNav(
   articlePages(await getCollection('articles'), locales)
     .filter((page) => page.locale === locale)
     .map((page) => page.type),
+  articlePages(await getCollection('tracks'), locales).some((page) => page.locale === locale),
 );
 // The page path after "<base><locale>/", for the current menu item.
 const localeRoot = localePath(base, locale);

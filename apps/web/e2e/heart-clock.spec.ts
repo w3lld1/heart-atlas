@@ -1,4 +1,10 @@
-import { heartRateLimits, presetParams } from '@heart-atlas/heart-clock';
+import {
+  defaultParams,
+  heartRateLimits,
+  paramRanges,
+  presetParams,
+  presetRateLimits,
+} from '@heart-atlas/heart-clock';
 import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
@@ -147,6 +153,14 @@ test.describe('disease presets', () => {
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
     await expect(conditions).toHaveAccessibleDescription(en['heartClock.preset.normal.summary']);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.av-block-first-degree'] }),
+    ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', {
+        name: en['heartClock.preset.supraventricular-tachycardia'],
+      }),
+    ).toHaveCount(1);
     await conditions
       .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
       .check();
@@ -176,6 +190,31 @@ test.describe('disease presets', () => {
 
     await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
     await expect(slider).toHaveAttribute('max', '180');
+  });
+
+  test('set the heart rate of a preset that has its own and reset it on normal', async ({
+    page,
+  }) => {
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    await slider.fill('90');
+    await page
+      .getByRole('radio', { name: en['heartClock.preset.supraventricular-tachycardia'] })
+      .check();
+    const [min] = presetRateLimits('supraventricular-tachycardia');
+    await expect(slider).toHaveValue(
+      String(presetParams('supraventricular-tachycardia').heartRate),
+    );
+    await expect(slider).toHaveAttribute('min', String(min));
+
+    // Other presets keep the reader's rate; leaving SVT goes back to the default rate.
+    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await expect(slider).toHaveValue(String(defaultParams.heartRate));
+    await expect(slider).toHaveAttribute('min', String(paramRanges.heartRate[0]));
+    await slider.fill('90');
+    await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
+    await expect(slider).toHaveValue('90');
   });
 
   test('keep drawing when switched after playing for a while', async ({ page }) => {

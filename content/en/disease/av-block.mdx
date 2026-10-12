@@ -2,6 +2,7 @@
 title: Atrioventricular block
 description: What atrioventricular block is, why it develops, how it is detected, which treatment approaches clinical guidelines describe and when urgent help is needed.
 type: disease
+preset: av-block-first-degree
 aliases:
   - AV block
   - heart block
@@ -31,9 +32,9 @@ Atrioventricular (AV) block is a partial or complete interruption of the conduct
 
 <Diagram name="av-block">
   <p slot="normal">
-    Normally the impulse starts in the sinus node and spreads across the atria.<Cite n={1} /> It is
-    then conducted from the atria to the ventricles through the atrioventricular node, the bundle of
-    His and its branches; in the diagram every atrial impulse reaches the ventricles.<Cite n={1} />
+    Normally the impulse starts in the <Structure id="sa-node">sinus node</Structure> and spreads across the atria.<Cite n={1} /> It is
+    then conducted from the atria to the ventricles through the <Structure id="av-node">atrioventricular node</Structure>, the <Structure id="bundle-of-his">bundle of
+    His</Structure> and its branches; in the diagram every atrial impulse reaches the ventricles.<Cite n={1} />
   </p>
   <p slot="disease">
     The diagram shows an example of second-degree AV block: some atrial impulses are not conducted
@@ -66,6 +67,8 @@ Causes can be reversible, for example drug effects or neurocardiac reflexes.<Cit
 Persistent first-degree AV block occurs in no more than 1% of adults over 20, rising to 5% or more after 50 and up to 30% in people over 65; the incidence of acquired advanced second-degree and complete AV block is estimated at 200 cases per million per year.<Cite n={1} />
 
 </Student>
+
+<HeartModel highlight={['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch']} />
 
 ## Symptoms
 
@@ -140,3 +143,5 @@ First-degree AV block may be physiological in younger people with high vagal ton
 AV block can show itself as sudden fainting: in block below the AV node, symptoms can start suddenly when the block becomes complete.<Cite n={1} /> If the escape rhythm comes from the lower parts of the conduction system, the risk of fainting due to cardiac arrest (asystole) and of sudden death is higher.<Cite n={2} /> Emergency care for bradyarrhythmias with fainting is started by the ambulance team.<Cite n={1} /> NICE treats fainting in a person with any degree of heart block on the ECG as a red flag: such a person is referred urgently for cardiovascular assessment, and a specialist reviews the referral within 24 hours (the NICE guideline covers people over 16).<Cite n={3} />
 
 If someone has lost consciousness, call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK).<Cite n={1} /> The site's general safety rule, repeated at the bottom of every page: "If you have chest pain, severe shortness of breath or have fainted, call your local emergency number immediately (112 in the EU, 911 in the US and Canada, 999 in the UK)." Sudden dizziness, confusion or feeling faint can also be signs of an acute conduction problem.<Cite n={1} /> The Russian Ministry of Health guideline names feeling faint, weakness or dizziness that may be linked to a slow rhythm as a reason for hospital admission, so do not put off seeing a doctor.<Cite n={1} /> If dizziness or feeling faint comes back in a person with a pacemaker, this is a reason for an unscheduled visit to the doctor, and if they lose consciousness, call an ambulance.<Cite n={1} />
+
+<Quiz />

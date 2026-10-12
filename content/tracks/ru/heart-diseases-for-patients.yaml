@@ -1,0 +1,9 @@
+title: Пациенту о болезнях сердца
+description: Пять статей для пациентов — гипертензия, ишемическая болезнь сердца, сердечная недостаточность, фибрилляция предсердий и аортальный стеноз.
+level: patient
+steps:
+  - disease/hypertension
+  - disease/coronary-heart-disease
+  - disease/heart-failure
+  - disease/atrial-fibrillation
+  - disease/aortic-stenosis

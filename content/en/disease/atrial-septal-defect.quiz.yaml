@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is an atrial septal defect (ASD)?
+    options:
+      - text: A narrowing of the aortic opening
+      - text: A thickening of the left ventricular wall
+      - text: A hole in the wall between the right and left atria
+        correct: true
+    explanation: An ASD is a congenital heart defect in which there is a hole in the wall (septum) between the right and left atria, and blood passes through it from one atrium to the other.
+    cite: [1]
+  - level: patient
+    prompt: In ASD, blood flows through the hole from the left atrium into the right. What receives extra blood?
+    options:
+      - text: The right side of the heart and the lungs
+        correct: true
+      - text: The left ventricle and the aorta
+      - text: The brain
+    explanation: Blood flows through the hole from the left atrium into the right, so the right side of the heart and the lungs receive extra blood.
+    cite: [1, 3]
+  - level: patient
+    prompt: What often happens to small defects in the first year of life?
+    options:
+      - text: They quickly get bigger
+      - text: They close on their own
+        correct: true
+      - text: They are closed with surgery straight after birth
+    explanation: Small defects often close on their own in the first year of life.
+    cite: [3]
+  - level: patient
+    prompt: How is a secundum ASD closed if the size and shape of the defect allow?
+    options:
+      - text: With medicines that close the hole
+      - text: With a heart transplant
+      - text: A special device (occluder) is passed through a blood vessel to the heart
+        correct: true
+    explanation: Medicines do not close the defect. The most common type, secundum ASD, is closed without opening the chest if the size and shape of the defect allow, with an occluder passed through a blood vessel to the heart.
+    cite: [1]
+  - level: student
+    prompt: Which type of ASD is the most common?
+    options:
+      - text: Primum ASD
+      - text: Secundum ASD
+        correct: true
+      - text: Sinus venosus defect
+    explanation: The Russian Ministry of Health guideline distinguishes secundum ASD (80% of all ASDs), primum ASD (15%), sinus venosus defect, coronary sinus defect and common atrium.
+    cite: [1]
+  - level: student
+    prompt: Which of these is a contraindication to ASD closure?
+    options:
+      - text: Eisenmenger syndrome
+        correct: true
+      - text: Right ventricular volume overload
+      - text: Paradoxical embolism once other causes are excluded
+    explanation: Desaturation on exercise and Eisenmenger syndrome are contraindications to closure. Right ventricular volume overload without signs of pulmonary hypertension is an indication for closure; in paradoxical embolism, once other causes are excluded, closure is recommended provided there is no pulmonary arterial hypertension and no left ventricular disease.
+    cite: [1, 2]

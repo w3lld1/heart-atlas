@@ -11,12 +11,9 @@ type QuizMessages = {
   score: string;
 };
 
-export type QuizResult = { correct: number; total: number; date: string };
-/** The last full result at each level: a level shows only its own questions. */
-export type QuizResults = Partial<Record<string, QuizResult>>;
+import { quizStorageKey, type QuizResult, type QuizResults } from './quiz-storage.ts';
 
-/** localStorage key of a quiz result; the id is `<locale>/<type>/<slug>`. */
-export const quizStorageKey = (id: string): string => `ha:quiz:${id}`;
+export { quizStorageKey };
 
 /** Fills `{correct}` and `{total}` in the score line. */
 export function formatScore(template: string, correct: number, total: number): string {

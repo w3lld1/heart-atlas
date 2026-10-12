@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: From what level is persistently raised clinic blood pressure counted as hypertension?
+    options:
+      - text: 100/60 mm Hg or higher
+      - text: Systolic 140 mm Hg or higher and/or diastolic 90 mm Hg or higher
+        correct: true
+      - text: 120/70 mm Hg or higher
+    explanation: 'Hypertension is persistently raised blood pressure measured in a healthcare setting: a systolic pressure of 140 mm Hg or higher and/or a diastolic pressure of 90 mm Hg or higher.'
+    cite: [1, 2]
+  - level: patient
+    prompt: How does high blood pressure most often show itself?
+    options:
+      - text: Always with a severe headache
+      - text: With a skin rash
+      - text: It causes no symptoms and is found by chance when blood pressure is measured
+        correct: true
+    explanation: Most of the time, high blood pressure causes no symptoms at all. It is found by chance when blood pressure is measured.
+    cite: [1, 2, 4]
+  - level: patient
+    prompt: What does treatment of hypertension rest on?
+    options:
+      - text: A healthy lifestyle — less salt, physical activity, stopping smoking
+        correct: true
+      - text: More salt in food and less movement
+    explanation: Treatment rests on a healthy lifestyle — less salt, enough physical activity, healthy eating, drinking alcohol in moderation and stopping smoking.
+    cite: [3]
+  - level: patient
+    prompt: What is very high blood pressure together with acute organ damage called?
+    options:
+      - text: Secondary hypertension
+      - text: A hypertensive crisis
+        correct: true
+      - text: Left ventricular hypertrophy
+    explanation: Very high blood pressure together with acute organ damage is a hypertensive crisis; it can be life-threatening. If, with high blood pressure, you develop chest pain, severe shortness of breath, sudden confusion or signs of a stroke, call your local emergency number.
+    cite: [2, 3, 4]
+  - level: student
+    prompt: What share of patients with hypertension have essential (primary) hypertension?
+    options:
+      - text: Less than 10%
+      - text: About half
+      - text: More than 90%
+        correct: true
+    explanation: More than 90% of patients have essential (primary) hypertension; secondary forms are found in 5–10% of patients with hypertension.
+    cite: [2]
+  - level: student
+    prompt: Per the ESC, an average home BP of ≥135/85 mm Hg is equivalent to which office BP?
+    options:
+      - text: ≥140/90 mm Hg
+        correct: true
+      - text: ≥120/70 mm Hg
+      - text: ≥180/120 mm Hg
+    explanation: An average home BP of ≥135/85 mm Hg is equivalent to an office BP of ≥140/90 mm Hg.
+    cite: [1]

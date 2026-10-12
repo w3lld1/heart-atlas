@@ -1,0 +1,46 @@
+questions:
+  - level: patient
+    prompt: Where do the coronary arteries arise?
+    options:
+      - text: From the pulmonary trunk
+      - text: From the base of the aorta
+        correct: true
+      - text: From the right atrium
+    explanation: There are two coronary arteries, the left and the right, and they arise from the base of the aorta.
+    cite: [1]
+  - level: patient
+    prompt: Where does blood from the heart's veins mostly collect?
+    options:
+      - text: In the coronary sinus, which opens into the right atrium
+        correct: true
+      - text: In the left atrium
+      - text: Back in the aorta
+    explanation: The veins drain into the coronary sinus, a large vein on the back of the heart that opens into the right atrium.
+    cite: [2, 3]
+  - level: patient
+    prompt: When does blood flow through the coronary arteries most strongly?
+    options:
+      - text: While the heart muscle contracts
+      - text: Equally at all times
+      - text: When the heart muscle is relaxed
+        correct: true
+    explanation: Blood flows through the coronary arteries most strongly when the heart muscle is relaxed, and the flow almost stops while it contracts.
+    cite: [1, 3]
+  - level: student
+    prompt: Which coronary dominance pattern is the most common?
+    options:
+      - text: Left dominance
+      - text: Codominance
+      - text: Right dominance
+        correct: true
+    explanation: Dominance depends on where the posterior descending artery arises. Right dominance occurs in at least 70% of cases, left in about 10%, codominance in 20%.
+    cite: [1]
+  - level: student
+    prompt: What do the septal branches of the LAD supply?
+    options:
+      - text: The anterior two-thirds of the interventricular septum and the bundle of His
+        correct: true
+      - text: The posterolateral wall of the left ventricle
+      - text: The sinoatrial node
+    explanation: The septal branches of the LAD supply the anterior two-thirds of the septum and the bundle of His. The circumflex artery supplies the posterolateral wall of the left ventricle.
+    cite: [1]

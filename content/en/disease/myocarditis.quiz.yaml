@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What is myocarditis?
+    options:
+      - text: Narrowing of the aortic valve
+      - text: Inflammation of the heart muscle
+        correct: true
+      - text: A blood clot in the pulmonary artery
+    explanation: Myocarditis is an inflammatory disease of the myocardium, the heart muscle.
+    cite: [1]
+  - level: patient
+    prompt: How often does chest pain, the main symptom of myocarditis, occur?
+    options:
+      - text: In about 5% of people with myocarditis
+      - text: In more than 80% of people with myocarditis
+        correct: true
+      - text: Myocarditis never causes chest pain
+    explanation: The main symptom is chest pain, which more than 80% of people with myocarditis have.
+    cite: [1]
+  - level: patient
+    prompt: What is thought to be the most common cause of myocarditis?
+    options:
+      - text: Broken ribs
+      - text: Narrowing of the aortic valve
+      - text: Viruses
+        correct: true
+    explanation: Viruses are thought to be the most common cause of myocarditis. There are also non-infectious causes.
+    cite: [1, 2]
+  - level: patient
+    prompt: How does uncomplicated myocarditis usually end?
+    options:
+      - text: It usually goes away on its own
+        correct: true
+      - text: It always needs a heart transplant
+    explanation: Uncomplicated myocarditis, about 75% of cases, usually goes away on its own. But in some people the heart's function gradually gets worse, which can lead to dilated cardiomyopathy.
+    cite: [1]
+  - level: student
+    prompt: What characterises fulminant myocarditis?
+    options:
+      - text: An asymptomatic course
+      - text: Cardiogenic shock at presentation requiring haemodynamic support
+        correct: true
+      - text: Inflammation persisting beyond 3 months without symptoms
+    explanation: Fulminant myocarditis (3–9% of cases) is characterised by cardiogenic shock at presentation requiring haemodynamic support.
+    cite: [1]
+  - level: student
+    prompt: Unlike in ACS, how does troponin usually behave in myocarditis?
+    options:
+      - text: Troponin is not raised in myocarditis
+      - text: It falls faster than in ACS
+      - text: It falls slowly
+        correct: true
+    explanation: In acute myocarditis troponin is elevated. Unlike in acute coronary syndrome, troponin in myocarditis usually falls slowly.
+    cite: [1, 2]

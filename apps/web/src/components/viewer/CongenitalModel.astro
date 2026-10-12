@@ -47,10 +47,19 @@ const messages = {
     section="frontal"
   />
   <figcaption>
-    {t[`congenital.${model}.caption`]}{' '}
-    <a href={congenitalModelEntry(model)} rel="external">
-      {t['congenital.source']}
-    </a>
+    <p class="signs-title">{t[`congenital.${model}.signs`]}</p>
+    <ul>
+      {([1, 2, 3, 4] as const).map((n) => (
+        <li>{t[`congenital.${model}.sign${n}`]}</li>
+      ))}
+    </ul>
+    <p>{t['congenital.signsNote']}</p>
+    <p>
+      {t[`congenital.${model}.caption`]}{' '}
+      <a href={congenitalModelEntry(model)} rel="external">
+        {t['congenital.source']}
+      </a>
+    </p>
   </figcaption>
 </figure>
 
@@ -64,5 +73,15 @@ const messages = {
   figcaption {
     color: var(--color-muted);
     font-size: 0.9rem;
+  }
+
+  figcaption p,
+  figcaption ul {
+    margin-block: 0 0.5rem;
+  }
+
+  .signs-title {
+    color: var(--color-text);
+    font-weight: 600;
   }
 </style>

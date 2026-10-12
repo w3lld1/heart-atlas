@@ -1,0 +1,179 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-coa-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const subclavianLines = twoLines(t['diagram.label.left-subclavian']);
+const headLines = twoLines(t['diagram.label.to-head-and-arms']);
+const legsLines = twoLines(t['diagram.label.to-abdomen-and-legs']);
+const hypertrophyLines = twoLines(t['diagram.label.lv-hypertrophy']);
+const reducedLines = twoLines(t['diagram.label.reduced-blood-flow']);
+// The aorta runs up from the left ventricle, turns in an arch and goes down. The three branches
+// to the head and arms leave the top of the arch; the last one is the left subclavian artery.
+const arch = 'L110,120 Q110,70 160,70 L250,70 Q300,70 300,120 L300,355';
+// The wall starts at the top of the ventricle; the lumen reaches into its cavity.
+const aortaWall = `M110,250 ${arch}`;
+const aortaLumen = `M110,266 ${arch}`;
+const branches = [150, 195, 240];
+const flow = {
+  // Normal: one stream round the arch and down the descending aorta, and one up each branch.
+  main: 'M110,240 L110,120 Q110,70 160,70 L250,70 Q300,70 300,120 L300,322',
+  // Coarctation: the same stream up to the narrowing, and a thin one below it.
+  aboveNarrowing: 'M110,240 L110,120 Q110,70 160,70 L250,70 Q300,70 300,104',
+  belowNarrowing: 'M300,104 L300,322',
+  branch: (x: number) => `M${x},58 L${x},16`,
+};
+---
+
+<svg
+  viewBox="0 0 470 365"
+  role="img"
+  aria-label={t['diagram.coarctation-of-the-aorta.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle: the cavity is the same in both states; the wall is thicker with coarctation -->
+  <path
+    class="normal-only"
+    d="M55,250 L165,250 L165,292 Q165,345 110,352 Q55,345 55,292 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    class="disease-only"
+    d="M43,242 L177,242 L177,292 Q177,358 110,362 Q43,358 43,292 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Vessel walls: the branches to the head and arms and the aorta, drawn as wide strokes -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    {branches.map((x) => (
+      <path d={`M${x},62 L${x},4`} stroke-width="16" />
+    ))}
+    <path d={aortaWall} stroke-width="34"></path>
+  </g>
+
+  <path
+    d="M70,262 L150,262 L150,292 Q150,330 110,336 Q70,330 70,292 Z"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Vessel lumens on top of the walls, opening into each other and into the ventricle -->
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    {branches.map((x) => (
+      <path d={`M${x},72 L${x},4`} stroke-width="10" />
+    ))}
+    <path d={aortaLumen} stroke-width="26"></path>
+  </g>
+
+  <!-- Coarctation: the wall folds into the lumen just past the left subclavian artery -->
+  <g class="disease-only" fill="var(--diagram-arterial)">
+    <path d="M286,106 L297,122 L286,138 Z"></path>
+    <path d="M314,106 L303,122 L314,138 Z"></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    {branches.map((x) => (
+      <path d={flow.branch(x)} stroke-width="3" marker-end={`url(#${arrow})`} />
+    ))}
+    <path class="normal-only" d={flow.main} stroke-width="4" marker-end={`url(#${arrow})`}></path>
+    <path class="disease-only" d={flow.aboveNarrowing} stroke-width="4"></path>
+    <path
+      class="disease-only"
+      d={flow.belowNarrowing}
+      stroke-width="1.5"
+      marker-end={`url(#${arrow})`}
+    ></path>
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows -->
+  <g class="flow" stroke="var(--color-bg)">
+    {branches.map((x) => (
+      <path class="dash-flow" d={flow.branch(x)} stroke-width="1.5" />
+    ))}
+    <path class="dash-flow normal-only" d={flow.main} stroke-width="2"></path>
+    <path class="dash-flow disease-only" d={flow.aboveNarrowing} stroke-width="2"></path>
+    <path class="dash-flow disease-only" d={flow.belowNarrowing} stroke-width="1"></path>
+  </g>
+
+  <!-- Labels -->
+  <text x="110" y="306" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small" x="88" y="180" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="8" y="18">
+    <tspan x="8">{headLines[0]}</tspan>
+    <tspan x="8" dy="15">
+      {headLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" x="258" y="16">
+    <tspan x="258">{subclavianLines[0]}</tspan>
+    <tspan x="258" dy="15">
+      {subclavianLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" x="326" y="322">
+    <tspan x="326">{legsLines[0]}</tspan>
+    <tspan x="326" dy="15">
+      {legsLines[1]}
+    </tspan>
+  </text>
+  <line
+    class="disease-only"
+    x1="205"
+    y1="90"
+    x2="205"
+    y2="98"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></line>
+  <text class="diagram-small disease-only" x="205" y="112" text-anchor="middle">
+    {t['diagram.label.high-pressure']}
+  </text>
+  <text class="diagram-small disease-only" x="326" y="126">
+    {t['diagram.label.aortic-narrowing']}
+  </text>
+  <text class="diagram-small disease-only" x="326" y="226">
+    <tspan x="326">{reducedLines[0]}</tspan>
+    <tspan x="326" dy="15">
+      {reducedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="186" y="300">
+    <tspan x="186">{hypertrophyLines[0]}</tspan>
+    <tspan x="186" dy="15">
+      {hypertrophyLines[1]}
+    </tspan>
+  </text>
+</svg>

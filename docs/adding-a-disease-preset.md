@@ -21,7 +21,7 @@ Write the table of parameters, values and sources into a spec in `docs/plans/` s
 In [`packages/heart-clock/src/presets.ts`](../packages/heart-clock/src/presets.ts):
 
 1. Add the id (kebab-case) to `presetIds`. The order is the order of the switch on the heart clock page.
-2. Add a frozen partial parameter set to `presets`. Only list the parameters that change; everything else comes from `defaultParams`. Do not change `heartRate`: the reader sets it with the slider.
+2. Add a frozen partial parameter set to `presets`. Only list the parameters that change; everything else comes from `defaultParams`. Leave `heartRate` out unless the rate is itself the sign of the disease (see [A preset with its own heart rate](#a-preset-with-its-own-heart-rate)): normally the reader sets it with the slider.
 
 ```ts
 'aortic-stenosis': Object.freeze({
@@ -35,12 +35,30 @@ In [`packages/heart-clock/src/presets.ts`](../packages/heart-clock/src/presets.t
 
 The parameters, their units and ranges are in `HeartParams`, `defaultParams` and `paramRanges` in `packages/heart-clock/src/params.ts`. A sign that no existing parameter can show needs a new parameter, which is a change to the model and needs a spec first.
 
+#### A preset with its own heart rate
+
+When the heart rate is the sign, as in supraventricular tachycardia (120–250 bpm), the preset sets it:
+
+1. Put `heartRate` in the preset, with a source or `assumption:` comment like any other number. It must fit `paramRanges.heartRate` (40–180).
+2. Add the lowest rate the sign allows to `presetRateFloors`, with its source. `presetRateLimits(id)` then gives `heartRateLimits` raised to that floor, and the slider, the embed builder and the embed's `?rate=` clamp all use it.
+
+`HeartClockDemo` applies `switchedHeartRate`: switching to such a preset sets its rate, switching away from it goes back to the next preset's rate (75 for every other preset), and switching between other presets keeps the reader's rate. An article, the heart clock page or an embed with `?preset=<id>` and no `?rate=` start at the preset's rate. Give the preset its range in `narrowedLimits` in `presets.test.ts`.
+
+```ts
+'supraventricular-tachycardia': Object.freeze({
+  // Reentrant SVT runs at 120–250 bpm (MSD Manuals, 2024). assumption: 170, inside that range
+  // and below the model's limit of 180.
+  heartRate: 170,
+  pAmplitude: 0,
+}),
+```
+
 ### 2. Tests
 
 [`packages/heart-clock/test/presets.test.ts`](../packages/heart-clock/test/presets.test.ts) already checks every id in `presetIds`:
 
 - `presets` has an entry for every id;
-- the preset passes `checkParams` at every heart rate in its `heartRateLimits`, and that range is the full `paramRanges.heartRate`. Only `atrial-septal-defect` is allowed a narrower range (its wide QRS does not fit the fastest rates). If your preset narrows the range too, the test fails; add an expectation for it with a comment explaining why.
+- the preset passes `checkParams` at every heart rate in its `presetRateLimits`, that range holds the preset's starting rate, and it is the full `paramRanges.heartRate`. Presets with a narrower range are listed in `narrowedLimits` in `presets.test.ts`, each with a reason. A preset that raises PR or QRS narrows the upper heart rate limit (first-degree AV block: 96). If your preset narrows the range too, the test fails; add it to `narrowedLimits` with a comment explaining why.
 
 Add a test for the sign the preset is meant to show, like the existing ones for ST elevation in `stemi` and the split S2 in `atrial-septal-defect`.
 
@@ -68,7 +86,7 @@ Add every document your numbers come from to `presetSources` in [`apps/web/src/c
 
 - **Heart clock page.** `[locale]/heart-clock.astro` passes all `presetIds`, so the new preset appears there with no further change.
 - **Article.** Set `preset: <id>` in the frontmatter of the disease article (see [Adding an article](adding-an-article.md)). The schema in `apps/web/src/lib/content.ts` accepts any id from `presetIds` except `normal`. The article page then shows the monitor after the text with the switch `normal` / `<id>`, starting on the preset.
-- **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range, `heartRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped.
+- **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range or has a floor, `presetRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped. Without `?rate=` the embed starts at the preset's own rate, if it has one.
 
 ### 6. Check
 

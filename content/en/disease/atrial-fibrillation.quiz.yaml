@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What happens to the atria in atrial fibrillation?
+    options:
+      - text: They contract in smooth waves, as normal
+      - text: They are activated in an uncoordinated way and no longer contract effectively
+        correct: true
+    explanation: In AF the atria are activated in an uncoordinated way and no longer contract effectively.
+    cite: [1]
+  - level: patient
+    prompt: What can be the first sign of AF in a person without symptoms?
+    options:
+      - text: A stroke
+        correct: true
+      - text: A broken rib
+      - text: A skin rash
+    explanation: Some people have no symptoms at all, and the first sign of AF can be a stroke.
+    cite: [3]
+  - level: patient
+    prompt: What is done with the ECG if AF episodes come and go?
+    options:
+      - text: No ECG is recorded in that case
+      - text: The ECG is recorded for longer, for example for a day
+        correct: true
+    explanation: If the episodes come and go, the ECG is recorded for longer, for example for a day.
+    cite: [4]
+  - level: patient
+    prompt: Which goals is AF treatment built around?
+    options:
+      - text: A heart transplant for every patient
+      - text: A heart valve replacement for every patient
+      - text: Lowering stroke risk, easing symptoms and treating related conditions
+        correct: true
+    explanation: Treatment is built around a few goals — lowering the risk of stroke, easing symptoms and treating related conditions.
+    cite: [1]
+  - level: student
+    prompt: Which ECG features are typical of AF?
+    options:
+      - text: Irregularly irregular RR intervals and no distinct P waves
+        correct: true
+      - text: Regular RR intervals and a distinct P wave before every QRS
+    explanation: ECG features of AF are irregularly irregular RR intervals and the absence of distinct P waves.
+    cite: [2, 3]
+  - level: student
+    prompt: Which AF does the ESC call paroxysmal?
+    options:
+      - text: Continuous AF of at least 12 months' duration
+      - text: AF in which no further attempts to restore sinus rhythm are planned
+      - text: AF that terminates spontaneously or with an intervention within 7 days
+        correct: true
+    explanation: Paroxysmal AF terminates spontaneously within 7 days or with the assistance of an intervention. Continuous AF of at least 12 months is long-standing persistent, and AF with no further rhythm attempts planned is permanent.
+    cite: [1]

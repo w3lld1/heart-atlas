@@ -1,0 +1,91 @@
+---
+// The step block under an article opened from a learning track. Hidden and empty until the page
+// has `?track=<id>`; only then the script loads the block's module and the track's steps.json.
+import { getMessages } from '../i18n/messages.ts';
+import { localePath } from '../i18n/paths.ts';
+
+interface Props {
+  locale: string;
+  /** `<type>/<slug>` of the article. */
+  path: string;
+}
+
+const { locale, path } = Astro.props;
+const t = getMessages(locale);
+const base = import.meta.env.BASE_URL;
+---
+
+<aside
+  class="track-step"
+  hidden
+  aria-label={t['tracks.stepLabel']}
+  data-track-step
+  data-pagefind-ignore
+  data-path={path}
+  data-tracks-url={localePath(base, locale, 'tracks/')}
+  data-locale-url={localePath(base, locale)}
+  data-position={t['tracks.position']}
+  data-previous={t['tracks.previous']}
+  data-next={t['tracks.next']}
+>
+  <p class="track-step-title"></p>
+  <label class="track-step-read">
+    <input type="checkbox" />
+    {t['tracks.read']}
+  </label>
+  <ul class="track-step-links" hidden>
+    <li class="track-step-previous" hidden></li>
+    <li class="track-step-next" hidden></li>
+  </ul>
+</aside>
+
+<script>
+  const block = document.querySelector<HTMLElement>('[data-track-step]');
+  const id = new URLSearchParams(location.search).get('track');
+  if (block && id && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) {
+    void import('../lib/track-step.ts').then(({ initTrackStep }) => initTrackStep(block, id));
+  }
+</script>
+
+<style>
+  .track-step {
+    display: grid;
+    gap: 0.5rem;
+    margin-block: 2rem;
+    padding-block: 1rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+  }
+
+  .track-step[hidden],
+  .track-step-links[hidden],
+  .track-step-links li[hidden] {
+    display: none;
+  }
+
+  .track-step-title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .track-step-read {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+  }
+
+  .track-step-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .track-step-next {
+    margin-inline-start: auto;
+  }
+</style>

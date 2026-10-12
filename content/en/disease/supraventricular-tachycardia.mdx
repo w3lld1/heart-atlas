@@ -2,6 +2,7 @@
 title: Supraventricular tachycardia
 description: What supraventricular tachycardia is, why its episodes happen, how they are recognised, which treatment approaches clinical guidelines describe and when urgent help is needed.
 type: disease
+preset: supraventricular-tachycardia
 aliases:
   - SVT
   - paroxysmal supraventricular tachycardia
@@ -36,8 +37,8 @@ Supraventricular tachycardia (SVT) is a fast heart rhythm, over 100 beats per mi
 
 <Diagram name="supraventricular-tachycardia">
   <p slot="normal">
-    Normally the impulse from the sinus node travels across the atria to the atrioventricular (AV)
-    node, and from there along the bundle of His and its branches (the His–Purkinje system) to the
+    Normally the impulse from the <Structure id="sa-node">sinus node</Structure> travels across the atria to the <Structure id="av-node">atrioventricular (AV)
+    node</Structure>, and from there along the <Structure id="bundle-of-his">bundle of His</Structure> and its branches (the His–Purkinje system) to the
     ventricles.<Cite n={[1, 3]} />
   </p>
   <p slot="disease">
@@ -70,6 +71,8 @@ Atrioventricular re-entrant tachycardia (AVRT) is re-entry involving the AV junc
 WPW syndrome comprises a PR interval shorter than 120 ms, QRS wider than 120 ms, a delta wave at the start of the R wave and recurrent SVT; pre-excitation without SVT is called the WPW ECG pattern (phenomenon).<Cite n={1} /> The life-threatening arrhythmia in manifest WPW syndrome is atrial fibrillation or flutter: if the accessory pathway has a short antegrade refractory period, rapid conduction to the ventricles can lead to ventricular fibrillation.<Cite n={[1, 2]} />
 
 </Student>
+
+<HeartModel highlight={['av-node', 'bundle-of-his']} />
 
 ## Symptoms
 
@@ -134,3 +137,5 @@ To prevent AVNRT episodes when ablation is unwanted or not feasible, beta-blocke
 Call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK) if an episode of palpitations comes with fainting, feeling faint (sudden darkening of vision, weakness, dizziness, cold sweat) or a drop in blood pressure (the upper, systolic, reading below 100 mm Hg).<Cite n={1} /> Guidelines also name chest pain and a suspected heart attack as signs of an unstable condition that requires hospital admission — call an ambulance in these cases too.<Cite n={1} />
 
 If an episode does not stop, call an ambulance as well: guidelines advise calling an ambulance team during episodes, and people whose episode was not stopped by emergency care before hospital are sent to hospital urgently.<Cite n={[1, 2]} />
+
+<Quiz />

@@ -105,6 +105,8 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   hypertension: 'hypertension',
   'aortic-stenosis': 'aortic-stenosis',
   'atrial-septal-defect': 'atrial-septal-defect',
+  'av-block-first-degree': null,
+  'supraventricular-tachycardia': null,
 };
 
 /** What the model shows of a disease: its id, and whether its still and heartbeat captions apply. */

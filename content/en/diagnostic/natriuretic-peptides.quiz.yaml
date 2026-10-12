@@ -1,0 +1,50 @@
+questions:
+  - level: patient
+    prompt: When does the heart release BNP and NT-proBNP?
+    options:
+      - text: When its walls are stretched
+        correct: true
+      - text: When there is little blood and low pressure in its chambers
+    explanation: BNP and NT-proBNP are substances the heart releases when its walls are stretched. Their level reflects the strain on the heart, high pressure and a large volume of blood in its chambers.
+    cite: [2, 3]
+  - level: patient
+    prompt: How is the BNP or NT-proBNP test done?
+    options:
+      - text: Electrodes are stuck to the chest for a day
+      - text: An ultrasound probe is held against the chest
+      - text: Blood is taken from a vein, like any routine blood draw
+        correct: true
+    explanation: It is a blood test from a vein, like any routine blood draw.
+    cite: [3]
+  - level: patient
+    prompt: Does a natriuretic peptide test make a diagnosis on its own?
+    options:
+      - text: Yes, a single test gives the final diagnosis
+      - text: No, a doctor always looks at it together with other information
+        correct: true
+    explanation: The test does not make a diagnosis on its own; a doctor always looks at it together with other information.
+    cite: [2]
+  - level: patient
+    prompt: Can a BNP value be converted into an NT-proBNP value?
+    options:
+      - text: No, they are different measurements with different normal ranges and thresholds
+        correct: true
+      - text: Yes, they are the same measurement under two names
+    explanation: BNP and NT-proBNP are different measurements; one cannot be converted into the other, and they have different normal ranges and thresholds.
+    cite: [2]
+  - level: student
+    prompt: Which of the two peptides is more stable?
+    options:
+      - text: BNP
+      - text: NT-proBNP
+        correct: true
+    explanation: The half-life of BNP is about 20 minutes and that of NT-proBNP about 120 minutes; NT-proBNP is much more stable.
+    cite: [3]
+  - level: student
+    prompt: For which peptide does NICE NG106 give referral-urgency thresholds?
+    options:
+      - text: BNP
+      - text: NT-proBNP
+        correct: true
+    explanation: The NG106 thresholds apply to NT-proBNP; the guideline gives no thresholds for BNP.
+    cite: [1]

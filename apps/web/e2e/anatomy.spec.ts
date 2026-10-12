@@ -154,4 +154,17 @@ test.describe('heart viewer', () => {
     await expect(button).toHaveAttribute('aria-pressed', 'true');
     expect(requested.filter((url) => url.includes('/Scene.') || url.endsWith('.glb'))).toEqual([]);
   });
+
+  test('starts without its poster when the poster never arrives', async ({ page }) => {
+    // The viewer waits for its poster before loading its script, but not forever.
+    await page.route('**/heart-hero-poster.webp', () => {});
+    // The page never fires load while its poster is pending.
+    await page.goto('en/anatomy/', { waitUntil: 'domcontentloaded' });
+    const button = page.getByRole('button', { name: en['structure.aorta'] });
+    // Until the viewer starts, the button is plain markup and a click does nothing.
+    await expect(async () => {
+      await button.click();
+      await expect(button).toHaveAttribute('aria-pressed', 'true', { timeout: 500 });
+    }).toPass(LOAD);
+  });
 });

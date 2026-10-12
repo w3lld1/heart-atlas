@@ -4,6 +4,7 @@ import {
   heartRateLimits,
   paramRanges,
   presetParams,
+  presetRateLimits,
 } from '@heart-atlas/heart-clock';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { testLocales } from '../test/fixtures/i18n/locales.ts';
@@ -130,6 +131,34 @@ test.describe('embed parameters', () => {
     await expect(slider(page)).toHaveValue(String(max));
   });
 
+  test('starts SVT at its own heart rate and keeps a URL rate above its floor', async ({
+    page,
+  }) => {
+    const svt = page.getByRole('radio', {
+      name: en['heartClock.preset.supraventricular-tachycardia'],
+    });
+    await page.goto('en/embed/ecg/?preset=supraventricular-tachycardia');
+    await hydrated(page);
+    await expect(svt).toBeChecked();
+    await expect(slider(page)).toHaveValue(
+      String(presetParams('supraventricular-tachycardia').heartRate),
+    );
+    const [min] = presetRateLimits('supraventricular-tachycardia');
+    await page.goto('en/embed/ecg/?preset=supraventricular-tachycardia&rate=90');
+    await hydrated(page);
+    await expect(svt).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(min));
+
+    // A URL rate belongs to the preset the embed starts with; switching to SVT sets its own rate.
+    await page.goto('en/embed/ecg/?rate=90');
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue('90');
+    await svt.check();
+    await expect(slider(page)).toHaveValue(
+      String(presetParams('supraventricular-tachycardia').heartRate),
+    );
+  });
+
   test('the reader can change the rate set by the URL', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
@@ -193,6 +222,17 @@ test.describe('embed builder', () => {
         `title="${en['heartClock.title']}: ${en['heartClock.preset.atrial-fibrillation']}"`,
       ),
     );
+    // The long PR of first-degree AV block narrows the upper heart rate limit.
+    const [, avBlockMax] = heartRateLimits(presetParams('av-block-first-degree'));
+    await expect(condition.locator('option[value="av-block-first-degree"]')).toHaveAttribute(
+      'data-max',
+      String(avBlockMax),
+    );
+    // SVT sets its own rate and does not go below its floor.
+    const [svtMin, svtMax] = presetRateLimits('supraventricular-tachycardia');
+    const svtOption = condition.locator('option[value="supraventricular-tachycardia"]');
+    await expect(svtOption).toHaveAttribute('data-min', String(svtMin));
+    await expect(svtOption).toHaveAttribute('data-max', String(svtMax));
     // A rate the preset does not allow is reported and left out of the code.
     const [, asdMax] = heartRateLimits(presetParams('atrial-septal-defect'));
     await condition.selectOption('atrial-septal-defect');

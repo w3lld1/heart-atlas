@@ -1,0 +1,51 @@
+questions:
+  - level: patient
+    prompt: Why is a long ECG recording needed when there is a standard ECG?
+    options:
+      - text: A standard ECG is only a snapshot and can miss problems that come and go
+        correct: true
+      - text: A standard ECG does not record the heart's electrical activity
+    explanation: A standard ECG gives only a snapshot of how the heart is working and can miss problems that come and go.
+    cite: [4]
+  - level: patient
+    prompt: How long does a Holter monitor usually record?
+    options:
+      - text: About 10 seconds
+      - text: Usually 24 to 72 hours
+        correct: true
+      - text: Up to 3 years
+    explanation: A Holter monitor records continuously, usually for 24 to 72 hours. An implantable loop recorder can record data for up to 3 years.
+    cite: [4]
+  - level: patient
+    prompt: What is the main thing the doctor looks for in a monitoring recording?
+    options:
+      - text: The size of the heart chambers on ultrasound
+      - text: The level of peptides in the blood
+      - text: A match between symptoms and a rhythm problem on the recording
+        correct: true
+    explanation: The main thing the doctor looks for is a match, whether the symptoms happened at a time when the recording shows a rhythm problem.
+    cite: [2]
+  - level: patient
+    prompt: Why might a Holter monitor not show the cause of the episodes?
+    options:
+      - text: It does not record the heart's electrical activity
+      - text: It records for only one to three days, and no episode may happen then
+        correct: true
+    explanation: A Holter monitor records for only one to three days, and if no episode happens during that time, it will not show the cause. If the episodes are rare, they may simply not have happened during the monitoring period.
+    cite: [4]
+  - level: student
+    prompt: What does the ESC describe as the gold standard for diagnosing arrhythmic syncope?
+    options:
+      - text: A correlation between symptoms and a documented arrhythmia
+        correct: true
+      - text: A normal 12-lead ECG
+    explanation: The ESC describes a correlation between symptoms and a documented arrhythmia as the gold standard for the diagnosis of arrhythmic syncope.
+    cite: [2]
+  - level: student
+    prompt: What does the ESC name as the principal limitation of any ECG monitoring device?
+    options:
+      - text: It cannot record the ECG outside the clinic, in everyday life
+      - text: It cannot record blood pressure together with the ECG
+        correct: true
+    explanation: The ESC names the principal limitation of any ECG monitoring device as the inability to record blood pressure together with the ECG.
+    cite: [2]

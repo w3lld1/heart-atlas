@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What is infective endocarditis?
+    options:
+      - text: A congenital hole in the wall of the heart
+      - text: Narrowing of the coronary arteries
+      - text: Inflammation of the inner lining of the heart caused by bacteria or fungi
+        correct: true
+    explanation: Infective endocarditis is an infectious and inflammatory disease of the inner lining of the heart (the endocardium) on the valves and the heart walls, and of artificial devices inside the heart. It is caused by bacteria or fungi.
+    cite: [2]
+  - level: patient
+    prompt: What are the most common signs of endocarditis?
+    options:
+      - text: A raised temperature and a new heart murmur
+        correct: true
+      - text: A runny nose and sneezing
+      - text: There are never any symptoms
+    explanation: The most common signs are a raised temperature and a new heart murmur that the doctor hears.
+    cite: [1, 2]
+  - level: patient
+    prompt: What are the main tests when endocarditis is suspected?
+    options:
+      - text: A urine test and a foot X-ray
+      - text: Blood cultures and a heart ultrasound (echocardiography)
+        correct: true
+      - text: Only a blood pressure measurement
+    explanation: The main tests are blood cultures, to find the organism, and a heart ultrasound (echocardiography).
+    cite: [1, 2]
+  - level: patient
+    prompt: What should a person at risk of endocarditis do if they get a fever with no clear cause?
+    options:
+      - text: Not mention the risk to the doctor
+      - text: Tell the doctor that they are at risk of endocarditis
+        correct: true
+    explanation: If a person at risk of endocarditis (for example, with a prosthetic valve or previous endocarditis) develops a fever with no clear cause, they should tell the doctor that they are at risk.
+    cite: [1]
+  - level: student
+    prompt: According to the ESC, what remains the cornerstone of diagnosing infective endocarditis?
+    options:
+      - text: Positive blood cultures
+        correct: true
+      - text: A urine test
+      - text: A hand X-ray
+    explanation: Positive blood cultures remain the cornerstone of IE diagnosis; echocardiography is the first-line imaging technique.
+    cite: [1]
+  - level: student
+    prompt: Why are embolic complications common in infective endocarditis?
+    options:
+      - text: Vegetations fuse firmly with the leaflet and do not break off
+      - text: Because the coronary arteries narrow
+      - text: Vegetations are loosely attached to the endocardium and break off easily
+        correct: true
+    explanation: Vegetations or their fragments are loosely attached to the endocardium and break off easily, so more than a third of patients develop embolic complications.
+    cite: [2]

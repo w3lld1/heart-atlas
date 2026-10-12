@@ -1,0 +1,263 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowFlow = `${uid}-dlp-arrow-flow`;
+const arrowInto = `${uid}-dlp-arrow-into`;
+// A straight artery cut lengthwise: upper wall, lumen (y 82–176), lower wall. Only the lower wall
+// changes. LDL particles sit in the lumen; in disease there are more of them, some go into the
+// lower wall and stay there, and a lipid deposit (early plaque) forms that barely narrows the lumen.
+const particle = {
+  r: 5,
+  stroke: 'var(--color-text)',
+  'stroke-width': 1,
+  fill: 'var(--diagram-plaque)',
+};
+// Still particles, visible with and without motion. The labelled one sits at the top of the lumen
+// (70,92), above every moving row, so the flow never crosses it or its leader.
+const normalStill = [
+  { x: 165, y: 140 },
+  { x: 255, y: 112 },
+  { x: 320, y: 150 },
+];
+const diseaseStill = [
+  { x: 40, y: 138 },
+  { x: 112, y: 120 },
+  { x: 150, y: 148 },
+  { x: 285, y: 104 },
+  { x: 300, y: 150 },
+  { x: 335, y: 124 },
+];
+// Particles held in the wall inside the deposit.
+const retained = [
+  { x: 185, y: 190 },
+  { x: 208, y: 201 },
+  { x: 226, y: 186 },
+  { x: 252, y: 198 },
+];
+// Moving particles along the lumen: row and a negative delay so the flow is already running.
+const normalFlow = [
+  { y: 106, delay: 0 },
+  { y: 128, delay: -1.7 },
+  { y: 156, delay: -3.4 },
+];
+const diseaseFlow = [
+  { y: 136, delay: 0 },
+  { y: 112, delay: -0.8 },
+  { y: 128, delay: -1.7 },
+  { y: 144, delay: -2.5 },
+  { y: 152, delay: -3.4 },
+  { y: 106, delay: -4.2 },
+];
+// Particles that leave the lumen, enter the lower wall and stay. They start at y 120 and stop at
+// y 188 (keyframe translate 68px), in free space of the deposit between the retained particles.
+const entering = [
+  { x: 200, delay: 0 },
+  { x: 240, delay: -1.6 },
+];
+const lowerWallTop = 'M0,176 H140 C170,176 180,168 215,168 C250,168 260,176 290,176 H360';
+---
+
+<svg viewBox="0 0 360 268" role="img" aria-label={t['diagram.dyslipidemia.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowFlow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowInto}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lumen with blood, then the upper wall and its smooth inner surface -->
+  <rect x="0" y="82" width="360" height="94" fill="var(--diagram-arterial-fill)"></rect>
+  <rect x="0" y="36" width="360" height="46" fill="var(--diagram-muscle)"></rect>
+  <line x1="0" y1="82" x2="360" y2="82" stroke="var(--diagram-arterial)" stroke-width="2"></line>
+
+  <!-- Lower wall: smooth in normal; in disease it rises slightly over the deposit -->
+  <g class="normal-only">
+    <rect x="0" y="176" width="360" height="50" fill="var(--diagram-muscle)"></rect>
+    <line
+      x1="0"
+      y1="176"
+      x2="360"
+      y2="176"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></line>
+  </g>
+  <g class="disease-only">
+    <path d={`${lowerWallTop} V226 H0 Z`} fill="var(--diagram-muscle)"></path>
+    <path d={lowerWallTop} fill="none" stroke="var(--diagram-arterial)" stroke-width="2"></path>
+    <!-- Lipids deposited in the wall: the early plaque -->
+    <ellipse
+      cx="215"
+      cy="192"
+      rx="60"
+      ry="16"
+      fill="var(--diagram-plaque)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    {retained.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...particle} />
+    ))}
+  </g>
+
+  <!-- Blood flow along the artery, visible with and without motion -->
+  <path
+    d="M12,166 H104"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowFlow})`}
+  ></path>
+
+  <!-- LDL particles in the blood: a few in normal, more in disease -->
+  <circle cx="70" cy="92" {...particle} />
+  <g class="normal-only">
+    {normalStill.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...particle} />
+    ))}
+  </g>
+  <g class="disease-only">
+    {diseaseStill.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...particle} />
+    ))}
+    <!-- Particles go from the blood into the wall: the arrows carry this without motion -->
+    {entering.map(({ x }) => (
+      <path
+        d={`M${x},124 V171`}
+        stroke="var(--color-text)"
+        stroke-width="2"
+        stroke-dasharray="4 3"
+        fill="none"
+        marker-end={`url(#${arrowInto})`}
+      />
+    ))}
+  </g>
+
+  <!-- Moving particles -->
+  <g class="flow">
+    <g class="normal-only">
+      {normalFlow.map(({ y, delay }) => (
+        <circle
+          class="dlp-flow"
+          cx="-10"
+          cy={y}
+          {...particle}
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseFlow.map(({ y, delay }) => (
+        <circle
+          class="dlp-flow"
+          cx="-10"
+          cy={y}
+          {...particle}
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+      {entering.map(({ x, delay }) => (
+        <circle
+          class="dlp-enter"
+          cx={x}
+          cy="120"
+          {...particle}
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <line x1="70" y1="28" x2="70" y2="85" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="8" y="22">
+    {t['diagram.label.ldl-particles']}
+  </text>
+  <line x1="326" y1="28" x2="326" y2="58" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="352" y="22" text-anchor="end">
+    {t['diagram.label.wall']}
+  </text>
+  <g class="disease-only">
+    <line x1="215" y1="210" x2="215" y2="238" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="215" y="256" text-anchor="middle">
+      {t['diagram.label.early-plaque']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .dlp-flow {
+    animation: dlp-flow 5s linear infinite;
+  }
+
+  .diagram .dlp-enter {
+    animation: dlp-enter 3.2s ease-in-out infinite;
+  }
+
+  @keyframes dlp-flow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6%,
+    92% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(380px, 0);
+    }
+  }
+
+  /* A particle leaves the blood, goes into the wall and stays there for a while. */
+  @keyframes dlp-enter {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    12% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    55%,
+    85% {
+      opacity: 1;
+      transform: translate(0, 68px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 68px);
+    }
+  }
+</style>
