@@ -1,9 +1,11 @@
 import AorticDissection from './AorticDissection.astro';
+import AorticRegurgitation from './AorticRegurgitation.astro';
 import AorticStenosis from './AorticStenosis.astro';
 import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
+import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
@@ -16,23 +18,28 @@ import HolterMonitor from './HolterMonitor.astro';
 import Hypertension from './Hypertension.astro';
 import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
+import LongQtSyndrome from './LongQtSyndrome.astro';
 import MitralRegurgitation from './MitralRegurgitation.astro';
 import Myocarditis from './Myocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
+import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
 import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
+import VentricularTachycardia from './VentricularTachycardia.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
   'aortic-dissection': AorticDissection,
+  'aortic-regurgitation': AorticRegurgitation,
   'aortic-stenosis': AorticStenosis,
   'atrial-fibrillation': AtrialFibrillation,
   'atrial-septal-defect': AtrialSeptalDefect,
   'av-block': AvBlock,
   'blood-flow': BloodFlow,
+  'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
   'coronary-heart-disease': CoronaryHeartDisease,
@@ -45,14 +52,17 @@ export const diagrams = {
   hypertension: Hypertension,
   'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
   'infective-endocarditis': InfectiveEndocarditis,
+  'long-qt-syndrome': LongQtSyndrome,
   'mitral-regurgitation': MitralRegurgitation,
   myocarditis: Myocarditis,
   'natriuretic-peptides': NatriureticPeptides,
+  'patent-ductus-arteriosus': PatentDuctusArteriosus,
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
   'supraventricular-tachycardia': SupraventricularTachycardia,
   'tetralogy-of-fallot': TetralogyOfFallot,
   'ventricular-septal-defect': VentricularSeptalDefect,
+  'ventricular-tachycardia': VentricularTachycardia,
 } as const;
 
 export type DiagramName = keyof typeof diagrams;

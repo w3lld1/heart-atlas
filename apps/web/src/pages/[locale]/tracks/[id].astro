@@ -1,30 +1,11 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
 import { localePath } from '../../../i18n/paths.ts';
-import { articlePages } from '../../../lib/articles.ts';
-import { trackSteps } from '../../../lib/tracks.ts';
+import { foreign, trackRoutes } from '../../../lib/track-routes.ts';
 
-export const getStaticPaths = (async () => {
-  const articles = articlePages(await getCollection('articles'), locales);
-  const tracks = articlePages(await getCollection('tracks'), locales);
-  const same = (slug: string) => tracks.filter((other) => other.slug === slug);
-  return tracks.map((page) => ({
-    params: { locale: page.locale, id: page.slug },
-    props: {
-      track: page.entry.data,
-      contentLocale: page.contentLocale,
-      steps: trackSteps(page.entry.data, page.locale, articles),
-      pageLocales: same(page.slug).map((other) => other.locale),
-      translatedLocales: same(page.slug)
-        .filter((other) => other.locale === other.contentLocale)
-        .map((other) => other.locale),
-    },
-  }));
-}) satisfies GetStaticPaths;
+export const getStaticPaths = (() => trackRoutes()) satisfies GetStaticPaths;
 
 const { locale, id } = Astro.params;
 const { track, contentLocale, steps, pageLocales, translatedLocales } = Astro.props;
@@ -33,9 +14,7 @@ const base = import.meta.env.BASE_URL;
 const fallback = contentLocale !== locale;
 // A fallback page points search engines at the original track.
 const canonical = new URL(localePath(base, contentLocale, `tracks/${id}/`), Astro.site);
-/** lang and dir for text written in another language than the page. */
-const langOf = (code: string) =>
-  code === locale ? {} : { lang: code, dir: locales[code]?.dir ?? 'ltr' };
+const langOf = (code: string) => foreign(code, locale);
 ---
 
 <BaseLayout
@@ -57,20 +36,51 @@ const langOf = (code: string) =>
   <h1 {...langOf(contentLocale)}>{track.title}</h1>
   <p {...langOf(contentLocale)}>{track.description}</p>
   <p class="track-meta">{t[`tracks.level.${track.level}`]}</p>
-  <ol class="track-steps">
-    {steps.map((step) => (
-      <li class="track-step">
-        {/* The language goes on the text, not the <li>: its marker follows the page direction. */}
-        <div {...langOf(step.contentLocale)}>
-          <a href={localePath(base, locale, `${step.type}/${step.slug}/`)}>
-            {step.entry.data.title}
+  {/* Filled by the script from the reader's progress; without JavaScript the list is enough. */}
+  <p
+    class="track-continue"
+    hidden
+    data-track-continue
+    data-start={t['tracks.start']}
+    data-continue={t['tracks.continue']}
+    data-finished={t['tracks.finished']}
+  ></p>
+  <ol class="track-steps" data-track-steps>
+    {steps.map((step, index) => (
+      <li class="track-step" data-key={step.key}>
+        <div {...langOf(step.page.contentLocale)}>
+          <a
+            id={`track-step-${index}`}
+            href={`${localePath(base, locale, `${step.path}/`)}?track=${id}`}
+          >
+            {step.page.entry.data.title}
           </a>
-          <p>{step.entry.data.description}</p>
+          <p>{step.page.entry.data.description}</p>
+        </div>
+        <div class="track-progress">
+          <label class="track-read" hidden>
+            {/* Every box says "Read"; its name adds the step title to tell them apart. */}
+            <input type="checkbox" aria-labelledby={`track-read-${index} track-step-${index}`} />
+            <span id={`track-read-${index}`}>{t['tracks.read']}</span>
+          </label>
+          {step.quiz && (
+            <span class="track-quiz" hidden>
+              {t['tracks.quizDone']}
+            </span>
+          )}
         </div>
       </li>
     ))}
   </ol>
 </BaseLayout>
+
+<script>
+  import { initTrackPage } from '../../../lib/track-page.ts';
+
+  const list = document.querySelector<HTMLElement>('[data-track-steps]');
+  const next = document.querySelector<HTMLElement>('[data-track-continue]');
+  if (list && next) initTrackPage(list, next);
+</script>
 
 <style>
   .track-up {
@@ -102,5 +112,36 @@ const langOf = (code: string) =>
 
   .track-step p {
     margin-block: 0.25rem 0;
+  }
+
+  .track-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    margin-block-start: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .track-read {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+  }
+
+  .track-read[hidden],
+  .track-quiz[hidden] {
+    display: none;
+  }
+
+  .track-quiz {
+    padding-block: 0.125rem;
+    padding-inline: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-notice-bg);
+  }
+
+  .track-continue a {
+    font-weight: 600;
   }
 </style>

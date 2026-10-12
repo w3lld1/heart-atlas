@@ -6,6 +6,7 @@ import { articleComponents } from '../../../components/article-components.ts';
 import LevelScript from '../../../components/LevelScript.astro';
 import LevelSwitch from '../../../components/LevelSwitch.astro';
 import ReviewNotice from '../../../components/ReviewNotice.astro';
+import TrackStep from '../../../components/TrackStep.astro';
 import SourceList from '../../../components/SourceList.astro';
 import ArticleClock from '../../../components/heart-clock/ArticleClock.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
@@ -60,7 +61,8 @@ const disease = type === 'disease' && isDiseaseId(slug) ? slug : undefined;
   searchable={translated}
 >
   <LevelScript slot="head" />
-  {!translated && <link slot="head" rel="canonical" href={canonical} />}
+  {/* Always: track links add ?track=<id>, and a fallback page points at the original. */}
+  <link slot="head" rel="canonical" href={canonical} />
   <ReviewNotice
     locale={locale}
     review={article.review}
@@ -95,6 +97,7 @@ const disease = type === 'disease' && isDiseaseId(slug) ? slug : undefined;
     />
   )}
   <SourceList locale={locale} sources={article.sources} checked={article.sources_checked} />
+  <TrackStep locale={locale} path={`${type}/${slug}`} />
 </BaseLayout>
 
 <style>

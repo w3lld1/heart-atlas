@@ -1,0 +1,247 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ar-arrow`;
+// Both states show diastole: the left ventricle relaxes and fills from the left atrium through the
+// open mitral valve, and the aortic valve should be closed. The heart is drawn in its own
+// coordinates and shifted right by 170; labels sit in the free column on the left.
+// Aortic cusps hang from the annulus (x = 60 and 120, y = 175) and belly towards the ventricle.
+const closedCusps = ['M60,175 Q76,184 89,186', 'M120,175 Q104,184 91,186'];
+// In regurgitation the cusps stop short of each other and leave a gap (x = 82–98).
+const gapCusps = ['M60,175 Q72,181 82,183', 'M120,175 Q108,181 98,183'];
+// Mitral leaflets lie open along the inflow, from the annulus (x = 175 and 235, y = 175).
+const mitralOpen = ['M175,175 Q178,196 184,214', 'M235,175 Q232,196 226,214'];
+// Paths of the blood, shared by the arrows and the moving particles.
+const flow = {
+  // From the left atrium through the open mitral valve into the ventricle.
+  inflow: 'M205,96 L205,252',
+  // From the aorta back through the gap into the ventricle, towards the apex.
+  back: 'M90,40 L90,186 L112,262',
+};
+// Particles: start position and delay so the second one trails the first.
+const inflow = [
+  { y: 100, delay: 0 },
+  { y: 100, delay: 0.6 },
+];
+const back = [{ delay: 0 }, { delay: 0.6 }];
+---
+
+<svg
+  viewBox="0 0 460 335"
+  role="img"
+  aria-label={t['diagram.aortic-regurgitation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Phase of the cardiac cycle: the same in both states -->
+  <text x="8" y="22">
+    {t['diagram.state.diastole']}
+  </text>
+
+  <g transform="translate(170 0)">
+    <!-- Left ventricle wall: the same in both states. The outline keeps it visible on the page
+         background in both themes. -->
+    <path
+      d="M40,165 L268,165 C284,214 258,300 150,322 C42,300 22,214 40,165 Z"
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></path>
+
+    <!-- Left atrium -->
+    <ellipse
+      cx="205"
+      cy="84"
+      rx="58"
+      ry="46"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+
+    <!-- Left ventricle cavity, the opening to the atrium and the aorta as one lumen -->
+    <path
+      d="M60,28 L120,28 L120,175 L175,175 L175,118 L235,118 L235,175 L246,175 C258,214 238,284 150,302 C62,284 46,214 60,175 Z"
+      fill="var(--diagram-arterial-fill)"
+    ></path>
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+      <path d="M60,28 L60,175 C46,214 62,284 150,302 C238,284 258,214 246,175 L235,175"></path>
+      <path d="M120,28 L120,175 L175,175"></path>
+      <!-- Sides of the opening between atrium and ventricle, up to where the atrium outline meets them -->
+      <path d="M175,121 L175,175 M235,121 L235,175"></path>
+    </g>
+
+    <!-- Flow arrows, visible with and without motion -->
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+      <path d={flow.inflow} stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+      <g class="disease-only">
+        <!-- The regurgitant jet fans out into the ventricle -->
+        <path
+          d="M84,186 L96,186 L130,268 L92,278 Z"
+          fill="var(--diagram-arterial)"
+          fill-opacity="0.25"
+          stroke-width="1"
+          stroke-dasharray="3 2"
+        ></path>
+        <path d={flow.back} stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+      </g>
+    </g>
+
+    <!-- Aortic cusps: closed in the normal state, a gap between them in regurgitation -->
+    <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+      {closedCusps.map((d) => (
+        <path class="normal-only" d={d} />
+      ))}
+      {gapCusps.map((d) => (
+        <path class="disease-only" d={d} />
+      ))}
+      <!-- Mitral leaflets: open in diastole, in both states -->
+      {mitralOpen.map((d) => (
+        <path d={d} stroke-width="4" />
+      ))}
+    </g>
+    <circle cx="60" cy="175" r="3.5" fill="var(--color-muted)"></circle>
+    <circle cx="120" cy="175" r="3.5" fill="var(--color-muted)"></circle>
+
+    <!-- Moving blood: always from the atrium into the ventricle, and in regurgitation also back
+         from the aorta -->
+    <g class="flow">
+      {inflow.map((p) => (
+        <circle
+          class="ar-p ar-p-inflow"
+          cx="205"
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${p.delay}s`}
+        />
+      ))}
+      <g class="disease-only">
+        {back.map((p) => (
+          <circle
+            class="ar-p ar-p-back"
+            cx="90"
+            cy="44"
+            r="5"
+            fill="var(--diagram-arterial)"
+            style={`animation-delay: ${p.delay}s`}
+          />
+        ))}
+      </g>
+    </g>
+
+    <!-- Chamber and vessel labels inside the drawing -->
+    <text x="90" y="20" text-anchor="middle">
+      {t['diagram.label.aorta']}
+    </text>
+    <text x="205" y="30" text-anchor="middle">
+      {t['diagram.label.la']}
+    </text>
+    <text x="166" y="278" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+  </g>
+
+  <!-- Labels in the left column with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="150" y1="167" x2="238" y2="178"></line>
+    <line class="disease-only" x1="120" y1="250" x2="272" y2="250"></line>
+  </g>
+  <text class="diagram-small" x="8" y="172">
+    {t['diagram.label.aortic-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="8" y="190">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="190">
+    {t['diagram.label.leaflets-gap']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="254">
+    {t['diagram.label.backflow']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ar-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .ar-p-inflow {
+    animation: ar-inflow 2.4s linear infinite;
+  }
+
+  .diagram .ar-p-back {
+    animation: ar-back 2.4s linear infinite;
+  }
+
+  /* Diastole: blood runs from the atrium through the open mitral valve into the ventricle. */
+  @keyframes ar-inflow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    8%,
+    70% {
+      opacity: 1;
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 140px);
+    }
+  }
+
+  /* Regurgitation: in the same diastole, blood falls back from the aorta through the gap between
+     the cusps and runs on towards the apex. */
+  @keyframes ar-back {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    8% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 1;
+      transform: translate(0, 142px);
+    }
+
+    70% {
+      opacity: 1;
+      transform: translate(14px, 190px);
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+      transform: translate(17px, 200px);
+    }
+  }
+</style>
