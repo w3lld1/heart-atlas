@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
-import { changedShare, MOVING } from './pixels.ts';
+import { canvasChangedShare, changedShare, MOVING } from './pixels.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
@@ -55,7 +55,7 @@ test.describe('live heart on the home page', () => {
     await expect(page.locator('[data-poster]')).toHaveAttribute('aria-hidden', 'true');
     await expect(page.locator('[data-load3d]')).toBeHidden();
     await expect
-      .poll(() => changedShare(page.locator('[data-hero-mount]')), { timeout: 30_000 })
+      .poll(() => canvasChangedShare(page.locator('[data-hero-mount] canvas')), { timeout: 30_000 })
       .toBeGreaterThan(MOVING);
     // Still for axe: a beating, turning heart keeps a software GPU and axe's page script slow.
     await page.locator('[data-set-motion="off"]').click();

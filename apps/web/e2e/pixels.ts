@@ -41,3 +41,46 @@ export async function changedShare(target: Locator, gapMs = 150): Promise<number
 
 /** Above this share of changed pixels the picture is moving. */
 export const MOVING = 0.01;
+
+/**
+ * Share of a WebGL canvas's pixels that differ noticeably between two of its frames `gapMs`
+ * apart, read in the page. Unlike `changedShare` it takes no screenshots: under SwiftShader a
+ * busy scene draws about one frame a second and every screenshot waits for a fresh frame, so two
+ * screenshots alone can take longer than a test's poll. Only for a canvas that draws every frame:
+ * the pixels are read in the frame after the request, right after the scene's own frame callback
+ * (registered earlier) has drawn, before the browser clears the drawing buffer.
+ */
+export async function canvasChangedShare(canvas: Locator, gapMs = 300): Promise<number> {
+  return canvas.evaluate(async (element, gap) => {
+    if (!(element instanceof HTMLCanvasElement)) throw new Error('Not a canvas');
+    const read = () =>
+      new Promise<Uint8ClampedArray>((resolve, reject) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const copy = new OffscreenCanvas(element.width, element.height);
+            const context = copy.getContext('2d');
+            if (!context) {
+              reject(new Error('No 2D context'));
+              return;
+            }
+            context.drawImage(element, 0, 0);
+            resolve(context.getImageData(0, 0, copy.width, copy.height).data);
+          }),
+        ),
+      );
+    const p = await read();
+    await new Promise((resolve) => setTimeout(resolve, gap));
+    const q = await read();
+    let changed = 0;
+    let drawn = 0;
+    for (let i = 0; i < p.length; i += 4) {
+      if ((p[i + 3] ?? 0) > 0) drawn++;
+      let d = 0;
+      for (let c = 0; c < 4; c++) d = Math.max(d, Math.abs((p[i + c] ?? 0) - (q[i + c] ?? 0)));
+      if (d > 16) changed++;
+    }
+    // An empty read means the buffer was already cleared: fail loudly rather than report "still".
+    if (drawn === 0) throw new Error('Read an empty canvas');
+    return changed / (p.length / 4);
+  }, gapMs);
+}
