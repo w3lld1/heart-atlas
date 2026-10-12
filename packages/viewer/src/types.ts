@@ -39,14 +39,16 @@ export const viewerMessageKeys = [
   'viewer.disease.note',
   'viewer.disease.sources',
   'viewer.disease.marker.atrial-septal-defect',
-  'viewer.disease.heart-failure',
-  'viewer.disease.atrial-fibrillation',
   'viewer.disease.coronary-heart-disease',
   'viewer.disease.hypertension',
-  'viewer.disease.aortic-stenosis',
   'viewer.disease.hypertrophic-cardiomyopathy',
   'viewer.disease.dilated-cardiomyopathy',
   'viewer.disease.atrial-septal-defect',
+  'viewer.disease.heart-failure.beat',
+  'viewer.disease.atrial-fibrillation.beat',
+  'viewer.disease.coronary-heart-disease.beat',
+  'viewer.disease.aortic-stenosis.beat',
+  'viewer.disease.dilated-cardiomyopathy.beat',
 ] as const;
 
 export type ViewerMessageKey = (typeof viewerMessageKeys)[number];

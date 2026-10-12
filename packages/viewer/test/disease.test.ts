@@ -1,10 +1,13 @@
 import { presetIds } from '@heart-atlas/heart-clock';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { viewerMessageKeys } from '../src/types.ts';
 import {
   diseaseIds,
   diseaseShapes,
+  hasStillSigns,
   isDiseaseId,
+  ZONE_FADE,
   nearestDistances,
   presetShape,
   zoneWeight,
@@ -42,8 +45,9 @@ describe('disease shapes', () => {
 
   it('gives every drawn sign a source', () => {
     for (const id of diseaseIds) {
-      const { sources, ...signs } = diseaseShapes[id];
-      if (Object.keys(signs).length === 0) continue;
+      const { sources, beat, ...signs } = diseaseShapes[id];
+      // A sign from a clock preset is sourced in the presets spec.
+      if (Object.keys(signs).length === 0 && beat !== true) continue;
       expect(sources.article.length + (sources.extra?.length ?? 0), id).toBeGreaterThan(0);
     }
   });
@@ -55,10 +59,51 @@ describe('disease shapes', () => {
       file.indexOf('export const presetShape'),
     );
     const lines = block.split('\n');
-    lines.forEach((line, i) => {
-      if (/\b(motion|scale|aorticOpening): (?!1\b)[\d.]+/.test(line)) {
-        expect(lines.slice(Math.max(0, i - 2), i + 1).join('\n'), line).toMatch(/assumption/);
+    // A number other than a plain 1 (normal), so 1.15 counts.
+    const number = /\b(motion|scale|aorticOpening): (?!1(?![\d.]))[\d.]+/;
+    const hits = lines.flatMap((line, i) => (number.test(line) ? [i] : []));
+    expect(hits.length).toBeGreaterThanOrEqual(3);
+    for (const i of hits) {
+      expect(lines.slice(Math.max(0, i - 2), i + 1).join('\n'), lines[i]).toMatch(/assumption/);
+    }
+  });
+
+  it('names only structures the model has', () => {
+    const root = new URL('../../../', import.meta.url);
+    const yaml = readFileSync(new URL('assets/models/heart/structures.yaml', root), 'utf8');
+    const ids = new Set([...yaml.matchAll(/^- id: (\S+)/gm)].map((m) => m[1]));
+    const names = [
+      ...diseaseIds.flatMap((id) => {
+        const shape = diseaseShapes[id];
+        return [...(shape.tint ?? []), ...(shape.enlarge?.with ?? []), shape.marker ?? []].flat();
+      }),
+      ...Object.values(ZONE_FADE).map((z) => z.near),
+      'left-ventricle',
+    ];
+    for (const name of names) expect(ids, name).toContain(name);
+  });
+
+  it('cites sources the article has', () => {
+    const root = new URL('../../../content/', import.meta.url);
+    for (const id of diseaseIds) {
+      for (const locale of ['en', 'ru']) {
+        const text = readFileSync(new URL(`${locale}/disease/${id}.mdx`, root), 'utf8');
+        const front = text.split('---')[1] ?? '';
+        const count = front.match(/^ {2}- tier:/gm)?.length ?? 0;
+        for (const n of diseaseShapes[id].sources.article) {
+          expect(n, `${locale}/${id}`).toBeLessThanOrEqual(count);
+        }
       }
-    });
+    }
+  });
+
+  it('has a caption for every sign it can show', () => {
+    const keys = new Set<string>(viewerMessageKeys);
+    for (const id of diseaseIds) {
+      const shape = diseaseShapes[id];
+      if (hasStillSigns(shape)) expect(keys, id).toContain(`viewer.disease.${id}`);
+      if (shape.beat) expect(keys, id).toContain(`viewer.disease.${id}.beat`);
+      if (shape.marker) expect(keys, id).toContain(`viewer.disease.marker.${id}`);
+    }
   });
 });

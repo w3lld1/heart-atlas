@@ -40,6 +40,11 @@ export interface DiseaseShape {
   aorticOpening?: number;
   /** Zone id that gets a marker next to it. */
   marker?: string;
+  /**
+   * A sign seen only while the heart beats: `true` when the viewer draws it (zone motion, valve),
+   * a preset id when it comes from the heart clock running that preset.
+   */
+  beat?: true | PresetId;
   /** How the sign was sourced; `extra` sources are shown under the model. */
   sources: { article: number[]; extra?: DiseaseSource[] };
 }
@@ -48,9 +53,10 @@ const LV = 'left-ventricle';
 
 export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
   // Weak contraction and resting atria come from the heart clock preset itself.
-  'heart-failure': { sources: { article: [] } },
-  'atrial-fibrillation': { sources: { article: [] } },
+  'heart-failure': { beat: 'heart-failure', sources: { article: [] } },
+  'atrial-fibrillation': { beat: 'atrial-fibrillation', sources: { article: [] } },
   'coronary-heart-disease': {
+    beat: true,
     // assumption: how much less the zone moves; the source says only that its motion is abnormal.
     zone: { kind: 'inferior', motion: 0.3 },
     sources: {
@@ -70,7 +76,7 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
   // The model's ventricles are cavity surfaces, so a thick wall is shown by colour, not by shape.
   hypertension: { tint: [LV], sources: { article: [2] } },
   // assumption: the share of the normal opening; the model does not compute the valve area.
-  'aortic-stenosis': { aorticOpening: 0.4, sources: { article: [3] } },
+  'aortic-stenosis': { aorticOpening: 0.4, beat: true, sources: { article: [3] } },
   'hypertrophic-cardiomyopathy': {
     tint: [LV],
     zone: { kind: 'septal', motion: 1 },
@@ -80,10 +86,15 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
     // assumption: the size, kept small enough not to cut into the right ventricle.
     enlarge: { scale: 1.15, with: ['left-papillary-muscles', 'mitral-valve'] },
     tint: [LV],
+    beat: 'heart-failure',
     sources: { article: [1, 2] },
   },
   'atrial-septal-defect': { marker: 'interatrial-septum', sources: { article: [1] } },
 };
+
+/** Whether the shape changes the model at rest, so its still caption applies without a heartbeat. */
+export const hasStillSigns = (shape: DiseaseShape): boolean =>
+  Boolean(shape.tint ?? shape.zone ?? shape.enlarge ?? shape.marker);
 
 /** Shape shown for each heart clock preset on a page that follows the clock. */
 export const presetShape: Record<PresetId, DiseaseId | null> = {
@@ -97,12 +108,12 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
 };
 
 /**
- * Distances in model space (metres) over which a zone fades from full to none. In heart-lod0 the
- * nearest left ventricle point is 8.7 mm from the right coronary artery and 5 mm from the right
+ * Distances in model space (metres) over which a zone fades from full to none. In heart.glb the
+ * nearest left ventricle vertex is 7.9 mm from the right coronary artery and 2.1 mm from the right
  * ventricle (the septum between the cavities).
  */
 export const ZONE_FADE: Record<ZoneKind, { near: string; full: number; none: number }> = {
-  // assumption: widths for visibility. The right coronary artery supplies the inferior wall.
+  // assumption: widths for visibility. The right coronary artery usually supplies the inferior wall.
   inferior: { near: 'right-coronary-artery', full: 0.012, none: 0.02 },
   // The septal part of the left ventricle is the part next to the right ventricle.
   septal: { near: 'right-ventricle', full: 0.008, none: 0.013 },

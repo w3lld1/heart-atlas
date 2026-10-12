@@ -280,7 +280,7 @@ function addZoneWeights(lv: Mesh, scene: Object3D) {
     const target = scene.getObjectByName(near);
     const weights = new Float32Array(points.length / 3);
     if (target instanceof Mesh) {
-      const distances = nearestDistances(points, worldPositions(target), none * 2);
+      const distances = nearestDistances(points, worldPositions(target), none);
       distances.forEach((d, i) => (weights[i] = zoneWeight(d, full, none)));
     }
     geometry.setAttribute(attribute, new BufferAttribute(weights, 1));
@@ -415,9 +415,10 @@ function Model({ onLoaded, ...props }: ModelProps) {
       const kind = shape?.zone?.kind;
       deform.uZoneSelect.value.set(kind === 'inferior' ? 1 : 0, kind === 'septal' ? 1 : 0);
       deform.uZoneMotion.value = shape?.zone?.motion ?? 1;
-      deform.uZoneMix.value = kind ? ZONE_MIX : 0;
+      // The reader's highlight wins over the zone colour too.
+      deform.uZoneMix.value = kind && !props.highlighted.has(LV) ? ZONE_MIX : 0;
     }
-  }, [meshes, props.disease]);
+  }, [meshes, props.disease, props.highlighted]);
   // The canvas draws on demand: any change of props (highlight, cut position, label) needs a frame.
   useEffect(() => invalidate());
 
@@ -480,7 +481,12 @@ function Model({ onLoaded, ...props }: ModelProps) {
     const node = props.disease?.marker ? scene.getObjectByName(props.disease.marker) : undefined;
     return node ? node.getWorldPosition(new Vector3()) : null;
   }, [scene, props.disease]);
-  const markerShown = marker !== null && (!cutting || plane.distanceToPoint(marker) >= 0);
+  // Hidden while the reader isolates structures or has the marked zone's label on the same spot.
+  const markerShown =
+    marker !== null &&
+    !isolating &&
+    props.labelFor !== props.disease?.marker &&
+    (!cutting || plane.distanceToPoint(marker) >= 0);
 
   // three's raycaster ignores visibility, clipping and opacity, so pick the first hit the reader
   // can actually see: not hidden, not cut away and not a see-through chamber.
