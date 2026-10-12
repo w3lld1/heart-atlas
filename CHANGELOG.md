@@ -4,11 +4,11 @@ All notable changes to Heart Atlas are listed here. The format follows [Keep a C
 
 ## [0.3.0] - 2026-10-12
 
-Five new disease articles, quizzes at the end of 27 articles and the first learning tracks. The 3D heart moves into the articles, every page gets the new header and footer, and the animation setting now reaches the whole site.
+Ten new disease articles, quizzes at the end of 27 articles and the first learning tracks. The 3D heart moves into the articles, every page gets the new header and footer, and the animation setting now reaches the whole site.
 
 ### Articles
 
-- New disease articles in Russian and English, each with a normal/disease diagram: tetralogy of Fallot, atrioventricular block and supraventricular tachycardia ([#142](https://github.com/w3lld1/heart-atlas/pull/142)), aortic dissection ([#146](https://github.com/w3lld1/heart-atlas/pull/146)) and dyslipidaemia ([#153](https://github.com/w3lld1/heart-atlas/pull/153)). The site now has nineteen disease articles.
+- New disease articles in Russian and English, each with a normal/disease diagram: tetralogy of Fallot, atrioventricular block and supraventricular tachycardia ([#142](https://github.com/w3lld1/heart-atlas/pull/142)), aortic dissection ([#146](https://github.com/w3lld1/heart-atlas/pull/146)), dyslipidaemia ([#153](https://github.com/w3lld1/heart-atlas/pull/153)), coarctation of the aorta, patent ductus arteriosus, ventricular tachycardia and long QT syndrome ([#157](https://github.com/w3lld1/heart-atlas/pull/157)), and aortic regurgitation, which also shows the 3D model with the aortic valve highlighted ([#161](https://github.com/w3lld1/heart-atlas/pull/161)). The site now has twenty-four disease articles.
 
 ### Design
 
