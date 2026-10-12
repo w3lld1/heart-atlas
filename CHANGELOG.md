@@ -27,6 +27,7 @@ Five new disease articles, quizzes at the end of 27 articles and the first learn
 
 - Quizzes: an article can end with a "Check yourself" block of questions with answers explained by the article's own sources, scored for the reader's level and remembered in the browser ([#137](https://github.com/w3lld1/heart-atlas/pull/137)). 27 articles in Russian and English have one: six anatomy, four diagnostic and seventeen disease articles ([#150](https://github.com/w3lld1/heart-atlas/pull/150)).
 - Learning tracks: the new "Tracks" menu item lists articles to read in order. The first three are "How the heart works", "ECG and heart tests" and "Heart conditions for patients" ([#147](https://github.com/w3lld1/heart-atlas/pull/147)).
+- Track progress: each step of a track can be marked as read, a passed quiz shows on the track, and a link leads to the next unread article. An article opened from a track ends with its step in the track and links to the previous and next steps. Marks are kept only in the reader's browser ([#162](https://github.com/w3lld1/heart-atlas/pull/162)).
 
 ### Fixed
 
