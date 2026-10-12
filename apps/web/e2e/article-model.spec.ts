@@ -27,6 +27,8 @@ test.describe('3D model in a disease article without signs on the model', () => 
       'tricuspid-valve',
       'pulmonary-valve',
     ],
+    'av-block': ['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch'],
+    'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {
