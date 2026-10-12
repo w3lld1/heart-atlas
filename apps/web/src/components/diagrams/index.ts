@@ -1,3 +1,4 @@
+import AorticDissection from './AorticDissection.astro';
 import AorticStenosis from './AorticStenosis.astro';
 import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
@@ -22,6 +23,7 @@ import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
+  'aortic-dissection': AorticDissection,
   'aortic-stenosis': AorticStenosis,
   'atrial-fibrillation': AtrialFibrillation,
   'atrial-septal-defect': AtrialSeptalDefect,

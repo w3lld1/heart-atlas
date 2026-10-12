@@ -351,5 +351,12 @@
   "diagram.label.leaflets-closed": "Leaflets closed",
   "diagram.label.leaflets-gap": "Leaflets do not close",
   "diagram.label.la-enlarged": "LA enlarged in severe regurgitation",
-  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation"
+  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation",
+  "diagram.label.intima": "Intima",
+  "diagram.label.media": "Media",
+  "diagram.label.adventitia": "Adventitia",
+  "diagram.label.intimal-tear": "Intimal tear",
+  "diagram.label.true-lumen": "True lumen",
+  "diagram.label.false-lumen": "False lumen",
+  "diagram.aortic-dissection.title": "Diagram of the aorta cut lengthwise: normally the three-layer wall is intact and blood flows in one lumen; in aortic dissection blood passes through an intimal tear into the middle layer of the wall, and a flap of intima separates the true lumen from the false lumen"
 }
