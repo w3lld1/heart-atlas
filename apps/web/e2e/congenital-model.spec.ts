@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
+import ru from '../src/i18n/messages/ru.json' with { type: 'json' };
 import { axe } from './axe.ts';
 
 // Headless Chromium has WebGL only through SwiftShader, which recent versions enable on request.
@@ -56,20 +57,32 @@ test.describe('congenital heart model', () => {
 test.describe('congenital heart model in its article', () => {
   test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
 
-  test('the tetralogy of Fallot article shows the model with the four features', async ({
-    page,
-  }) => {
-    await page.goto('en/disease/tetralogy-of-fallot/');
+  for (const [locale, t] of [
+    ['en', en],
+    ['ru', ru],
+  ] as const) {
+    test(`the tetralogy of Fallot article (${locale}) shows the model with the four features`, async ({
+      page,
+    }) => {
+      await page.goto(`${locale}/disease/tetralogy-of-fallot/`);
+      const figure = page.locator('figure', { hasText: t['congenital.source'] });
+      for (const n of [1, 2, 3, 4] as const) {
+        await expect(figure).toContainText(t[`congenital.tetralogy-of-fallot.sign${n}`]);
+      }
+      const load = figure.getByRole('button', { name: t['viewer.load'] });
+      await load.scrollIntoViewIfNeeded();
+      await expect(figure.locator('astro-island')).not.toHaveAttribute('ssr');
+      expect((await axe(page).analyze()).violations).toEqual([]);
+      await load.click();
+      const model = figure.getByRole('application', { name: t['viewer.canvasLabel'] });
+      await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
+    });
+  }
+
+  test('the embed of the article shows the model and its features', async ({ page }) => {
+    await page.goto('en/embed/disease/tetralogy-of-fallot/');
     const figure = page.locator('figure', { hasText: en['congenital.source'] });
-    for (const n of [1, 2, 3, 4] as const) {
-      await expect(figure).toContainText(en[`congenital.tetralogy-of-fallot.sign${n}`]);
-    }
-    const load = figure.getByRole('button', { name: en['viewer.load'] });
-    await load.scrollIntoViewIfNeeded();
-    await expect(figure.locator('astro-island')).not.toHaveAttribute('ssr');
+    await expect(figure).toContainText(en['congenital.tetralogy-of-fallot.sign3']);
     expect((await axe(page).analyze()).violations).toEqual([]);
-    await load.click();
-    const model = figure.getByRole('application', { name: en['viewer.canvasLabel'] });
-    await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
   });
 });
