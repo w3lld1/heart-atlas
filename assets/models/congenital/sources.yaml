@@ -9,6 +9,6 @@ tetralogy-of-fallot:
   sha256: cfce90ed18d86855a890215d12f54d36ad01a253649bd52cd27291c961663e33
   center_on: myocardium
   meshes:
-    - { node: Myo, id: myocardium, keep: 0.13 }
-    - { node: BP, id: blood-pool, keep: 0.17 }
-    - { node: Lungs, id: lungs, keep: 0.025 }
+    - { node: Myo, id: myocardium, keep: 0.15 }
+    - { node: BP, id: blood-pool, keep: 0.2 }
+    # Lungs are left out: their segmentation is full of vessel spikes that hide the heart when cut.

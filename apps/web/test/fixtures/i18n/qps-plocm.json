@@ -240,6 +240,7 @@
   "viewer.group.coronary-artery": "[RTL] Coronary arteries",
   "viewer.group.cardiac-vein": "[RTL] Cardiac veins",
   "viewer.group.conduction": "[RTL] Conduction system",
+  "viewer.group.layer": "[RTL] Model layers",
   "viewer.heartbeat.start": "[RTL] Start the heartbeat",
   "viewer.heartbeat.stop": "[RTL] Stop the heartbeat",
   "viewer.heartbeat.rate": "[RTL] Heart rate",
@@ -351,5 +352,9 @@
   "diagram.label.leaflets-closed": "[RTL] Leaflets closed",
   "diagram.label.leaflets-gap": "[RTL] Leaflets do not close",
   "diagram.label.la-enlarged": "[RTL] LA enlarged in severe regurgitation",
-  "diagram.mitral-regurgitation.title": "[RTL] Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation"
+  "diagram.mitral-regurgitation.title": "[RTL] Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation",
+  "structure.myocardium": "[RTL] Heart muscle (myocardium)",
+  "structure.blood-pool": "[RTL] Blood in the chambers and vessels",
+  "congenital.tetralogy-of-fallot.caption": "[RTL] The heart of a patient with tetralogy of Fallot, a model built from MRI scans in the NIH 3D Heart Library. It is one person's heart: in other patients the shape and size differ. NIH did not take part in Heart Atlas and does not endorse it.",
+  "congenital.source": "[RTL] Model record in the NIH 3D Heart Library"
 }

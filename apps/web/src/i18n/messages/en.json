@@ -240,6 +240,7 @@
   "viewer.group.coronary-artery": "Coronary arteries",
   "viewer.group.cardiac-vein": "Cardiac veins",
   "viewer.group.conduction": "Conduction system",
+  "viewer.group.layer": "Model layers",
   "viewer.heartbeat.start": "Start the heartbeat",
   "viewer.heartbeat.stop": "Stop the heartbeat",
   "viewer.heartbeat.rate": "Heart rate",
@@ -351,5 +352,9 @@
   "diagram.label.leaflets-closed": "Leaflets closed",
   "diagram.label.leaflets-gap": "Leaflets do not close",
   "diagram.label.la-enlarged": "LA enlarged in severe regurgitation",
-  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation"
+  "diagram.mitral-regurgitation.title": "Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation",
+  "structure.myocardium": "Heart muscle (myocardium)",
+  "structure.blood-pool": "Blood in the chambers and vessels",
+  "congenital.tetralogy-of-fallot.caption": "The heart of a patient with tetralogy of Fallot, a model built from MRI scans in the NIH 3D Heart Library. It is one person's heart: in other patients the shape and size differ. NIH did not take part in Heart Atlas and does not endorse it.",
+  "congenital.source": "Model record in the NIH 3D Heart Library"
 }

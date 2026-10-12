@@ -73,3 +73,9 @@ it('every congenital model has a pinned source', () => {
     expect(entry?.derived_from?.map((d) => d.sha256)).toContain(source?.sha256);
   }
 });
+
+it('every congenital model has a poster for the viewer', () => {
+  for (const m of MODELS.filter((model) => model.source.startsWith('congenital/'))) {
+    expect(m.poster && existsSync(join(assetsDir, m.poster))).toBe(true);
+  }
+});

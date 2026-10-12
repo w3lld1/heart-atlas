@@ -31,6 +31,7 @@ export const viewerMessageKeys = [
   'viewer.group.coronary-artery',
   'viewer.group.cardiac-vein',
   'viewer.group.conduction',
+  'viewer.group.layer',
   'viewer.heartbeat.start',
   'viewer.heartbeat.stop',
   'viewer.heartbeat.rate',
@@ -97,4 +98,9 @@ export interface HeartViewerProps {
   cycle?: 'own' | 'page';
   /** Disease article id whose signs the model shows: docs/plans/2026-10-12-disease-signs-3d.md. */
   disease?: DiseaseId;
+  /**
+   * Section shown on load. Congenital models open cut, since their defects are inside the heart:
+   * docs/plans/2026-10-12-congenital-models.md.
+   */
+  section?: SectionAxis;
 }

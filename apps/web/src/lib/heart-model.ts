@@ -4,7 +4,10 @@ import type { ViewerMessages, ViewerModels, ViewerStructure } from '@heart-atlas
 import { viewerMessageKeys } from '@heart-atlas/viewer';
 import anchorsJson from '../../../../assets/models/heart/anchors.json';
 import licensesYaml from '../../../../assets/models/LICENSES.yaml?raw';
+import congenitalStructuresYaml from '../../../../assets/models/congenital/structures.yaml?raw';
+import congenitalSourcesYaml from '../../../../assets/models/congenital/sources.yaml?raw';
 import structuresYaml from '../../../../assets/models/heart/structures.yaml?raw';
+import { parse } from 'yaml';
 import type { Messages } from '../i18n/messages.ts';
 
 /** Files written by `pnpm models` (packages/models/src/build.ts) into public/models/. */
@@ -28,6 +31,45 @@ export function heroPoster(): {
   anchors: Partial<Record<string, { x: number; y: number; pixels: number }>>;
 } {
   return anchorsJson;
+}
+
+/** Congenital models built by packages/models (MODELS in build.ts): docs/plans/2026-10-12-congenital-models.md. */
+export const congenitalModelIds = ['tetralogy-of-fallot'] as const;
+export type CongenitalModelId = (typeof congenitalModelIds)[number];
+
+export function isCongenitalModelId(id: string): id is CongenitalModelId {
+  return (congenitalModelIds as readonly string[]).includes(id);
+}
+
+/** LOD files and poster of a congenital model, written by `pnpm models` into public/models/. */
+export function congenitalModelUrls(
+  base: string,
+  id: CongenitalModelId,
+): { models: ViewerModels; poster: string } {
+  return {
+    models: { high: `${base}models/${id}-lod0.glb`, low: `${base}models/${id}-lod1.glb` },
+    poster: `${base}models/${id}-poster.webp`,
+  };
+}
+
+/** The NIH 3D Heart Library record a congenital model comes from (congenital/sources.yaml). */
+export function congenitalModelEntry(id: CongenitalModelId): string {
+  const sources = parse(congenitalSourcesYaml) as Record<string, { entry?: unknown }>;
+  const entry = sources[id]?.entry;
+  if (typeof entry !== 'string' || !entry.startsWith('https://')) {
+    throw new Error(`congenital/sources.yaml has no entry URL for ${id}`);
+  }
+  return entry;
+}
+
+/** Layers of the congenital models, with names in the reader's language. */
+export function congenitalStructures(t: Messages): ViewerStructure[] {
+  return parseStructures(congenitalStructuresYaml).map((s) => ({
+    id: s.id,
+    label: t[`structure.${s.id}` as keyof Messages] ?? s.id,
+    group: s.group,
+    kind: s.kind,
+  }));
 }
 
 /** Ids of the structures in the given groups of structures.yaml. */
@@ -66,12 +108,12 @@ export function heartAttribution(file = 'heart/heart.glb'): string {
 }
 
 /** Viewer strings for a locale, with the model source filled into the attribution line. */
-export function viewerMessages(t: Messages): ViewerMessages {
+export function viewerMessages(t: Messages, modelFile = 'heart/heart.glb'): ViewerMessages {
   const messages = Object.fromEntries(
     viewerMessageKeys.map((key) => [key, t[key]]),
   ) as ViewerMessages;
   // A function, so `$` patterns in the data are never read as replacement syntax.
-  const source = heartAttribution();
+  const source = heartAttribution(modelFile);
   messages['viewer.attribution'] = messages['viewer.attribution'].replace('{source}', () => source);
   return messages;
 }

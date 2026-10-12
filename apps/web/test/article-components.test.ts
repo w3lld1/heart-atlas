@@ -9,6 +9,7 @@ import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Student from '../src/components/Student.astro';
+import CongenitalModel from '../src/components/viewer/CongenitalModel.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
 
 let container: AstroContainer;
@@ -178,5 +179,15 @@ describe('HeartModel', () => {
         props: { locale: 'en', highlight: ['mitral-valve', 'no-such-part'] },
       }),
     ).rejects.toThrow('unknown structure "no-such-part"');
+  });
+});
+
+describe('CongenitalModel', () => {
+  it('fails the build for an unknown model', async () => {
+    await expect(
+      container.renderToString(CongenitalModel, {
+        props: { locale: 'en', model: 'no-such-model' },
+      }),
+    ).rejects.toThrow('unknown model "no-such-model"');
   });
 });
