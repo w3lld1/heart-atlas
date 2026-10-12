@@ -16,7 +16,7 @@ const text = (locale: string, key: string): string => messages(locale)[key] ?? k
 /** Every built page of a locale, as paths relative to the base URL. */
 const builtPages = (locale: string): string[] =>
   readdirSync(new URL(`../dist/${locale}/`, import.meta.url), { recursive: true })
-    .map(String)
+    .map((file) => String(file).replaceAll('\\', '/'))
     .filter((file) => file === 'index.html' || file.endsWith('/index.html'))
     .map((file) => `${locale}/${file.slice(0, -'index.html'.length)}`)
     .sort();
@@ -92,6 +92,8 @@ for (const locale of localeCodes) {
     });
 
     test('no page scrolls sideways at 320 px', async ({ page }) => {
+      // At this width the 3D viewers wait for a tap, so this loop never starts WebGL next to the
+      // webgl project.
       test.slow();
       await page.setViewportSize({ width: 320, height: 640 });
       const paths = builtPages(locale);
