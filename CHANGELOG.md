@@ -2,6 +2,30 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-12
+
+The 3D heart moves into the articles, every page gets the new header and footer, and the animation setting now reaches the whole site.
+
+### Design
+
+- A new header on every page: the heart mark, the site name and a short tagline, search, the animation switch and languages, and a section menu that marks the current section. The footer keeps the medical disclaimer and adds section and project links ([#139](https://github.com/w3lld1/heart-atlas/pull/139)).
+- The home page moves: the ECG in the column runs, the cards float with their lines, blood runs along the vessels and the section pictures move. With animation off nothing moves, the heart clock does not start by itself and article diagrams stand still ([#125](https://github.com/w3lld1/heart-atlas/pull/125)).
+
+### 3D anatomy
+
+- Disease articles show the 3D model with the signs of the disease; in articles with a heart clock preset the model beats with the monitor. On the heart clock page the model follows the chosen preset ([#119](https://github.com/w3lld1/heart-atlas/pull/119)).
+- Anatomy articles show the 3D heart with the structures they describe already highlighted; in "Cardiac cycle" it beats with the article's ECG ([#133](https://github.com/w3lld1/heart-atlas/pull/133)).
+- The articles on ventricular septal defect, mitral regurgitation, pulmonary embolism and infective endocarditis show the 3D heart with the place their text names highlighted ([#136](https://github.com/w3lld1/heart-atlas/pull/136)).
+- The home page credits the source of the 3D model, and the Japanese credit line is marked as Japanese for screen readers here, in the viewer and in embeds ([#140](https://github.com/w3lld1/heart-atlas/pull/140)).
+
+### Learning
+
+- Groundwork for quizzes: an article can end with a "Check yourself" block of questions with answers explained by the article's own sources, scored for the reader's level and remembered in the browser. No article has a quiz yet ([#137](https://github.com/w3lld1/heart-atlas/pull/137)).
+
+### Fixed
+
+- The site build now checks every internal link, and the weekly link check no longer reports working article links as broken ([#129](https://github.com/w3lld1/heart-atlas/pull/129)).
+
 ## [0.2.0] - 2026-10-12
 
 A new home page with the live 3D heart, a site-wide animation setting, and four more disease articles.
@@ -65,5 +89,6 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.3.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.3.0
 [0.2.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.2.0
 [0.1.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.1.0
