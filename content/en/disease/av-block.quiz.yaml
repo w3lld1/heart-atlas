@@ -41,7 +41,7 @@ questions:
     explanation: In Mobitz type I the PR interval lengthens from beat to beat until the atrial impulse is not conducted and the QRS complex is dropped; the next conducted beat has the shortest PR interval, and the sequence repeats.
     cite: [1, 2]
   - level: student
-    prompt: In third-degree block, which escape rhythm produces wide QRS complexes and a slower, unreliable heart rate?
+    prompt: In third-degree block, which escape rhythm produces wider QRS complexes and a slower, unreliable heart rate?
     options:
       - text: One originating above the bifurcation of the His bundle
       - text: One originating below the bifurcation of the His bundle
