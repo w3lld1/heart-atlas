@@ -48,7 +48,11 @@ test.describe('3D model in a disease article without signs on the model', () => 
 
   test('a structure word in a diagram caption highlights it on the model', async ({ page }) => {
     await page.goto('en/disease/av-block/');
-    await page.getByRole('radio', { name: en['diagram.state.normal'] }).check();
+    // The ECG monitor's preset switch has a "Normal" radio too.
+    await page
+      .getByRole('group', { name: en['diagram.state'] })
+      .getByRole('radio', { name: en['diagram.state.normal'] })
+      .check();
     await page.getByRole('button', { name: /^atrioventricular node/ }).click();
     const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
     await expect(selected).toContainText(en['structure.av-node']);
