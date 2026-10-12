@@ -1,6 +1,6 @@
 // Reading progress of learning tracks, kept in the reader's browser.
 // Spec: docs/plans/2026-10-12-stage-6-quizzes-tracks.md ("Учебные треки").
-import { quizStorageKey, type QuizResults } from './quiz-client.ts';
+import { quizStorageKey, type QuizResults } from './quiz-storage.ts';
 
 /** One step of a track, as the track page and its steps.json describe it. */
 export type TrackStep = {

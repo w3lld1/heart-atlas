@@ -33,7 +33,7 @@ const base = import.meta.env.BASE_URL;
     <input type="checkbox" />
     {t['tracks.read']}
   </label>
-  <ul class="track-step-links">
+  <ul class="track-step-links" hidden>
     <li class="track-step-previous" hidden></li>
     <li class="track-step-next" hidden></li>
   </ul>
@@ -59,6 +59,7 @@ const base = import.meta.env.BASE_URL;
   }
 
   .track-step[hidden],
+  .track-step-links[hidden],
   .track-step-links li[hidden] {
     display: none;
   }

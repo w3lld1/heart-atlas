@@ -40,6 +40,12 @@ export async function initTrackStep(block: HTMLElement, id: string): Promise<voi
   if (box) {
     box.checked = isRead(step.key);
     box.addEventListener('change', () => setRead(step.key, box.checked));
+    // A mark made on the track page or in another tab shows here too.
+    const refresh = () => (box.checked = isRead(step.key));
+    addEventListener('storage', refresh);
+    addEventListener('pageshow', (event) => {
+      if (event.persisted) refresh();
+    });
   }
 
   const links: [HTMLElement | null, string, TrackData['steps'][number] | undefined][] = [
@@ -55,5 +61,7 @@ export async function initTrackStep(block: HTMLElement, id: string): Promise<voi
     holder.replaceChildren(link);
     holder.hidden = false;
   }
+  const list = block.querySelector<HTMLElement>('.track-step-links');
+  if (list) list.hidden = data.steps.length < 2;
   block.hidden = false;
 }

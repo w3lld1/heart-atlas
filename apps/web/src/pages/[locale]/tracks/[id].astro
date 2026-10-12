@@ -59,9 +59,9 @@ const langOf = (code: string) => foreign(code, locale);
         </div>
         <div class="track-progress">
           <label class="track-read" hidden>
-            {/* Every box says "Read"; the step title tells them apart. */}
-            <input type="checkbox" aria-describedby={`track-step-${index}`} />
-            {t['tracks.read']}
+            {/* Every box says "Read"; its name adds the step title to tell them apart. */}
+            <input type="checkbox" aria-labelledby={`track-read-${index} track-step-${index}`} />
+            <span id={`track-read-${index}`}>{t['tracks.read']}</span>
           </label>
           {step.quiz && (
             <span class="track-quiz" hidden>

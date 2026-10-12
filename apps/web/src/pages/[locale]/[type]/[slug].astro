@@ -61,7 +61,8 @@ const disease = type === 'disease' && isDiseaseId(slug) ? slug : undefined;
   searchable={translated}
 >
   <LevelScript slot="head" />
-  {!translated && <link slot="head" rel="canonical" href={canonical} />}
+  {/* Always: track links add ?track=<id>, and a fallback page points at the original. */}
+  <link slot="head" rel="canonical" href={canonical} />
   <ReviewNotice
     locale={locale}
     review={article.review}

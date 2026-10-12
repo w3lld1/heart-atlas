@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { quizStorageKey } from '../src/lib/quiz-client.ts';
 import {
   isQuizDone,
   isRead,
@@ -56,6 +57,15 @@ describe('isQuizDone', () => {
       JSON.stringify({ student: { correct: 2, total: 4, date: '2026-10-12' } }),
     );
     expect(isQuizDone('ru/disease/x', store)).toBe(true);
+  });
+
+  it('reads the key the quiz writes', () => {
+    const store = memoryStore();
+    store.setItem(
+      quizStorageKey('en/anatomy/y'),
+      JSON.stringify({ patient: { correct: 1, total: 1, date: '' } }),
+    );
+    expect(isQuizDone('en/anatomy/y', store)).toBe(true);
   });
 
   it('is false for broken data or blocked storage', () => {

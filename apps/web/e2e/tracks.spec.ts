@@ -58,8 +58,10 @@ test.describe('track progress', () => {
       'href',
       /\/ru\/disease\/test-condition\/\?track=test-track$/,
     );
-    const boxes = page.getByRole('checkbox', { name: ru['tracks.read'] });
+    const boxes = page.getByRole('checkbox', { name: new RegExp(`^${ru['tracks.read']} `) });
     await expect(boxes).toHaveCount(2);
+    // Each box is named after its step.
+    await expect(boxes.first()).toHaveAccessibleName(`${ru['tracks.read']} Тестовое состояние`);
     await expect(page.locator('.track-quiz:visible')).toHaveCount(0);
 
     await boxes.first().check();
@@ -81,6 +83,10 @@ test.describe('track progress', () => {
 
     await boxes.nth(1).check();
     await expect(next).toHaveText(ru['tracks.finished']);
+    // The English fallback step is stored under the article the reader actually read.
+    expect(
+      await page.evaluate(() => localStorage.getItem('ha:read:en/disease/another-condition')),
+    ).not.toBeNull();
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
   });
@@ -109,7 +115,7 @@ test.describe('track progress', () => {
 
     // The mark made under the article shows on the track page.
     await block.getByRole('link', { name: 'Тестовый трек' }).click();
-    await expect(page.getByRole('checkbox', { name: ru['tracks.read'] }).first()).toBeChecked();
+    await expect(page.locator('.track-read input').first()).toBeChecked();
   });
 
   test('without the parameter the article loads neither the block nor its data', async ({
