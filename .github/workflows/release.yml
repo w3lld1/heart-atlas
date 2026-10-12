@@ -1,9 +1,13 @@
 name: Release
 
-# Run from the Actions tab on main after the version bump and its CHANGELOG section are merged.
-# Tags v<version> from the root package.json on the current commit and publishes a GitHub
-# Release whose notes are that version's CHANGELOG section.
+# Tags v<version> from the root package.json on the current commit of main and publishes a GitHub
+# Release whose notes are that version's CHANGELOG section. Runs by itself when a push to main
+# changes package.json and its version has no tag yet (merging a version bump releases it), or
+# from the Actions tab.
 on:
+  push:
+    branches: [main]
+    paths: [package.json]
   workflow_dispatch:
 
 permissions:
@@ -22,32 +26,44 @@ jobs:
         run: |
           echo "::error::run this workflow on main"; exit 1
       - uses: actions/checkout@v5
-      - name: Read version and notes
-        id: notes
+      - name: Read the version
+        id: version
         run: |
           version=$(jq -r .version package.json)
           if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "::error::package.json version '$version' is not semver"; exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # An existing tag would make gh reuse it and ignore --target. A push that changed
+          # package.json without a new version (a dependency, a script) is not a release.
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            if [ "$GITHUB_EVENT_NAME" = push ]; then
+              echo "v$version is already released; nothing to do"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::tag v$version already exists"; exit 1
+            fi
+          fi
+      - name: Read the notes
+        if: steps.version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
           # The section runs from "## [<version>] - <date>" to the next "## " heading or link list.
-          awk -v v="$version" '
+          awk -v v="$VERSION" '
             index($0, "## [" v "] - ") == 1 { found = 1; next }
             found && (/^## / || /^\[[^]]+\]: /) { exit }
             found { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
           if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
-            echo "::error::CHANGELOG.md has no dated section for $version"; exit 1
+            echo "::error::CHANGELOG.md has no dated section for $VERSION"; exit 1
           fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Create the tag and release
+        if: steps.version.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.notes.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          # An existing tag would make gh reuse it and ignore --target.
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
-            echo "::error::tag v$VERSION already exists"; exit 1
-          fi
           prerelease=()
           if [[ "$VERSION" == *-* ]]; then prerelease=(--prerelease); fi
           gh release create "v$VERSION" --target "$GITHUB_SHA" --title "Heart Atlas $VERSION" \

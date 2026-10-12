@@ -48,7 +48,7 @@ Add an entry to the locale registry `apps/web/src/i18n/locales.ts`, translate `a
 ## Releasing
 
 1. In one PR, set `version` in the root `package.json` and add a dated section `## [<version>] - YYYY-MM-DD` to [`CHANGELOG.md`](CHANGELOG.md), with its link at the bottom.
-2. After it is merged, run the **Release** workflow (`.github/workflows/release.yml`) on `main` from the Actions tab. It tags `v<version>` on that commit and publishes a GitHub Release with the changelog section as notes. It fails if the section is missing or the release already exists.
+2. Merging it is the release: the **Release** workflow (`.github/workflows/release.yml`) runs on the push to `main`, tags `v<version>` on that commit and publishes a GitHub Release with the changelog section as notes. It fails if the section is missing, and does nothing if the version is already tagged. It can also be run by hand from the Actions tab.
 
 ## Using Claude Code
 
