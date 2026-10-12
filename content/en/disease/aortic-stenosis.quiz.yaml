@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What is the most common cause of aortic stenosis in adults?
+    options:
+      - text: A hole in the wall between the atria
+      - text: Calcium building up on the valve leaflets
+        correct: true
+      - text: High pressure in the lung blood vessels
+    explanation: In adults the most common cause is calcium building up on the valve leaflets. This happens both in a normal valve with three leaflets and in a valve with two leaflets that a person is born with.
+    cite: [3]
+  - level: patient
+    prompt: What is the most common first sign of aortic stenosis?
+    options:
+      - text: A skin rash
+      - text: A runny nose
+      - text: Breathlessness on exertion, or finding exercise harder to manage
+        correct: true
+    explanation: The most common first sign is breathlessness on exertion, or finding that exercise has become harder to manage.
+    cite: [2]
+  - level: patient
+    prompt: What is the main treatment for severe aortic stenosis?
+    options:
+      - text: Replacing the valve
+        correct: true
+      - text: A heart transplant
+      - text: Fitting a pacemaker
+    explanation: The main treatment for severe aortic stenosis is replacing the valve. This is done either by open-heart surgery or through a blood vessel using a catheter (TAVI).
+    cite: [2, 3, 4]
+  - level: patient
+    prompt: A person with aortic stenosis has fainted. What should you do?
+    options:
+      - text: Wait for the next planned visit to the cardiologist
+      - text: Call your local emergency number
+        correct: true
+      - text: Nothing, fainting is harmless in aortic stenosis
+    explanation: Aortic stenosis can suddenly decompensate, even to the point of cardiogenic shock. If a person with aortic stenosis faints, has severe chest pain or sudden severe breathlessness, call your local emergency number.
+    cite: [1, 2]
+  - level: student
+    prompt: What does stage C of aortic stenosis mean in the ACC/AHA guideline?
+    options:
+      - text: Progressive AS
+      - text: Symptomatic severe AS
+      - text: Asymptomatic severe AS
+        correct: true
+    explanation: 'ACC/AHA stages: A, at risk of AS; B, progressive AS; C, asymptomatic severe AS; D, symptomatic severe AS.'
+    cite: [2]
+  - level: student
+    prompt: Which aortic Vmax defines severe high-gradient AS according to ACC/AHA?
+    options:
+      - text: 4 m/s or more
+        correct: true
+      - text: 2 m/s or more
+    explanation: Severe high-gradient AS according to ACC/AHA is an aortic Vmax ≥4 m/s or a mean gradient ≥40 mm Hg.
+    cite: [2]

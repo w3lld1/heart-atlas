@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What happens to the heart in dilated cardiomyopathy (DCM)?
+    options:
+      - text: The left ventricle becomes enlarged and contracts less well
+        correct: true
+      - text: The aortic opening narrows
+      - text: A hole appears in the wall between the atria
+    explanation: DCM is a genetic or acquired disease of the heart muscle in which the left ventricle (or both ventricles) becomes enlarged and contracts less well.
+    cite: [2]
+  - level: patient
+    prompt: Can DCM be inherited?
+    options:
+      - text: No, it never runs in families
+      - text: Yes, 20–40% of cases run in families
+        correct: true
+      - text: Yes, it is always inherited and nothing else
+    explanation: DCM can be inherited, and 20–40% of cases run in families. It can also be caused by other factors.
+    cite: [2, 3]
+  - level: patient
+    prompt: Which symptoms usually occur in DCM when there are symptoms?
+    options:
+      - text: Yellow skin and itching
+      - text: A runny nose and sneezing
+      - text: Breathlessness, tiring easily, swelling of the shins and ankles
+        correct: true
+    explanation: When symptoms do occur, they are usually signs of heart failure, such as breathlessness, breathlessness when lying flat, attacks of breathlessness at night, tiring easily, and swelling of the shins and ankles.
+    cite: [2, 3]
+  - level: patient
+    prompt: On what principles is DCM treated?
+    options:
+      - text: On the same principles as heart failure
+        correct: true
+      - text: A heart transplant is done straight after diagnosis
+      - text: There is no treatment
+    explanation: DCM is treated on the same principles as heart failure. A heart transplant is considered if the disease does not respond to all available treatment.
+    cite: [3]
+  - level: student
+    prompt: Which reduction in LVEF is a criterion for DCM in the Russian Ministry of Health guideline?
+    options:
+      - text: Markedly (≤40%) or moderately (41–49%) reduced
+        correct: true
+      - text: The ejection fraction is not reduced in DCM
+    explanation: According to the Russian Ministry of Health guideline, one criterion for DCM is a markedly (≤40%) or moderately (41–49%) reduced left ventricular ejection fraction.
+    cite: [2]
+  - level: student
+    prompt: How often does sudden cardiac death occur in DCM?
+    options:
+      - text: 'Never: DCM has no such complication'
+      - text: In about 12% of patients
+        correct: true
+      - text: In all patients
+    explanation: Sudden cardiac death occurs in about 12% of patients with DCM.
+    cite: [2]
