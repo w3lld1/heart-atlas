@@ -24,7 +24,7 @@ export function heartModelUrls(base: string): {
 export function heroPoster(): {
   width: number;
   height: number;
-  anchors: Partial<Record<string, { x: number; y: number }>>;
+  anchors: Partial<Record<string, { x: number; y: number; pixels: number }>>;
 } {
   return anchorsJson;
 }

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { axe } from './axe.ts';
 
@@ -73,6 +74,50 @@ for (const locale of Object.keys(productionLocales)) {
       expect(overflow).toBe(0);
     });
 
+    for (const width of [1000, 1300, 1440]) {
+      test(`keeps the cards off the heart and the hint at ${width} px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 1000 });
+        await page.goto(`${locale}/`);
+        const box = (selector: string) =>
+          page.locator(selector).evaluateAll((els) =>
+            els.map((el) => {
+              const r = el.getBoundingClientRect();
+              return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+            }),
+          );
+        const overlap = (
+          a: { left: number; right: number; top: number; bottom: number },
+          b: typeof a,
+        ) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+        const [hint] = await box('.hint');
+        const [poster] = await box('[data-poster]');
+        if (!hint || !poster) throw new Error('No hint or poster');
+        // The poster's transparent margins may run under the cards: the heart itself takes
+        // x 135–646 and y 169–880 of the 800 × 880 picture.
+        const w = poster.right - poster.left;
+        const h = poster.bottom - poster.top;
+        const heart = {
+          left: poster.left + w * 0.17,
+          right: poster.right - w * 0.19,
+          top: poster.top + h * 0.19,
+          bottom: poster.bottom,
+        };
+        for (const card of await box('.node')) {
+          expect(overlap(card, hint)).toBe(false);
+          expect(overlap(card, heart)).toBe(false);
+        }
+      });
+    }
+
+    test('loads no 3D code', async ({ page }) => {
+      const scripts: Promise<string>[] = [];
+      page.on('response', (response) => {
+        if (response.url().endsWith('.js')) scripts.push(response.text());
+      });
+      await page.goto(`${locale}/`, { waitUntil: 'networkidle' });
+      for (const text of await Promise.all(scripts)) expect(text).not.toContain('WebGLRenderer');
+    });
+
     for (const colorScheme of ['light', 'dark'] as const) {
       test(`has no axe violations (${colorScheme})`, async ({ page }) => {
         await page.emulateMedia({ colorScheme });
@@ -81,6 +126,26 @@ for (const locale of Object.keys(productionLocales)) {
         expect(results.violations).toEqual([]);
       });
     }
+  });
+}
+
+for (const motion of ['full', 'calm', 'off', 'reduced'] as const) {
+  test(`home page has no axe violations with motion ${motion}`, async ({ page }) => {
+    if (motion === 'reduced') await page.emulateMedia({ reducedMotion: 'reduce' });
+    else {
+      await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [
+        MOTION_STORAGE_KEY,
+        motion,
+      ] as const);
+    }
+    await page.goto('ru/');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-motion',
+      motion === 'reduced' ? 'off' : motion,
+    );
+    await expect(page.locator('[data-poster]')).toBeVisible();
+    const results = await axe(page).analyze();
+    expect(results.violations).toEqual([]);
   });
 }
 

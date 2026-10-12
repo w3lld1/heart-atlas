@@ -20,9 +20,9 @@ import { FOV, HOME, TARGET } from '@heart-atlas/viewer/camera';
 import { assetsDir } from '../src/paths.ts';
 import { parseStructures } from '../src/structures.ts';
 
-/** Poster size in pixels; the home page shows it at half size, so it stays sharp on 2x screens. */
-export const POSTER_WIDTH = 640;
-export const POSTER_HEIGHT = 704;
+/** Poster size in pixels: twice the largest size the home page shows it at (25rem), for 2x screens. */
+export const POSTER_WIDTH = 800;
+export const POSTER_HEIGHT = 880;
 const QUALITY = 0.86;
 
 const require = createRequire(import.meta.url);
@@ -78,7 +78,8 @@ const owner = (o) => { for (let p = o; p; p = p.parent) if (ids.has(p.name)) ret
 gltf.scene.traverse((o) => {
   if (!o.isMesh) return;
   const n = owner(o);
-  o.material = new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB((n & 255) / 255, 0, 0, THREE.LinearSRGBColorSpace) });
+  // Both sides, like the model's own materials, so open meshes hide what is behind them.
+  o.material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: new THREE.Color().setRGB((n & 255) / 255, 0, 0, THREE.LinearSRGBColorSpace) });
 });
 const target = new THREE.WebGLRenderTarget(s.width, s.height);
 renderer.toneMapping = THREE.NoToneMapping;

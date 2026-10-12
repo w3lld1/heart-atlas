@@ -133,7 +133,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
           {t['home.fact.articlesNote']}
         </li>
         <li>
-          <b>{localeCodes.join(' · ')}</b>
+          <b>{localeCodes.map((code) => locales[code]?.name ?? code).join(' · ')}</b>
           {t['home.fact.languagesNote']}
         </li>
         <li>
@@ -276,7 +276,13 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     svg.classList.add('drawn');
   }
 
-  if (stage) new ResizeObserver(draw).observe(stage);
+  if (stage) {
+    // Cards change size when the web fonts arrive, so lines are drawn again then too.
+    const observer = new ResizeObserver(draw);
+    observer.observe(stage);
+    for (const node of stage.querySelectorAll('.node')) observer.observe(node);
+    void document.fonts.ready.then(draw);
+  }
 </script>
 
 <style>
@@ -329,7 +335,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
   /* Hero: copy | stage | side column. */
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr) minmax(0, 13rem);
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr) minmax(0, 12rem);
     gap: 0.75rem;
     align-items: start;
   }
@@ -467,6 +473,9 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
 
   /* Stage: body backdrop, poster of the heart, cards around it with lines to their structures. */
   .stage {
+    /* Width of the cards on either side of the heart; the poster takes the space between them. */
+    --card-w: 14.375rem;
+
     position: relative;
     block-size: 40rem;
   }
@@ -480,6 +489,9 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     inset-inline-start: 50%;
     inline-size: 51.25rem;
     translate: -50% 0;
+
+    /* Fades out by the bottom of the stage, so no text below it runs over the drawing. */
+    mask-image: linear-gradient(to bottom, #000 60%, transparent 76%);
     pointer-events: none;
   }
 
@@ -506,8 +518,8 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     inset-block-start: 3rem;
     inset-inline-start: 50%;
 
-    /* Fits between the cards on either side. */
-    inline-size: clamp(16rem, 100% - 22rem, 25rem);
+    /* Fits between the cards on either side; its transparent margins may run under them. */
+    inline-size: clamp(16rem, 100% - 2 * var(--card-w) + 4rem, 25rem);
     block-size: auto;
     translate: -50% 0;
     mask-image: linear-gradient(to bottom, #000 82%, transparent);
@@ -559,7 +571,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
   .node-slot {
     position: absolute;
     pointer-events: auto;
-    inline-size: 14.375rem;
+    inline-size: var(--card-w);
   }
 
   .slot-anatomy {
@@ -678,11 +690,23 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
   }
 
   .tags {
-    flex: none;
+    flex: 0 1 auto;
     padding-inline-end: 1rem;
     border-inline-end: 1px solid var(--color-border);
     color: var(--color-text);
     font-weight: 500;
+  }
+
+  /* Touch screens have no pointer to point at a card with. */
+  @media (hover: none) {
+    .hint-text {
+      display: none;
+    }
+
+    .tags {
+      padding-inline-end: 0;
+      border-inline-end: 0;
+    }
   }
 
   /* Side column. */
@@ -806,9 +830,10 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     }
   }
 
-  @media (width <= 80rem) {
+  /* Copy | stage, the side column becomes a row under them. */
+  @media (width < 90rem) {
     .hero {
-      grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
     }
 
     .side {
@@ -828,9 +853,24 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     }
   }
 
+  /* Copy on top, the stage under it at full width. */
+  @media (width <= 80rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .copy {
+      max-inline-size: 44rem;
+    }
+
+    .backdrop {
+      inset-block-start: 0;
+    }
+  }
+
   @media (width <= 67.5rem) {
-    .node-slot {
-      inline-size: 12.5rem;
+    .stage {
+      --card-w: 12.5rem;
     }
 
     .node {
@@ -856,9 +896,11 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
       padding-block: 25rem 0.5rem;
     }
 
+    /* Fades out at the top too, so it never runs behind the copy above the stage. */
     .backdrop {
       inset-block-start: -9.5rem;
       inline-size: 40rem;
+      mask-image: linear-gradient(to bottom, transparent 22%, #000 40%, #000 70%, transparent 90%);
     }
 
     .glow {

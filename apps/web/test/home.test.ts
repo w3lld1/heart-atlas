@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages } from '../src/i18n/messages.ts';
@@ -29,7 +30,11 @@ describe('formatCount', () => {
   it('has a valid count message in every locale', () => {
     for (const locale of localeCodes) {
       const t = getMessages(locale);
-      for (const key of ['home.fact.articles', 'home.card.diseaseNote'] as const) {
+      const keys = (Object.keys(t) as (keyof typeof t)[]).filter((key) =>
+        t[key].includes('{count'),
+      );
+      expect(keys.length).toBeGreaterThan(3);
+      for (const key of keys) {
         expect(formatCount(t[key], locale, 7)).toMatch(/7/);
         expect(formatCount(t[key], locale, 7)).not.toMatch(/[{}]/);
       }
@@ -41,6 +46,12 @@ describe('bodyArt', () => {
   it('draws the same body on every build', () => {
     expect(bodyArt()).toEqual(bodyArt());
     expect(bodyArt(8)).not.toEqual(bodyArt());
+  });
+
+  it('draws the reviewed picture', () => {
+    // Changes only when the drawing is changed on purpose: then look at it and update the hash.
+    const hash = createHash('sha256').update(JSON.stringify(bodyArt())).digest('hex');
+    expect(hash).toBe('4e5bae6da93de5b75fc8c520150956e53bc6c20d35a27b563b63ec9501f74f45');
   });
 
   it('keeps every vessel point inside the picture', () => {
@@ -93,6 +104,8 @@ describe('cards around the heart', () => {
       expect(anchor?.x).toBeLessThan(1);
       expect(anchor?.y).toBeGreaterThan(0);
       expect(anchor?.y).toBeLessThan(1);
+      // Enough of it shows for the line to land on it (the sinoatrial node is the smallest).
+      expect(anchor?.pixels, card.anchor).toBeGreaterThanOrEqual(20);
     }
   });
 
