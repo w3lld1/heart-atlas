@@ -25,7 +25,11 @@ async function loadModel(page: Page) {
 }
 
 test.describe('disease signs on the 3D model', () => {
+  // Real disease articles; the HA_TEST_CONTENT build has fixture articles instead. The heart clock
+  // page test below runs in both builds.
+  const articles = process.env['HA_TEST_CONTENT'] === '1';
   test('a disease article without a preset shows the model and its caption', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
     await page.goto('en/disease/hypertrophic-cardiomyopathy/');
     const section = page.getByRole('region', { name: en['heartClock.inModel'] });
     await expect(section.getByRole('heading', { name: en['heartClock.model3d'] })).toBeVisible();
@@ -42,6 +46,7 @@ test.describe('disease signs on the 3D model', () => {
   });
 
   test('loads three.js and the model only after the button', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
     const requested: string[] = [];
     page.on('request', (r) => requested.push(r.url()));
     await page.goto('ru/disease/hypertrophic-cardiomyopathy/');
@@ -53,6 +58,7 @@ test.describe('disease signs on the 3D model', () => {
   });
 
   test('a sign from the clock preset shows only while the clock runs it', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
     test.slow();
     await page.goto('en/disease/heart-failure/');
     // The clock island hydrates once seen; the model follows it from then on.
@@ -72,6 +78,7 @@ test.describe('disease signs on the 3D model', () => {
   });
 
   test('a septal defect gets a marker on the model', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
     await page.goto('en/disease/atrial-septal-defect/');
     await loadModel(page);
     await expect(
