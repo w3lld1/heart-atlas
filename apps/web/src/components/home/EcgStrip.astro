@@ -1,34 +1,60 @@
 ---
-// Still ECG strip of the home page, computed at build time from the heart clock's waves.
+// ECG strip of the home page: a still SVG computed at build time from the heart clock's waves,
+// with a canvas over it where the strip runs (see ecg-live.ts).
 import { ecgStripPath } from '../../lib/ecg-strip.ts';
+import { STRIP } from '../../lib/ecg-strip-scale.ts';
 
 const width = 240;
 const height = 110;
-const d = ecgStripPath({ durationMs: 2800, width, height, heartRate: 64, stepMs: 6 });
+const d = ecgStripPath({ ...STRIP, width, height, stepMs: 6 });
 ---
 
-<svg
-  class="ecg-strip"
-  viewBox={`0 0 ${width} ${height}`}
-  preserveAspectRatio="none"
-  aria-hidden="true"
-  focusable="false"
->
-  <defs>
-    <linearGradient id="ecg-strip-fade" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0" stop-color="currentColor" stop-opacity="0" />
-      <stop offset="0.25" stop-color="currentColor" />
-    </linearGradient>
-  </defs>
-  <path d={d} stroke="url(#ecg-strip-fade)" vector-effect="non-scaling-stroke" />
-</svg>
+<div class="ecg-strip" data-ecg-strip aria-hidden="true">
+  <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" focusable="false">
+    <defs>
+      <linearGradient id="ecg-strip-fade" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="currentColor" stop-opacity="0" />
+        <stop offset="0.25" stop-color="currentColor" />
+      </linearGradient>
+    </defs>
+    <path d={d} stroke="url(#ecg-strip-fade)" vector-effect="non-scaling-stroke" />
+  </svg>
+  <canvas></canvas>
+</div>
+
+<script>
+  import { startLiveEcg } from './ecg-live.ts';
+
+  const strip = document.querySelector<HTMLElement>('[data-ecg-strip]');
+  if (strip) startLiveEcg(strip);
+</script>
 
 <style>
   .ecg-strip {
-    display: block;
-    inline-size: 100%;
+    position: relative;
     block-size: 6.875rem;
     color: var(--color-blue);
+  }
+
+  svg,
+  canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  canvas {
+    visibility: hidden;
+  }
+
+  .ecg-strip:global(.running) svg {
+    visibility: hidden;
+  }
+
+  .ecg-strip:global(.running) canvas {
+    visibility: visible;
   }
 
   path {

@@ -12,6 +12,7 @@ import {
   type PresetId,
 } from '@heart-atlas/heart-clock';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
 import { drawEcg, ecgHeight, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
 import { HeartSoundPlayer } from './heart-sounds.ts';
 import { drawWiggers, readWiggersColors, wiggersHeight } from './wiggers-canvas.ts';
@@ -164,9 +165,17 @@ export default function HeartClockDemo({
     setHeartRate(clock.params.heartRate);
   }, [clock]);
 
-  // Motion starts on its own unless the reader asked for reduced motion.
+  // Motion starts on its own unless the reader asked for reduced motion or turned the site's motion
+  // off; turning it off later pauses the clock, and the play button still starts it.
   useEffect(() => {
-    setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const still = () =>
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches || currentMotion() === 'off';
+    setPlaying(!still());
+    const onMotion = () => {
+      if (currentMotion() === 'off') setPlaying(false);
+    };
+    window.addEventListener(MOTION_EVENT, onMotion);
+    return () => window.removeEventListener(MOTION_EVENT, onMotion);
   }, []);
 
   // Redraws sharp after zooming or moving the window to a screen with another pixel ratio.

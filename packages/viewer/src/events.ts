@@ -26,3 +26,20 @@ export function isHighlightEvent(event: Event): event is CustomEvent<HighlightDe
   const detail = (event as CustomEvent<unknown>).detail as Partial<HighlightDetail> | null;
   return Array.isArray(detail?.ids) && detail.ids.every((id) => typeof id === 'string');
 }
+
+/**
+ * Fired on `window` when the site's motion setting changes. The same name as `MOTION_EVENT` in
+ * apps/web/src/lib/motion.ts, which owns the setting.
+ */
+export const MOTION_EVENT = 'heart-atlas:motion';
+
+/**
+ * True when nothing should move by itself: the reader asked for reduced motion, or set the site's
+ * motion to off (`<html data-motion="off">`).
+ */
+export function motionIsOff(): boolean {
+  return (
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    document.documentElement.dataset['motion'] === 'off'
+  );
+}

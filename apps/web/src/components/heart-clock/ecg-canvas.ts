@@ -60,19 +60,40 @@ export function drawEcg(
   }
 
   // Baseline on a major line, 18 mm from the top: room for R above and S below.
-  const baseline = 18 * pxPerMm;
-  // The clock starts at t = 0; before that there is no trace.
-  const from = Math.max(0, now - windowMs(width));
-  const offset = width - (now - from) * pxPerMs;
-  const count = Math.floor(width - offset) + 1;
-  if (count < 2) return;
-  const values = clock.ecgBetween(from, from + (count - 1) / pxPerMs, count);
   context.strokeStyle = colors.trace;
   context.lineWidth = 2;
+  traceEcg(context, clock, now, { width, pxPerMs, baseline: 18 * pxPerMm, pxPerMv });
+}
+
+export interface TraceScale {
+  /** Width of the strip, CSS pixels. */
+  width: number;
+  pxPerMs: number;
+  /** Where 0 mV sits, CSS pixels from the top. */
+  baseline: number;
+  pxPerMv: number;
+}
+
+/**
+ * Strokes the ECG trace of the strip that ends at clock time `now`, newest on the right, with the
+ * context's current stroke style and width.
+ */
+export function traceEcg(
+  context: CanvasRenderingContext2D,
+  clock: HeartClock,
+  now: number,
+  { width, pxPerMs: perMs, baseline, pxPerMv: perMv }: TraceScale,
+): void {
+  // The clock starts at t = 0; before that there is no trace.
+  const from = Math.max(0, now - width / perMs);
+  const offset = width - (now - from) * perMs;
+  const count = Math.floor(width - offset) + 1;
+  if (count < 2) return;
+  const values = clock.ecgBetween(from, from + (count - 1) / perMs, count);
   context.lineJoin = 'round';
   context.beginPath();
   values.forEach((value, x) => {
-    const y = baseline - value * pxPerMv;
+    const y = baseline - value * perMv;
     if (x === 0) context.moveTo(offset + x, y);
     else context.lineTo(offset + x, y);
   });

@@ -19,7 +19,7 @@ const heart =
   focusable="false"
 >
   {id === 'anatomy' && (
-    <>
+    <g class="beat">
       <path d={heart} fill="var(--color-accent)" opacity=".16" />
       <path d={heart} fill="none" stroke="var(--color-accent)" stroke-width="2" />
       <path
@@ -29,7 +29,7 @@ const heart =
         stroke-width="1.2"
         opacity=".6"
       />
-    </>
+    </g>
   )}
   {id === 'disease' && (
     <>
@@ -51,6 +51,8 @@ const heart =
   )}
   {id === 'diagnostic' && (
     <path
+      class="trace"
+      pathLength="100"
       d="M0 75h30l6-10 6 10h10l4 6 8-52 8 62 6-16h18l10-12 10 12h30l6-10 6 10h10l4 6 8-52 8 62 6-16h18l10-12 10 12h10"
       fill="none"
       stroke="var(--color-blue)"
@@ -71,6 +73,7 @@ const heart =
         opacity=".7"
       />
       <ellipse
+        class="spin"
         cx="120"
         cy="65"
         rx="22"
@@ -117,6 +120,7 @@ const heart =
         opacity=".45"
       />
       <line
+        class="hand"
         x1="120"
         y1="65"
         x2="120"
@@ -152,5 +156,73 @@ const heart =
       linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 10px 10px;
+  }
+
+  /* The pictures move in full motion only; the card's text carries the meaning. */
+  .beat,
+  .spin {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .hand {
+    transform-box: view-box;
+    transform-origin: 120px 65px;
+  }
+
+  .trace {
+    stroke-dasharray: 100 100;
+  }
+
+  :global(html[data-motion='full']) .beat {
+    animation: beat 0.9375s ease-in-out infinite;
+  }
+
+  :global(html[data-motion='full']) .trace {
+    animation: trace 2.8s linear infinite;
+  }
+
+  :global(html[data-motion='full']) .spin {
+    animation: spin 4s ease-in-out infinite;
+  }
+
+  :global(html[data-motion='full']) .hand {
+    animation: hand 6s linear infinite;
+  }
+
+  @keyframes beat {
+    0%,
+    30%,
+    100% {
+      scale: 1;
+    }
+
+    12% {
+      scale: 1.05;
+    }
+  }
+
+  /* The trace draws itself across the card, holds, and starts again. */
+  @keyframes trace {
+    0% {
+      stroke-dashoffset: 100;
+    }
+
+    70%,
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes spin {
+    50% {
+      scale: -1 1;
+    }
+  }
+
+  @keyframes hand {
+    to {
+      rotate: 1turn;
+    }
   }
 </style>

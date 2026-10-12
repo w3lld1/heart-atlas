@@ -1,5 +1,11 @@
+import { MOTION_EVENT as VIEWER_MOTION_EVENT } from '@heart-atlas/viewer/events';
 import { describe, expect, it } from 'vitest';
-import { motionScriptSource, resolveMotion, type MotionSignals } from '../src/lib/motion.ts';
+import {
+  MOTION_EVENT,
+  motionScriptSource,
+  resolveMotion,
+  type MotionSignals,
+} from '../src/lib/motion.ts';
 
 const strong: MotionSignals = {
   reducedMotion: false,
@@ -77,5 +83,11 @@ describe('motionScriptSource', () => {
 
   it('falls back to auto when storage is blocked', () => {
     expect(run('throw', {})).toEqual({ motion: 'full', motionChoice: 'auto' });
+  });
+});
+
+describe('MOTION_EVENT', () => {
+  it('is the name the 3D viewer listens for', () => {
+    expect(VIEWER_MOTION_EVENT).toBe(MOTION_EVENT);
   });
 });
