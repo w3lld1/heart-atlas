@@ -376,6 +376,14 @@
   "quiz.mark.correct": "правильный ответ",
   "quiz.mark.chosen": "ваш ответ",
   "quiz.score": "Правильных ответов: {correct} из {total}.",
+  "nav.tracks": "Треки",
+  "tracks.title": "Учебные треки",
+  "tracks.intro": "Тема по порядку, статья за статьёй.",
+  "tracks.level.patient": "Для пациентов",
+  "tracks.level.student": "Для студентов",
+  "tracks.level.all": "Для всех",
+  "tracks.steps": "{count, plural, one {# статья} few {# статьи} many {# статей} other {# статьи}}",
+  "tracks.translationMissing": "Этот трек ещё не переведён, поэтому показан на другом языке.",
   "diagram.label.atria": "Предсердия",
   "diagram.label.av-node-and-below": "АВ-узел и ниже",
   "diagram.label.ventricles": "Желудочки",
@@ -392,5 +400,8 @@
   "diagram.label.overriding-aorta": "Аорта над дефектом",
   "diagram.label.rv-outflow-narrowing": "Сужение выхода из ПЖ",
   "diagram.label.rv-hypertrophy": "Гипертрофия ПЖ",
-  "diagram.tetralogy-of-fallot.title": "Схема желудочков сердца, лёгочной артерии и аорты в норме и при тетраде Фалло: дефект межжелудочковой перегородки, сужение выхода из правого желудочка, аорта над дефектом и утолщённая стенка правого желудочка"
+  "diagram.tetralogy-of-fallot.title": "Схема желудочков сердца, лёгочной артерии и аорты в норме и при тетраде Фалло: дефект межжелудочковой перегородки, сужение выхода из правого желудочка, аорта над дефектом и утолщённая стенка правого желудочка",
+  "diagram.label.ldl-particles": "Частицы ЛНП",
+  "diagram.label.early-plaque": "Начальная бляшка",
+  "diagram.dyslipidemia.title": "Схема продольного разреза артерии: в норме частицы ЛНП проходят с кровью по просвету, при повышенном холестерине ЛНП их больше, они задерживаются в стенке и образуют начальную бляшку"
 }

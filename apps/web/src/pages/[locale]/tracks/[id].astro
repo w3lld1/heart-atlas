@@ -1,0 +1,101 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { locales } from '../../../i18n/locales.ts';
+import { getMessages } from '../../../i18n/messages.ts';
+import { localePath } from '../../../i18n/paths.ts';
+import { articlePages } from '../../../lib/articles.ts';
+import { trackSteps } from '../../../lib/tracks.ts';
+
+export const getStaticPaths = (async () => {
+  const articles = articlePages(await getCollection('articles'), locales);
+  const tracks = articlePages(await getCollection('tracks'), locales);
+  const same = (slug: string) => tracks.filter((other) => other.slug === slug);
+  return tracks.map((page) => ({
+    params: { locale: page.locale, id: page.slug },
+    props: {
+      track: page.entry.data,
+      contentLocale: page.contentLocale,
+      steps: trackSteps(page.entry.data, page.locale, articles),
+      pageLocales: same(page.slug).map((other) => other.locale),
+      translatedLocales: same(page.slug)
+        .filter((other) => other.locale === other.contentLocale)
+        .map((other) => other.locale),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { locale, id } = Astro.params;
+const { track, contentLocale, steps, pageLocales, translatedLocales } = Astro.props;
+const t = getMessages(locale);
+const base = import.meta.env.BASE_URL;
+const fallback = contentLocale !== locale;
+// A fallback page points search engines at the original track.
+const canonical = new URL(localePath(base, contentLocale, `tracks/${id}/`), Astro.site);
+/** lang and dir for text written in another language than the page. */
+const langOf = (code: string) =>
+  code === locale ? {} : { lang: code, dir: locales[code]?.dir ?? 'ltr' };
+---
+
+<BaseLayout
+  locale={locale}
+  title={track.title}
+  description={track.description}
+  pageLocales={pageLocales}
+  translatedLocales={fallback ? [] : translatedLocales}
+>
+  {fallback && <link slot="head" rel="canonical" href={canonical} />}
+  <p class="track-up">
+    <a href={localePath(base, locale, 'tracks/')}>{t['tracks.title']}</a>
+  </p>
+  {fallback && (
+    <p class="translation-notice" role="note">
+      {t['tracks.translationMissing']}
+    </p>
+  )}
+  <h1 {...langOf(contentLocale)}>{track.title}</h1>
+  <p {...langOf(contentLocale)}>{track.description}</p>
+  <p class="track-meta">{t[`tracks.level.${track.level}`]}</p>
+  <ol class="track-steps">
+    {steps.map((step) => (
+      <li class="track-step" {...langOf(step.contentLocale)}>
+        <a href={localePath(base, locale, `${step.type}/${step.slug}/`)}>{step.entry.data.title}</a>
+        <p>{step.entry.data.description}</p>
+      </li>
+    ))}
+  </ol>
+</BaseLayout>
+
+<style>
+  .track-up {
+    margin-block-end: 0;
+    font-size: 0.875rem;
+  }
+
+  .translation-notice {
+    padding-block: 0.75rem;
+    padding-inline: 1rem;
+    border-inline-start: 4px solid var(--color-border);
+    background: var(--color-notice-bg);
+  }
+
+  .track-meta {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+
+  .track-steps {
+    display: grid;
+    gap: 0.75rem;
+    padding-inline-start: 1.5rem;
+  }
+
+  .track-step a {
+    font-weight: 600;
+  }
+
+  .track-step p {
+    margin-block: 0.25rem 0;
+  }
+</style>

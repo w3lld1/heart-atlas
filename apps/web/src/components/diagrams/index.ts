@@ -8,6 +8,7 @@ import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
 import DilatedCardiomyopathy from './DilatedCardiomyopathy.astro';
+import Dyslipidemia from './Dyslipidemia.astro';
 import HeartChambers from './HeartChambers.astro';
 import HeartFailure from './HeartFailure.astro';
 import HeartValves from './HeartValves.astro';
@@ -36,6 +37,7 @@ export const diagrams = {
   'coronary-arteries': CoronaryArteries,
   'coronary-heart-disease': CoronaryHeartDisease,
   'dilated-cardiomyopathy': DilatedCardiomyopathy,
+  dyslipidemia: Dyslipidemia,
   'heart-chambers': HeartChambers,
   'heart-failure': HeartFailure,
   'heart-valves': HeartValves,

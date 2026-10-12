@@ -3,21 +3,23 @@ import { articleTypes } from './content.ts';
 
 /** A place in the site menu; `path` is relative to the locale root and ends with "/". */
 export interface NavItem {
-  id: 'home' | 'heart-clock' | (typeof articleTypes)[number];
+  id: 'home' | 'heart-clock' | 'tracks' | (typeof articleTypes)[number];
   path: string;
 }
 
 /**
  * The site menu of one language: home, anatomy (its page with the 3D viewer exists in every
- * language), each other article section the language has, then the heart clock.
+ * language), each other article section the language has, learning tracks when it has any, then
+ * the heart clock.
  */
-export function siteNav(sectionTypes: Iterable<string>): NavItem[] {
+export function siteNav(sectionTypes: Iterable<string>, hasTracks = false): NavItem[] {
   const present = new Set(sectionTypes);
   return [
     { id: 'home', path: '' },
     ...articleTypes
       .filter((type) => type === 'anatomy' || present.has(type))
       .map((type) => ({ id: type, path: `${type}/` })),
+    ...(hasTracks ? [{ id: 'tracks' as const, path: 'tracks/' }] : []),
     { id: 'heart-clock', path: 'heart-clock/' },
   ];
 }
@@ -39,5 +41,6 @@ export function navCurrent(item: NavItem, pagePath: string): 'page' | 'true' | u
 export function navLabel(t: Messages, item: NavItem): string {
   if (item.id === 'home') return t['nav.home'];
   if (item.id === 'heart-clock') return t['nav.clock'];
+  if (item.id === 'tracks') return t['nav.tracks'];
   return t[`articles.type.${item.id}`];
 }
