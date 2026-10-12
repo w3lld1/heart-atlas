@@ -114,9 +114,23 @@ const base = import.meta.env.BASE_URL;
 
   .tools {
     display: flex;
+    margin-inline-start: auto;
     flex-wrap: wrap;
     gap: 0.75rem 1rem;
     align-items: center;
+  }
+
+  /* Header links are "knowledge" blue, as in the token table of the redesign spec. */
+  .tools :global(a) {
+    color: var(--color-blue);
+  }
+
+  /* The wide home page has a wider gutter; header and footer line up with it. */
+  @media (width >= 48rem) {
+    :global(body.wide) .bar,
+    :global(body.wide) .sections-nav ul {
+      padding-inline: 1.5rem;
+    }
   }
 
   /* The menu scrolls sideways inside itself on narrow screens, never the page. */

@@ -1,13 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { productionLocales } from '../src/i18n/locales.ts';
+import { localeCodes, productionLocales } from '../src/i18n/locales.ts';
 import { axe } from './axe.ts';
 
 // messages.ts relies on Vite's import.meta.glob, so tests read the strings files directly.
-const messages = (locale: string): Record<string, string> =>
-  JSON.parse(
-    readFileSync(new URL(`../src/i18n/messages/${locale}.json`, import.meta.url), 'utf8'),
-  ) as Record<string, string>;
+const messages = (locale: string): Record<string, string> => {
+  const file =
+    locale in productionLocales
+      ? `../src/i18n/messages/${locale}.json`
+      : `../test/fixtures/i18n/${locale}.json`;
+  return JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8')) as Record<string, string>;
+};
 const text = (locale: string, key: string): string => messages(locale)[key] ?? key;
 
 const menu = (page: Page, locale: string) =>
@@ -40,7 +43,8 @@ async function firstArticle(page: Page, locale: string): Promise<{ href: string;
   throw new Error('No section lists an article');
 }
 
-for (const locale of Object.keys(productionLocales)) {
+// localeCodes includes the right-to-left test locale in a build with HA_TEST_LOCALES=1.
+for (const locale of localeCodes) {
   test.describe(`header and footer (${locale})`, () => {
     test('menu marks the current page and its section', async ({ page }) => {
       await page.goto(`${locale}/`);

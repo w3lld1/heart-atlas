@@ -80,6 +80,11 @@ const base = import.meta.env.BASE_URL;
     .license {
       grid-column: 1 / -1;
     }
+
+    /* Lines up with the wider gutter of the home page. */
+    :global(body.wide) .inner {
+      padding-inline: 1.5rem;
+    }
   }
 
   p {
