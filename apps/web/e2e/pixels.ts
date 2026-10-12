@@ -51,6 +51,8 @@ export const MOVING = 0.01;
  * (registered earlier) has drawn, before the browser clears the drawing buffer.
  */
 export async function canvasChangedShare(canvas: Locator, gapMs = 300): Promise<number> {
+  // Off screen the scene stops drawing.
+  await canvas.scrollIntoViewIfNeeded();
   return canvas.evaluate(async (element, gap) => {
     if (!(element instanceof HTMLCanvasElement)) throw new Error('Not a canvas');
     const read = () =>
@@ -71,16 +73,17 @@ export async function canvasChangedShare(canvas: Locator, gapMs = 300): Promise<
     const p = await read();
     await new Promise((resolve) => setTimeout(resolve, gap));
     const q = await read();
+    if (p.length !== q.length) throw new Error('The two reads differ in size');
+    const drawn = (data: Uint8ClampedArray) => data.some((_, i) => i % 4 === 3 && data[i] !== 0);
+    // An empty read means the scene drew no frame before it (stopped or off screen); comparing
+    // it with a drawn one would count every pixel of the heart as motion.
+    if (!drawn(p) || !drawn(q)) throw new Error('Read a canvas the scene did not draw');
     let changed = 0;
-    let drawn = 0;
     for (let i = 0; i < p.length; i += 4) {
-      if ((p[i + 3] ?? 0) > 0) drawn++;
       let d = 0;
       for (let c = 0; c < 4; c++) d = Math.max(d, Math.abs((p[i + c] ?? 0) - (q[i + c] ?? 0)));
       if (d > 16) changed++;
     }
-    // An empty read means the buffer was already cleared: fail loudly rather than report "still".
-    if (drawn === 0) throw new Error('Read an empty canvas');
     return changed / (p.length / 4);
   }, gapMs);
 }
