@@ -1,0 +1,6 @@
+# Test fixture for HA_TEST_CONTENT=1 builds: a fictional track that exists only in English.
+title: English track
+description: One fictional article.
+level: student
+steps:
+  - disease/another-condition

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { localeCodes, productionLocales } from '../src/i18n/locales.ts';
 import { axe } from './axe.ts';
@@ -12,6 +12,14 @@ const messages = (locale: string): Record<string, string> => {
   return JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8')) as Record<string, string>;
 };
 const text = (locale: string, key: string): string => messages(locale)[key] ?? key;
+
+/** Every built page of a locale, as paths relative to the base URL. */
+const builtPages = (locale: string): string[] =>
+  readdirSync(new URL(`../dist/${locale}/`, import.meta.url), { recursive: true })
+    .map((file) => String(file).replaceAll('\\', '/'))
+    .filter((file) => file === 'index.html' || file.endsWith('/index.html'))
+    .map((file) => `${locale}/${file.slice(0, -'index.html'.length)}`)
+    .sort();
 
 const menu = (page: Page, locale: string) =>
   page.getByRole('banner').getByRole('navigation', { name: text(locale, 'nav.sections') });
@@ -83,15 +91,21 @@ for (const locale of localeCodes) {
       }
     });
 
-    test('nothing scrolls the page sideways at 320 px', async ({ page }) => {
+    test('no page scrolls sideways at 320 px', async ({ page }) => {
+      // At this width the 3D viewers wait for a tap, so this loop never starts WebGL next to the
+      // webgl project.
+      test.slow();
       await page.setViewportSize({ width: 320, height: 640 });
-      for (const path of [`${locale}/`, `${locale}/heart-clock/`, `${locale}/search/`]) {
+      const paths = builtPages(locale);
+      expect(paths.length).toBeGreaterThan(5);
+      for (const path of paths) {
         await page.goto(path);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
         );
         expect(overflow, path).toBeLessThanOrEqual(0);
       }
+      await page.goto(`${locale}/`);
       // The menu keeps every item: the ones that do not fit scroll inside the menu.
       const last = menu(page, locale).getByRole('listitem').last().getByRole('link');
       await last.focus();

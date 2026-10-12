@@ -8,6 +8,7 @@ import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
 import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
+import Structure from '../src/components/Structure.astro';
 import Student from '../src/components/Student.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
 
@@ -178,5 +179,27 @@ describe('HeartModel', () => {
         props: { locale: 'en', highlight: ['mitral-valve', 'no-such-part'] },
       }),
     ).rejects.toThrow('unknown structure "no-such-part"');
+  });
+});
+
+describe('Structure', () => {
+  it('marks the word with its structure id', async () => {
+    const html = await container.renderToString(Structure, {
+      props: { id: 'mitral-valve' },
+      locals: { locale: 'en' },
+      slots: { default: 'mitral valve' },
+    });
+    expect(html).toContain('data-structure="mitral-valve"');
+    expect(html).toContain('data-hint="show on the 3D model"');
+    expect(html).toContain('mitral valve');
+  });
+
+  it('fails the build for an unknown structure', async () => {
+    await expect(
+      container.renderToString(Structure, {
+        props: { id: 'no-such-part' },
+        locals: { locale: 'en' },
+      }),
+    ).rejects.toThrow('unknown structure');
   });
 });

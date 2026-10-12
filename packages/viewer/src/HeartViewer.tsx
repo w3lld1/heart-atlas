@@ -14,7 +14,13 @@ import {
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import type { PresetId } from '@heart-atlas/heart-clock';
 import { diseaseShapes, diseaseView, type DiseaseId } from './disease.ts';
-import { HIGHLIGHT_EVENT, isHighlightEvent, MOTION_EVENT, motionIsOff } from './events.ts';
+import {
+  HIGHLIGHT_EVENT,
+  HIGHLIGHT_READY_ATTR,
+  isHighlightEvent,
+  MOTION_EVENT,
+  motionIsOff,
+} from './events.ts';
 import { groupStructures, meshesFor } from './highlight.ts';
 import styles from './HeartViewer.module.css';
 import type { HeartViewerProps, SectionAxis, ViewerMessageKey } from './types.ts';
@@ -226,6 +232,8 @@ export default function HeartViewer({
       setExternal(event.detail.ids.filter((x) => known.has(x)));
     };
     window.addEventListener(HIGHLIGHT_EVENT, onHighlight);
+    // Tells page scripts that highlight events now reach this viewer (HIGHLIGHT_READY_ATTR).
+    rootRef.current?.setAttribute(HIGHLIGHT_READY_ATTR, '');
     return () => window.removeEventListener(HIGHLIGHT_EVENT, onHighlight);
   }, [known]);
 

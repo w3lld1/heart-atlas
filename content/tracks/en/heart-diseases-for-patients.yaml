@@ -1,0 +1,9 @@
+title: Heart conditions for patients
+description: Five articles for patients on hypertension, coronary heart disease, heart failure, atrial fibrillation and aortic stenosis.
+level: patient
+steps:
+  - disease/hypertension
+  - disease/coronary-heart-disease
+  - disease/heart-failure
+  - disease/atrial-fibrillation
+  - disease/aortic-stenosis

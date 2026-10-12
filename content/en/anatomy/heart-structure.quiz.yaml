@@ -1,0 +1,46 @@
+questions:
+  - level: patient
+    prompt: How many layers make up the wall of the heart?
+    options:
+      - text: One muscle layer
+      - text: Three, the epicardium, myocardium and endocardium
+        correct: true
+      - text: Two, the pericardium and endocardium
+    explanation: The wall of the heart has three layers, the epicardium on the outside, the myocardium in the middle and the endocardium on the inside.
+    cite: [1, 3]
+  - level: patient
+    prompt: What is the pericardium?
+    options:
+      - text: The wall between the atria
+      - text: The valve between the right atrium and the right ventricle
+      - text: A two-layered sac around the heart
+        correct: true
+    explanation: The heart sits inside a two-layered sac called the pericardium. The atria are separated by the interatrial septum.
+    cite: [1, 3]
+  - level: patient
+    prompt: Where does blood from the lungs return through the pulmonary veins?
+    options:
+      - text: To the left atrium
+        correct: true
+      - text: To the right atrium
+      - text: To the right ventricle
+    explanation: The blood returns to the left atrium through the pulmonary veins. Blood from the venae cavae enters the right atrium.
+    cite: [1, 2, 3]
+  - level: student
+    prompt: How much fluid does the pericardial cavity usually hold?
+    options:
+      - text: About 2 litres
+      - text: 20–25 mL
+        correct: true
+      - text: It holds no fluid
+    explanation: The pericardial cavity between the layers of the serous pericardium usually holds 20–25 mL of fluid.
+    cite: [1]
+  - level: student
+    prompt: What is the fossa ovalis?
+    options:
+      - text: An opening in the interventricular septum
+      - text: A depression at the apex of the heart
+      - text: A depression on the interatrial septum, a remnant of the fetal foramen ovale
+        correct: true
+    explanation: The interatrial septum bears an oval depression, the fossa ovalis, a remnant of an opening in the fetal heart (the foramen ovale).
+    cite: [3]

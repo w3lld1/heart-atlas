@@ -187,14 +187,17 @@ const [minRate, maxRate] = paramRanges.heartRate;
 </script>
 
 <style>
+  /* minmax(0, 1fr): a select as wide as its longest option never widens the page. */
   .builder {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 
   label,
   .field {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.25rem;
   }
 

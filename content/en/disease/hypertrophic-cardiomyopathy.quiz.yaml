@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What happens to the heart in hypertrophic cardiomyopathy (HCM)?
+    options:
+      - text: The aortic opening narrows
+      - text: The wall of the left ventricle thickens
+        correct: true
+      - text: A hole appears in the wall between the atria
+    explanation: HCM is a mainly genetic disease in which the wall of the left ventricle thickens, usually unevenly, because of a thickened interventricular septum.
+    cite: [2]
+  - level: patient
+    prompt: In HCM, why do doctors think not only about one person but about the whole family?
+    options:
+      - text: HCM spreads through the air from person to person
+      - text: The disease often runs in families, passing from parent to child
+        correct: true
+    explanation: The disease often runs in families, passing from parent to child. That is why doctors think not only about one person but about the whole family.
+    cite: [1, 2]
+  - level: patient
+    prompt: How many people with HCM notice no symptoms or only mild ones?
+    options:
+      - text: Up to half
+        correct: true
+      - text: None, everyone has marked symptoms
+    explanation: Up to half of people with HCM notice no symptoms or only mild ones.
+    cite: [1, 3]
+  - level: patient
+    prompt: What are the key tests for diagnosing HCM?
+    options:
+      - text: A urine test
+      - text: A stomach endoscopy
+      - text: A heart ultrasound and, when needed, a heart MRI
+        correct: true
+    explanation: The key tests are those that show the structure of the heart, a heart ultrasound (echocardiography) and, when needed, a heart MRI.
+    cite: [1, 3]
+  - level: student
+    prompt: Which left ventricular wall thickness is the criterion for HCM in an adult proband?
+    options:
+      - text: 15 mm or more
+        correct: true
+      - text: 10 mm or more
+    explanation: A left ventricular wall thickness of 15 mm or more is the criterion for HCM in an adult proband.
+    cite: [2, 3]
+  - level: student
+    prompt: How does alcohol septal ablation differ from septal myectomy?
+    options:
+      - text: Results are more uniform and the risk of heart block is lower
+      - text: It is only performed when there are no symptoms
+      - text: Faster recovery, but a higher risk of complete heart block
+        correct: true
+    explanation: Alcohol septal ablation is performed for the same indications and has a faster recovery, but results are less uniform and the risk of complete heart block is higher.
+    cite: [3]

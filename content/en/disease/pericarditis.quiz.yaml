@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What is pericarditis?
+    options:
+      - text: Inflammation of the pericardium, the sac around the heart
+        correct: true
+      - text: Narrowing of the aortic valve
+      - text: A blood clot in the pulmonary artery
+    explanation: Pericarditis is an inflammatory process in the pericardium, the sac around the heart.
+    cite: [2]
+  - level: patient
+    prompt: What kind of chest pain is typical of pericarditis?
+    options:
+      - text: It eases when breathing in and when lying down
+      - text: Sharp, worse breathing in and lying down, eases sitting up leaning forward
+        correct: true
+      - text: Pericarditis never causes chest pain
+    explanation: The main symptom is chest pain. It is usually a sharp pain that gets worse when breathing in and when lying down, and eases when sitting up and leaning forward.
+    cite: [1]
+  - level: patient
+    prompt: What is most often behind pericarditis in developed countries?
+    options:
+      - text: Broken ribs
+      - text: Tuberculosis
+      - text: No cause is found, or it is caused by a virus
+        correct: true
+    explanation: In developed countries, most often no cause is found or the pericarditis is caused by a virus. Tuberculosis is the leading cause in developing countries.
+    cite: [1, 2]
+  - level: patient
+    prompt: Which complaints in a person with pericarditis call for an ambulance?
+    options:
+      - text: Episodes of marked weakness, dizziness, fainting, worsening breathlessness
+        correct: true
+      - text: None, pericarditis is never life-threatening
+    explanation: Pericarditis can be complicated by cardiac tamponade, which is life-threatening. The main complaints with tamponade or a threat of it are episodes of marked weakness, dizziness, fainting and worsening breathlessness. With these complaints, call an ambulance.
+    cite: [1, 2]
+  - level: student
+    prompt: By definition, how long ago did acute pericarditis begin?
+    options:
+      - text: More than a year ago
+      - text: 4 weeks ago or less
+        correct: true
+      - text: More than 3 months ago
+    explanation: Acute pericarditis is an inflammatory pericardial syndrome with or without a pericardial effusion, with an onset of 4 weeks or less.
+    cite: [1]
+  - level: student
+    prompt: Which sign is called pathognomonic of cardiac tamponade?
+    options:
+      - text: A holosystolic murmur at the apex
+      - text: A rise in systolic blood pressure on inspiration
+      - text: Pulsus paradoxus, systolic pressure falling over 10 mm Hg on inspiration
+        correct: true
+    explanation: The pathognomonic sign of tamponade is pulsus paradoxus, a fall in systolic blood pressure of more than 10 mm Hg on inspiration during quiet breathing.
+    cite: [2]

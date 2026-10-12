@@ -42,12 +42,15 @@ const sorted = [...pages].sort((a, b) =>
   <h1>{title}</h1>
   <ul>
     {sorted.map((page) => (
-      <li
-        lang={page.contentLocale === locale ? undefined : page.contentLocale}
-        dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
-      >
-        <a href={localePath(base, locale, `${type}/${page.slug}/`)}>{page.entry.data.title}</a>
-        <p>{page.entry.data.description}</p>
+      <li>
+        {/* Language and direction on the content: the list marker follows the page. */}
+        <div
+          lang={page.contentLocale === locale ? undefined : page.contentLocale}
+          dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
+        >
+          <a href={localePath(base, locale, `${type}/${page.slug}/`)}>{page.entry.data.title}</a>
+          <p>{page.entry.data.description}</p>
+        </div>
       </li>
     ))}
   </ul>

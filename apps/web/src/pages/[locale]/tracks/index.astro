@@ -1,0 +1,104 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { locales } from '../../../i18n/locales.ts';
+import { getMessages } from '../../../i18n/messages.ts';
+import { localePath } from '../../../i18n/paths.ts';
+import { formatCount } from '../../../i18n/plural.ts';
+import { articlePages, type ArticlePage } from '../../../lib/articles.ts';
+
+type Entry = Awaited<ReturnType<typeof getCollection<'tracks'>>>[number];
+
+// One list per language that has a track, in its own language or a fallback one.
+export const getStaticPaths = (async () => {
+  const byLocale = new Map<string, ArticlePage<Entry>[]>();
+  for (const page of articlePages(await getCollection('tracks'), locales)) {
+    byLocale.set(page.locale, [...(byLocale.get(page.locale) ?? []), page]);
+  }
+  const pageLocales = [...byLocale.keys()];
+  return [...byLocale].map(([locale, tracks]) => ({
+    params: { locale },
+    props: { tracks, pageLocales },
+  }));
+}) satisfies GetStaticPaths;
+
+const { locale } = Astro.params;
+const { tracks, pageLocales } = Astro.props;
+const t = getMessages(locale);
+const base = import.meta.env.BASE_URL;
+// Tracks for everyone come first, then patient, then student ones.
+const levels = ['all', 'patient', 'student'];
+const sorted = [...tracks].sort(
+  (a, b) =>
+    levels.indexOf(a.entry.data.level) - levels.indexOf(b.entry.data.level) ||
+    a.slug.localeCompare(b.slug),
+);
+---
+
+<BaseLayout
+  locale={locale}
+  title={t['tracks.title']}
+  description={t['tracks.intro']}
+  pageLocales={pageLocales}
+>
+  <h1>{t['tracks.title']}</h1>
+  <p>{t['tracks.intro']}</p>
+  <ul class="tracks">
+    {sorted.map((page) => {
+      const track = page.entry.data;
+      const fallback = page.contentLocale !== locale;
+      return (
+        <li class="track">
+          <h2
+            lang={fallback ? page.contentLocale : undefined}
+            dir={fallback ? locales[page.contentLocale]?.dir : undefined}
+          >
+            <a href={localePath(base, locale, `tracks/${page.slug}/`)}>{track.title}</a>
+          </h2>
+          <p
+            lang={fallback ? page.contentLocale : undefined}
+            dir={fallback ? locales[page.contentLocale]?.dir : undefined}
+          >
+            {track.description}
+          </p>
+          <p class="track-meta">
+            {t[`tracks.level.${track.level}`]} ·{' '}
+            {formatCount(t['tracks.steps'], locale, track.steps.length)}
+          </p>
+        </li>
+      );
+    })}
+  </ul>
+</BaseLayout>
+
+<style>
+  .tracks {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .track {
+    padding-block: 1rem;
+    padding-inline: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-2);
+  }
+
+  .track h2 {
+    margin-block: 0 0.25rem;
+    font-size: 1.25rem;
+  }
+
+  .track p {
+    margin-block: 0.25rem 0;
+  }
+
+  .track-meta {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+</style>

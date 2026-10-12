@@ -45,12 +45,17 @@ const articles = articlePages(await getCollection('articles'), locales)
       <h2 id="anatomy-articles">{t['anatomy.articles']}</h2>
       <ul>
         {articles.map((page) => (
-          <li
-            lang={page.contentLocale === locale ? undefined : page.contentLocale}
-            dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
-          >
-            <a href={localePath(base, locale, `anatomy/${page.slug}/`)}>{page.entry.data.title}</a>
-            <p>{page.entry.data.description}</p>
+          <li>
+            {/* Language and direction on the content: the list marker follows the page. */}
+            <div
+              lang={page.contentLocale === locale ? undefined : page.contentLocale}
+              dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
+            >
+              <a href={localePath(base, locale, `anatomy/${page.slug}/`)}>
+                {page.entry.data.title}
+              </a>
+              <p>{page.entry.data.description}</p>
+            </div>
           </li>
         ))}
       </ul>

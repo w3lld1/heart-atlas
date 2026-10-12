@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: Where does the electrical signal that sets off each heartbeat start?
+    options:
+      - text: In the brain
+      - text: In the Purkinje fibres
+      - text: In the sinoatrial node in the right atrium
+        correct: true
+    explanation: The signal starts within the heart itself, in the sinoatrial node in the right atrium, then passes through the AV node, the bundle of His, its branches and the Purkinje fibres.
+    cite: [1, 3]
+  - level: patient
+    prompt: Why is the impulse briefly held up in the AV node?
+    options:
+      - text: To give the atria time to finish contracting and fill the ventricles
+        correct: true
+      - text: To make the atria and ventricles contract at the same time
+    explanation: The pause gives the atria time to finish contracting and fill the ventricles. Without it, the atria and ventricles would contract at the same time.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What can the AV node do if the sinus node stops working?
+    options:
+      - text: Sets a faster rhythm than the sinus node
+      - text: Sets a slower rhythm, about 40–60 beats per minute
+        correct: true
+      - text: Stops conducting any impulses
+    explanation: If the sinus node stops working, the AV node can take over setting the rhythm, but more slowly, at about 40–60 beats per minute.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What does the QRS complex on the ECG reflect?
+    options:
+      - text: Excitation of the atria
+      - text: Recovery of the ventricles
+      - text: Excitation of the ventricles
+        correct: true
+    explanation: The P wave reflects excitation of the atria, the QRS complex excitation of the ventricles, and the T wave their recovery (repolarisation).
+    cite: [3]
+  - level: student
+    prompt: Why does the sinoatrial node act as the pacemaker?
+    options:
+      - text: Its cells have the highest inherent rate of depolarisation in the heart
+        correct: true
+      - text: Its cells have the lowest inherent rate of depolarisation
+      - text: It lies in the wall of the left ventricle
+    explanation: The SA node lies in the superior and posterior walls of the right atrium, and its cells have the highest inherent rate of depolarisation in the heart.
+    cite: [3]
+  - level: student
+    prompt: Which bundle branch is larger?
+    options:
+      - text: The right
+      - text: The left
+        correct: true
+      - text: They are the same size
+    explanation: The bundle of His divides into two branches; the left is considerably larger than the right and has two fascicles.
+    cite: [3]
