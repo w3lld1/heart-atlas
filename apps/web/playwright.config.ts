@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
 const port = 4321;
 // Lets a machine with a preinstalled Chromium skip `playwright install`.
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+/** Specs that draw with WebGL. */
+const webgl = /(anatomy|heart-clock|home-3d)\.spec\.ts$/;
 const base = (process.env.BASE_PATH ?? '/heart-atlas').replace(/\/?$/, '/');
 
 export default defineConfig({
@@ -21,6 +23,19 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: webgl,
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: executablePath ? { executablePath } : {},
+      },
+    },
+    {
+      // SwiftShader draws on the CPU: two 3D pages at once starve each other on a CI runner, and
+      // a heart that should beat or hold still does neither in time. One at a time, next to the
+      // light tests.
+      name: 'webgl',
+      testMatch: webgl,
+      workers: 1,
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: executablePath ? { executablePath } : {},
