@@ -59,9 +59,14 @@ const langOf = (code: string) =>
   <p class="track-meta">{t[`tracks.level.${track.level}`]}</p>
   <ol class="track-steps">
     {steps.map((step) => (
-      <li class="track-step" {...langOf(step.contentLocale)}>
-        <a href={localePath(base, locale, `${step.type}/${step.slug}/`)}>{step.entry.data.title}</a>
-        <p>{step.entry.data.description}</p>
+      <li class="track-step">
+        {/* The language goes on the text, not the <li>: its marker follows the page direction. */}
+        <div {...langOf(step.contentLocale)}>
+          <a href={localePath(base, locale, `${step.type}/${step.slug}/`)}>
+            {step.entry.data.title}
+          </a>
+          <p>{step.entry.data.description}</p>
+        </div>
       </li>
     ))}
   </ol>
