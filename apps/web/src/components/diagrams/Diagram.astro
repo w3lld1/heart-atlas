@@ -208,18 +208,13 @@ const captions = await Promise.all(
   }
 
   /* With the site's motion set to off the diagrams stand still, as under reduced motion below. */
-  html[data-motion='off'] {
-    & .diagram svg * {
-      animation: none !important;
-    }
+  html[data-motion='off'] .diagram svg * {
+    animation: none !important;
+  }
 
-    & .diagram svg .flow {
-      display: none;
-    }
-
-    & .diagram-pause {
-      display: none;
-    }
+  html[data-motion='off'] .diagram svg .flow,
+  html[data-motion='off'] .diagram-pause {
+    display: none;
   }
 
   .diagram:has(.diagram-pause :checked) svg * {

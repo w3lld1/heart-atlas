@@ -11,7 +11,7 @@ export function frameDue(level: MotionLevel, sinceLast: number): boolean {
 }
 
 /** How far the cards drift, CSS pixels, and how long one drift takes, ms. */
-const FLOAT_PX = 4;
+const FLOAT_PX = 3;
 const FLOAT_MS = 6000;
 
 /**

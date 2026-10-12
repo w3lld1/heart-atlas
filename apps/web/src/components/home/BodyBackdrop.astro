@@ -40,8 +40,8 @@ const art = bodyArt();
       ))}
     </g>
     <g class="flow">
-      {art.trunks.map((d) => (
-        <path d={d} class:list={{ vein: art.veins.some((v) => v.d === d) }} />
+      {art.trunks.map(({ d, vein }) => (
+        <path d={d} class:list={{ vein }} />
       ))}
     </g>
   </g>
@@ -99,12 +99,18 @@ const art = bodyArt();
 
   :global(html[data-motion='full']) .flow {
     display: inline;
+  }
+
+  :global(html[data-motion='full']) .flow path {
     animation: flow 1.6s linear infinite;
   }
 
   /* Trunks are drawn from the heart outwards; venous blood runs back to it. */
   .flow .vein {
     stroke: var(--color-vessel-v);
+  }
+
+  :global(html[data-motion='full']) .flow .vein {
     animation-direction: reverse;
   }
 

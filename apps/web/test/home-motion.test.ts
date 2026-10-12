@@ -25,7 +25,7 @@ describe('frameDue', () => {
 describe('floatOffset', () => {
   it('stays within a few pixels', () => {
     for (let t = 0; t < 20_000; t += 37) {
-      for (let i = 0; i < 6; i++) expect(Math.abs(floatOffset(t, i))).toBeLessThanOrEqual(4);
+      for (let i = 0; i < 6; i++) expect(Math.abs(floatOffset(t, i))).toBeLessThanOrEqual(3);
     }
   });
 

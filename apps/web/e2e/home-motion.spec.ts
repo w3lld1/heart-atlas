@@ -32,6 +32,7 @@ test.describe('home page motion', () => {
 
   test('floats the cards in full motion, and their lines follow', async ({ page }) => {
     await open(page, 'full');
+    await expect.poll(() => translate(page)).not.toBe('none');
     const first = await translate(page);
     await expect.poll(() => translate(page)).not.toBe(first);
     // The line still starts at the middle of the card's side.
@@ -46,12 +47,22 @@ test.describe('home page motion', () => {
     // One frame of drift between the two reads at most.
     expect(Math.abs(Number(y1) - (card.y + card.height / 2 - stage.y))).toBeLessThan(1.5);
     await expect(page.locator('.body-backdrop .flow')).toBeVisible();
+    // Venous blood runs back to the heart.
+    await expect(page.locator('.body-backdrop .flow .vein').first()).toHaveCSS(
+      'animation-direction',
+      'reverse',
+    );
   });
 
   test('keeps the cards, the vessels and the ECG still in calm motion', async ({ page }) => {
     await open(page, 'calm');
     await expect(strip(page)).toHaveClass(/running/);
-    expect(await translate(page)).toBe('none');
+    await expect(page.locator('[data-links]')).toHaveClass(/drawn/);
+    // The cards would have started floating by now.
+    for (let i = 0; i < 3; i++) {
+      await page.waitForTimeout(200);
+      expect(await translate(page)).toBe('none');
+    }
     await expect(page.locator('.body-backdrop .flow')).toBeHidden();
     await expect(page.locator('.link .ring').first()).toHaveCSS('animation-name', 'none');
     await expect(page.locator('[data-poster]')).toHaveCSS('animation-name', 'pulse');

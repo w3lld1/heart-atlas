@@ -51,7 +51,13 @@ describe('bodyArt', () => {
   it('draws the reviewed picture', () => {
     // Changes only when the drawing is changed on purpose: then look at it and update the hash.
     const hash = createHash('sha256').update(JSON.stringify(bodyArt())).digest('hex');
-    expect(hash).toBe('4e5bae6da93de5b75fc8c520150956e53bc6c20d35a27b563b63ec9501f74f45');
+    expect(hash).toBe('9e4f72503750a24255497415fefbc270def9db8517af00dc28ef21bbdef229a1');
+  });
+
+  it('marks which trunks are veins, so their flow runs back to the heart', () => {
+    const { trunks } = bodyArt();
+    expect(trunks.some((t) => t.vein)).toBe(true);
+    expect(trunks.some((t) => !t.vein)).toBe(true);
   });
 
   it('keeps every vessel point inside the picture', () => {

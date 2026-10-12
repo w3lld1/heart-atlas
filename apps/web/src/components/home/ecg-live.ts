@@ -25,12 +25,20 @@ export function startLiveEcg(root: HTMLElement): void {
   let t = STRIP.durationMs;
   let lastTick = 0;
   let lastDraw = 0;
+  // Read outside the frame loop: size on resize, colour (it follows the theme) every second or so.
+  let width = root.clientWidth;
+  let height = root.clientHeight;
+  let color = '';
+  let draws = 0;
+  new ResizeObserver(([entry]) => {
+    if (!entry) return;
+    width = entry.contentRect.width;
+    height = entry.contentRect.height;
+  }).observe(root);
 
   const draw = () => {
     if (!clock) return;
     const ratio = window.devicePixelRatio || 1;
-    const width = root.clientWidth;
-    const height = root.clientHeight;
     if (
       canvas.width !== Math.round(width * ratio) ||
       canvas.height !== Math.round(height * ratio)
@@ -41,7 +49,7 @@ export function startLiveEcg(root: HTMLElement): void {
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
     // Fades in from the left like the still strip.
-    const color = getComputedStyle(root).color;
+    if (draws++ % 30 === 0) color = getComputedStyle(root).color;
     const fade = context.createLinearGradient(0, 0, width, 0);
     fade.addColorStop(0, 'transparent');
     fade.addColorStop(0.25, color);
@@ -95,6 +103,7 @@ export function startLiveEcg(root: HTMLElement): void {
     if (!frame) {
       lastTick = performance.now();
       lastDraw = -Infinity;
+      draws = 0;
       frame = requestAnimationFrame(tick);
     }
   };

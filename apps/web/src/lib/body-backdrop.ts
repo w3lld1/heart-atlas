@@ -34,8 +34,8 @@ export interface BodyArt {
   spine: string;
   arteries: VesselPath[];
   veins: VesselPath[];
-  /** Main trunks, along which the blood flow animation runs. */
-  trunks: string[];
+  /** Main trunks, drawn from the heart outwards, along which the blood flow animation runs. */
+  trunks: { d: string; vein: boolean }[];
 }
 
 /** Park–Miller generator: small, deterministic and good enough for a drawing. */
@@ -163,11 +163,11 @@ export function bodyArt(seed = 7): BodyArt {
     }
   }
 
-  const trunks: string[] = [];
+  const trunks: BodyArt['trunks'] = [];
   for (const [kind, d, seeds] of TRUNKS) {
     const out = kind === 'artery' ? arteries : veins;
     out.push({ d, width: kind === 'artery' ? 5 : 4.5, opacity: 0.9 });
-    trunks.push(d);
+    trunks.push({ d, vein: kind === 'vein' });
     for (const s of seeds) branch(out, ...s);
   }
   // Faint capillary meshes either side of the heart, where the lungs are.

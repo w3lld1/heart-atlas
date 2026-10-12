@@ -252,7 +252,7 @@ const heroData = JSON.stringify({
     </aside>
   </section>
 
-  <section class="sections" aria-labelledby="home-sections">
+  <section class="sections" aria-labelledby="home-sections" data-sections>
     <div class="sections-head">
       <h2 id="home-sections">{t['home.sections.title']}</h2>
       <p>{t['home.sections.note']}</p>
@@ -298,8 +298,39 @@ const heroData = JSON.stringify({
   }
   /** Card line starts and the poster box, relative to the stage; measured on layout changes. */
   let layout: { image: Box; starts: [number, number][] } | null = null;
+  const links = nodes.map((node) => svg?.querySelector(`[data-card="${node.dataset['card']}"]`));
   /** How far each card floats now, CSS pixels down; all zero unless the cards float. */
   let drift = nodes.map(() => 0);
+
+  // In full motion the cards float slowly around the heart and their lines follow. The cards
+  // float only where the lines are drawn, and stand still while the stage is off screen.
+  const slots = nodes.map((node) => node.parentElement);
+  let floating = 0;
+  /** When the cards started floating, so they set off from where they stand. */
+  let floatStart = 0;
+  let stageOnScreen = false;
+
+  function float(time: number) {
+    if (!floatStart) floatStart = time;
+    // Offsets from the start, so no card jumps when floating starts or resumes.
+    drift = nodes.map((_, i) => floatOffset(time - floatStart, i) - floatOffset(0, i));
+    slots.forEach((slot, i) => slot?.style.setProperty('translate', `0 ${drift[i] ?? 0}px`));
+    paint();
+    floating = requestAnimationFrame(float);
+  }
+
+  function updateFloat() {
+    stage?.classList.toggle('idle', !stageOnScreen);
+    const move = stageOnScreen && currentMotion() === 'full' && layout !== null;
+    if (move && !floating) floating = requestAnimationFrame(float);
+    if (move || !floating) return;
+    cancelAnimationFrame(floating);
+    floating = 0;
+    floatStart = 0;
+    drift = nodes.map(() => 0);
+    for (const slot of slots) slot?.style.removeProperty('translate');
+    paint();
+  }
 
   function measure() {
     layout = null;
@@ -328,7 +359,7 @@ const heroData = JSON.stringify({
     if (!svg || !layout) return;
     const { image, starts } = layout;
     nodes.forEach((node, i) => {
-      const link = svg.querySelector(`[data-card="${node.dataset['card']}"]`);
+      const link = links[i];
       const [cx, start] = starts[i] ?? [0, 0];
       const cy = start + (drift[i] ?? 0);
       if (!link) return;
@@ -367,37 +398,20 @@ const heroData = JSON.stringify({
     void document.fonts.ready.then(draw);
   }
 
-  // In full motion the cards float slowly around the heart and their lines follow. The cards
-  // float only where the lines are drawn, and stand still while the stage is off screen.
-  const slots = nodes.map((node) => node.parentElement);
-  let floating = 0;
-  let stageOnScreen = false;
-
-  function float(time: number) {
-    drift = nodes.map((_, i) => floatOffset(time, i));
-    slots.forEach((slot, i) => slot?.style.setProperty('translate', `0 ${drift[i] ?? 0}px`));
-    paint();
-    floating = requestAnimationFrame(float);
-  }
-
-  function updateFloat() {
-    stage?.classList.toggle('idle', !stageOnScreen);
-    const move = stageOnScreen && currentMotion() === 'full' && layout !== null;
-    if (move && !floating) floating = requestAnimationFrame(float);
-    if (move || !floating) return;
-    cancelAnimationFrame(floating);
-    floating = 0;
-    drift = nodes.map(() => 0);
-    for (const slot of slots) slot?.style.removeProperty('translate');
-    paint();
-  }
-
   if (stage) {
     new IntersectionObserver(([entry]) => {
       stageOnScreen = entry?.isIntersecting ?? false;
       updateFloat();
     }).observe(stage);
     window.addEventListener(MOTION_EVENT, updateFloat);
+  }
+
+  // The section pictures stand still while their row is off screen.
+  const row = document.querySelector<HTMLElement>('[data-sections]');
+  if (row) {
+    new IntersectionObserver(([entry]) => {
+      row.classList.toggle('idle', !(entry?.isIntersecting ?? false));
+    }).observe(row);
   }
 
   // Cards light their structures on the live heart.
@@ -911,8 +925,9 @@ const heroData = JSON.stringify({
     }
   }
 
-  /* Nothing on the stage moves while it is off screen. */
-  .stage:global(.idle) :global(*) {
+  /* Nothing on the stage or in the section row moves while it is off screen. */
+  .stage:global(.idle) :global(*),
+  .sections:global(.idle) :global(*) {
     animation-play-state: paused;
   }
 

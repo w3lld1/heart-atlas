@@ -126,7 +126,7 @@ test.describe('article page', () => {
     await page.goto(article);
     const diagram = page.locator('figure.diagram');
     await expect(diagram.locator('.flow')).toBeHidden();
-    await expect(diagram.getByText('Пауза')).toBeHidden();
+    await expect(diagram.getByText(ru['diagram.pause'])).toBeHidden();
     await expect(diagram.locator('path[marker-end]').first()).not.toHaveCSS('display', 'none');
   });
 
