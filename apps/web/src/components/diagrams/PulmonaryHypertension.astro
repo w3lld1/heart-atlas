@@ -1,0 +1,261 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ph-arrow`;
+// Labels that are too long for one line in their column: split them in two at a word break.
+const twoLines = (text: string): [string, string] => {
+  const words = text.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+};
+const hypertrophyLines = twoLines(t['diagram.label.rv-hypertrophy']);
+// Venous blood leaves the right ventricle through the pulmonary artery towards the lungs.
+const trunk = 'M85,176 V90 Q85,60 115,60 H330';
+// Small lung arteries in cross-section, inside the zoom panel on the right.
+const vessels = [
+  { cx: 338, cy: 140 },
+  { cx: 398, cy: 164 },
+  { cx: 338, cy: 200 },
+  { cx: 398, cy: 226 },
+];
+// In disease the lumen is narrow; in one vessel it is almost closed.
+const diseaseLumen = [7, 6, 3, 7];
+// Pressure arrows push from the blood onto the wall of the pulmonary artery: x per state.
+const normalArrows = [190, 270];
+const diseaseArrows = [160, 205, 250, 295];
+---
+
+<svg
+  viewBox="0 0 440 340"
+  role="img"
+  aria-label={t['diagram.pulmonary-hypertension.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Pulmonary artery and its branches to the zoom panel: the wall first, then the lumen -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <path stroke-width="30" d={trunk}></path>
+    <path stroke-width="10" d="M330,60 L322,104 M330,60 L368,104 M330,60 L414,104"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-venous-fill)" stroke-linecap="round">
+    <path stroke-width="22" d={trunk}></path>
+    <path stroke-width="5" d="M330,60 L322,104 M330,60 L368,104 M330,60 L414,104"></path>
+  </g>
+
+  <!-- Right ventricle: thin wall and normal cavity, or a thick wall around a wider cavity -->
+  <g class="ph-beat">
+    <g class="normal-only">
+      <path
+        d="M34,186 Q34,172 48,172 L122,172 Q136,172 136,186 L136,240 Q136,292 85,300 Q34,292 34,240 Z"
+        fill="var(--diagram-muscle)"
+      ></path>
+      <path
+        d="M42,180 L128,180 L128,240 Q128,284 85,291 Q42,284 42,240 Z"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      ></path>
+    </g>
+    <g class="disease-only">
+      <path
+        d="M16,170 Q16,156 30,156 L140,156 Q154,156 154,170 L154,240 Q154,312 85,320 Q16,312 16,240 Z"
+        fill="var(--diagram-muscle)"
+      ></path>
+      <path
+        d="M30,170 L140,170 L140,240 Q140,298 85,306 Q30,298 30,240 Z"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      ></path>
+    </g>
+  </g>
+
+  <!-- Blood pressure on the artery wall: small arrows in normal, larger and more in disease -->
+  <g class="normal-only" fill="var(--color-muted)" stroke="var(--color-muted)">
+    {normalArrows.map((x) => (
+      <>
+        <line x1={x} y1="43" x2={x} y2="37" stroke-width="2.5" />
+        <path d={`M${x - 5},38 L${x},30 L${x + 5},38 Z`} stroke="none" />
+        <line x1={x} y1="77" x2={x} y2="83" stroke-width="2.5" />
+        <path d={`M${x - 5},82 L${x},90 L${x + 5},82 Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+  <g class="disease-only ph-push" fill="var(--diagram-venous)" stroke="var(--diagram-venous)">
+    {diseaseArrows.map((x) => (
+      <>
+        <line x1={x} y1="44" x2={x} y2="35" stroke-width="3.5" />
+        <path d={`M${x - 6.5},37 L${x},26 L${x + 6.5},37 Z`} stroke="none" />
+        <line x1={x} y1="76" x2={x} y2="85" stroke-width="3.5" />
+        <path d={`M${x - 6.5},83 L${x},94 L${x + 6.5},83 Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+
+  <!-- Zoom panel: small lung arteries in cross-section -->
+  <rect
+    x="304"
+    y="104"
+    width="128"
+    height="200"
+    rx="12"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+  <g class="normal-only">
+    {vessels.map(({ cx, cy }) => (
+      <>
+        <circle cx={cx} cy={cy} r="20" fill="var(--diagram-muscle)" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r="16"
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+      </>
+    ))}
+  </g>
+  <g class="disease-only">
+    {vessels.map(({ cx, cy }, i) => (
+      <>
+        <circle cx={cx} cy={cy} r="22" fill="var(--diagram-muscle)" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={diseaseLumen[i]}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+      </>
+    ))}
+  </g>
+
+  <!-- Flow direction, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2" marker-end={`url(#${arrowId})`}>
+    <path d="M85,150 V104"></path>
+    <path d="M230,60 H290"></path>
+  </g>
+
+  <!-- Moving blood along the pulmonary artery -->
+  <g class="flow">
+    <path class="dash-flow" d={trunk} stroke="var(--diagram-venous)" stroke-width="3"></path>
+  </g>
+
+  <!-- Labels -->
+  <text x="210" y="18" text-anchor="middle">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="normal-only" x="112" y="118">
+    {t['diagram.label.pressure']}
+  </text>
+  <text class="disease-only" x="112" y="118">
+    {t['diagram.label.high-pressure']}
+  </text>
+  <text class="diagram-small normal-only" x="112" y="136">
+    {t['diagram.label.mean-pressure-normal']}
+  </text>
+  <text class="diagram-small disease-only" x="112" y="136">
+    {t['diagram.label.mean-pressure-high']}
+  </text>
+
+  <text x="85" y="246" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <g class="normal-only">
+    <line x1="132" y1="226" x2="166" y2="226" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="172" y="231">
+      {t['diagram.label.wall']}
+    </text>
+    <text class="diagram-small" x="85" y="334" text-anchor="middle">
+      {t['diagram.label.rv-normal-size']}
+    </text>
+  </g>
+  <g class="disease-only">
+    <line x1="149" y1="226" x2="166" y2="226" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="172" y="224">
+      {hypertrophyLines[0]}
+    </text>
+    <text class="diagram-small" x="172" y="239">
+      {hypertrophyLines[1]}
+    </text>
+    <text class="diagram-small" x="85" y="334" text-anchor="middle">
+      {t['diagram.label.rv-dilated']}
+    </text>
+  </g>
+
+  <text class="diagram-small normal-only" x="368" y="268" text-anchor="middle">
+    {t['diagram.label.thin-wall']}
+  </text>
+  <text class="diagram-small normal-only" x="368" y="286" text-anchor="middle">
+    {t['diagram.label.wide-lumen']}
+  </text>
+  <text class="diagram-small disease-only" x="368" y="268" text-anchor="middle">
+    {t['diagram.label.thick-wall']}
+  </text>
+  <text class="diagram-small disease-only" x="368" y="286" text-anchor="middle">
+    {t['diagram.label.narrow-lumen']}
+  </text>
+  <text class="diagram-small" x="432" y="322" text-anchor="end">
+    {t['diagram.label.small-lung-arteries']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ph-beat {
+    transform-box: view-box;
+    transform-origin: 85px 170px;
+    animation: ph-beat 1.2s ease-in-out infinite;
+  }
+
+  .diagram .ph-push {
+    animation: ph-push 1.2s ease-in-out infinite;
+  }
+
+  @keyframes ph-beat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    35% {
+      transform: scale(0.95, 0.97);
+    }
+  }
+
+  @keyframes ph-push {
+    0%,
+    100% {
+      opacity: 0.75;
+    }
+
+    35% {
+      opacity: 1;
+    }
+  }
+</style>

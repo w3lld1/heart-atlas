@@ -23,6 +23,8 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'aortic-regurgitation': ['aortic-valve'],
     'mitral-stenosis': ['mitral-valve'],
     'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
+    'pulmonary-hypertension': ['pulmonary-trunk', 'right-ventricle'],
+    'tricuspid-regurgitation': ['tricuspid-valve'],
     'infective-endocarditis': [
       'mitral-valve',
       'aortic-valve',
