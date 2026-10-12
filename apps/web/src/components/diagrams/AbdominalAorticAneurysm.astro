@@ -1,0 +1,172 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-aaa-arrow`;
+const sacClip = `${uid}-aaa-sac`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const renalLines = twoLines(t['diagram.label.renal-arteries']);
+const iliacLines = twoLines(t['diagram.label.iliac-arteries']);
+// The abdominal aorta runs down the middle. The renal arteries leave it at the sides, and at the
+// bottom it divides into the two iliac arteries. Vessels are wide strokes: the wall, then the
+// lumen on top of it.
+const aorta = 'M200,0 L200,288';
+const renal = 'M120,80 L280,80';
+const iliacs = 'M140,372 L200,284 L260,372';
+// Aneurysm: the segment below the renal arteries widens all round (fusiform). Outer edge of the
+// wall, then the lumen 4 units inside it.
+const sacWall =
+  'M183,112 C183,140 155,155 155,190 C155,225 183,240 183,268 L217,268 C217,240 245,225 245,190 C245,155 217,140 217,112 Z';
+const sacLumen =
+  'M187,112 C187,142 159,157 159,190 C159,223 187,238 187,268 L213,268 C213,238 241,223 241,190 C241,157 213,142 213,112 Z';
+// Thrombus lining the inside of the sac on both sides, leaving a channel for the blood. Its outer
+// edge reaches past the wall and is clipped to the lumen, so it lies flat against the wall.
+const thrombusLeft =
+  'M178,138 C160,150 150,165 150,190 C150,215 160,230 178,242 C176,225 176,210 176,190 C176,170 176,155 178,138 Z';
+const thrombusRight =
+  'M222,138 C240,150 250,165 250,190 C250,215 240,230 222,242 C224,225 224,210 224,190 C224,170 224,155 222,138 Z';
+const flow = {
+  main: 'M200,14 L200,272',
+  renalLeft: 'M190,80 L128,80',
+  renalRight: 'M210,80 L272,80',
+  iliacLeft: 'M196,296 L152,358',
+  iliacRight: 'M204,296 L248,358',
+};
+const flowPaths = Object.values(flow);
+---
+
+<svg
+  viewBox="0 0 400 380"
+  role="img"
+  aria-label={t['diagram.abdominal-aortic-aneurysm.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <clipPath id={sacClip}>
+      <path d={sacLumen}></path>
+    </clipPath>
+  </defs>
+
+  <!-- Vessel walls -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linejoin="round">
+    <path d={renal} stroke-width="16"></path>
+    <path d={iliacs} stroke-width="22"></path>
+    <path d={aorta} stroke-width="34"></path>
+  </g>
+  <path class="disease-only" d={sacWall} fill="var(--diagram-arterial)"></path>
+
+  <!-- Vessel lumens on top of the walls, opening into each other -->
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linejoin="round">
+    <path d="M120,80 L280,80" stroke-width="10"></path>
+    <path d="M140,372 L200,286 L260,372" stroke-width="14"></path>
+    <path d="M200,0 L200,290" stroke-width="26"></path>
+  </g>
+
+  <!-- Aneurysm: the widened lumen and the thrombus lining its wall -->
+  <g class="disease-only">
+    <path d={sacLumen} fill="var(--diagram-arterial-fill)"></path>
+    <!-- The thrombus has its own colour, and a thin background-coloured edge keeps it apart from
+         the wall, so it does not read as a thicker wall -->
+    <g
+      clip-path={`url(#${sacClip})`}
+      fill="var(--color-muted)"
+      stroke="var(--color-bg)"
+      stroke-width="1.5"
+    >
+      <path d={thrombusLeft}></path>
+      <path d={thrombusRight}></path>
+    </g>
+    <g fill="var(--diagram-arterial-fill)">
+      <circle cx="170" cy="180" r="1.8"></circle>
+      <circle cx="171" cy="200" r="1.8"></circle>
+      <circle cx="230" cy="180" r="1.8"></circle>
+      <circle cx="229" cy="200" r="1.8"></circle>
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="3" stroke-linecap="round">
+    {flowPaths.map((d) => (
+      <path d={d} marker-end={`url(#${arrow})`} />
+    ))}
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+    {flowPaths.map((d) => (
+      <path class="dash-flow" d={d} />
+    ))}
+  </g>
+
+  <!-- Diameter of the aorta below the renal arteries -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <g class="normal-only">
+      <line x1="183" y1="230" x2="217" y2="230"></line>
+      <line x1="183" y1="224" x2="183" y2="236"></line>
+      <line x1="217" y1="224" x2="217" y2="236"></line>
+    </g>
+    <g class="disease-only">
+      <line x1="155" y1="190" x2="245" y2="190"></line>
+      <line x1="155" y1="184" x2="155" y2="196"></line>
+      <line x1="245" y1="184" x2="245" y2="196"></line>
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x="226" y="36">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="292" y="74">
+    <tspan x="292">{renalLines[0]}</tspan>
+    <tspan x="292" dy="15">
+      {renalLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" x="264" y="334">
+    <tspan x="264">{iliacLines[0]}</tspan>
+    <tspan x="264" dy="15">
+      {iliacLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small normal-only" x="174" y="234" text-anchor="end">
+    {t['diagram.label.aorta-normal-diameter']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="148" y="194" text-anchor="end">
+      {t['diagram.label.aneurysm-diameter']}
+    </text>
+    <line x1="242" y1="167" x2="256" y2="157" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <circle cx="242" cy="167" r="2.5" fill="var(--color-text)"></circle>
+    <text x="258" y="150">
+      {t['diagram.label.aneurysm']}
+    </text>
+    <line x1="230" y1="214" x2="256" y2="226" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <circle cx="230" cy="214" r="2.5" fill="var(--color-text)"></circle>
+    <text class="diagram-small" x="260" y="232">
+      {t['diagram.label.clot']}
+    </text>
+  </g>
+</svg>

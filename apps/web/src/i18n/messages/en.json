@@ -503,5 +503,11 @@
   "diagram.label.displaced-septal-leaflet": "Displaced septal leaflet",
   "diagram.label.atrialized-rv": "Atrialised part of RV",
   "diagram.label.functional-rv": "Functional RV",
-  "diagram.ebstein-anomaly.title": "Diagram of the right heart: normally the tricuspid valve leaflets attach to the annulus between the right atrium and the right ventricle; in Ebstein anomaly the anterior leaflet is enlarged and sail-like, the septal leaflet is stuck to the septum and displaced towards the apex, the part of the ventricle between the annulus and the leaflets is atrialised, the functional ventricle is smaller, blood flows back through the valve, and the right atrium is drawn larger"
+  "diagram.ebstein-anomaly.title": "Diagram of the right heart: normally the tricuspid valve leaflets attach to the annulus between the right atrium and the right ventricle; in Ebstein anomaly the anterior leaflet is enlarged and sail-like, the septal leaflet is stuck to the septum and displaced towards the apex, the part of the ventricle between the annulus and the leaflets is atrialised, the functional ventricle is smaller, blood flows back through the valve, and the right atrium is drawn larger",
+  "diagram.label.renal-arteries": "Renal arteries",
+  "diagram.label.iliac-arteries": "Iliac arteries",
+  "diagram.label.aorta-normal-diameter": "18–22 mm",
+  "diagram.label.aneurysm-diameter": "3 cm or more",
+  "diagram.label.aneurysm": "Aneurysm",
+  "diagram.abdominal-aortic-aneurysm.title": "Diagram of the abdominal aorta with the renal and iliac arteries: normally the aorta below the renal arteries is on average 18–22 mm across; in an abdominal aortic aneurysm this segment usually widens all round to 3 cm or more, and a blood clot often lines its wall from inside"
 }

@@ -1,3 +1,4 @@
+import AbdominalAorticAneurysm from './AbdominalAorticAneurysm.astro';
 import AorticDissection from './AorticDissection.astro';
 import AorticRegurgitation from './AorticRegurgitation.astro';
 import AorticStenosis from './AorticStenosis.astro';
@@ -42,6 +43,7 @@ import WpwSyndrome from './WpwSyndrome.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
+  'abdominal-aortic-aneurysm': AbdominalAorticAneurysm,
   'aortic-dissection': AorticDissection,
   'aortic-regurgitation': AorticRegurgitation,
   'aortic-stenosis': AorticStenosis,
