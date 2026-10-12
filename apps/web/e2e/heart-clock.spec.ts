@@ -147,6 +147,9 @@ test.describe('disease presets', () => {
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
     await expect(conditions).toHaveAccessibleDescription(en['heartClock.preset.normal.summary']);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.av-block-first-degree'] }),
+    ).toHaveCount(1);
     await conditions
       .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
       .check();

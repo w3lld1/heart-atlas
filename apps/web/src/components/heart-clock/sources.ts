@@ -105,6 +105,11 @@ export const presetSources: readonly ClockSource[] = [
   },
   // First-degree AV block: docs/plans/2026-10-12-more-ecg-presets.md.
   {
+    text: 'Минздрав России. Брадиаритмии и нарушения проводимости. Клинические рекомендации, 2025.',
+    href: 'https://cr.minzdrav.gov.ru/view-cr/160_2',
+    lang: 'ru',
+  },
+  {
     text: 'MSD Manuals, Professional Version. Atrioventricular Block. 2024.',
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/atrioventricular-block',
     lang: 'en',

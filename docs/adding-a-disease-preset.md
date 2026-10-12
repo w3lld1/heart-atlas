@@ -40,7 +40,7 @@ The parameters, their units and ranges are in `HeartParams`, `defaultParams` and
 [`packages/heart-clock/test/presets.test.ts`](../packages/heart-clock/test/presets.test.ts) already checks every id in `presetIds`:
 
 - `presets` has an entry for every id;
-- the preset passes `checkParams` at every heart rate in its `heartRateLimits`, and that range is the full `paramRanges.heartRate`. Only `atrial-septal-defect` is allowed a narrower range (its wide QRS does not fit the fastest rates). If your preset narrows the range too, the test fails; add an expectation for it with a comment explaining why.
+- the preset passes `checkParams` at every heart rate in its `heartRateLimits`, and that range is the full `paramRanges.heartRate`. Presets with a narrower range are listed in `narrowedLimits` in `presets.test.ts`, each with a reason. A preset that raises PR or QRS narrows the upper heart rate limit (first-degree AV block: 96). If your preset narrows the range too, the test fails; add it to `narrowedLimits` with a comment explaining why.
 
 Add a test for the sign the preset is meant to show, like the existing ones for ST elevation in `stemi` and the split S2 in `atrial-septal-defect`.
 

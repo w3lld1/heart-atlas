@@ -193,6 +193,12 @@ test.describe('embed builder', () => {
         `title="${en['heartClock.title']}: ${en['heartClock.preset.atrial-fibrillation']}"`,
       ),
     );
+    // The long PR of first-degree AV block narrows the upper heart rate limit.
+    const [, avBlockMax] = heartRateLimits(presetParams('av-block-first-degree'));
+    await expect(condition.locator('option[value="av-block-first-degree"]')).toHaveAttribute(
+      'data-max',
+      String(avBlockMax),
+    );
     // A rate the preset does not allow is reported and left out of the code.
     const [, asdMax] = heartRateLimits(presetParams('atrial-septal-defect'));
     await condition.selectOption('atrial-septal-defect');
