@@ -1,0 +1,260 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-arrow-v`;
+const arrowA = `${uid}-arrow-a`;
+// Particles: start position, travel and a negative delay so the flow is already running.
+const venous = [0, -0.7, -1.4, -2.1];
+const arterial = [-0.35, -1.05, -1.75, -2.45];
+const shunt = [0, -1, -2];
+---
+
+<svg
+  viewBox="0 0 360 330"
+  role="img"
+  aria-label={t['diagram.ventricular-septal-defect.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Heart wall -->
+  <path
+    d="M60,55 Q180,5 300,55 Q345,140 285,232 Q225,292 180,296 Q135,292 75,232 Q15,140 60,55 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Chambers: venous blood on the right side of the heart (viewer's left), arterial on the left -->
+  <ellipse
+    cx="115"
+    cy="95"
+    rx="58"
+    ry="45"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="normal-only"
+    cx="245"
+    cy="95"
+    rx="58"
+    ry="45"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    cx="120"
+    cy="205"
+    rx="50"
+    ry="58"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="normal-only"
+    cx="248"
+    cy="205"
+    rx="52"
+    ry="60"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <!-- The guideline: the left atrium and left ventricle are volume-overloaded and dilate. -->
+  <g class="disease-only">
+    <ellipse
+      cx="248"
+      cy="94"
+      rx="64"
+      ry="50"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="246"
+      cy="207"
+      rx="62"
+      ry="64"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+
+  <!-- Intact ventricular septum, pointed out in the normal view -->
+  <g class="normal-only">
+    <line x1="183" y1="215" x2="183" y2="305" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="183" y="322" text-anchor="middle">
+      {t['diagram.label.septum']}
+    </text>
+  </g>
+
+  <!-- Defect in the ventricular septum, between the two lower chambers -->
+  <g class="disease-only">
+    <rect
+      x="168"
+      y="193"
+      width="24"
+      height="24"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+    <line x1="180" y1="221" x2="180" y2="305" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="180" y="322" text-anchor="middle">
+      {t['diagram.label.defect']}
+    </text>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    d="M115,62 L115,222"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowV})`}
+  ></path>
+  <path
+    d="M245,62 L245,222"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowA})`}
+  ></path>
+  <path
+    class="disease-only"
+    d="M228,205 L140,205"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowA})`}
+  ></path>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    {venous.map((delay) => (
+      <circle
+        class="vsd-down"
+        cx="115"
+        cy="62"
+        r="5"
+        fill="var(--diagram-venous)"
+        style={`animation-delay: ${delay}s`}
+      ></circle>
+    ))}
+    {arterial.map((delay) => (
+      <circle
+        class="vsd-down"
+        cx="245"
+        cy="62"
+        r="5"
+        fill="var(--diagram-arterial)"
+        style={`animation-delay: ${delay}s`}
+      ></circle>
+    ))}
+    <g class="disease-only">
+      {shunt.map((delay) => (
+        <circle
+          class="vsd-shunt"
+          cx="230"
+          cy="205"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+    </g>
+  </g>
+
+  <text x="86" y="100" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="278" y="100" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="88" y="212" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="278" y="212" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .vsd-down {
+    animation: vsd-down 2.8s linear infinite;
+  }
+
+  .diagram .vsd-shunt {
+    animation: vsd-shunt 2.4s linear infinite;
+  }
+
+  @keyframes vsd-down {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 155px);
+    }
+  }
+
+  @keyframes vsd-shunt {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    15%,
+    80% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-100px, 0);
+    }
+  }
+</style>

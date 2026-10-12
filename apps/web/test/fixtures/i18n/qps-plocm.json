@@ -149,6 +149,7 @@
   "diagram.label.lv": "[RTL] LV",
   "diagram.label.defect": "[RTL] Defect",
   "diagram.atrial-septal-defect.title": "[RTL] Diagram of the heart chambers with and without an atrial septal defect",
+  "diagram.ventricular-septal-defect.title": "[RTL] Diagram of the heart chambers with and without a ventricular septal defect",
   "diagram.label.aorta": "[RTL] Aorta",
   "diagram.label.sa-node": "[RTL] SA node",
   "diagram.label.ecg": "[RTL] ECG",
@@ -330,5 +331,10 @@
   "diagram.label.uniform-wall": "[RTL] Uniform wall",
   "diagram.label.inflammation-foci": "[RTL] Foci of inflammation",
   "diagram.label.lv-cross-section": "[RTL] LV cross-section",
-  "diagram.myocarditis.title": "[RTL] Diagram of a cross-section of the left ventricle: a uniform wall normally, and patchy foci of inflammation in the wall in myocarditis"
+  "diagram.myocarditis.title": "[RTL] Diagram of a cross-section of the left ventricle: a uniform wall normally, and patchy foci of inflammation in the wall in myocarditis",
+  "diagram.label.mitral-valve": "[RTL] Mitral valve",
+  "diagram.label.leaflets-closed": "[RTL] Leaflets closed",
+  "diagram.label.leaflets-gap": "[RTL] Leaflets do not close",
+  "diagram.label.la-enlarged": "[RTL] LA enlarged in severe regurgitation",
+  "diagram.mitral-regurgitation.title": "[RTL] Diagram of the mitral valve while the left ventricle contracts: closed normally, and in mitral regurgitation with a gap between the leaflets and blood flowing back into the left atrium, drawn larger as in severe regurgitation"
 }
