@@ -18,6 +18,8 @@ if (!heartStructures(t).some((s) => s.id === id)) {
 }
 ---
 
+<!-- Inline element: line breaks around the slot would render as spaces around the word. -->
+<!-- prettier-ignore -->
 <span data-structure={id} data-hint={t['articles.showOnModel']}><slot /></span>
 
 <script>
