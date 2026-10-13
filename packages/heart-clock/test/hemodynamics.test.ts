@@ -38,10 +38,11 @@ describe('hemodynamicsAt', () => {
     for (let i = 1; i < pause.length; i += 1) {
       expect(pause[i]?.h.aorta).toBeLessThan(pause[i - 1]?.h.aorta ?? 0);
     }
-    // A pause lets the aorta fall lower than a regular beat does before the next ejection.
-    const regular = clock.hemodynamicsAt(1000 + clock.beatAt(1000).timing.ejectionStart - 1).aorta;
-    const afterPause = clock.hemodynamicsAt(5500 + clock.beatAt(5500).timing.ejectionStart - 1);
-    expect(afterPause.aorta).toBeLessThan(regular);
+    // The model stretches the run-off over the pause: the aorta still reaches the usual diastolic
+    // pressure when the valve opens (spec, section 2), so it ends where a regular beat ends.
+    const regular = clock.hemodynamicsAt(1000 + clock.beatAt(1000).timing.ejectionStart).aorta;
+    const afterPause = clock.hemodynamicsAt(5500 + clock.beatAt(5500).timing.ejectionStart).aorta;
+    expect(afterPause).toBeCloseTo(regular, 6);
   });
 
   it('is continuous across phases and beats', () => {

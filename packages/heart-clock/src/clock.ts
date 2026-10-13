@@ -1,6 +1,6 @@
 import { beatWaves, fWaves } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
-import { paramRanges, resolveParams, type HeartParams } from './params.ts';
+import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
 import { beatTiming, phaseAt, type BeatTiming, type Phase } from './timing.ts';
 
 export interface Beat {
@@ -58,7 +58,7 @@ const fWaveBlendMs = 50;
 
 const minRr = 60000 / paramRanges.heartRate[1];
 /** Irregular rhythms are never slower than 40 bpm, or than their mean when that is below 40. */
-const slowestRate = 40;
+const slowestRate = defaultRateLimits[0];
 
 /** Uniform number in [0, 1) from a seed and a beat index; the same inputs give the same number. */
 function unitRandom(seed: number, index: number): number {
@@ -80,7 +80,10 @@ function rrFor(params: HeartParams, index: number): number {
   return clampRr(mean * (1 + spread), params);
 }
 
-/** Sinus pause after beat `index`, ms: after every `pauseEvery`-th beat (assumption: regular). */
+/**
+ * Sinus pause after beat `index`, ms: after every `pauseEvery`-th beat (assumption: regular).
+ * f waves (`fWaveAmplitude`) are atrial activity, so they go on through a pause.
+ */
 function pauseFor(params: HeartParams, index: number): number {
   const every = params.pauseEvery;
   return every > 0 && index % every === every - 1 ? params.pauseDuration : 0;

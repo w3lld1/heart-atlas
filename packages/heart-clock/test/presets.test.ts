@@ -7,6 +7,7 @@ import {
   presetParams,
   presetRateFloors,
   presetRateLimits,
+  rateLimitsFrom,
   presets,
   setsHeartRate,
   switchedHeartRate,
@@ -193,6 +194,9 @@ describe('preset heart rate', () => {
     expect(heartRateLimits(defaultParams)).toEqual([30, 180]);
     expect(presetRateLimits('normal')).toEqual(defaultRateLimits);
     expect(defaultRateLimits).toEqual([40, 180]);
+    // A preset with its own floor of 30 (a slow rhythm) gets the whole lower range.
+    expect(rateLimitsFrom(defaultParams, 30)).toEqual([30, 180]);
+    expect(rateLimitsFrom(defaultParams, 35)).toEqual([35, 180]);
   });
 
   it('raises the lower limit to the preset floor and fails when nothing is left', () => {

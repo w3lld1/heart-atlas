@@ -24,6 +24,7 @@ export {
   presetParams,
   presetRateFloors,
   presetRateLimits,
+  rateLimitsFrom,
   presets,
   setsHeartRate,
   switchedHeartRate,
