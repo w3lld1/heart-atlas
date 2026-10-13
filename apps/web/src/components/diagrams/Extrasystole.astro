@@ -1,0 +1,452 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-es-arrow`;
+// The wave letters P and QRS are international ECG notation, the same in every locale, so they are
+// not in messages.
+
+// Long labels may not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const focusLines = twoLines(t['diagram.label.ventricular-focus']);
+
+/*
+ * A flat pathway scheme, not a heart outline: atria on top, the AV node between, the ventricles
+ * below, and an ECG strip in a panel at the bottom. Normal: every beat starts in the SA node and
+ * goes through the atria and the AV node to the ventricles; on the strip every QRS has a P wave
+ * before it. Disease (a ventricular premature beat): the sinus beats go on as before, but one extra
+ * impulse starts early in a focus in a ventricle. On the strip it is an early, wide QRS without a P
+ * wave before it, with its T wave pointing the other way, and a longer pause after it. The focus is
+ * placed generically in the ventricles, not at a specific site. No numbers, no bigeminy, no
+ * tachycardia.
+ */
+// Sinus route: SA node across the atria into the AV node and down into the ventricles.
+const sinusRoute = 'M70,44 Q170,52 200,108 L200,170';
+// The same route in two parts for the disease state: across the atria to the AV node, then down.
+const atrialRoute = 'M70,44 Q170,52 200,108';
+const hisRoute = 'M200,108 L200,170';
+// From the end of the route the impulse spreads into both sides of the ventricles.
+const spreadLeft = 'M200,170 Q150,192 104,262';
+const spreadRight = 'M200,170 Q248,192 278,252';
+// The ectopic focus in a ventricle and the impulse spreading out of it.
+const focus = { x: 360, y: 222 };
+const focusLeft = 'M346,222 L294,222';
+const focusDownLeft = 'M350,234 L318,266';
+const focusDown = 'M360,238 L360,276';
+
+// ECG strip on its own baseline in the bottom panel; x of each QRS start.
+const base = 382;
+const stripStart = 22;
+const stripEnd = 420;
+const normalBeats = [64, 160, 256, 352];
+// Disease: two sinus beats, an early ventricular beat, a longer pause, then the next sinus beat.
+const sinusBeats = [64, 160, 352];
+const pvcStart = 214;
+// One sinus beat: P wave, narrow QRS, upright T.
+const sinusBeat = (q: number) =>
+  `M${q - 40},${base} C${q - 36},${base - 14} ${q - 20},${base - 14} ${q - 16},${base} ` +
+  `L${q},${base} L${q + 4},${base + 5} L${q + 10},${base - 50} L${q + 16},${base + 8} L${q + 20},${base} ` +
+  `L${q + 26},${base} C${q + 32},${base - 18} ${q + 44},${base - 18} ${q + 50},${base}`;
+// The ventricular premature beat: no P wave, a wide QRS and a T wave the other way.
+const pvcBeat = (q: number) =>
+  `M${q},${base} C${q + 6},${base - 10} ${q + 10},${base - 54} ${q + 16},${base - 54} ` +
+  `C${q + 22},${base - 54} ${q + 26},${base + 8} ${q + 34},${base + 6} L${q + 38},${base} ` +
+  `L${q + 44},${base} C${q + 54},${base + 24} ${q + 76},${base + 24} ${q + 86},${base}`;
+// The pause bracket under the strip, from the early beat to the next sinus QRS.
+const bracketY = 404;
+const pauseEnd = 352;
+const bracket = `M${pvcStart},${bracketY - 6} L${pvcStart},${bracketY + 6} M${pvcStart},${bracketY} L${pauseEnd},${bracketY} M${pauseEnd},${bracketY - 6} L${pauseEnd},${bracketY + 6}`;
+---
+
+<svg viewBox="0 0 440 440" role="img" aria-label={t['diagram.extrasystole.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Atria on top, ventricles below, the ECG panel at the bottom -->
+  <rect x="16" y="16" width="408" height="78" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect x="16" y="140" width="408" height="150" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect
+    x="16"
+    y="298"
+    width="408"
+    height="134"
+    rx="12"
+    fill="var(--color-bg)"
+    stroke="var(--color-border)"
+    stroke-width="2"
+  ></rect>
+
+  <!-- Normal: the ventricles light up once per sinus beat -->
+  <g class="flow normal-only">
+    <rect class="es-beat es-beat-sinus" x="16" y="140" width="408" height="150" rx="16"></rect>
+  </g>
+
+  <!-- The sinus route, in both states: the sinus beats go on around the premature beat -->
+  <path class="es-mark" d={sinusRoute}></path>
+  <path class="es-mark" d={spreadLeft} marker-end={`url(#${arrowId})`}></path>
+  <path class="es-mark" d={spreadRight} marker-end={`url(#${arrowId})`}></path>
+  <g class="flow normal-only">
+    <path class="es-run es-run-route" d={sinusRoute} pathLength="100"></path>
+    <path class="es-run es-run-spread" d={spreadLeft} pathLength="100"></path>
+    <path class="es-run es-run-spread" d={spreadRight} pathLength="100"></path>
+  </g>
+
+  <!-- Disease: the SA node keeps firing on time and every impulse crosses the atria. The one that
+       arrives in the pause after the premature beat does not go on into the ventricles, which are
+       still recovering from the early beat. Then the early impulse from the focus in the ventricle. -->
+  <g class="disease-only">
+    <g class="flow">
+      <path class="es-run es-run-atria" d={atrialRoute} pathLength="100"></path>
+      <g class="es-gate">
+        <rect class="es-beat es-beat-sinus" x="16" y="140" width="408" height="150" rx="16"></rect>
+        <path class="es-run es-run-his" d={hisRoute} pathLength="100"></path>
+        <path class="es-run es-run-spread" d={spreadLeft} pathLength="100"></path>
+        <path class="es-run es-run-spread" d={spreadRight} pathLength="100"></path>
+      </g>
+      <rect class="es-beat es-beat-early" x="16" y="140" width="408" height="150" rx="16"></rect>
+      <circle class="es-focus-flash" cx={focus.x} cy={focus.y} r="16"></circle>
+    </g>
+    <path class="es-mark es-mark-early" d={focusLeft} marker-end={`url(#${arrowId})`}></path>
+    <path class="es-mark es-mark-early" d={focusDownLeft} marker-end={`url(#${arrowId})`}></path>
+    <path class="es-mark es-mark-early" d={focusDown} marker-end={`url(#${arrowId})`}></path>
+    <circle class="es-focus" cx={focus.x} cy={focus.y} r="9"></circle>
+  </g>
+
+  <!-- Nodes -->
+  <circle class="es-node" cx="70" cy="44" r="7"></circle>
+  <ellipse class="es-node" cx="200" cy="117" rx="14" ry="9"></ellipse>
+
+  <!-- ECG strip: baseline and trace -->
+  <line class="es-base" x1={stripStart} y1={base} x2={stripEnd} y2={base}></line>
+  <g class="normal-only">
+    {normalBeats.map((q) => (
+      <path class="es-trace" d={sinusBeat(q)}></path>
+    ))}
+  </g>
+  <g class="disease-only">
+    {sinusBeats.map((q) => (
+      <path class="es-trace" d={sinusBeat(q)}></path>
+    ))}
+    <path class="es-trace" d={pvcBeat(pvcStart)}></path>
+    <path class="es-bracket" d={bracket}></path>
+  </g>
+
+  <!-- Labels -->
+  <text x="86" y="36">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="30" y="84">
+    {t['diagram.label.atria']}
+  </text>
+  <text x="180" y="123" text-anchor="end">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="30" y="168">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small disease-only" x={focus.x} y="178" text-anchor="middle">
+    <tspan x={focus.x}>{focusLines[0]}</tspan>
+    <tspan x={focus.x} dy="15">
+      {focusLines[1]}
+    </tspan>
+  </text>
+  <text x="28" y="324">
+    {t['diagram.label.ecg']}
+  </text>
+  <text class="diagram-small" x="36" y="360" text-anchor="middle">
+    P
+  </text>
+  <text class="diagram-small normal-only" x="412" y="318" text-anchor="end">
+    {t['diagram.label.normal-rhythm']}
+  </text>
+  <text class="diagram-small disease-only" x={pvcStart + 17} y="318" text-anchor="middle">
+    {t['diagram.label.premature-beat']}
+  </text>
+  <text
+    class="diagram-small disease-only"
+    x={(pvcStart + pauseEnd) / 2}
+    y="424"
+    text-anchor="middle"
+  >
+    {t['diagram.label.pause']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .es-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .es-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  /* The early impulse: dashed, so it differs from the sinus route without motion. */
+  .diagram .es-mark-early {
+    stroke-width: 3;
+    stroke-dasharray: 6 4;
+    stroke-linecap: butt;
+  }
+
+  /* The ectopic focus: outlined and set apart from the nodes of the normal route. */
+  .diagram .es-focus {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 3 2;
+  }
+
+  .diagram .es-focus-flash {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    animation: es-focus-flash 6s linear infinite;
+  }
+
+  .diagram .es-base {
+    stroke: var(--color-border);
+    stroke-width: 1;
+  }
+
+  .diagram .es-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .diagram .es-bracket {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 1.5;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .es-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  .diagram .es-run-route {
+    animation: es-run-route 1s linear infinite;
+  }
+
+  .diagram .es-run-spread {
+    animation: es-run-spread 1s linear infinite;
+  }
+
+  .diagram .es-run-atria {
+    animation: es-run-atria 1s linear infinite;
+  }
+
+  .diagram .es-run-his {
+    animation: es-run-his 1s linear infinite;
+  }
+
+  .diagram .es-beat {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+  }
+
+  .diagram .es-beat-sinus {
+    animation: es-beat-sinus 1s linear infinite;
+  }
+
+  .diagram .es-beat-early {
+    animation: es-beat-early 6s linear infinite;
+  }
+
+  /* Disease: the SA node fires once a second; the ventricular part of the beat due in the pause
+     after the premature beat (3 s into the 6 s cycle) is hidden, so the pause is longer than the
+     usual gap between ventricular beats. */
+  .diagram .es-gate {
+    animation: es-gate 6s step-end infinite;
+  }
+
+  /* Sinus route: SA node to the AV node and down (first 35 %), then into the ventricles. */
+  @keyframes es-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    35% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    36%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  /* Disease, split route: across the atria to the AV node (first 25 %), then down (25–35 %). */
+  @keyframes es-run-atria {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    25% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    26%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes es-run-his {
+    0%,
+    24% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    25% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    35% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    36%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes es-run-spread {
+    0%,
+    35% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    36% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    55% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes es-beat-sinus {
+    0%,
+    54% {
+      opacity: 0;
+    }
+
+    58% {
+      opacity: 0.45;
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes es-gate {
+    0% {
+      opacity: 1;
+    }
+
+    49% {
+      opacity: 0;
+    }
+
+    66% {
+      opacity: 1;
+    }
+  }
+
+  /* The focus fires early, about 0.7 s after the second sinus beat (2.7 s into the cycle). */
+  @keyframes es-focus-flash {
+    0%,
+    45% {
+      opacity: 0;
+    }
+
+    46% {
+      opacity: 0.6;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes es-beat-early {
+    0%,
+    47% {
+      opacity: 0;
+    }
+
+    49% {
+      opacity: 0.45;
+    }
+
+    53%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

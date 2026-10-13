@@ -1,0 +1,213 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-mvp-arrow`;
+// The prolapse label is too long for one line in the right column: split it in two at a word
+// boundary, the longer half on the second line.
+const prolapseWords = t['diagram.label.posterior-leaflet-prolapse'].split(' ');
+const prolapseSplit = Math.floor(prolapseWords.length / 2);
+const prolapseLines = [
+  prolapseWords.slice(0, prolapseSplit).join(' '),
+  prolapseWords.slice(prolapseSplit).join(' '),
+];
+// Both states show systole: the left ventricle contracts and the mitral valve is closed. The
+// mitral annulus runs from x = 140 to x = 200 at y = 165; the anterior leaflet hangs from the side
+// next to the aorta (x = 140), the posterior leaflet from the other side (x = 200).
+// The anterior leaflet is the same in both states: its free edge reaches the annulus level.
+const anteriorLeaflet = 'M140,165 Q155,171 170,167';
+// Normal: the posterior leaflet meets it at the annulus level.
+const posteriorClosed = 'M200,165 Q185,171 172,167';
+// Prolapse: the posterior leaflet is larger and billows above the annulus line into the atrium;
+// its free edge still meets the anterior leaflet. No torn chord: that is a complication.
+const posteriorProlapse = 'M200,165 C199,140 174,138 172,163';
+// Chordae run from the leaflets to two papillary muscles in the ventricle (tips at y = 242).
+const anteriorChords = ['M155,169 L150,242', 'M169,168 L150,242'];
+const posteriorChordsNormal = ['M185,169 L186,242', 'M173,168 L186,242'];
+// In prolapse the posterior chords are longer and drawn thinner.
+const posteriorChordsProlapse = ['M179,148 L186,242', 'M172,163 L186,242'];
+---
+
+<svg
+  viewBox="0 0 450 320"
+  role="img"
+  aria-label={t['diagram.mitral-valve-prolapse.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Phase of the cardiac cycle: the same in both states -->
+  <text x="258" y="22">
+    {t['diagram.state.systole']}
+  </text>
+
+  <!-- Left ventricle wall: the same in both states -->
+  <path
+    d="M30,160 L230,160 C246,205 224,286 140,306 C56,286 20,205 30,160 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Left atrium: the same size in both states -->
+  <ellipse
+    cx="170"
+    cy="82"
+    rx="62"
+    ry="46"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Left ventricle cavity, the opening to the atrium and the aorta as one lumen -->
+  <path
+    d="M45,22 L85,22 L85,165 L140,165 L140,118 L200,118 L200,165 L215,165 C228,205 210,270 140,288 C70,270 35,205 45,165 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path d="M45,22 L45,165 C35,205 70,270 140,288 C210,270 228,205 215,165 L200,165"></path>
+    <path d="M85,22 L85,165 L140,165"></path>
+    <!-- Sides of the opening between atrium and ventricle, up to where the atrium outline meets them -->
+    <path d="M140,122 L140,165 M200,122 L200,165"></path>
+  </g>
+
+  <!-- Papillary muscles rising from the ventricle wall -->
+  <g fill="var(--diagram-muscle)">
+    <ellipse cx="150" cy="264" rx="8" ry="24"></ellipse>
+    <ellipse cx="186" cy="264" rx="8" ry="24"></ellipse>
+  </g>
+
+  <!-- Blood leaving the ventricle into the aorta, visible with and without motion -->
+  <path
+    class="mvp-pulse"
+    d="M65,250 L65,34"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+
+  <!-- Mitral annulus: the same level in both states, so the prolapse reads against it. The dashed
+       line runs on to its label in the right column. -->
+  <line
+    x1="140"
+    y1="165"
+    x2="252"
+    y2="165"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="4 3"
+  ></line>
+
+  <!-- Chordae from the leaflets to the papillary muscles -->
+  <g fill="none" stroke="var(--color-muted)">
+    {anteriorChords.map((d) => (
+      <path d={d} stroke-width="1.5" />
+    ))}
+    {posteriorChordsNormal.map((d) => (
+      <path class="normal-only" d={d} stroke-width="1.5" />
+    ))}
+    {posteriorChordsProlapse.map((d) => (
+      <path class="disease-only" d={d} stroke-width="0.9" />
+    ))}
+  </g>
+
+  <!-- Mitral leaflets: closed at the annulus level, or the posterior leaflet billowing into the atrium -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+    <path d={anteriorLeaflet}></path>
+    <path class="normal-only" d={posteriorClosed}></path>
+    <path class="disease-only" d={posteriorProlapse}></path>
+  </g>
+  <circle cx="140" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="200" cy="165" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Sometimes blood leaks back into the atrium: a thin dashed jet, not the usual picture -->
+  <path
+    class="disease-only mvp-pulse"
+    d="M169,160 L158,100"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2.5"
+    stroke-dasharray="5 4"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+
+  <!-- Chamber and vessel labels inside the drawing -->
+  <text x="65" y="17" text-anchor="middle">
+    {t['diagram.label.aorta']}
+  </text>
+  <text x="170" y="68" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="102" y="246" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Leader lines from the label column into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="disease-only" x1="162" y1="103" x2="252" y2="100"></line>
+    <line class="disease-only" x1="197" y1="148" x2="252" y2="138"></line>
+    <line class="normal-only" x1="190" y1="168" x2="252" y2="190"></line>
+    <line x1="184" y1="224" x2="252" y2="232"></line>
+  </g>
+
+  <!-- Labels in the right column -->
+  <text class="diagram-small disease-only" x="258" y="104">
+    {t['diagram.label.backflow-sometimes']}
+  </text>
+  <text class="diagram-small disease-only" x="258" y="134">
+    <tspan x="258">{prolapseLines[0]}</tspan>
+    <tspan x="258" dy="15">
+      {prolapseLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" x="258" y="169">
+    {t['diagram.label.valve-annulus']}
+  </text>
+  <text class="diagram-small normal-only" x="258" y="194">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small" x="258" y="236">
+    {t['diagram.label.chordae']}
+  </text>
+</svg>
+
+<style is:global>
+  /* The forward arrow and the backflow jet fade between contractions; without motion they stay
+     solid. */
+  .diagram .mvp-pulse {
+    animation: mvp-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes mvp-pulse {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,149 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-rhd-clip`;
+// The mitral valve seen en face from the left ventricle in diastole, when it should be open.
+// No chambers, chordae, blood flow or calcium: the side view with flow is the mitral stenosis
+// diagram, and calcium is not always present.
+const cx = 165;
+const cy = 160;
+const rx = 105;
+const ry = 80;
+// Commissures: the two ends of the opening, where the leaflets meet near the annulus.
+const leftCommissure = { x: 70, y: 170 };
+const rightCommissure = { x: 260, y: 170 };
+// Normal: a wide opening between the commissures; the anterior (upper) leaflet is the larger one.
+const wideOpening = `M${leftCommissure.x},${leftCommissure.y} C105,118 225,118 ${rightCommissure.x},${rightCommissure.y} C225,212 105,212 ${leftCommissure.x},${leftCommissure.y} Z`;
+// Rheumatic: both commissures fused, leaving a small oval opening in the centre.
+const smallOpening = 'M133,170 C143,154 187,154 197,170 C187,184 143,184 133,170 Z';
+const fusedBands = [
+  `M${leftCommissure.x + 2},${leftCommissure.y} L131,170`,
+  `M199,170 L${rightCommissure.x - 2},${rightCommissure.y}`,
+];
+---
+
+<svg
+  viewBox="0 0 460 300"
+  role="img"
+  aria-label={t['diagram.rheumatic-heart-disease.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <ellipse cx={cx} cy={cy} rx={rx - 2} ry={ry - 2}></ellipse>
+    </clipPath>
+  </defs>
+
+  <!-- What the drawing shows: the mitral valve, seen from the left ventricle -->
+  <text x="8" y="22">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text class="diagram-small" x="8" y="40">
+    {t['diagram.label.valve-ventricle-view']}
+  </text>
+
+  <!-- Leaflet tissue inside the valve annulus: the same outline in both states -->
+  <ellipse
+    cx={cx}
+    cy={cy}
+    rx={rx}
+    ry={ry}
+    fill="var(--color-border)"
+    stroke="var(--color-muted)"
+    stroke-width="4"
+  ></ellipse>
+
+  <!-- Normal: thin leaflet edges round a wide opening -->
+  <path
+    class="normal-only"
+    d={wideOpening}
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-linejoin="round"
+  ></path>
+  <g class="normal-only rhd-pulse" fill="var(--color-text)">
+    <circle cx={leftCommissure.x} cy={leftCommissure.y} r="5"></circle>
+    <circle cx={rightCommissure.x} cy={rightCommissure.y} r="5"></circle>
+  </g>
+
+  <!-- Rheumatic: thickened leaflet edges round a small oval opening; both commissures fused -->
+  <g class="disease-only" clip-path={`url(#${clipId})`}>
+    <!-- Denser shading for the thickened leaflet tissue -->
+    <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="var(--color-muted)" opacity="0.35"></ellipse>
+    <path
+      d={smallOpening}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-muted)"
+      stroke-width="7"
+      stroke-linejoin="round"
+    ></path>
+    <g
+      class="rhd-pulse"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="9"
+      stroke-linecap="round"
+    >
+      {fusedBands.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines from the labels into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="294" y1="96" x2="218" y2="112"></line>
+    <line class="normal-only" x1="294" y1="146" x2="210" y2="160"></line>
+    <line class="disease-only" x1="294" y1="146" x2="182" y2="164"></line>
+    <line x1="150" y1="268" x2="74" y2="178"></line>
+    <line x1="180" y1="268" x2="256" y2="178"></line>
+  </g>
+
+  <!-- Labels: leaflets and opening in the right column, commissures under the valve -->
+  <text class="diagram-small normal-only" x="300" y="100">
+    {t['diagram.label.thin-leaflets']}
+  </text>
+  <text class="diagram-small disease-only" x="300" y="100">
+    {t['diagram.label.thick-leaflets']}
+  </text>
+  <text class="diagram-small normal-only" x="300" y="150">
+    {t['diagram.label.wide-opening']}
+  </text>
+  <text class="diagram-small disease-only" x="300" y="150">
+    {t['diagram.label.narrow-opening']}
+  </text>
+  <text class="diagram-small normal-only" x={cx} y="284" text-anchor="middle">
+    {t['diagram.label.free-commissures']}
+  </text>
+  <text class="diagram-small disease-only" x={cx} y="284" text-anchor="middle">
+    {t['diagram.label.fused-commissures']}
+  </text>
+</svg>
+
+<style is:global>
+  /* Draws the eye to the commissures: free in the normal valve, fused in rheumatic disease. Without
+     motion they stay solid. */
+  .diagram .rhd-pulse {
+    animation: rhd-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes rhd-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.35;
+    }
+  }
+</style>
