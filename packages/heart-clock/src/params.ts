@@ -60,6 +60,11 @@ export interface HeartParams {
   pauseEvery: number;
   /** Length of a sinus pause, ms. 0 exactly when `pauseEvery` is 0. */
   pauseDuration: number;
+  /**
+   * Delta wave (ventricular pre-excitation), ms: the QRS starts with a slow rise this long instead
+   * of a Q wave, and the R peak moves later. 0 draws the usual QRS. At most half of `qrsDuration`.
+   */
+  deltaWave: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -90,6 +95,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   s2Split: 0,
   pauseEvery: 0,
   pauseDuration: 0,
+  deltaWave: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -117,6 +123,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   s2Split: [0, 100],
   pauseEvery: [0, 20],
   pauseDuration: [0, 6000],
+  deltaWave: [0, 80],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
@@ -151,6 +158,9 @@ export function resolveParams(
     throw new RangeError(
       `pauseEvery must be 0 or an integer from 2 to 20, got ${params.pauseEvery}`,
     );
+  }
+  if (params.deltaWave > params.qrsDuration / 2) {
+    throw new RangeError('deltaWave must be at most half of qrsDuration');
   }
   if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
     throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');

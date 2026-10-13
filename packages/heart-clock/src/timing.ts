@@ -53,7 +53,13 @@ export function beatTiming(rr: number, params: HeartParams): BeatTiming {
     // assumption: the P wave fills 60% of the PR interval.
     pDuration: 0.6 * pr,
     qOnset,
-    rPeak: qOnset + params.qrsDuration / 2,
+    // A delta wave takes the start of the QRS; R then rises at once and peaks early in the rest
+    // of the complex (ecg.ts). Without one, R is in the middle of the QRS.
+    rPeak:
+      qOnset +
+      (params.deltaWave > 0
+        ? params.deltaWave + 0.35 * (params.qrsDuration - params.deltaWave)
+        : params.qrsDuration / 2),
     jPoint: qOnset + params.qrsDuration,
     ejectionStart: qOnset + (qs2 - lvet),
     aorticClosure: qOnset + qs2,

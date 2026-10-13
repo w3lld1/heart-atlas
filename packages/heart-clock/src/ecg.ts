@@ -18,6 +18,9 @@ function smoothstep(from: number, to: number, t: number): number {
 const qAmplitude = -0.1;
 const rAmplitude = 1;
 const sAmplitude = -0.25;
+// assumption: the delta wave rises to 0.3 of R. Sources describe its shape (a slurred, slow
+// upstroke), not its height.
+const deltaAmplitude = 0.3 * rAmplitude;
 
 /**
  * ECG of one beat at `t` ms from its start, mV, without f waves. A sum of Gaussians as in ECGSYN
@@ -35,11 +38,22 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
     params.stShift *
     smoothstep(jPoint - Math.min(15, 0.15 * qrs), jPoint, t) *
     (1 - smoothstep(tCentre, tEnd, t));
+  // With a delta wave the QRS starts with a slow rise instead of a Q wave, and R and S fit into
+  // the rest of the complex. Spec: docs/plans/2026-10-13-heart-clock-rhythms.md, section 3.
+  const delta = params.deltaWave;
+  const rest = qrs - delta;
+  const sCentre = qOnset + delta + (delta > 0 ? 0.75 : 0.8) * rest;
+  const q = delta > 0 ? 0 : wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs);
+  const r = wave(t, timing.rPeak, rAmplitude, 0.1 * rest, 0.1 * rest);
+  // The slow rise goes on at the same slope until the steep R upstroke overtakes it, so the two
+  // join without a step and R keeps its amplitude.
+  const deltaRise = delta > 0 ? (deltaAmplitude * Math.max(0, t - qOnset)) / delta : 0;
+  const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
   return (
     wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5) +
-    wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs) +
-    wave(t, timing.rPeak, rAmplitude, 0.1 * qrs, 0.1 * qrs) +
-    wave(t, qOnset + 0.8 * qrs, sAmplitude, 0.07 * qrs, 0.07 * qrs) +
+    q +
+    rWithDelta +
+    wave(t, sCentre, sAmplitude, 0.07 * rest, 0.07 * rest) +
     wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
     st
   );

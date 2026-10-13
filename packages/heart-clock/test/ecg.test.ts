@@ -70,3 +70,29 @@ describe('ST shift with a narrow QRS', () => {
     expect(nadir(-0.5)).toBeCloseTo(plain, 2);
   });
 });
+
+describe('delta wave', () => {
+  const params = { ...defaultParams, prInterval: 100, qrsDuration: 140, deltaWave: 50 };
+  const timing = beatTiming(1000, params);
+
+  it('starts the QRS with a slow rise and no Q wave, then a steep R', () => {
+    const { qOnset } = timing;
+    const at = (t: number) => beatWaves(t, timing, params);
+    // No dip below the baseline at the start of the QRS.
+    for (let t = qOnset; t < qOnset + 50; t += 2) expect(at(t)).toBeGreaterThan(-0.01);
+    const deltaSlope = (at(qOnset + 40) - at(qOnset + 10)) / 30;
+    const rSlope = (at(timing.rPeak - 5) - at(timing.rPeak - 20)) / 15;
+    expect(deltaSlope).toBeGreaterThan(0);
+    expect(rSlope).toBeGreaterThan(4 * deltaSlope);
+    expect(timing.rPeak).toBeCloseTo(qOnset + 50 + 0.35 * (140 - 50), 9);
+    // R keeps its usual height; the slow rise only joins it.
+    expect(at(timing.rPeak)).toBeCloseTo(1, 2);
+  });
+
+  it('changes nothing at 0 and rejects a delta wave longer than half the QRS', () => {
+    const plain = beatTiming(1000, defaultParams);
+    expect(beatTiming(1000, { ...defaultParams, deltaWave: 0 })).toEqual(plain);
+    expect(() => resolveParams({ qrsDuration: 90, deltaWave: 46 })).toThrow(/deltaWave/);
+    expect(() => resolveParams({ qrsDuration: 90, deltaWave: 45 })).not.toThrow();
+  });
+});
