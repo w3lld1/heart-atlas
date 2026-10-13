@@ -1,0 +1,303 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-vvs-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const pad = 12;
+
+// The reflex in the disease state, as a flow chart in the right column: the trigger, the vagus
+// nerve, its two effects side by side (either one or both can happen, whatever the trigger), and
+// what follows. No numbers: no heart rate, pressure or seconds.
+interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  lines: string[];
+}
+function box(label: string, x: number, y: number, width: number, max: number): Box {
+  const lines = wrap(label, max);
+  return { x, y, width, height: lines.length * lineHeight + pad, lines };
+}
+const columnX = 200;
+const columnWidth = 276;
+const halfWidth = 112;
+const gap = 34;
+const trigger = box(t['diagram.label.syncope-trigger'], columnX, 24, columnWidth, 34);
+const vagus = box(
+  t['diagram.label.vagus-nerve'],
+  columnX,
+  trigger.y + trigger.height + gap,
+  columnWidth,
+  34,
+);
+const effectsY = vagus.y + vagus.height + gap;
+const vessels = box(
+  t['diagram.label.vessels-widen-pressure-falls'],
+  columnX,
+  effectsY,
+  halfWidth,
+  16,
+);
+const slows = box(
+  t['diagram.label.heart-rate-slows'],
+  columnX + columnWidth - halfWidth,
+  effectsY,
+  halfWidth,
+  16,
+);
+const effectsHeight = Math.max(vessels.height, slows.height);
+vessels.height = effectsHeight;
+slows.height = effectsHeight;
+const brainBox = box(
+  t['diagram.label.too-little-blood-to-brain'],
+  columnX,
+  effectsY + effectsHeight + gap,
+  columnWidth,
+  34,
+);
+const faintBox = box(
+  t['diagram.label.lightheaded-sometimes-faint'],
+  columnX,
+  brainBox.y + brainBox.height + gap,
+  columnWidth,
+  34,
+);
+const boxes = [trigger, vagus, vessels, slows, brainBox, faintBox];
+// "and/or" between the two effects: either one or both can happen.
+const andOrLines = wrap(t['diagram.label.and-or'], 6);
+const andOrY = effectsY + effectsHeight / 2 - ((andOrLines.length - 1) * lineHeight) / 2 + 4;
+const centerX = columnX + columnWidth / 2;
+const bottom = (b: Box) => b.y + b.height;
+const middle = (b: Box) => b.x + b.width / 2;
+// Arrow ends stop a little short of the next box so the arrowhead does not touch its border.
+const arrows = [
+  `M${centerX},${bottom(trigger)} V${vagus.y - 3}`,
+  `M${centerX},${bottom(vagus)} L${middle(vessels)},${vessels.y - 3}`,
+  `M${centerX},${bottom(vagus)} L${middle(slows)},${slows.y - 3}`,
+  `M${middle(vessels)},${bottom(vessels)} L${centerX},${brainBox.y - 3}`,
+  `M${middle(slows)},${bottom(slows)} L${centerX},${brainBox.y - 3}`,
+  `M${centerX},${bottom(brainBox)} V${faintBox.y - 3}`,
+];
+
+// Labels of the normal state, next to the parts of the figure they describe.
+const normalLabels = [
+  { y: 52, toX: 126, toY: 52, lines: wrap(t['diagram.label.enough-blood-to-brain'], 30) },
+  { y: 104, toX: 110, toY: 104, lines: wrap(t['diagram.label.pressure-holds'], 30) },
+  { y: 158, toX: 126, toY: 158, lines: wrap(t['diagram.label.normal-rhythm'], 30) },
+  { y: 330, toX: 124, toY: 330, lines: wrap(t['diagram.label.to-heart'], 30) },
+];
+
+// The standing figure: head, torso, arms and legs as plain outlines. The heart sits in the chest,
+// an artery runs from it up to the brain, and a vein runs up each leg to the heart.
+const heart =
+  'M108,180 C90,166 86,151 98,145 C104,142 108,147 108,151 C108,147 112,142 118,145 C130,151 126,166 108,180 Z';
+const artery = 'M104,146 V76';
+const leftVein = 'M81,410 V252 Q81,214 106,182';
+const rightVein = 'M119,410 V252 Q119,214 110,182';
+---
+
+<svg
+  viewBox="0 0 480 440"
+  role="img"
+  aria-label={t['diagram.vasovagal-syncope.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="6"
+      markerHeight="6"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- The figure -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <circle cx="100" cy="60" r="36"></circle>
+    <path d="M92,96 V108 M108,96 V108"></path>
+    <rect x="62" y="108" width="76" height="148" rx="18"></rect>
+    <rect x="42" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="142" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="66" y="260" width="30" height="160" rx="12"></rect>
+    <rect x="104" y="260" width="30" height="160" rx="12"></rect>
+  </g>
+
+  <!-- Brain: well supplied in the normal state, short of blood during the reflex -->
+  <ellipse
+    class="normal-only"
+    cx="100"
+    cy="54"
+    rx="24"
+    ry="18"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="100"
+    cy="54"
+    rx="24"
+    ry="18"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    stroke-dasharray="4 3"
+  ></ellipse>
+
+  <!-- Veins of the legs: wider during the reflex, so less blood returns to the heart -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="5">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+    </g>
+    <g class="disease-only" stroke-width="12">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+    </g>
+  </g>
+
+  <!-- Artery from the heart to the brain: a thinner stream during the reflex -->
+  <path
+    class="normal-only"
+    d={artery}
+    stroke="var(--diagram-arterial)"
+    stroke-width="7"
+    stroke-linecap="round"
+  ></path>
+  <path
+    class="disease-only"
+    d={artery}
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- Moving blood: slower during the reflex; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--color-bg)" stroke-width="2">
+    <g class="normal-only">
+      <path class="dash-flow" d={artery}></path>
+      <path class="dash-flow" d={leftVein}></path>
+      <path class="dash-flow" d={rightVein}></path>
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow vvs-slow" d={artery} stroke-width="1.5"></path>
+      <path class="dash-flow vvs-slow" d={leftVein}></path>
+      <path class="dash-flow vvs-slow" d={rightVein}></path>
+    </g>
+  </g>
+
+  <!-- Heart: beats at its usual pace, slower during the reflex -->
+  <path class="vvs-beat normal-only" d={heart} fill="var(--diagram-muscle)"></path>
+  <path class="vvs-beat vvs-beat-slow disease-only" d={heart} fill="var(--diagram-muscle)"></path>
+
+  <!-- Normal state: labels with leader lines -->
+  <g class="normal-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      {normalLabels.map((label) => (
+        <line x1="200" y1={label.y - 4} x2={label.toX} y2={label.toY - 4} />
+      ))}
+    </g>
+    {normalLabels.map((label) => (
+      <text class="diagram-small" x="206" y={label.y}>
+        {label.lines.map((line, index) => (
+          <tspan x="206" dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    ))}
+  </g>
+
+  <!-- Disease state: the reflex as a flow chart -->
+  <g class="disease-only">
+    <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+      {boxes.map((b) => (
+        <rect x={b.x} y={b.y} width={b.width} height={b.height} rx="8" />
+      ))}
+    </g>
+    <g fill="none" stroke="var(--color-text)" stroke-width="2" marker-end={`url(#${arrowId})`}>
+      {arrows.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    {boxes.map((b) => (
+      <text class="diagram-small" x={middle(b)} y={b.y + pad / 2 + 11} text-anchor="middle">
+        {b.lines.map((line, index) => (
+          <tspan x={middle(b)} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    ))}
+    <text class="diagram-small" x={centerX} y={andOrY} text-anchor="middle">
+      {andOrLines.map((line, index) => (
+        <tspan x={centerX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* Heartbeat: a usual pace in the normal state, a slower one during the reflex. Without motion
+     the heart stands still and the flow chart, the thinner artery and the wider veins carry the
+     difference. */
+  .diagram .vvs-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: vvs-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .vvs-beat-slow {
+    animation-duration: 2.4s;
+  }
+
+  .diagram .vvs-slow {
+    animation-duration: 4s;
+  }
+
+  @keyframes vvs-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.15);
+    }
+  }
+</style>

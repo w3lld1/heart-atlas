@@ -1,0 +1,98 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// Front view of the heart with the main coronary arteries, as in CoronaryArteries.astro but
+// without the smaller branches. In disease one coronary artery bulges out (an aneurysm). It is
+// drawn on the right coronary artery only as an example: the sources read for the article do not
+// say where aneurysms usually form, so no place, size or clot is shown as typical.
+const arteries = {
+  rca: 'M168,74 Q118,82 92,118 Q66,160 88,214 Q100,240 126,256',
+  main: 'M174,76 L216,86',
+  lad: 'M216,86 Q214,180 186,284',
+  lcx: 'M216,86 Q268,92 296,128 Q312,154 306,186',
+};
+// Midpoint of the second curve of the right coronary artery, where the example aneurysm sits.
+const aneurysm = { x: 78, y: 163 };
+---
+
+<svg
+  viewBox="-90 0 480 320"
+  role="img"
+  aria-label={t['diagram.kawasaki-disease.title']}
+  lang={locale}
+>
+  <!-- Heart and aorta -->
+  <path
+    d="M70,90 Q180,40 310,90 Q350,170 290,250 Q230,312 186,300 Q140,300 90,250 Q30,170 70,90 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    d="M166,74 Q166,30 190,14 Q214,4 236,16"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="22"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- Coronary arteries -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="5" stroke-linecap="round">
+    {Object.values(arteries).map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Aneurysm: a part of the artery wall bulges out and the artery widens there -->
+  <ellipse
+    class="disease-only"
+    cx={aneurysm.x}
+    cy={aneurysm.y}
+    rx="12"
+    ry="22"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="4"
+  ></ellipse>
+
+  <!-- Blood moving along the arteries -->
+  <g class="flow" stroke="var(--diagram-arterial-fill)" stroke-width="3">
+    {Object.values(arteries).map((d) => (
+      <path class="dash-flow" d={d} />
+    ))}
+  </g>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="258" y1="54" x2="204" y2="82"></line>
+    <line x1="54" y1="92" x2="100" y2="103"></line>
+  </g>
+  <text class="diagram-small" x="254" y="22">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="262" y="56">
+    {t['diagram.label.lca']}
+  </text>
+  <text class="diagram-small" x="50" y="96" text-anchor="end">
+    {t['diagram.label.rca']}
+  </text>
+  <g class="disease-only">
+    <line
+      x1="50"
+      y1={aneurysm.y}
+      x2={aneurysm.x - 14}
+      y2={aneurysm.y}
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x="46" y={aneurysm.y + 4} text-anchor="end">
+      {t['diagram.label.aneurysm']}
+    </text>
+  </g>
+</svg>

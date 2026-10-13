@@ -1,0 +1,277 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-fh-arrow`;
+
+/*
+ * Blood on top, a liver cell below; LDL receptors stand on the cell surface facing the blood.
+ * Normal: every receptor holds an LDL particle and takes it into the cell (arrows), and there are
+ * few particles in the blood. Disease: the receptors do not work (an open, bent cup that holds no
+ * particle), except one; the cell takes up less LDL and many particles stay in the blood. One
+ * generic picture for all three genes: no gene, no PCSK9 molecule, no numbers, no plaque.
+ */
+const membrane = 140;
+const receptorsX = [60, 130, 200, 270];
+// In disease only this receptor still works.
+const workingInDisease = 200;
+const brokenX = receptorsX.filter((x) => x !== workingInDisease);
+// A working receptor: a stem from the membrane and a cup that holds a particle.
+const cup = (x: number) =>
+  `M${x},${membrane} V124 M${x - 11},110 Q${x - 11},124 ${x},124 Q${x + 11},124 ${x + 11},110`;
+// A receptor that does not work: the same stem, the cup bent open so it cannot hold a particle.
+const brokenCup = (x: number) =>
+  `M${x},${membrane} V124 M${x - 2},123 L${x - 13},116 M${x + 2},123 L${x + 13},128`;
+const particle = {
+  r: 6,
+  stroke: 'var(--color-text)',
+  'stroke-width': 1,
+  fill: 'var(--diagram-plaque)',
+};
+// The labelled particle at (300,62) is shared by both states.
+const normalStill = [
+  { x: 232, y: 86 },
+  { x: 150, y: 98 },
+];
+const diseaseStill = [
+  { x: 30, y: 96 },
+  { x: 105, y: 90 },
+  { x: 175, y: 80 },
+  { x: 222, y: 102 },
+  { x: 260, y: 84 },
+  { x: 330, y: 104 },
+  { x: 145, y: 110 },
+  { x: 318, y: 74 },
+];
+// Normal: particles come down to the receptors with no label leader in their way.
+const normalApproach = [
+  { x: 200, delay: 0 },
+  { x: 270, delay: -1.5 },
+];
+// Disease: particles drift along the blood, right of the receptor label's leader.
+const diseaseDrift = [
+  { y: 76, delay: 0 },
+  { y: 98, delay: -2.2 },
+];
+---
+
+<svg
+  viewBox="0 0 360 310"
+  role="img"
+  aria-label={t['diagram.familial-hypercholesterolemia.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Blood above the cell -->
+  <rect x="0" y="32" width="360" height={membrane - 32} fill="var(--diagram-arterial-fill)"></rect>
+
+  <!-- The liver cell with its nucleus -->
+  <rect
+    x="10"
+    y={membrane}
+    width="340"
+    height="160"
+    rx="18"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></rect>
+  <ellipse
+    cx="300"
+    cy="236"
+    rx="26"
+    ry="18"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></ellipse>
+
+  <!-- Normal: every receptor holds a particle and takes it into the cell -->
+  <g class="normal-only">
+    {receptorsX.map((x) => (
+      <g>
+        <path d={cup(x)} fill="none" stroke="var(--diagram-venous)" stroke-width="3" />
+        <circle cx={x} cy="116" {...particle} />
+        <path
+          d={`M${x},150 V176`}
+          stroke="var(--color-text)"
+          stroke-width="2"
+          stroke-dasharray="4 3"
+          fill="none"
+          marker-end={`url(#${arrowId})`}
+        />
+        <circle cx={x} cy="192" {...particle} />
+      </g>
+    ))}
+    {normalStill.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...particle} />
+    ))}
+  </g>
+
+  <!-- Disease: the receptors do not work except one; many particles stay in the blood -->
+  <g class="disease-only">
+    {brokenX.map((x) => (
+      <path
+        d={brokenCup(x)}
+        fill="none"
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+        stroke-dasharray="5 3"
+      />
+    ))}
+    <path
+      d={cup(workingInDisease)}
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="3"
+    ></path>
+    <circle cx={workingInDisease} cy="116" {...particle}></circle>
+    <path
+      d={`M${workingInDisease},150 V176`}
+      stroke="var(--color-text)"
+      stroke-width="2"
+      stroke-dasharray="4 3"
+      fill="none"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+    <circle cx={workingInDisease} cy="192" {...particle}></circle>
+    {diseaseStill.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...particle} />
+    ))}
+  </g>
+
+  <!-- LDL particle with the label, in both states -->
+  <circle cx="300" cy="62" {...particle}></circle>
+
+  <!-- Moving particles -->
+  <g class="flow">
+    <g class="normal-only">
+      {normalApproach.map(({ x, delay }) => (
+        <circle
+          class="fh-approach"
+          cx={x}
+          cy="44"
+          {...particle}
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseDrift.map(({ y, delay }) => (
+        <circle
+          class="fh-drift"
+          cx="80"
+          cy={y}
+          {...particle}
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x="8" y="22">
+    {t['diagram.label.blood']}
+  </text>
+  <line x1="300" y1="28" x2="300" y2="55" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="352" y="22" text-anchor="end">
+    {t['diagram.label.ldl-particles']}
+  </text>
+  <line
+    class="normal-only"
+    x1="60"
+    y1="64"
+    x2="60"
+    y2="106"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></line>
+  <line
+    class="disease-only"
+    x1="60"
+    y1="64"
+    x2="60"
+    y2="120"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></line>
+  <text class="normal-only" x="8" y="58">
+    {t['diagram.label.ldl-receptor']}
+  </text>
+  <text class="disease-only" x="8" y="58">
+    {t['diagram.label.receptor-not-working']}
+  </text>
+  <text x="24" y="284">
+    {t['diagram.label.liver-cell']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .fh-approach {
+    animation: fh-approach 3s ease-in infinite;
+  }
+
+  .diagram .fh-drift {
+    animation: fh-drift 6s linear infinite;
+  }
+
+  /* A particle comes down from the blood towards a receptor. */
+  @keyframes fh-approach {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    80% {
+      opacity: 1;
+      transform: translate(0, 56px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 56px);
+    }
+  }
+
+  /* A particle drifts along the blood without being taken up. */
+  @keyframes fh-drift {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    8%,
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(290px, 0);
+    }
+  }
+</style>

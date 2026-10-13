@@ -1,0 +1,280 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. Unused: no ids here. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+/*
+ * A close-up of a small area of the left ventricular wall: the outer surface at the top, the
+ * cavity at the bottom. Not a whole-heart section, so it does not repeat the hypertrophic
+ * cardiomyopathy diagram (no septal bulge, no outflow narrowing). Normal: a wall of usual
+ * thickness, muscle cells with lysosomes and no build-up. Fabry disease: a thicker wall made of
+ * larger muscle cells, a few small deposits inside their lysosomes (the guideline says they
+ * alone do not explain the thickening, so they never fill a cell) and patches of fibrous
+ * tissue between the cells. The deposits sit inside the cells, not between them as amyloid does.
+ */
+interface Cell {
+  x: number;
+  y: number;
+}
+interface State {
+  className: string;
+  /** Inner (cavity) edge of the wall; the outer edge is the same in both states. */
+  wallBottom: number;
+  cell: { width: number; height: number };
+  cells: Cell[];
+}
+
+const wall = { left: 20, right: 280, top: 58 };
+const cavityBottom = 290;
+const grid = (xs: number[], ys: number[]): Cell[] => ys.flatMap((y) => xs.map((x) => ({ x, y })));
+
+const normal: State = {
+  className: 'normal-only',
+  wallBottom: 160,
+  cell: { width: 52, height: 22 },
+  cells: grid([28, 92, 156, 220], [68, 98, 128]),
+};
+const disease: State = {
+  className: 'disease-only',
+  wallBottom: 246,
+  cell: { width: 60, height: 46 },
+  cells: grid([24, 88, 152, 216], [66, 128, 190]),
+};
+
+// Lysosomes inside each cell, relative to its corner: two in a normal cell, three with a small
+// deposit in a Fabry cell.
+const normalLysosomes = [
+  { dx: 16, dy: 11 },
+  { dx: 36, dy: 11 },
+];
+const storedLysosomes = [
+  { dx: 14, dy: 15 },
+  { dx: 32, dy: 31 },
+  { dx: 47, dy: 14 },
+];
+
+// Patches of fibrous tissue in the gaps between the rows of enlarged cells.
+const fibrosis = [
+  { x: 60, y: 120, width: 84 },
+  { x: 176, y: 182, width: 84 },
+  { x: 28, y: 182, width: 60 },
+];
+const wave = (x: number, y: number, width: number) => {
+  const steps = Math.floor((width - 8) / 12);
+  return `M${x + 4},${y} q3,-4 6,0` + ' t6,0'.repeat(steps * 2 - 1);
+};
+
+// Thickness bracket right of the wall.
+const bracketX = 292;
+const legend = { x: 20, textX: 44, rightX: 250, rightTextX: 276, row1: 310, row2: 330 };
+---
+
+<svg viewBox="0 0 460 340" role="img" aria-label={t['diagram.fabry-disease.title']} lang={locale}>
+  <!-- What the drawing shows -->
+  <text x="8" y="22">
+    {t['diagram.label.lv-wall']}
+  </text>
+  <text class="diagram-small" x="8" y="40">
+    {t['diagram.label.close-up']}
+  </text>
+
+  {[normal, disease].map((state) => (
+    <g class={state.className}>
+      {/* The wall, with the cavity below its inner edge */}
+      <rect
+        x={wall.left}
+        y={wall.top}
+        width={wall.right - wall.left}
+        height={state.wallBottom - wall.top}
+        rx="4"
+        fill="var(--diagram-muscle)"
+        fill-opacity="0.35"
+        stroke="var(--color-muted)"
+        stroke-width="1.5"
+      />
+      <rect
+        x={wall.left}
+        y={state.wallBottom}
+        width={wall.right - wall.left}
+        height={cavityBottom - state.wallBottom}
+        fill="var(--diagram-arterial-fill)"
+      />
+      <line
+        x1={wall.left}
+        y1={state.wallBottom}
+        x2={wall.right}
+        y2={state.wallBottom}
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      />
+      <text
+        class="diagram-small"
+        x={(wall.left + wall.right) / 2}
+        y={(state.wallBottom + cavityBottom) / 2 + 4}
+        text-anchor="middle"
+      >
+        {t['diagram.label.lv-cavity']}
+      </text>
+
+      {/* Muscle cells */}
+      {state.cells.map(({ x, y }) => (
+        <rect
+          x={x}
+          y={y}
+          width={state.cell.width}
+          height={state.cell.height}
+          rx="8"
+          fill="var(--diagram-muscle)"
+          stroke="var(--color-muted)"
+          stroke-width="1"
+        />
+      ))}
+
+      {/* Thickness bracket */}
+      <g stroke="var(--color-text)" stroke-width="1.5">
+        <line x1={bracketX} y1={wall.top} x2={bracketX} y2={state.wallBottom} />
+        <line x1={bracketX - 5} y1={wall.top} x2={bracketX + 5} y2={wall.top} />
+        <line x1={bracketX - 5} y1={state.wallBottom} x2={bracketX + 5} y2={state.wallBottom} />
+      </g>
+    </g>
+  ))}
+
+  <!-- Normal: lysosomes without build-up -->
+  <g class="normal-only fabry-pulse" fill="none" stroke="var(--color-text)" stroke-width="1">
+    {normal.cells.flatMap(({ x, y }) =>
+      normalLysosomes.map(({ dx, dy }) => <circle cx={x + dx} cy={y + dy} r="2.5" />),
+    )}
+  </g>
+
+  <!-- Fabry disease: fibrous tissue between the cells, small deposits inside the lysosomes -->
+  <g class="disease-only">
+    {fibrosis.map(({ x, y, width }) => (
+      <g>
+        <rect
+          x={x}
+          y={y - 6}
+          width={width}
+          height="12"
+          rx="6"
+          fill="var(--color-muted)"
+          fill-opacity="0.4"
+        />
+        <path d={wave(x, y, width)} fill="none" stroke="var(--color-text)" stroke-width="1.5" />
+      </g>
+    ))}
+  </g>
+  <g
+    class="disease-only fabry-pulse"
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  >
+    {disease.cells.flatMap(({ x, y }) =>
+      storedLysosomes.map(({ dx, dy }) => <circle cx={x + dx} cy={y + dy} r="3" />),
+    )}
+  </g>
+
+  <!-- Wall thickness, beside the bracket -->
+  <text
+    class="diagram-small normal-only"
+    x={bracketX + 10}
+    y={(wall.top + normal.wallBottom) / 2 + 4}
+  >
+    {t['diagram.label.normal-thickness']}
+  </text>
+  <text
+    class="diagram-small disease-only"
+    x={bracketX + 10}
+    y={(wall.top + disease.wallBottom) / 2 + 4}
+  >
+    {t['diagram.label.thick-wall']}
+  </text>
+
+  <!-- Legend under the drawing -->
+  <rect
+    x={legend.x}
+    y={legend.row1 - 10}
+    width="18"
+    height="12"
+    rx="4"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1"
+  ></rect>
+  <text class="diagram-small normal-only" x={legend.textX} y={legend.row1}>
+    {t['diagram.label.muscle-cells']}
+  </text>
+  <text class="diagram-small disease-only" x={legend.textX} y={legend.row1}>
+    {t['diagram.label.enlarged-muscle-cells']}
+  </text>
+  <circle
+    class="normal-only"
+    cx={legend.x + 9}
+    cy={legend.row2 - 4}
+    r="3"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></circle>
+  <text class="diagram-small normal-only" x={legend.textX} y={legend.row2}>
+    {t['diagram.label.lysosomes']}
+  </text>
+  <circle
+    class="disease-only"
+    cx={legend.x + 9}
+    cy={legend.row2 - 4}
+    r="3.5"
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></circle>
+  <text class="diagram-small disease-only" x={legend.textX} y={legend.row2}>
+    {t['diagram.label.lysosome-storage']}
+  </text>
+  <g class="disease-only">
+    <rect
+      x={legend.rightX}
+      y={legend.row1 - 10}
+      width="20"
+      height="12"
+      rx="6"
+      fill="var(--color-muted)"
+      fill-opacity="0.4"
+    ></rect>
+    <path
+      d={`M${legend.rightX + 3},${legend.row1 - 4} q3,-4 6,0 t6,0`}
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+    <text class="diagram-small" x={legend.rightTextX} y={legend.row1}>
+      {t['diagram.label.fibrous-tissue']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* Draws the eye to the lysosomes: without build-up in the normal wall, with small deposits in
+     Fabry disease. Without motion they stay solid. */
+  .diagram .fabry-pulse {
+    animation: fabry-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes fabry-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+  }
+</style>
