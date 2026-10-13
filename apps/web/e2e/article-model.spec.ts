@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import { axe } from './axe.ts';
@@ -13,71 +14,33 @@ test.use({
 
 const LOAD = { timeout: 30_000 };
 
+/** `<section>/<slug>` and highlighted structure ids of the English articles in these sections. */
+function highlightedArticles(sections: string[]): (readonly [string, string[]])[] {
+  return sections.flatMap((section) => {
+    const dir = new URL(`../../../content/en/${section}/`, import.meta.url);
+    return readdirSync(dir)
+      .filter((file) => file.endsWith('.mdx'))
+      .sort()
+      .flatMap((file) => {
+        const source = readFileSync(new URL(file, dir), 'utf8');
+        const list = /<HeartModel\b[^>]*?\bhighlight=\{\[([^\]]*)\]\}/s.exec(source)?.[1];
+        if (list === undefined) return [];
+        const ids = [...list.matchAll(/'([^']+)'|"([^"]+)"/g)].map((m) => m[1] ?? m[2] ?? '');
+        return [[`${section}/${file.slice(0, -'.mdx'.length)}`, ids] as const];
+      });
+  });
+}
+
 // docs/plans/2026-10-12-article-interactivity.md: the 3D model with highlights inside articles.
 test.describe('3D model in an article without signs on the model', () => {
   test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
 
-  // Sorted by article, so articles written at the same time add lines in different places.
-  const places: Record<string, string[]> = {
-    'aortic-dissection': ['aorta'],
-    'aortic-regurgitation': ['aortic-valve'],
-    'arrhythmogenic-right-ventricular-cardiomyopathy': ['right-ventricle'],
-    'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
-    'atrioventricular-septal-defect': [
-      'interatrial-septum',
-      'interventricular-septum',
-      'mitral-valve',
-      'tricuspid-valve',
-    ],
-    'av-block': ['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch'],
-    'bicuspid-aortic-valve': ['aortic-valve', 'aorta'],
-    'brugada-syndrome': ['right-ventricle'],
-    'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
-    'cardiac-myxoma': ['left-atrium', 'mitral-valve'],
-    'cardiac-sarcoidosis': ['interventricular-septum', 'av-node', 'bundle-of-his'],
-    'coarctation-of-the-aorta': ['aorta'],
-    'ebstein-anomaly': ['tricuspid-valve', 'right-atrium', 'right-ventricle'],
-    'eisenmenger-syndrome': ['interventricular-septum', 'pulmonary-trunk', 'right-ventricle'],
-    'hypoplastic-left-heart-syndrome': ['left-ventricle', 'aorta'],
-    'infective-endocarditis': [
-      'mitral-valve',
-      'aortic-valve',
-      'tricuspid-valve',
-      'pulmonary-valve',
-    ],
-    'marfan-syndrome': ['aorta', 'aortic-valve', 'mitral-valve'],
-    'mitral-regurgitation': ['mitral-valve'],
-    'mitral-stenosis': ['mitral-valve'],
-    'patent-ductus-arteriosus': ['aorta', 'pulmonary-trunk'],
-    'peripartum-cardiomyopathy': ['left-ventricle'],
-    'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
-    'pulmonary-hypertension': ['pulmonary-trunk', 'right-ventricle'],
-    'pulmonary-valve-stenosis': ['pulmonary-valve', 'right-ventricle', 'pulmonary-trunk'],
-    'restrictive-cardiomyopathy': [
-      'left-ventricle',
-      'right-ventricle',
-      'left-atrium',
-      'right-atrium',
-    ],
-    'sick-sinus-syndrome': ['sa-node'],
-    'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
-    'takayasu-arteritis': ['aorta'],
-    'thoracic-aortic-aneurysm': ['aorta', 'aortic-valve'],
-    'tricuspid-regurgitation': ['tricuspid-valve'],
-    'ventricular-septal-defect': ['interventricular-septum'],
-    'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
-    'wpw-syndrome': ['av-node'],
-  };
-  // Diagnostic articles with the model (spec addendum «3D-модель в статьях диагностики»).
-  const diagnosticPlaces: Record<string, string[]> = {
-    ecg: ['sa-node', 'right-atrium', 'left-atrium', 'right-ventricle', 'left-ventricle'],
-    echocardiography: ['left-ventricle', 'right-ventricle', 'left-atrium', 'right-atrium'],
-    'natriuretic-peptides': ['left-ventricle', 'right-ventricle'],
-  };
-  const pages = [
-    ...Object.entries(places).map(([slug, ids]) => [`disease/${slug}`, ids] as const),
-    ...Object.entries(diagnosticPlaces).map(([slug, ids]) => [`diagnostic/${slug}`, ids] as const),
-  ];
+  // Every disease and diagnostic article with a <HeartModel highlight={[...]}>, read from its
+  // source, so a new article needs no line here.
+  const pages = highlightedArticles(['disease', 'diagnostic']);
+  test('finds the articles with highlights', () => {
+    expect(pages.length).toBeGreaterThan(30);
+  });
   for (const [path, ids] of pages) {
     test(`${path} highlights the place the article names`, async ({ page }) => {
       await page.goto(`en/${path}/`);
@@ -85,8 +48,11 @@ test.describe('3D model in an article without signs on the model', () => {
       await load.scrollIntoViewIfNeeded();
       await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
       const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
+      expect(ids).not.toHaveLength(0);
       for (const id of ids) {
-        await expect(selected).toContainText(en[`structure.${id}` as keyof typeof en]);
+        const name = en[`structure.${id}` as keyof typeof en];
+        expect(name, `structure.${id}`).toBeDefined();
+        await expect(selected).toContainText(name);
       }
       expect((await axe(page).analyze()).violations).toEqual([]);
     });
