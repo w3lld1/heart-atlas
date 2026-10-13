@@ -151,11 +151,14 @@ export function createArticleSchema(trusted: TrustedSources) {
       if (!article.wiggers && !article.preset) {
         ctx.addIssue({ code: 'custom', path: ['wiggers'], message: 'wiggers needs preset' });
       }
-      if (!article.afterTreatment && !article.preset) {
+      if (
+        !article.afterTreatment &&
+        [article.preset, ...article.morePresets].every((id) => !id || !presetTreated[id])
+      ) {
         ctx.addIssue({
           code: 'custom',
           path: ['afterTreatment'],
-          message: 'afterTreatment needs preset',
+          message: 'afterTreatment: false needs a preset with a state after treatment',
         });
       }
       if (article.morePresets.length > 0 && !article.preset) {

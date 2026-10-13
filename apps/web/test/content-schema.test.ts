@@ -124,13 +124,21 @@ describe('article schema', () => {
     expect(articleSchema.safeParse({ ...valid(), wiggers: false }).success).toBe(false);
   });
 
-  it('leaves out the states after treatment only for an article with a preset', () => {
+  it('leaves out the states after treatment only where there are some', () => {
     expect(articleSchema.parse(valid()).afterTreatment).toBe(true);
     const preset = 'av-block-third-degree';
     expect(articleSchema.parse({ ...valid(), preset, afterTreatment: false }).afterTreatment).toBe(
       false,
     );
     expect(articleSchema.safeParse({ ...valid(), afterTreatment: false }).success).toBe(false);
+    // Nothing to leave out: first-degree AV block has no state after treatment.
+    expect(
+      articleSchema.safeParse({
+        ...valid(),
+        preset: 'av-block-first-degree',
+        afterTreatment: false,
+      }).success,
+    ).toBe(false);
   });
 
   it('rejects unknown frontmatter keys', () => {
