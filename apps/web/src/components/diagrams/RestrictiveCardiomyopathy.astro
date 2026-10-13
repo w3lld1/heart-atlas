@@ -1,0 +1,348 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowIds = { venous: `${uid}-rcm-arrow-v`, arterial: `${uid}-rcm-arrow-a` };
+const stiffId = `${uid}-rcm-stiff`;
+
+// Four chambers as the viewer sees the heart from the front: the right atrium and ventricle on
+// the left (venous blood, blue), the left atrium and ventricle on the right (arterial blood, red).
+// Both states show filling (diastole): blood runs from the atria into the ventricles, which stretch
+// to take it. The walls keep the same thickness in both states; only how far the ventricles
+// stretch, how long they fill and the size of the atria change.
+type Side = 'venous' | 'arterial';
+const colour = (side: Side) => `var(--diagram-${side})`;
+const fillColour = (side: Side) => `var(--diagram-${side}-fill)`;
+interface Ventricle {
+  side: Side;
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  wall: number;
+}
+const rv: Ventricle = { side: 'venous', cx: 165, cy: 235, rx: 46, ry: 72, wall: 12 };
+const lv: Ventricle = { side: 'arterial', cx: 285, cy: 242, rx: 52, ry: 80, wall: 14 };
+const ventricles = [rv, lv];
+// Each ventricle stretches downwards and outwards from its top, where the atrium opens into it.
+const originCss = (v: Ventricle) => `--rcm-origin: ${v.cx}px ${v.cy - v.ry}px`;
+
+// Atria: their lower edge stays at the opening (y = 158); enlarged atria grow up and sideways.
+const atriumBottom = 158;
+const atria = [
+  { side: 'venous' as Side, cx: 160, normal: { rx: 50, ry: 38 }, enlarged: { rx: 62, ry: 52 } },
+  { side: 'arterial' as Side, cx: 290, normal: { rx: 50, ry: 38 }, enlarged: { rx: 62, ry: 52 } },
+];
+// Opening between each atrium and its ventricle, drawn as one lumen over the wall.
+const openings = [
+  { side: 'venous' as Side, x: 148, from: 150, to: 172 },
+  { side: 'arterial' as Side, x: 274, from: 150, to: 172 },
+];
+const openingWidth = 28;
+
+// Blood filling each ventricle: x of the stream, and particle delays per beat. Normally filling
+// goes on through the whole relaxation; in the stiff ventricle it starts fast and stops early.
+const streams: { side: Side; x: number }[] = [
+  { side: 'venous', x: 162 },
+  { side: 'arterial', x: 288 },
+];
+const fullFill = [0, 0.18, 0.36];
+const earlyFill = [0, 0.08];
+---
+
+<svg
+  viewBox="0 0 440 392"
+  role="img"
+  aria-label={t['diagram.restrictive-cardiomyopathy.title']}
+  lang={locale}
+>
+  <defs>
+    {(['venous', 'arterial'] as const).map((side) => (
+      <marker
+        id={arrowIds[side]}
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="5"
+        markerWidth="3.2"
+        markerHeight="3.2"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={colour(side)} />
+      </marker>
+    ))}
+    <!-- Hatching marks a stiff wall -->
+    <pattern id={stiffId} width="7" height="7" patternUnits="userSpaceOnUse">
+      <path d="M-1,8 L8,-1" stroke="var(--color-muted)" stroke-width="1.6" opacity="0.55"></path>
+    </pattern>
+  </defs>
+
+  <!-- Ventricle walls. Elastic walls stretch well while the ventricle fills, stiff walls hardly. -->
+  {ventricles.map((v) => (
+    <g style={originCss(v)}>
+      <g class="normal-only">
+        <ellipse
+          class="rcm-ventricle rcm-stretch-full"
+          cx={v.cx}
+          cy={v.cy}
+          rx={v.rx + v.wall}
+          ry={v.ry + v.wall}
+          fill="var(--diagram-muscle)"
+        />
+      </g>
+      <g class="disease-only">
+        <g class="rcm-ventricle rcm-stretch-poor">
+          <ellipse
+            cx={v.cx}
+            cy={v.cy}
+            rx={v.rx + v.wall}
+            ry={v.ry + v.wall}
+            fill="var(--diagram-muscle)"
+          />
+          <ellipse
+            cx={v.cx}
+            cy={v.cy}
+            rx={v.rx + v.wall}
+            ry={v.ry + v.wall}
+            fill={`url(#${stiffId})`}
+          />
+        </g>
+      </g>
+    </g>
+  ))}
+
+  <!-- Atria: normal size, or both enlarged -->
+  {atria.map((a) => (
+    <g fill={fillColour(a.side)} stroke={colour(a.side)} stroke-width="2">
+      <ellipse
+        class="normal-only"
+        cx={a.cx}
+        cy={atriumBottom - a.normal.ry}
+        rx={a.normal.rx}
+        ry={a.normal.ry}
+      />
+      <ellipse
+        class="disease-only"
+        cx={a.cx}
+        cy={atriumBottom - a.enlarged.ry}
+        rx={a.enlarged.rx}
+        ry={a.enlarged.ry}
+      />
+    </g>
+  ))}
+
+  <!-- Openings from the atria into the ventricles -->
+  {openings.map((o) => (
+    <rect
+      x={o.x}
+      y={o.from}
+      width={openingWidth}
+      height={o.to - o.from}
+      fill={fillColour(o.side)}
+    />
+  ))}
+
+  <!-- Ventricle cavities, moving with their walls -->
+  {ventricles.map((v) => (
+    <g style={originCss(v)}>
+      <ellipse
+        class="normal-only rcm-ventricle rcm-stretch-full"
+        cx={v.cx}
+        cy={v.cy}
+        rx={v.rx}
+        ry={v.ry}
+        fill={fillColour(v.side)}
+      />
+      <ellipse
+        class="disease-only rcm-ventricle rcm-stretch-poor"
+        cx={v.cx}
+        cy={v.cy}
+        rx={v.rx}
+        ry={v.ry}
+        fill={fillColour(v.side)}
+      />
+    </g>
+  ))}
+
+  <!-- Filling arrows, visible with and without motion: long when filling goes on, short when it stops early -->
+  <g fill="none" stroke-width="6">
+    {streams.map((s) => (
+      <path
+        class="normal-only"
+        d={`M${s.x},136 L${s.x},216`}
+        stroke={colour(s.side)}
+        marker-end={`url(#${arrowIds[s.side]})`}
+      />
+    ))}
+    {streams.map((s) => (
+      <path
+        class="disease-only"
+        d={`M${s.x},136 L${s.x},182`}
+        stroke={colour(s.side)}
+        marker-end={`url(#${arrowIds[s.side]})`}
+      />
+    ))}
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    <g class="normal-only">
+      {streams.flatMap((s) =>
+        fullFill.map((delay) => (
+          <circle
+            class="rcm-fill"
+            cx={s.x}
+            cy="136"
+            r="5"
+            fill={colour(s.side)}
+            style={`animation-delay: ${delay}s`}
+          />
+        )),
+      )}
+    </g>
+    <g class="disease-only">
+      {streams.flatMap((s) =>
+        earlyFill.map((delay) => (
+          <circle
+            class="rcm-fill-early"
+            cx={s.x}
+            cy="136"
+            r="5"
+            fill={colour(s.side)}
+            style={`animation-delay: ${delay}s`}
+          />
+        )),
+      )}
+    </g>
+  </g>
+
+  <!-- Atrium labels sit beside the atria, clear of both sizes -->
+  <text x="90" y="124" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="360" y="124">
+    {t['diagram.label.la']}
+  </text>
+  <text x="165" y="270" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="285" y="276" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <text class="disease-only" x="225" y="34" text-anchor="middle">
+    {t['diagram.label.atria-enlarged']}
+  </text>
+
+  <!-- Walls label below the heart, with leader lines to both ventricles -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="196" y1="362" x2="172" y2="317"></line>
+    <line x1="254" y1="362" x2="278" y2="334"></line>
+  </g>
+  <text class="normal-only" x="225" y="382" text-anchor="middle">
+    {t['diagram.label.elastic-walls']}
+  </text>
+  <text class="disease-only" x="225" y="382" text-anchor="middle">
+    {t['diagram.label.stiff-walls']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .rcm-ventricle {
+    transform-box: view-box;
+    transform-origin: var(--rcm-origin);
+  }
+
+  .diagram .rcm-stretch-full {
+    animation: rcm-stretch-full 2s ease-in-out infinite;
+  }
+
+  .diagram .rcm-stretch-poor {
+    animation: rcm-stretch-poor 2s ease-in-out infinite;
+  }
+
+  .diagram .rcm-fill {
+    opacity: 0;
+    animation: rcm-fill 2s linear infinite;
+  }
+
+  .diagram .rcm-fill-early {
+    opacity: 0;
+    animation: rcm-fill-early 2s linear infinite;
+  }
+
+  /* One beat lasts 2 s: the ventricles fill and stretch first, then empty back to the start. */
+  @keyframes rcm-stretch-full {
+    0%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    45%,
+    60% {
+      transform: scale(1.06, 1.08);
+    }
+  }
+
+  /* The stiff ventricle takes its little stretch quickly and then stops filling. */
+  @keyframes rcm-stretch-poor {
+    0%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    16%,
+    60% {
+      transform: scale(1.01, 1.015);
+    }
+  }
+
+  /* From the atrium through the opening into the ventricle while it fills. */
+  @keyframes rcm-fill {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6%,
+    34% {
+      opacity: 1;
+    }
+
+    42%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 100px);
+    }
+  }
+
+  /* Fast at first, then stopped short: filling ends early in the stiff ventricle. */
+  @keyframes rcm-fill-early {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    4%,
+    16% {
+      opacity: 1;
+    }
+
+    20% {
+      opacity: 1;
+      transform: translate(0, 46px);
+    }
+
+    26%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 46px);
+    }
+  }
+</style>

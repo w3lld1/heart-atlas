@@ -24,7 +24,9 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'mitral-stenosis': ['mitral-valve'],
     'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
     'pulmonary-hypertension': ['pulmonary-trunk', 'right-ventricle'],
+    'arrhythmogenic-right-ventricular-cardiomyopathy': ['right-ventricle'],
     'tricuspid-regurgitation': ['tricuspid-valve'],
+    'ebstein-anomaly': ['tricuspid-valve', 'right-atrium', 'right-ventricle'],
     'infective-endocarditis': [
       'mitral-valve',
       'aortic-valve',

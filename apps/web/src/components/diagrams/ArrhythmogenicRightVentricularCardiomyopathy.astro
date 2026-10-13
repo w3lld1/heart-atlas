@@ -1,0 +1,342 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. Unused: no ids here. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+/*
+ * Left: both ventricles in a long-axis cut, the right ventricle (RV) on the viewer's left. The left
+ * ventricle is drawn last so its wall is the septum. Normal: an even RV wall of muscle. Disease
+ * (late stage): the RV is wider with a thinner wall, and patches of fat and fibrous tissue replace
+ * the muscle in the outflow part, the inflow part and the apex. The left ventricle is not drawn as
+ * involved (only "sometimes" in the source). Right: a zoom panel of wall tissue. Normal: rows of
+ * muscle cells joined end to end by desmosomes. Disease: most cells replaced by fat cells and
+ * fibrous strands. The LV beats the same in both states; the late-stage RV beats more weakly
+ * (systolic failure in advanced disease).
+ */
+interface Chamber {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+}
+const normalRv: Chamber = { cx: 122, cy: 190, rx: 58, ry: 88 };
+const normalRvWall = 12;
+const dilatedRv: Chamber = { cx: 112, cy: 194, rx: 74, ry: 100 };
+const dilatedRvWall = 7;
+const lv: Chamber = { cx: 212, cy: 190, rx: 60, ry: 96 };
+const lvCavity: Chamber = { cx: 218, cy: 190, rx: 36, ry: 70 };
+const beatOrigin = `--arvc-origin: ${lv.cx - 40}px ${lv.cy}px`;
+
+// Fibrofatty patches along the middle of the dilated RV wall: outflow part (top), inflow part
+// (left) and apex (bottom). Angles in degrees, 0 to the right, 90 down.
+const patchAngles = [-112, 180, 118];
+const wallMid = {
+  rx: dilatedRv.rx - dilatedRvWall / 2,
+  ry: dilatedRv.ry - dilatedRvWall / 2,
+};
+const patches = patchAngles.map((angle) => {
+  const rad = (angle * Math.PI) / 180;
+  const x = dilatedRv.cx + wallMid.rx * Math.cos(rad);
+  const y = dilatedRv.cy + wallMid.ry * Math.sin(rad);
+  // Rotate the patch so that its long side follows the wall.
+  const tangent =
+    (Math.atan2(wallMid.ry * Math.cos(rad), -wallMid.rx * Math.sin(rad)) * 180) / Math.PI;
+  return `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${tangent.toFixed(1)})`;
+});
+
+// Zoom panel: three columns and six rows of muscle cells.
+const panel = { x: 296, y: 64, width: 136, height: 180 };
+const cell = { width: 36, height: 20 };
+const columns = [306, 348, 390];
+const rows = [76, 104, 132, 160, 188, 216];
+const cells = rows.flatMap((y) => columns.map((x) => ({ x, y })));
+// Desmosomes: where two cells of a row meet.
+const junctions = rows.flatMap((y) => [345, 387].map((x) => ({ x, y })));
+// In disease a few cells and their junctions remain; the rest is fat and fibrous tissue.
+const remaining = [
+  { x: 306, y: 76 },
+  { x: 348, y: 76 },
+  { x: 390, y: 160 },
+  { x: 306, y: 216 },
+];
+const remainingJunctions = [{ x: 345, y: 76 }];
+const fatCells = [
+  { cx: 404, cy: 86, r: 11 },
+  { cx: 326, cy: 120, r: 12 },
+  { cx: 352, cy: 112, r: 9 },
+  { cx: 384, cy: 124, r: 11 },
+  { cx: 410, cy: 112, r: 8 },
+  { cx: 320, cy: 172, r: 10 },
+  { cx: 346, cy: 182, r: 12 },
+  { cx: 372, cy: 160, r: 9 },
+  { cx: 368, cy: 222, r: 11 },
+  { cx: 404, cy: 214, r: 12 },
+];
+const fibrosis = [
+  'M302,146 q12,-6 24,0 t24,0 t24,0 t24,0 t24,0',
+  'M302,200 q12,-6 24,0 t24,0 t24,0 t24,0 t24,0',
+  'M342,236 q10,-5 20,0 t20,0 t20,0 t20,0',
+];
+// Legend rows under the panel.
+const legendX = panel.x;
+const legendTextX = panel.x + 24;
+---
+
+<svg
+  viewBox="0 0 440 340"
+  role="img"
+  aria-label={t['diagram.arrhythmogenic-right-ventricular-cardiomyopathy.title']}
+  lang={locale}
+>
+  <!-- The LV beats the same in both states; the late-stage RV contracts more weakly -->
+  <g style={beatOrigin}>
+    <!-- Right ventricle: an even muscle wall, or a wider cavity with a thinner wall -->
+    <g class="normal-only">
+      <g class="arvc-beat">
+        <ellipse
+          cx={normalRv.cx}
+          cy={normalRv.cy}
+          rx={normalRv.rx}
+          ry={normalRv.ry}
+          fill="var(--diagram-muscle)"
+        ></ellipse>
+        <ellipse
+          cx={normalRv.cx}
+          cy={normalRv.cy}
+          rx={normalRv.rx - normalRvWall}
+          ry={normalRv.ry - normalRvWall}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="2"
+        ></ellipse>
+      </g>
+    </g>
+    <g class="disease-only">
+      <g class="arvc-beat-weak">
+        <ellipse
+          cx={dilatedRv.cx}
+          cy={dilatedRv.cy}
+          rx={dilatedRv.rx}
+          ry={dilatedRv.ry}
+          fill="var(--diagram-muscle)"
+        ></ellipse>
+        <ellipse
+          cx={dilatedRv.cx}
+          cy={dilatedRv.cy}
+          rx={dilatedRv.rx - dilatedRvWall}
+          ry={dilatedRv.ry - dilatedRvWall}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="2"
+        ></ellipse>
+        <!-- Fat and fibrous tissue in place of the muscle -->
+        {patches.map((transform) => (
+          <g transform={transform}>
+            <rect
+              x="-17"
+              y="-6"
+              width="34"
+              height="12"
+              rx="6"
+              fill="var(--diagram-plaque)"
+              stroke="var(--color-text)"
+              stroke-width="1"
+            />
+            <path
+              d="M-14,0 q3.5,-3 7,0 t7,0 t7,0 t7,0"
+              fill="none"
+              stroke="var(--color-text)"
+              stroke-width="1.5"
+            />
+          </g>
+        ))}
+      </g>
+    </g>
+
+    <!-- Left ventricle: its wall on the right of the RV is the septum -->
+    <g class="arvc-beat">
+      <ellipse cx={lv.cx} cy={lv.cy} rx={lv.rx} ry={lv.ry} fill="var(--diagram-muscle)"></ellipse>
+      <ellipse
+        cx={lvCavity.cx}
+        cy={lvCavity.cy}
+        rx={lvCavity.rx}
+        ry={lvCavity.ry}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></ellipse>
+    </g>
+  </g>
+
+  <!-- Normal RV size, in both states, so a paused beat compares fairly -->
+  <ellipse
+    cx={normalRv.cx}
+    cy={normalRv.cy}
+    rx={normalRv.rx}
+    ry={normalRv.ry}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+    stroke-dasharray="1 5"
+    stroke-linecap="round"
+  ></ellipse>
+
+  <text class="normal-only" x={normalRv.cx - 8} y={normalRv.cy + 6} text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="disease-only" x={dilatedRv.cx - 8} y={dilatedRv.cy + 6} text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x={lvCavity.cx} y={lvCavity.cy + 6} text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="normal-only" x="155" y="324" text-anchor="middle">
+    {t['diagram.label.rv-normal-size']}
+  </text>
+  <text class="disease-only" x="155" y="324" text-anchor="middle">
+    {t['diagram.label.rv-dilated']}
+  </text>
+
+  <!-- Zoom panel: tissue of the RV wall -->
+  <text class="diagram-small" x={panel.x + panel.width / 2} y={panel.y - 10} text-anchor="middle">
+    {t['diagram.label.rv-wall-tissue']}
+  </text>
+  <rect
+    x={panel.x}
+    y={panel.y}
+    width={panel.width}
+    height={panel.height}
+    rx="12"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+  <g class="normal-only">
+    {cells.map(({ x, y }) => (
+      <rect
+        x={x}
+        y={y}
+        width={cell.width}
+        height={cell.height}
+        rx="6"
+        fill="var(--diagram-muscle)"
+      />
+    ))}
+    {junctions.map(({ x, y }) => (
+      <rect x={x} y={y + 4} width="3" height={cell.height - 8} fill="var(--color-text)" />
+    ))}
+  </g>
+  <g class="disease-only">
+    {fibrosis.map((d) => (
+      <path d={d} fill="none" stroke="var(--color-text)" stroke-width="1.5" />
+    ))}
+    {fatCells.map(({ cx, cy, r }) => (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="var(--diagram-plaque)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+      />
+    ))}
+    {remaining.map(({ x, y }) => (
+      <rect
+        x={x}
+        y={y}
+        width={cell.width}
+        height={cell.height}
+        rx="6"
+        fill="var(--diagram-muscle)"
+      />
+    ))}
+    {remainingJunctions.map(({ x, y }) => (
+      <rect x={x} y={y + 4} width="3" height={cell.height - 8} fill="var(--color-text)" />
+    ))}
+  </g>
+
+  <!-- Legend under the panel -->
+  <g class="normal-only">
+    <rect x={legendX} y="258" width="18" height="12" rx="4" fill="var(--diagram-muscle)"></rect>
+    <text class="diagram-small" x={legendTextX} y="269">
+      {t['diagram.label.muscle-cells']}
+    </text>
+    <rect x={legendX + 7} y="280" width="3" height="12" fill="var(--color-text)"></rect>
+    <text class="diagram-small" x={legendTextX} y="291">
+      {t['diagram.label.desmosomes']}
+    </text>
+  </g>
+  <g class="disease-only">
+    <rect x={legendX} y="258" width="18" height="12" rx="4" fill="var(--diagram-muscle)"></rect>
+    <text class="diagram-small" x={legendTextX} y="269">
+      {t['diagram.label.muscle-cells']}
+    </text>
+    <circle
+      cx={legendX + 9}
+      cy="286"
+      r="6"
+      fill="var(--diagram-plaque)"
+      stroke="var(--color-text)"
+      stroke-width="1"
+    ></circle>
+    <text class="diagram-small" x={legendTextX} y="291">
+      {t['diagram.label.fatty-tissue']}
+    </text>
+    <path
+      d={`M${legendX},308 q4.5,-4 9,0 t9,0`}
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+    <text class="diagram-small" x={legendTextX} y="313">
+      {t['diagram.label.fibrous-tissue']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .arvc-beat,
+  .diagram .arvc-beat-weak {
+    transform-box: view-box;
+    transform-origin: var(--arvc-origin);
+    animation: arvc-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .arvc-beat-weak {
+    animation-name: arvc-beat-weak;
+  }
+
+  @keyframes arvc-beat {
+    0%,
+    60%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    25%,
+    35% {
+      transform: scale(0.94, 0.94);
+    }
+  }
+
+  @keyframes arvc-beat-weak {
+    0%,
+    60%,
+    100% {
+      transform: scale(1, 1);
+    }
+
+    25%,
+    35% {
+      transform: scale(0.985, 0.985);
+    }
+  }
+</style>
