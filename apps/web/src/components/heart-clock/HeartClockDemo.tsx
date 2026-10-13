@@ -470,7 +470,8 @@ export default function HeartClockDemo({
             className={styles['ecg']}
             role="img"
             aria-label={t['heartClock.ecgLabel'].replace('{lead}', lead ?? choice.lead)}
-            aria-describedby={descriptionId}
+            // The rhythm description is read once, with the first strip.
+            aria-describedby={k === 0 ? descriptionId : undefined}
             style={{
               inlineSize: width ? `${width}px` : '100%',
               blockSize: `${lead ? limbStrip.height : ecgHeight}px`,

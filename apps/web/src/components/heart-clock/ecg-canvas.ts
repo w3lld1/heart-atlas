@@ -8,10 +8,11 @@ export const pxPerMv = 10 * pxPerMm;
 /** Canvas height of a single strip: 32 mm of paper, baseline 18 mm from the top. */
 export const ecgHeight = 32 * pxPerMm;
 /**
- * One of three limb lead strips: 24 mm, baseline 14 mm from the top, so the three fit on a phone.
- * Room for 1.4 mV up and 1 mV down; a test checks every preset in every lead fits.
+ * One of three limb lead strips: 25 mm, so the three fit on a phone and the 5 mm grid runs on
+ * across them, with the baseline on a major line 15 mm from the top. Room for 1.5 mV up and 1 mV
+ * down; a test checks every preset in every lead fits.
  */
-export const limbStrip = { height: 24 * pxPerMm, baseline: 14 * pxPerMm } as const;
+export const limbStrip = { height: 25 * pxPerMm, baseline: 15 * pxPerMm } as const;
 const singleStrip = { height: ecgHeight, baseline: 18 * pxPerMm } as const;
 /** The trace stays inside the clock history (10 s), so the strip shows at most 9 s. */
 export const maxEcgWidth = Math.floor(9000 * pxPerMs);
@@ -20,6 +21,8 @@ export interface EcgColors {
   grid: string;
   gridMajor: string;
   trace: string;
+  /** Paper behind the lead's name. */
+  paper: string;
 }
 
 export function readColors(element: Element): EcgColors {
@@ -29,6 +32,7 @@ export function readColors(element: Element): EcgColors {
     grid: read('--ecg-grid', '#f3c4c4'),
     gridMajor: read('--ecg-grid-major', '#e08a8a'),
     trace: read('--ecg-trace', '#1b1b1f'),
+    paper: read('--color-bg', '#ffffff'),
   };
 }
 
@@ -51,33 +55,42 @@ export function drawEcg(
   colors: EcgColors,
   lead?: LimbLead,
 ): void {
-  const { height: ecgHeight, baseline } = lead ? limbStrip : singleStrip;
-  context.clearRect(0, 0, width, ecgHeight);
+  const { height, baseline } = lead ? limbStrip : singleStrip;
+  context.clearRect(0, 0, width, height);
   context.lineWidth = 1;
-  for (let mm = 0; mm * pxPerMm <= Math.max(width, ecgHeight); mm += 1) {
+  for (let mm = 0; mm * pxPerMm <= Math.max(width, height); mm += 1) {
     context.strokeStyle = mm % 5 === 0 ? colors.gridMajor : colors.grid;
     const p = mm * pxPerMm + 0.5;
     context.beginPath();
     if (p <= width) {
       context.moveTo(p, 0);
-      context.lineTo(p, ecgHeight);
+      context.lineTo(p, height);
     }
-    if (p <= ecgHeight) {
+    if (p <= height) {
       context.moveTo(0, p);
       context.lineTo(width, p);
     }
     context.stroke();
   }
 
-  // Baseline on a major line: room for R above and S below.
+  // Room for R above the baseline and S below.
   context.strokeStyle = colors.trace;
   context.lineWidth = 2;
   traceEcg(context, clock, now, { width, pxPerMs, baseline, pxPerMv, lead });
   if (lead) {
-    // The lead's name, as on a printed ECG; the canvas label says it to screen readers.
-    context.fillStyle = colors.trace;
+    // The lead's name, as on a printed ECG, on a patch of paper so a tall R wave does not run
+    // through it; the canvas label says it to screen readers.
     context.font = `bold ${3 * pxPerMm}px system-ui, sans-serif`;
     context.textBaseline = 'top';
+    const pad = pxPerMm / 2;
+    context.fillStyle = colors.paper;
+    context.fillRect(
+      pxPerMm - pad,
+      pxPerMm - pad,
+      context.measureText(lead).width + 2 * pad,
+      3 * pxPerMm + 2 * pad,
+    );
+    context.fillStyle = colors.trace;
     context.fillText(lead, pxPerMm, pxPerMm);
   }
 }
