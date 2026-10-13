@@ -26,7 +26,10 @@ export function compareKeys(reference: object, messages: object): MessageCheck {
  * equal keys, so duplicates are found in the text.
  */
 export function keyOrder(text: string): { duplicates: string[]; firstUnsorted?: string } {
-  const keys = [...text.matchAll(/^ {2}"((?:[^"\\]|\\.)*)":/gm)].map((match) => match[1] ?? '');
+  // Keys are compared unescaped, as `sortedMessages` sorts them.
+  const keys = [...text.matchAll(/^ {2}("(?:[^"\\]|\\.)*"):/gm)].map(
+    (match) => JSON.parse(match[1] ?? '""') as string,
+  );
   const seen = new Set<string>();
   const duplicates: string[] = [];
   let firstUnsorted: string | undefined;

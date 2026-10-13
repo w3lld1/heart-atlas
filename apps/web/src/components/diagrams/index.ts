@@ -9,6 +9,7 @@ const files = import.meta.glob<DiagramArt>(['./*.astro', '!./Diagram.astro'], {
 /**
  * Diagram art by name; the name is what articles pass to `<Diagram name="…">`. Every component in
  * this folder except Diagram.astro is a diagram, named after its file: AvBlock.astro is "av-block".
+ * So the folder holds only diagrams, and file names are PascalCase words without acronyms.
  * A new diagram is only a new file, so articles written at the same time do not touch a shared list.
  */
 export const diagrams: Readonly<Record<string, DiagramArt>> = Object.fromEntries(
@@ -21,6 +22,7 @@ export const diagrams: Readonly<Record<string, DiagramArt>> = Object.fromEntries
   ]),
 );
 
+/** A diagram name; an unknown one fails the build in Diagram.astro. */
 export type DiagramName = string;
 
 /**
@@ -75,7 +77,7 @@ const customStates: Partial<Record<DiagramName, StateSpec>> = {
 
 // A name with no file behind it (a typo, a renamed diagram) fails the build.
 for (const name of Object.keys(customStates)) {
-  if (!(name in diagrams)) throw new Error(`customStates: no diagram "${name}"`);
+  if (!Object.hasOwn(diagrams, name)) throw new Error(`customStates: no diagram "${name}"`);
 }
 
 const defaultStates: StateSpec = { states: ['normal', 'disease'], initial: 'disease' };

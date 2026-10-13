@@ -15,7 +15,7 @@ const fixtures: Partial<Record<string, TestDiagram>> =
     ? (await import('../../../test/fixtures/diagrams/index.ts')).testDiagrams
     : {};
 const fixture = fixtures[name];
-const Art = fixture?.art ?? diagrams[name];
+const Art = fixture?.art ?? (Object.hasOwn(diagrams, name) ? diagrams[name] : undefined);
 if (!Art) throw new Error(`Unknown diagram "${name}"`);
 const { states, initial } = fixture ?? diagramStates(name);
 const locale = Astro.locals.locale ?? defaultLocale;

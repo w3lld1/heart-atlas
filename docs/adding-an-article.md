@@ -201,7 +201,9 @@ The content error form on GitHub (`.github/ISSUE_TEMPLATE/content-error.yml`) is
 
 Several articles are often written at the same time, so an article touches as few shared files as it can, and where it must, it adds lines in their sorted place rather than at the end:
 
-- A diagram is its own file in `apps/web/src/components/diagrams/`; nothing registers it.
+- A diagram is its own file in `apps/web/src/components/diagrams/`; nothing registers it. The folder holds only diagrams, and file names are PascalCase words without acronyms (`WpwSyndrome.astro`, not `WPWSyndrome.astro`), since the name comes from the file.
 - Strings files (`apps/web/src/i18n/messages/*.json`, `apps/web/test/fixtures/i18n/qps-plocm.json`) keep their keys sorted. Add the new keys anywhere and run `pnpm i18n:sort`; `pnpm i18n:check` (and CI) fails on unsorted or repeated keys. Two articles then touch different lines unless their keys sort next to each other.
-- Lists keyed by article in tests and code (for example the structure lists in `apps/web/e2e/article-model.spec.ts`, `customStates`) get the new entry in alphabetical order.
+- Lists keyed by article in tests and code are sorted, and a new entry goes in its alphabetical place: the structure lists in `apps/web/e2e/article-model.spec.ts` and `customStates`.
+- Article PRs do not edit `CHANGELOG.md`; the release PR writes its section.
+- A heart clock preset also touches shared lists (`presetIds` and the maps after it in `packages/heart-clock/src/presets.ts`, `presetShape` in `packages/viewer/src/disease.ts`, `presetSources`, `apps/web/e2e/ecg-presets.spec.ts`, the curves snapshot). Presets are the app stream's work ([Adding a disease preset](adding-a-disease-preset.md)), so they are not added from article PRs.
 - When a merge does conflict in a strings file, keep both sides and run `pnpm i18n:sort`: it drops a key repeated with the same value and refuses one repeated with different values.
