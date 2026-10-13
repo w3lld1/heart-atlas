@@ -1,0 +1,284 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const veinArrow = `${uid}-stp-vein-arrow`;
+const riskArrow = `${uid}-stp-risk-arrow`;
+// Long labels do not fit their free column on one line: split them at word boundaries into
+// `count` lines, choosing the split whose longest line is shortest.
+function lines(label: string, count: number): string[] {
+  const words = label.split(' ');
+  let best: string[] = [label];
+  let bestLength = Infinity;
+  const walk = (start: number, left: number, acc: string[]): void => {
+    if (left === 1) {
+      const all = [...acc, words.slice(start).join(' ')];
+      const longest = Math.max(...all.map((line) => line.length));
+      if (longest < bestLength) {
+        best = all;
+        bestLength = longest;
+      }
+      return;
+    }
+    for (let end = start + 1; end <= words.length - left + 1; end++) {
+      walk(end, left - 1, [...acc, words.slice(start, end).join(' ')]);
+    }
+  };
+  if (words.length >= count) walk(0, count, []);
+  return best;
+}
+const deepVeinLines = lines(t['diagram.label.leg-vein'], 2);
+const inflammationLines = lines(t['diagram.label.inflammation-around-vein'], 2);
+const riskLines = lines(t['diagram.label.deep-vein-spread-risk'], 3);
+// A segment of the thigh in long section; the heart is up. From left to right: the skin, the
+// superficial vein in the fat under it, and the muscle with the deep vein. Near the top the
+// superficial vein bends over and joins the deep vein: the junction. Vessels are wide strokes: the
+// wall, then the lumen on top of it.
+const superficial = 'M215,400 V150 C215,100 250,80 335,80';
+const deepVein = 'M335,20 V400';
+// In disease the skin over the inflamed segment bulges a little.
+const skinNormal = 'M150,40 V400';
+const skinDisease = 'M150,40 V196 C150,226 140,236 140,270 C140,304 150,314 150,344 V400';
+// The clot fills the lumen of one segment of the superficial vein and touches its wall.
+const clotTop = 208;
+const clotBottom = 332;
+// The risk: from the upper end of the clot along the vein through the junction into the deep vein.
+const risk = `M215,${clotTop - 8} V150 C215,100 250,80 330,80`;
+// Routes of the moving blood.
+const upDeep = 'M335,396 V24';
+const upSuperficial = 'M215,396 V150 C215,100 250,80 335,80';
+// Negative delays so the flow is already running when the page opens.
+const rising = [0, -1.2, -2.4];
+---
+
+<svg
+  viewBox="0 0 520 410"
+  role="img"
+  aria-label={t['diagram.superficial-thrombophlebitis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={veinArrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={riskArrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Direction to the heart, the same in both states -->
+  <path
+    d="M40,64 V34"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    marker-end={`url(#${veinArrow})`}
+  ></path>
+  <text x="8" y="24">
+    {t['diagram.label.to-heart']}
+  </text>
+
+  <!-- Disease: inflamed fat and skin around the clotted segment -->
+  <ellipse
+    class="disease-only"
+    cx="196"
+    cy="270"
+    rx="50"
+    ry="80"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></ellipse>
+
+  <!-- Skin, slightly raised over the inflamed segment in disease, and the muscle -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="3">
+    <path class="normal-only" d={skinNormal}></path>
+    <path class="disease-only" d={skinDisease}></path>
+  </g>
+  <rect
+    x="288"
+    y="20"
+    width="94"
+    height="380"
+    rx="10"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></rect>
+
+  <!-- Veins: walls first, then lumens; the superficial lumen opens into the deep one -->
+  <g fill="none">
+    <path d={superficial} stroke="var(--diagram-venous)" stroke-width="18"></path>
+    <path d={deepVein} stroke="var(--diagram-venous)" stroke-width="30"></path>
+    <path d={deepVein} stroke="var(--diagram-venous-fill)" stroke-width="24"></path>
+    <path d={superficial} stroke="var(--diagram-venous-fill)" stroke-width="12"></path>
+  </g>
+
+  <!-- Disease: the clot in a segment of the superficial vein -->
+  <g class="disease-only">
+    <rect
+      x="209"
+      y={clotTop}
+      width="12"
+      height={clotBottom - clotTop}
+      rx="6"
+      fill="var(--diagram-arterial)"
+    ></rect>
+    <circle cx="213" cy="240" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="217" cy="275" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="213" cy="305" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion: up in the deep vein in both states, up the
+       superficial vein only in the normal state -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="3" marker-end={`url(#${veinArrow})`}>
+    <path d="M335,250 V206"></path>
+    <path d="M335,150 V110"></path>
+    <path class="normal-only" d="M215,340 V296"></path>
+    <path class="normal-only" d="M215,230 V186"></path>
+  </g>
+
+  <!-- Disease: the risk that the clot spreads through the junction into the deep vein -->
+  <path
+    class="disease-only"
+    d={risk}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    stroke-dasharray="6 4"
+    marker-end={`url(#${riskArrow})`}
+  ></path>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-venous)">
+    {rising.map((delay) => (
+      <circle
+        class="stp-run"
+        r="3.5"
+        style={`offset-path: path('${upDeep}'); animation-duration: 3.6s; animation-delay: ${delay}s`}
+      />
+    ))}
+    <g class="normal-only">
+      {rising.map((delay) => (
+        <circle
+          class="stp-run"
+          r="3"
+          style={`offset-path: path('${upSuperficial}'); animation-duration: 4.2s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="142" y1="172" x2="206" y2="172"></line>
+    <line x1="142" y1="380" x2="150" y2="380"></line>
+    <line x1="284" y1="40" x2="314" y2="70"></line>
+    <line x1="388" y1="156" x2="370" y2="156"></line>
+    <line x1="388" y1="244" x2="352" y2="244"></line>
+    <g class="disease-only">
+      <line x1="142" y1="244" x2="162" y2="244"></line>
+      <line x1="142" y1="314" x2="208" y2="314"></line>
+      <line x1="388" y1="44" x2="340" y2="76"></line>
+    </g>
+  </g>
+
+  <!-- Labels: the left column ends at the skin, the right column starts after the muscle -->
+  <text class="diagram-small" x="138" y="176" text-anchor="end">
+    {t['diagram.label.superficial-vein']}
+  </text>
+  <text class="diagram-small" x="138" y="384" text-anchor="end">
+    {t['diagram.label.skin']}
+  </text>
+  <text class="diagram-small" x="280" y="38" text-anchor="end">
+    {t['diagram.label.junction']}
+  </text>
+  <text class="diagram-small" x="392" y="160">
+    {t['diagram.label.muscle']}
+  </text>
+  <text class="diagram-small" x="392" y="240">
+    {deepVeinLines.map((line, i) => (
+      <tspan x="392" dy={i === 0 ? 0 : 15}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="138" y="240" text-anchor="end">
+      {inflammationLines.map((line, i) => (
+        <tspan x="138" dy={i === 0 ? 0 : 15}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="138" y="318" text-anchor="end">
+      {t['diagram.label.clot']}
+    </text>
+    <text class="diagram-small" x="392" y="32">
+      {riskLines.map((line, i) => (
+        <tspan x="392" dy={i === 0 ? 0 : 15}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .stp-run {
+    offset-rotate: 0deg;
+    animation-name: stp-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .stp-run {
+      display: none;
+    }
+  }
+
+  /* Blood moves up the veins towards the heart; in disease the clotted superficial vein carries
+     none. */
+  @keyframes stp-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6%,
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
