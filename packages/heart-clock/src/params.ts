@@ -54,11 +54,12 @@ export interface HeartParams {
    */
   s2Split: number;
   /**
-   * Sinus pauses: after every `pauseEvery`-th beat the sinus node stays silent for
-   * `pauseDuration` ms, with no P wave and no QRS. 0 turns pauses off; otherwise 2–20.
+   * Pauses: after every `pauseEvery`-th beat the ventricles wait. A sinus pause (`pauseDuration`)
+   * has no P wave and no QRS; with `blockedP` the pause holds a P wave that is not conducted.
+   * 0 turns pauses off; otherwise 2–20.
    */
   pauseEvery: number;
-  /** Length of a sinus pause, ms. 0 exactly when `pauseEvery` is 0. */
+  /** Length of a sinus pause, ms. 0 exactly when `pauseEvery` is 0, and always 0 with `blockedP`. */
   pauseDuration: number;
   /**
    * Delta wave (ventricular pre-excitation), ms: the QRS starts with a slow rise this long instead
@@ -101,6 +102,18 @@ export interface HeartParams {
    * conduction through the AV node. Spec: docs/plans/2026-10-13-heart-clock-av-block.md.
    */
   ventricularPacing: number;
+  /**
+   * Second-degree AV block: 1 makes the pause after every `pauseEvery`-th beat one rhythm RR long,
+   * with a P wave at its start and no QRS. 0 keeps pauses silent (sinus pauses).
+   * Spec: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md.
+   */
+  blockedP: number;
+  /**
+   * PR growth inside a group of `pauseEvery` beats, ms (Mobitz I): each beat's PR is this much
+   * longer than the one before; the first beat of a group has the plain PR. Added as is, not
+   * scaled with √RR. Needs `blockedP`. 0 keeps the PR the same.
+   */
+  prStep: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -142,6 +155,8 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   atrialPacing: 0,
   atrialRate: 0,
   ventricularPacing: 0,
+  blockedP: 0,
+  prStep: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -179,6 +194,8 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   atrialPacing: [0, 1],
   atrialRate: [0, 150],
   ventricularPacing: [0, 1],
+  blockedP: [0, 1],
+  prStep: [0, 100],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
@@ -299,7 +316,31 @@ export function resolveParams(
       'ventricularPacing needs fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery and deltaWave at 0',
     );
   }
-  if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
+  if (!Number.isInteger(params.blockedP)) {
+    throw new RangeError(`blockedP must be 0 or 1, got ${params.blockedP}`);
+  }
+  if (!Number.isInteger(params.prStep)) {
+    throw new RangeError(`prStep must be an integer, got ${params.prStep}`);
+  }
+  // A blocked P wave is a sinus P wave that the AV node does not pass, so the pause is one P–P
+  // interval long and the rhythms that replace the P wave are other modes. Flutter, pacing and
+  // `atrialRate` already refuse pauses above.
+  if (
+    params.blockedP === 1 &&
+    (params.pauseEvery === 0 ||
+      params.pauseDuration > 0 ||
+      params.pAmplitude <= 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.rrIrregularity > 0)
+  ) {
+    throw new RangeError(
+      'blockedP needs pauseEvery above 0 and a positive pAmplitude, with pauseDuration, fWaveAmplitude and rrIrregularity at 0',
+    );
+  }
+  if (params.prStep > 0 && params.blockedP === 0) {
+    throw new RangeError('prStep needs blockedP');
+  }
+  if (params.blockedP === 0 && (params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
     throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');
   }
   // The aortic valve opens when LV pressure passes aortic diastolic pressure, and the mitral

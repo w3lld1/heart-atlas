@@ -18,6 +18,11 @@ function smoothstep(from: number, to: number, t: number): number {
 // upstroke), not its height.
 const deltaShare = 0.3;
 
+/** P wave lasting `pDuration` ms at `t` ms from its onset, mV. */
+export function pWave(t: number, pDuration: number, params: HeartParams): number {
+  return wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5);
+}
+
 /**
  * ECG of one beat at `t` ms from its start, mV, without f waves. A sum of Gaussians as in ECGSYN
  * (McSharry et al. 2003), placed in time by the beat timing. Values outside the beat are the tails
@@ -51,10 +56,7 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;
   const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
   // With P waves on their own clock (`atrialRate`, `dissociatedP`) the beat has no P wave.
-  const p =
-    params.atrialRate > 0
-      ? 0
-      : wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5);
+  const p = params.atrialRate > 0 ? 0 : pWave(t, pDuration, params);
   return (
     p +
     q +
@@ -95,7 +97,7 @@ export function dissociatedP(t: number, params: HeartParams): number {
   // The P wave ends well inside its period, so the latest wave and the tail of the one before
   // cover every moment.
   for (const start of [onset - period, onset]) {
-    value += wave(t - start, duration / 2, params.pAmplitude, duration / 5, duration / 5);
+    value += pWave(t - start, duration, params);
   }
   return value;
 }

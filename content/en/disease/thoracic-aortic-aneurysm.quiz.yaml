@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is a thoracic aortic aneurysm?
+    options:
+      - text: A narrowing of the aorta above the diaphragm
+      - text: A permanent widening of the aorta above the diaphragm
+        correct: true
+      - text: A short-lived widening of the aorta below the diaphragm
+    explanation: A thoracic aortic aneurysm is a permanent widening of the aorta above the diaphragm.
+    cite: [2, 4]
+  - level: patient
+    prompt: What do guidelines advise people with a thoracic aortic aneurysm about exercise?
+    options:
+      - text: Avoid heavy lifting and contact sports
+        correct: true
+      - text: Lift heavy weights regularly to strengthen the aortic wall
+      - text: Give up all aerobic exercise, even light exercise
+    explanation: Guidelines advise avoiding heavy lifting, straining exercises and contact sports. Light or moderate aerobic exercise is recommended when blood pressure is at target, and how much to do is discussed with the doctor.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What is true about aneurysms of the aortic root and ascending aorta?
+    options:
+      - text: They tend to appear in older age
+      - text: They are most often linked to atherosclerosis
+      - text: They are often inherited
+        correct: true
+    explanation: Aneurysms of the root and ascending aorta are often inherited and appear at a younger age, so guidelines recommend checking the aorta in first-degree relatives. Aneurysms of the descending thoracic aorta are more often linked to atherosclerosis.
+    cite: [2, 3]
+  - level: patient
+    prompt: Which test measures the aorta accurately and examines all of it?
+    options:
+      - text: Heart ultrasound (echocardiography)
+      - text: CT or MR angiography
+        correct: true
+      - text: An ordinary chest X-ray
+    explanation: To measure the aorta accurately and examine all of it, doctors use CT angiography or MR angiography. Part of the ascending aorta and the arch cannot be seen on ultrasound, and an ordinary chest X-ray is not a reliable way to find an aneurysm.
+    cite: [1, 2, 3, 4]
+  - level: student
+    prompt: According to the Russian guideline and ACC/AHA, what is linked to a higher tendency for rupture?
+    options:
+      - text: Slow growth, under 0.05 cm/year
+      - text: Male sex
+      - text: Saccular morphology
+        correct: true
+    explanation: Rapid growth (≥0.5 cm/year), symptomatic aneurysm, an underlying connective tissue disorder or HTAD, saccular morphology, female sex and infected aneurysm are associated with a higher tendency for rupture.
+    cite: [2, 3]
+  - level: student
+    prompt: According to ACC/AHA, which thoracic aortic aneurysms are diagnosed at a younger age?
+    options:
+      - text: Root and ascending aortic aneurysms
+        correct: true
+      - text: Descending thoracic aortic aneurysms
+      - text: All segments at the same age
+    explanation: Aneurysms of the aortic root and ascending aorta are diagnosed at a younger age than aneurysms of the descending thoracic aorta (at 60 versus 72 years, respectively); the former tend to have a congenital or hereditary cause, the latter an atherosclerotic one.
+    cite: [3]

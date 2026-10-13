@@ -2,7 +2,7 @@ import { paramRanges, type HeartParams } from './params.ts';
 
 /** Moments inside one beat, ms from the onset of the P wave. */
 export interface BeatTiming {
-  /** RR interval of the rhythm, ms: the beat without a sinus pause (`Beat.pause`). */
+  /** RR interval of the rhythm, ms: the beat without a pause after it (`Beat.pause`). */
   rr: number;
   pDuration: number;
   qOnset: number;
@@ -46,9 +46,11 @@ export function pDurationAt(rr: number, params: HeartParams): number {
 /**
  * Timing of one beat with the given RR interval.
  * QS2 and LVET: Weissler et al., Circulation 1968, regressions for men. PR, QT and IVRT scale with
- * √RR as in ECGSYN (McSharry et al. 2003). Throws RangeError when the phases do not fit the beat.
+ * √RR as in ECGSYN (McSharry et al. 2003). `prExtra` lengthens the PR by that many ms (`prStep`,
+ * Mobitz I); the QRS and everything after it move with it. Throws RangeError when the phases do
+ * not fit the beat.
  */
-export function beatTiming(rr: number, params: HeartParams): BeatTiming {
+export function beatTiming(rr: number, params: HeartParams, prExtra = 0): BeatTiming {
   const heartRate = 60000 / rr;
   const [minRate, maxRate] = paramRanges.heartRate;
   // A small tolerance keeps rounding in 60000 / (60000 / hr) from rejecting the range ends.
@@ -59,7 +61,7 @@ export function beatTiming(rr: number, params: HeartParams): BeatTiming {
   const qs2 = 546 - 2.1 * heartRate;
   const lvet = 413 - 1.7 * heartRate;
   const pr = prAt(rr, params);
-  const qOnset = pr;
+  const qOnset = pr + prExtra;
   const timing: BeatTiming = {
     rr,
     pDuration: pDurationAt(rr, params),

@@ -209,3 +209,16 @@ describe('cycle source', () => {
     publishCycleSource(null);
   });
 });
+
+describe('cycleState in second-degree AV block', () => {
+  it('lights the sinus node with the blocked P wave and nothing after it', () => {
+    const clock = createHeartClock({ heartRate: 60, blockedP: 1, pauseEvery: 2 });
+    const { timing } = clock.beatAt(1000);
+    expect(cycleState(clock, 2000 + timing.pDuration / 2).excited).toEqual(['sa-node']);
+    for (let t = 2000 + timing.pDuration + 1; t < 3000; t += 50) {
+      const state = cycleState(clock, t);
+      expect(state.excited, `${t} ms`).toEqual([]);
+      expect(state.phase).toBe('filling');
+    }
+  });
+});

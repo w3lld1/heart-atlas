@@ -280,3 +280,95 @@ describe('atrial pacing', () => {
     }
   });
 });
+
+describe('second-degree AV block (blockedP)', () => {
+  const mobitz2 = { heartRate: 60, blockedP: 1, pauseEvery: 2 } as const;
+  const mobitz1 = {
+    heartRate: 60,
+    blockedP: 1,
+    pauseEvery: 3,
+    prInterval: 180,
+    prStep: 80,
+  } as const;
+
+  it('makes the pause one rhythm RR, so the RR across the block is twice the others (Mobitz II)', () => {
+    const clock = createHeartClock(mobitz2);
+    const beats = clock.beatsBetween(0, 7000);
+    expect(beats.map((b) => b.start)).toEqual([0, 1000, 3000, 4000, 6000, 7000]);
+    expect(beats.map((b) => b.pause)).toEqual([0, 1000, 0, 1000, 0, 1000]);
+    const r = beats.map((b) => b.start + b.timing.rPeak);
+    expect((r[2] ?? 0) - (r[1] ?? 0)).toBeCloseTo(2 * ((r[1] ?? 0) - (r[0] ?? 0)), 9);
+    // The PR is the same before and after the P wave that is not conducted.
+    expect(beats[1]?.timing).toEqual(beats[0]?.timing);
+    expect(beats[2]?.timing).toEqual(beats[1]?.timing);
+  });
+
+  it('draws a P wave without a QRS at the start of the pause', () => {
+    const clock = createHeartClock(mobitz2);
+    const { timing, params } = clock.beatAt(1000);
+    const pPeak = 2000 + timing.pDuration / 2;
+    expect(clock.ecgAt(pPeak)).toBeCloseTo(params.pAmplitude, 2);
+    expect(clock.ecgAt(pPeak)).toBeCloseTo(clock.ecgAt(timing.pDuration / 2), 6);
+    for (let t = 2000 + timing.pDuration + 20; t < 3000; t += 10) {
+      expect(Math.abs(clock.ecgAt(t)), `${t} ms`).toBeLessThan(0.01);
+    }
+    expect(clock.sample(2000 + timing.qOnset)).toMatchObject({ pause: true, phase: 'filling' });
+    // The strip is drawn with ecgBetween; it must match ecgAt in and around the pause.
+    const strip = clock.ecgBetween(1500, 3500, 201);
+    strip.forEach((value, k) => expect(value).toBeCloseTo(clock.ecgAt(1500 + 10 * k), 9));
+  });
+
+  it('plays no sounds in the pause', () => {
+    const clock = createHeartClock(mobitz2);
+    const sounds = clock.beatsBetween(0, 7000).flatMap(soundEvents);
+    expect(sounds.filter((e) => e.time >= 2000 && e.time < 3000)).toEqual([]);
+    expect(sounds.filter((e) => e.time >= 3000 && e.time < 4000)).not.toEqual([]);
+  });
+
+  it('lengthens the PR by prStep inside a group and starts the next group with the plain PR (Mobitz I)', () => {
+    const clock = createHeartClock(mobitz1);
+    const beats = clock.beatsBetween(0, 8000);
+    expect(beats.map((b) => b.start)).toEqual([0, 1000, 2000, 4000, 5000, 6000, 8000]);
+    expect(beats.map((b) => Math.round(b.timing.qOnset))).toEqual([
+      180, 260, 340, 180, 260, 340, 180,
+    ]);
+    // Only the QRS moves; the P wave keeps its length.
+    expect(beats[2]?.timing.pDuration).toBe(beats[0]?.timing.pDuration);
+    expect(beats[2]?.timing.jPoint).toBeCloseTo((beats[0]?.timing.jPoint ?? 0) + 160, 9);
+  });
+
+  it('adds prStep as is, without scaling it with the RR', () => {
+    const clock = createHeartClock({ ...mobitz1, heartRate: 40 });
+    const [first, second, third] = clock.beatsBetween(0, 3000);
+    expect((second?.timing.qOnset ?? 0) - (first?.timing.qOnset ?? 0)).toBeCloseTo(80, 9);
+    expect((third?.timing.qOnset ?? 0) - (first?.timing.qOnset ?? 0)).toBeCloseTo(160, 9);
+  });
+
+  it('limits the heart rate by the longest PR of the group', () => {
+    const params = resolveParams(mobitz1);
+    expect(heartRateLimits(params)).toEqual([30, 76]);
+    expect(heartRateLimits(resolveParams({ prInterval: 180 }))[1]).toBeGreaterThan(76);
+    expect(() => checkParams({ ...params, heartRate: 77 })).toThrow(RangeError);
+    expect(() => createHeartClock({ ...mobitz1, heartRate: 77 })).toThrow(RangeError);
+  });
+
+  it('keeps counting groups by beat index after setParams', () => {
+    const clock = createHeartClock(mobitz1);
+    clock.beatAt(1500);
+    clock.setParams({ heartRate: 50 }, 1500);
+    const beats = clock.beatsBetween(2000, 12000);
+    for (const b of beats) {
+      expect(b.timing.qOnset - beatTiming(b.timing.rr, b.params).qOnset).toBeCloseTo(
+        (b.index % 3) * 80,
+        9,
+      );
+      expect(b.pause > 0).toBe(b.index % 3 === 2);
+    }
+  });
+
+  it('changes nothing with blockedP and prStep at 0', () => {
+    const plain = createHeartClock({ heartRate: 60 }).beatsBetween(0, 5000);
+    const zero = createHeartClock({ heartRate: 60, blockedP: 0, prStep: 0 }).beatsBetween(0, 5000);
+    expect(zero).toEqual(plain);
+  });
+});

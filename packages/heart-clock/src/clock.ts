@@ -1,4 +1,4 @@
-import { beatWaves, dissociatedP, flutterWaves, fWaves } from './ecg.ts';
+import { beatWaves, dissociatedP, flutterWaves, fWaves, pWave } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
 import { beatTiming, phaseAt, type BeatTiming, type Phase } from './timing.ts';
@@ -10,7 +10,10 @@ export interface Beat {
   start: number;
   /** Time to the next beat, ms: `timing.rr` plus `pause`. */
   rr: number;
-  /** Sinus pause at the end of this beat, ms; 0 for most beats. */
+  /**
+   * Pause at the end of this beat, ms; 0 for most beats. A sinus pause is silent; with `blockedP`
+   * it is one rhythm RR that starts with a P wave without a QRS.
+   */
   pause: number;
   timing: BeatTiming;
   /** Parameters this beat was built with; `setParams` affects only later beats. */
@@ -22,7 +25,7 @@ export interface ClockSample {
   /** Time since the start of the beat, ms. */
   tInBeat: number;
   phase: Phase;
-  /** Whether `t` is in the sinus pause at the end of the beat. */
+  /** Whether `t` is in the pause at the end of the beat (a sinus pause or a blocked P wave). */
   pause: boolean;
   /** ECG, mV. */
   ecg: number;
@@ -81,12 +84,20 @@ function rrFor(params: HeartParams, index: number): number {
 }
 
 /**
- * Sinus pause after beat `index`, ms: after every `pauseEvery`-th beat (assumption: regular).
- * f waves (`fWaveAmplitude`) are atrial activity, so they go on through a pause.
+ * Pause after beat `index`, ms: after every `pauseEvery`-th beat (assumption: regular). A sinus
+ * pause lasts `pauseDuration`; with `blockedP` the sinus node goes on, and the pause is the rhythm
+ * RR (`rhythmRr`) of the P wave that is not conducted. f waves (`fWaveAmplitude`) are atrial
+ * activity, so they go on through a pause.
  */
-function pauseFor(params: HeartParams, index: number): number {
+function pauseFor(params: HeartParams, index: number, rhythmRr: number): number {
   const every = params.pauseEvery;
-  return every > 0 && index % every === every - 1 ? params.pauseDuration : 0;
+  if (every === 0 || index % every !== every - 1) return 0;
+  return params.blockedP === 1 ? rhythmRr : params.pauseDuration;
+}
+
+/** Extra PR of beat `index`, ms: `prStep` for every beat before it in its group (Mobitz I). */
+function prExtraFor(params: HeartParams, index: number): number {
+  return params.pauseEvery > 0 ? (index % params.pauseEvery) * params.prStep : 0;
 }
 
 /**
@@ -106,7 +117,13 @@ export function checkParams(params: HeartParams): void {
   const low = clampRr(mean * (1 - params.rrIrregularity), params);
   const high = clampRr(mean * (1 + params.rrIrregularity), params);
   const steps = low === high ? 0 : 256;
-  for (let i = 0; i <= steps; i += 1) beatTiming(low + ((high - low) * i) / (steps || 1), params);
+  // With `prStep` the last beat of a group has the longest PR. A longer PR moves R and every later
+  // moment by the same amount, so only the end of the beat can stop fitting: the longest PR is the
+  // one to check.
+  const longest = params.pauseEvery > 0 ? (params.pauseEvery - 1) * params.prStep : 0;
+  for (let i = 0; i <= steps; i += 1) {
+    beatTiming(low + ((high - low) * i) / (steps || 1), params, longest);
+  }
 }
 
 /**
@@ -151,13 +168,13 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
 
   function makeBeat(index: number, start: number): Beat {
     const rhythmRr = rrFor(params, index);
-    const pause = pauseFor(params, index);
+    const pause = pauseFor(params, index, rhythmRr);
     return {
       index,
       start,
       rr: rhythmRr + pause,
       pause,
-      timing: beatTiming(rhythmRr, params),
+      timing: beatTiming(rhythmRr, params, prExtraFor(params, index)),
       params,
     };
   }
@@ -234,7 +251,12 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       value = w * value + (1 - w) * atrial(previous);
     }
     for (const b of [previous, beat, beats[i + 1]]) {
-      if (b) value += beatWaves(t - b.start, b.timing, b.params);
+      if (!b) continue;
+      value += beatWaves(t - b.start, b.timing, b.params);
+      // Second-degree AV block: the P wave at the start of the pause has no QRS after it.
+      if (b.pause > 0 && b.params.blockedP === 1) {
+        value += pWave(t - b.start - b.timing.rr, b.timing.pDuration, b.params);
+      }
     }
     return value;
   }
