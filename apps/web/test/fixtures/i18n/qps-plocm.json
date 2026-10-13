@@ -158,7 +158,7 @@
   "diagram.label.lv": "[RTL] LV",
   "diagram.label.closed-defect": "[RTL] Closed defect",
   "diagram.label.defect": "[RTL] Defect",
-  "diagram.atrial-septal-defect.title": "[RTL] Diagram of the heart chambers with and without an atrial septal defect",
+  "diagram.atrial-septal-defect.title": "[RTL] Diagram of the heart chambers: normal, with an atrial septal defect and after the defect is closed",
   "diagram.ventricular-septal-defect.title": "[RTL] Diagram of the heart chambers: normal, with a ventricular septal defect and after the defect is closed",
   "diagram.label.aorta": "[RTL] Aorta",
   "diagram.label.sa-node": "[RTL] SA node",

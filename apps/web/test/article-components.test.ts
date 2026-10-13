@@ -102,16 +102,17 @@ describe('SourceList', () => {
 });
 
 describe('Diagram', () => {
-  it('renders the named diagram with an accessible name and both captions', async () => {
+  it('renders the named diagram with an accessible name and a caption per state', async () => {
     const html = await container.renderToString(Diagram, {
       props: { name: 'atrial-septal-defect' },
       locals: { locale: 'en' },
-      slots: { normal: 'Normal caption', disease: 'Disease caption' },
+      slots: { normal: 'Normal caption', disease: 'Disease caption', treated: 'Treated caption' },
     });
     expect(html).toContain('role="img"');
     expect(html).toContain('aria-label="Diagram of the heart chambers');
     expect(html).toContain('Normal caption');
     expect(html).toContain('Disease caption');
+    expect(html).toContain('Treated caption');
     expect(html).toMatch(/value="disease" checked/);
   });
 

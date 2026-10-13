@@ -94,6 +94,19 @@ const shunt = [0, -1, -2];
     stroke="var(--diagram-venous)"
     stroke-width="2"
   ></ellipse>
+  <!-- After closure the right ventricle is drawn as in Disease: the art changes only what was
+       done (the closed defect). The sources do not describe how RV size changes after closure,
+       so the drawing does not show a change. -->
+  <ellipse
+    data-only="treated"
+    cx="114"
+    cy="207"
+    rx="62"
+    ry="64"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
   <ellipse
     cx="248"
     cy="205"
@@ -119,6 +132,24 @@ const shunt = [0, -1, -2];
     <line x1="180" y1="44" x2="180" y2="80" stroke="var(--color-text)" stroke-width="1.5"></line>
     <text x="180" y="36" text-anchor="middle">
       {t['diagram.label.defect']}
+    </text>
+  </g>
+
+  <!-- After treatment: the defect is closed (a device or a patch, drawn generically); no shunt -->
+  <g data-only="treated">
+    <rect
+      x="166"
+      y="82"
+      width="28"
+      height="26"
+      rx="6"
+      fill="var(--color-muted)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></rect>
+    <line x1="180" y1="44" x2="180" y2="80" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="180" y="36" text-anchor="middle">
+      {t['diagram.label.closed-defect']}
     </text>
   </g>
 
