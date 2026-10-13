@@ -81,6 +81,10 @@ describe('article schema', () => {
     );
     expect(articleSchema.safeParse({ ...valid(), preset: 'normal' }).success).toBe(false);
     expect(articleSchema.safeParse({ ...valid(), preset: 'af' }).success).toBe(false);
+    // A state after treatment comes only with its disease (presetTreated).
+    expect(
+      articleSchema.safeParse({ ...valid(), preset: 'sick-sinus-syndrome-paced' }).success,
+    ).toBe(false);
   });
 
   it('rejects unknown frontmatter keys', () => {

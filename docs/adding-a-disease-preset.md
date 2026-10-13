@@ -66,7 +66,6 @@ These parameters draw signs that the default lead II rhythm cannot. Spec: [heart
 | QRS shape | `qAmplitude`, `rAmplitude`, `sAmplitude` (mV) | Usually set by the lead baseline. |
 | Coved ST | `stShift` with `stSlope` (0 plateau, 1 coved) and a negative `tAmplitude` | `stSlope: 1` keeps the elevation highest at the J point and lets it fall in a convex curve into the T wave. The model draws no r′ wave. |
 | Atrial flutter | `flutterConduction` (0 or 2–4), `flutterAmplitude` (mV), `presetRateCeilings` | N sawtooth F waves in every beat, so they run at N times the ventricular rate at any slider position. Use a floor and a ceiling so the atrial rate stays inside the source's range. Needs `fWaveAmplitude`, `rrIrregularity` and `pauseEvery` at 0; set `pAmplitude` and `atrialContribution` to 0 with their sources. |
-
 | Pacemaker (atrial pacing) | `atrialPacing` (0 or 1) | Every beat starts with a pacemaker spike drawn where the P wave begins, on the strip and in the Wiggers diagram; the curves do not change, and the 3D model does not light the sinus node. Needs a positive `pAmplitude` and `fWaveAmplitude`, `flutterConduction`, `rrIrregularity` and `pauseEvery` at 0. Spec: [heart clock after treatment](plans/2026-10-13-heart-clock-after-treatment.md). |
 
 #### A state after treatment

@@ -166,10 +166,10 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     pauseDuration: 3000,
   }),
   'sick-sinus-syndrome-paced': Object.freeze({
-    // After treatment (`presetTreated`): symptomatic SND is treated with a permanent pacemaker,
-    // dual-chamber, programmed to avoid unnecessary ventricular pacing (ESC 2021 pacing, table of
-    // recommendations for SND, I A; Minzdrav 2025, Bradyarrhythmias, §3.3.1, I A). The pacemaker
-    // sends an impulse when the heart's own rhythm slows or stops (Minzdrav 2025, appendix B), so
+    // After treatment (`presetTreated`): symptomatic SND is treated with a permanent pacemaker (I B),
+    // dual-chamber, programmed to avoid unnecessary ventricular pacing (I A) (ESC 2021 pacing, table
+    // of recommendations for SND; Minzdrav 2025, Bradyarrhythmias, §3.3.1). The pacemaker sends an
+    // impulse when the heart's own rhythm slows or stops (Minzdrav 2025, appendix V), so
     // the pauses go and every beat starts with an atrial stimulus that the atria capture
     // (StatPearls, Pacemaker Malfunction, 2023). assumption: AV conduction is intact, so the paced
     // P wave is followed by the model's default PR and a narrow QRS, and the P wave keeps its shape.
