@@ -79,6 +79,11 @@ export interface HeartClockDemoProps {
    * Without it each preset is drawn in its own lead (`presetLead`).
    */
   lead?: Lead;
+  /**
+   * Whether to show the Wiggers diagram. It draws the left ventricle as the one that pumps to the
+   * body, so an article where the right ventricle does (corrected transposition) turns it off.
+   */
+  wiggers?: boolean;
 }
 
 /** Parameters of a preset with the caller's overrides, or undefined if the two do not fit. */
@@ -119,6 +124,7 @@ export default function HeartClockDemo({
   params,
   headingLevel = 2,
   lead,
+  wiggers: showWiggers = true,
 }: HeartClockDemoProps) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
   // Presets that fit the caller's parameters, with their parameters and heart rate limits.
@@ -250,32 +256,35 @@ export default function HeartClockDemo({
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     const wiggers = wiggersRef.current;
-    const wiggersContext = wiggers?.getContext('2d');
-    if (!canvas || !context || !wiggers || !wiggersContext || width === 0) return;
+    const wiggersContext = wiggers?.getContext('2d') ?? undefined;
+    if (!canvas || !context || width === 0) return;
 
-    for (const [element, ctx, height] of [
+    const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = [
       [canvas, context, ecgHeight],
-      [wiggers, wiggersContext, wiggersHeight],
-    ] as const) {
+    ];
+    if (wiggers && wiggersContext) canvases.push([wiggers, wiggersContext, wiggersHeight]);
+    for (const [element, ctx, height] of canvases) {
       element.width = Math.round(width * dpr);
       element.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     let colors = readColors(canvas);
-    let wiggersColors = readWiggersColors(wiggers);
+    let wiggersColors = wiggers && readWiggersColors(wiggers);
     const scheme = window.matchMedia('(prefers-color-scheme: dark)');
     const onScheme = () => {
       colors = readColors(canvas);
-      wiggersColors = readWiggersColors(wiggers);
+      wiggersColors = wiggers && readWiggersColors(wiggers);
       render();
     };
     scheme.addEventListener('change', onScheme);
 
     function render() {
-      if (!context || !wiggersContext) return;
+      if (!context) return;
       drawEcg(context, width, nowRef.current, clock, colors);
-      drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
+      if (wiggersContext && wiggersColors) {
+        drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
+      }
       const sample = clock.sample(nowRef.current);
       setPhase(monitorPhase(sample));
     }
@@ -297,7 +306,7 @@ export default function HeartClockDemo({
       scheme.removeEventListener('change', onScheme);
       playerRef.current?.cancel();
     };
-  }, [clock, playing, width, dpr, wiggersLabels]);
+  }, [clock, playing, width, dpr, wiggersLabels, showWiggers]);
 
   // Closes the audio context when the island goes away.
   useEffect(
@@ -445,35 +454,39 @@ export default function HeartClockDemo({
       <p id={descriptionId} className={styles['description']}>
         {description}
       </p>
-      <Heading className={styles['wiggers-title']}>{t['heartClock.wiggers.title']}</Heading>
-      <div className={styles['strip']} dir="ltr">
-        <canvas
-          ref={wiggersRef}
-          className={styles['wiggers']}
-          role="img"
-          aria-label={t['heartClock.wiggers.label']}
-          aria-describedby={`${id}-wiggers`}
-          style={{ inlineSize: width ? `${width}px` : '100%', blockSize: `${wiggersHeight}px` }}
-        />
-      </div>
-      <ul className={styles['legend']}>
-        {(
-          [
-            ['lv', 'heartClock.wiggers.lv'],
-            ['aorta', 'heartClock.wiggers.aorta'],
-            ['la', 'heartClock.wiggers.la'],
-            ['volume', 'heartClock.wiggers.lvVolume'],
-            ['systole', 'heartClock.wiggers.systole'],
-          ] as const
-        ).map(([key, label]) => (
-          <li key={key} data-series={key}>
-            {t[label]}
-          </li>
-        ))}
-      </ul>
-      <p id={`${id}-wiggers`} className={styles['description']}>
-        {t['heartClock.wiggers.description']}
-      </p>
+      {showWiggers && (
+        <>
+          <Heading className={styles['wiggers-title']}>{t['heartClock.wiggers.title']}</Heading>
+          <div className={styles['strip']} dir="ltr">
+            <canvas
+              ref={wiggersRef}
+              className={styles['wiggers']}
+              role="img"
+              aria-label={t['heartClock.wiggers.label']}
+              aria-describedby={`${id}-wiggers`}
+              style={{ inlineSize: width ? `${width}px` : '100%', blockSize: `${wiggersHeight}px` }}
+            />
+          </div>
+          <ul className={styles['legend']}>
+            {(
+              [
+                ['lv', 'heartClock.wiggers.lv'],
+                ['aorta', 'heartClock.wiggers.aorta'],
+                ['la', 'heartClock.wiggers.la'],
+                ['volume', 'heartClock.wiggers.lvVolume'],
+                ['systole', 'heartClock.wiggers.systole'],
+              ] as const
+            ).map(([key, label]) => (
+              <li key={key} data-series={key}>
+                {t[label]}
+              </li>
+            ))}
+          </ul>
+          <p id={`${id}-wiggers`} className={styles['description']}>
+            {t['heartClock.wiggers.description']}
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -18,13 +18,15 @@ interface Props {
   preset?: Exclude<PresetId, 'normal'>;
   /** More presets for the switch after `preset`, each with its state after treatment (frontmatter `morePresets`). */
   morePresets?: readonly Exclude<PresetId, 'normal'>[];
+  /** false hides the Wiggers diagram (frontmatter `wiggers`). */
+  wiggers?: boolean;
   /** The disease whose signs the 3D model shows. */
   disease?: DiseaseId;
   /** A patient model of the article's congenital defect: docs/plans/2026-10-12-congenital-models.md. */
   congenital?: CongenitalModelId;
 }
 
-const { locale, preset, morePresets = [], disease, congenital } = Astro.props;
+const { locale, preset, morePresets = [], wiggers = true, disease, congenital } = Astro.props;
 // Normal, the disease and, when its treatment changes the ECG, the state after treatment
 // (docs/plans/2026-10-13-heart-clock-after-treatment.md), then the article's other presets, each with its own.
 const withTreated = (id: Exclude<PresetId, 'normal'>): PresetId[] => {
@@ -56,6 +58,7 @@ const messages = Object.fromEntries(
         preset={preset}
         lead={presetLead(preset)}
         headingLevel={3}
+        wiggers={wiggers}
       />
     </>
   )}

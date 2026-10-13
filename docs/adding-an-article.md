@@ -66,6 +66,7 @@ Unknown fields are rejected.
 | `review`          | no       | `null` (default) or `{ reviewer, date }` once a physician has reviewed the article.                                                                                                           |
 | `preset`          | no       | A heart clock preset id other than `normal` (see `presetIds` in `packages/heart-clock/src/presets.ts`). The page then shows the ECG monitor with a normal / disease switch. See [Adding a disease preset](adding-a-disease-preset.md). |
 | `morePresets`     | no       | More preset ids for the same switch, after `preset` and its state after treatment, for an article about several kinds of one disease (for example `[av-block-second-degree-mobitz-1, av-block-second-degree-mobitz-2]`). Each brings its own state after treatment. Needs `preset`; the same ids are allowed as for `preset`, without repeats, drawn in the same lead as `preset`. |
+| `wiggers` | no | `false` hides the Wiggers diagram under the heart clock. It draws the left ventricle as the one that pumps to the body, so an article where the right ventricle does (corrected transposition) turns it off. Needs `preset`. |
 
 ### Sources
 

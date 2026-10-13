@@ -97,6 +97,7 @@ const congenital = type === 'disease' && isCongenitalModelId(slug) ? slug : unde
       locale={locale}
       {...(article.preset ? { preset: article.preset } : {})}
       morePresets={article.morePresets}
+      wiggers={article.wiggers}
       {...(disease ? { disease } : {})}
       {...(congenital ? { congenital } : {})}
     />

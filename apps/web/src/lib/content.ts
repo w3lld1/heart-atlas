@@ -138,8 +138,15 @@ export function createArticleSchema(trusted: TrustedSources) {
       // article that covers several kinds of one disease (Mobitz I and II in AV block). Each comes
       // with its own state after treatment.
       morePresets: z.array(articlePreset).default([]),
+      // false hides the Wiggers diagram under the heart clock: it draws the left ventricle as the
+      // one that pumps to the body, which is wrong where the right ventricle does (corrected
+      // transposition).
+      wiggers: z.boolean().default(true),
     })
     .superRefine((article, ctx) => {
+      if (!article.wiggers && !article.preset) {
+        ctx.addIssue({ code: 'custom', path: ['wiggers'], message: 'wiggers needs preset' });
+      }
       if (article.morePresets.length > 0 && !article.preset) {
         ctx.addIssue({
           code: 'custom',

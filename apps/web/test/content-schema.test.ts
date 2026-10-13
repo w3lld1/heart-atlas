@@ -117,6 +117,13 @@ describe('article schema', () => {
     }
   });
 
+  it('turns the Wiggers diagram off only for an article with a preset', () => {
+    expect(articleSchema.parse(valid()).wiggers).toBe(true);
+    const preset = 'av-block-third-degree';
+    expect(articleSchema.parse({ ...valid(), preset, wiggers: false }).wiggers).toBe(false);
+    expect(articleSchema.safeParse({ ...valid(), wiggers: false }).success).toBe(false);
+  });
+
   it('rejects unknown frontmatter keys', () => {
     expect(articleSchema.safeParse({ ...valid(), source: [] }).success).toBe(false);
   });

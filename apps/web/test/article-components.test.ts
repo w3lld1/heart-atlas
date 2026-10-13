@@ -287,4 +287,17 @@ describe('ArticleClock', () => {
       'av-block-third-degree-paced',
     ]);
   });
+
+  it('leaves out the Wiggers diagram when the article turns it off', async () => {
+    const withReact = await AstroContainer.create();
+    withReact.addServerRenderer({ renderer: reactRenderer });
+    withReact.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' });
+    const render = (wiggers: boolean) =>
+      withReact.renderToString(ArticleClock, {
+        props: { locale: 'en', preset: 'av-block-third-degree', wiggers },
+      });
+    const label = getMessages('en')['heartClock.wiggers.label'];
+    expect(await render(true)).toContain(`aria-label="${label}"`);
+    expect(await render(false)).not.toContain(`aria-label="${label}"`);
+  });
 });
