@@ -147,7 +147,7 @@ A disease diagram can show a third state, "After treatment", next to Normal and 
 Steps:
 
 1. In `customStates` in `apps/web/src/components/diagrams/index.ts`, give the diagram the `withTreatment` set (Normal, Disease, After treatment; starts on Disease).
-2. In the diagram component, draw the state with elements marked `data-only="treated"` and `<text>` labels for them. Shared outlines stay unmarked.
+2. In the diagram component, draw the state with elements marked `data-only="treated"` and `<text>` labels for them (empty `<text>` fails the tests). Shared outlines stay unmarked.
 3. Update the accessible name `diagram.<name>.title` in every strings file so it describes all three states.
 4. Find the articles with `grep -rl 'name="<diagram>"' content` and add the caption to each `<Diagram>` in every language:
 
@@ -155,11 +155,11 @@ Steps:
 <Diagram name="atrial-septal-defect">
   <p slot="normal">…</p>
   <p slot="disease">…</p>
-  <p slot="treated">After closure, a patch or a device covers the opening and blood no longer flows between the atria.<Cite n={1} /></p>
+  <p slot="treated">…what the intervention closed, replaced or restored, as the cited guideline describes it.<Cite n={1} /></p>
 </Diagram>
 ```
 
-5. `pnpm build` fails when a diagram with the treated state has no treated caption; `pnpm test` also fails when the caption cites no guideline source. The article e2e must pass.
+5. `pnpm build` fails when a diagram with the treated state has no treated caption. `pnpm test` fails on a missing caption too, and when the caption cites no guideline source of the article. The article e2e must pass.
 
 ### `<EcgMonitor>`
 
