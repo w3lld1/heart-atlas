@@ -21,6 +21,8 @@ export {
   createHeartClock,
   heartRateLimits,
   historyMs,
+  monitorPhase,
+  ventricularPrematureParams,
   type Beat,
   type ClockSample,
   type HeartClock,

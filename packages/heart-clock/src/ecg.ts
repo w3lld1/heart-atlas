@@ -50,7 +50,10 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const rest = qrs - delta;
   const sCentre = qOnset + delta + (delta > 0 ? 0.75 : 0.8) * rest;
   const q = delta > 0 ? 0 : wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs);
-  const r = wave(t, timing.rPeak, rAmplitude, 0.1 * rest, 0.1 * rest);
+  // A QRS without Q and S waves (a ventricle excited through the muscle: pacing, a ventricular
+  // premature beat) is one R wave across the whole complex: about 0.85 of it stays above 0.05 mV.
+  const rWidth = qAmplitude === 0 && sAmplitude === 0 && delta === 0 ? 0.18 : 0.1;
+  const r = wave(t, timing.rPeak, rAmplitude, rWidth * rest, rWidth * rest);
   // The slow rise goes on at the same slope until the steep R upstroke overtakes it, so the two
   // join without a step and R keeps its amplitude.
   const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;

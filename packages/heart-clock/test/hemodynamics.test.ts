@@ -200,3 +200,12 @@ describe('hemodynamicsAt in second-degree AV block', () => {
     }
   });
 });
+
+describe('hemodynamicsAt with premature beats', () => {
+  it('stays continuous through the short beat, the premature beat and the next sinus beat', () => {
+    for (const prematureOrigin of [1, 2]) {
+      const clock = createHeartClock({ heartRate: 75, prematureEvery: 4, prematureOrigin });
+      expectContinuous(clock, 0, 6000);
+    }
+  });
+});

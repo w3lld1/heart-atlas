@@ -114,6 +114,17 @@ export interface HeartParams {
    * scaled with √RR. Needs `blockedP`. 0 keeps the PR the same.
    */
   prStep: number;
+  /**
+   * Premature beats: every `prematureEvery`-th beat comes early (0 turns them off; otherwise 2–20).
+   * Spec: docs/plans/2026-10-13-heart-clock-premature-beats.md.
+   */
+  prematureEvery: number;
+  /** Where premature beats start: 1 in the atria, 2 in the ventricles; 0 exactly when they are off. */
+  prematureOrigin: number;
+  /**
+   * When a premature beat comes, as a share of the rhythm RR from the start of the beat before it.
+   */
+  prematureCoupling: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -157,6 +168,10 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   ventricularPacing: 0,
   blockedP: 0,
   prStep: 0,
+  prematureEvery: 0,
+  prematureOrigin: 0,
+  // assumption: no source gives the coupling interval.
+  prematureCoupling: 0.7,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -196,6 +211,9 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   ventricularPacing: [0, 1],
   blockedP: [0, 1],
   prStep: [0, 100],
+  prematureEvery: [0, 20],
+  prematureOrigin: [0, 2],
+  prematureCoupling: [0.5, 0.9],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
@@ -339,6 +357,35 @@ export function resolveParams(
   }
   if (params.prStep > 0 && params.blockedP === 0) {
     throw new RangeError('prStep needs blockedP');
+  }
+  if (!Number.isInteger(params.prematureEvery) || params.prematureEvery === 1) {
+    throw new RangeError(
+      `prematureEvery must be 0 or an integer from 2 to 20, got ${params.prematureEvery}`,
+    );
+  }
+  if (!Number.isInteger(params.prematureOrigin)) {
+    throw new RangeError(`prematureOrigin must be 0, 1 or 2, got ${params.prematureOrigin}`);
+  }
+  if ((params.prematureEvery === 0) !== (params.prematureOrigin === 0)) {
+    throw new RangeError('prematureEvery and prematureOrigin must both be 0 or both be above 0');
+  }
+  // Premature beats interrupt a regular sinus rhythm; the rhythms that replace or move the P wave,
+  // pauses, pacing and pre-excitation are other modes.
+  if (
+    params.prematureEvery > 0 &&
+    (params.pAmplitude <= 0 ||
+      params.rrIrregularity > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.pauseEvery > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.deltaWave > 0)
+  ) {
+    throw new RangeError(
+      'prematureEvery needs a positive pAmplitude, with rrIrregularity, fWaveAmplitude, flutterConduction, pauseEvery, atrialRate, atrialPacing, ventricularPacing and deltaWave at 0',
+    );
   }
   if (params.blockedP === 0 && (params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
     throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');
