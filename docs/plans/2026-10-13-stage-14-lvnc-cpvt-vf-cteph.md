@@ -43,7 +43,7 @@
 | minzdrav-rf | guideline | Дилатационная кардиомиопатия (ID 1008_1) | 2025 | [cr.minzdrav.gov.ru/view-cr/1008_1](https://cr.minzdrav.gov.ru/view-cr/1008_1) | Весь текст; одна рекомендация о некомпактном миокарде |
 | esc | guideline | 2022 ESC Guidelines for VA and prevention of SCD | 2022 | [10.1093/eurheartj/ehac262](https://doi.org/10.1093/eurheartj/ehac262) | Только набор слайдов |
 | esc | guideline | 2023 ESC Guidelines for the management of cardiomyopathies | 2023 | [10.1093/eurheartj/ehad194](https://doi.org/10.1093/eurheartj/ehad194) | Только набор слайдов и Essential Messages: общие рекомендации по кардиомиопатиям |
-| aha-acc | guideline | Scientific statement on sports participation | 2025 | [10.1161/CIR.0000000000001297](https://doi.org/10.1161/CIR.0000000000001297) | Авторская рукопись PMC целиком; только о терминологии |
+| aha-acc | guideline | Scientific statement on sports participation | 2025 | [10.1161/CIR.0000000000001297](https://doi.org/10.1161/CIR.0000000000001297) | Авторская рукопись PMC целиком; о терминологии и о спортсменах без признаков кардиомиопатии |
 | msd-manuals | reference | Non-Compaction Cardiomyopathy (professional) | 2026 | msdmanuals.com | Целиком, en |
 | statpearls | reference | Left Ventricular Noncompaction Cardiomyopathy (NBK537025) | 2024 | NBK537025 | Только аннотация |
 
@@ -66,7 +66,7 @@ ESC 2022 не прочитана и прямо не цитируется. Циф
 | minzdrav-rf | guideline | Желудочковые нарушения ритма сердца. Внезапная сердечная смерть (ID 569_2) | 2025 | [10.15829/1560-4071-2025-6670](https://doi.org/10.15829/1560-4071-2025-6670) | Определения, разделы 1–2, 3.1.2, 5, 6 |
 | esc | guideline | 2022 ESC Guidelines for VA and prevention of SCD | 2022 | [10.1093/eurheartj/ehac262](https://doi.org/10.1093/eurheartj/ehac262) | Только набор слайдов: СЛР и АНД для населения, обследование выживших, ИКД |
 | nice | guideline | Implantable cardioverter defibrillators and cardiac resynchronisation therapy (TA314) | 2014 | [nice.org.uk/guidance/ta314](https://www.nice.org.uk/guidance/ta314) | Разделы 1–3 |
-| msd-manuals | reference | Ventricular Fibrillation; Cardiac Arrest; CPR in Adults (professional и consumer) | 2024–2026 | msdmanuals.com | Целиком, en |
+| msd-manuals | reference | Ventricular Fibrillation; Cardiac Arrest; CPR in Adults (professional и consumer); Overview of Abnormal Heart Rhythms (consumer, только для подписи к норме на схеме) | 2024–2026 | msdmanuals.com | Целиком, en |
 
 Пошаговые действия очевидца даём на уровне рекомендаций (сразу вызвать скорую, начать компрессии грудной клетки, использовать АНД) и по MSD (CPR in Adults). Рекомендации ERC и AHA 2025 по СЛР не в списке доверенных или не прочитаны: не цитируем. Частоту и глубину компрессий даём только если они дословно есть в MSD, с пометкой источника. Расходящиеся цифры (см. «Что не входит») не пишем.
 

@@ -1,0 +1,325 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-cteph-arrow`;
+// Labels that are too long for one line in their column: split them in two at a word break.
+const twoLines = (text: string): [string, string] => {
+  const words = text.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+};
+const hypertrophyLines = twoLines(t['diagram.label.rv-hypertrophy']);
+
+type Point = [number, number];
+// A point a fraction of the way along a straight branch.
+const at = ([x1, y1]: Point, [x2, y2]: Point, f: number): Point => [
+  x1 + (x2 - x1) * f,
+  y1 + (y2 - y1) * f,
+];
+const line = (a: Point, b: Point) => `M${a[0]},${a[1]} L${b[0]},${b[1]}`;
+
+// Venous blood leaves the right ventricle through the pulmonary trunk; the pulmonary artery
+// divides into two large branches, and those into smaller branches inside the lung.
+const trunk = 'M85,176 V90 Q85,60 115,60 H190';
+const split: Point = [190, 60];
+const upper: Point = [262, 44];
+const lower: Point = [262, 130];
+const mains = `${line(split, upper)} ${line(split, lower)}`;
+// Smaller branches. In disease three of them carry chronic lesions of organized fibrotic
+// material: a ring-like narrowing, a web across the lumen and a complete occlusion.
+const ringEnd: Point = [420, 22];
+const openUpperEnd: Point = [420, 70];
+const webEnd: Point = [420, 108];
+const openLowerEnd: Point = [420, 146];
+const blockedEnd: Point = [380, 204];
+const lesionBranches = [line(upper, ringEnd), line(lower, webEnd), line(lower, blockedEnd)].join(
+  ' ',
+);
+const openBranches = `${line(upper, openUpperEnd)} ${line(lower, openLowerEnd)}`;
+const allBranches = `${lesionBranches} ${openBranches}`;
+
+// Ring-like narrowing: a short collar of fibrotic material, with a thin lumen left inside it.
+const ring = line(at(upper, ringEnd, 0.4), at(upper, ringEnd, 0.6));
+// Web: a band across the lumen with a narrow slit in its middle.
+const webMid = at(lower, webEnd, 0.5);
+const webDir: Point = [webEnd[0] - lower[0], webEnd[1] - lower[1]];
+const webLen = Math.hypot(webDir[0], webDir[1]);
+const across: Point = [-webDir[1] / webLen, webDir[0] / webLen];
+const webHalf = (from: number, to: number) =>
+  line(
+    [webMid[0] + across[0] * from, webMid[1] + across[1] * from],
+    [webMid[0] + across[0] * to, webMid[1] + across[1] * to],
+  );
+const web = `${webHalf(-7.5, -1.4)} ${webHalf(1.4, 7.5)}`;
+// Complete occlusion: a plug of fibrotic material fills the lumen, and no blood passes beyond it.
+const plugStart = at(lower, blockedEnd, 0.25);
+const plugEnd = at(lower, blockedEnd, 0.45);
+const plug = line(plugStart, plugEnd);
+const emptyBeyondPlug = line(plugEnd, blockedEnd);
+// Number markers next to the lesions, explained in the legend.
+const markers = [
+  { n: 1, x: 341, y: 14 },
+  { n: 2, x: 341, y: 98 },
+  { n: 3, x: 286, y: 178 },
+];
+// Moving blood: in disease it does not run past the plug in the occluded branch.
+const normalFlow = `${trunk} ${mains} ${allBranches}`;
+const diseaseFlow = `${trunk} ${mains} ${line(upper, ringEnd)} ${line(lower, webEnd)} ${line(lower, plugStart)} ${openBranches}`;
+// Legend rows in disease.
+const legend = { swatchX: 262, textX: 282, fibrotic: 252, reduced: 332 };
+const lesionLegend = [
+  { n: 1, y: 272, label: t['diagram.label.ring-narrowing'] },
+  { n: 2, y: 292, label: t['diagram.label.web'] },
+  { n: 3, y: 312, label: t['diagram.label.blocked-branch'] },
+];
+---
+
+<svg
+  viewBox="0 0 460 340"
+  role="img"
+  aria-label={t['diagram.chronic-thromboembolic-pulmonary-hypertension.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lung tissue supplied by the pulmonary artery branches -->
+  <rect
+    x="236"
+    y="4"
+    width="216"
+    height="212"
+    rx="18"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.45"
+  ></rect>
+  <!-- Lung area beyond the occluded branch: less blood reaches it -->
+  <rect
+    class="disease-only"
+    x="314"
+    y="168"
+    width="104"
+    height="44"
+    rx="8"
+    fill="var(--color-bg)"
+    fill-opacity="0.6"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+
+  <!-- Pulmonary artery and its branches: the wall first, then the lumen -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <path stroke-width="30" d={trunk}></path>
+    <path stroke-width="18" d={mains}></path>
+    <path stroke-width="14" d={lesionBranches}></path>
+    <path class="normal-only" stroke-width="14" d={openBranches}></path>
+    <path class="disease-only" stroke-width="18" d={openBranches}></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-venous-fill)" stroke-linecap="round">
+    <path stroke-width="22" d={trunk}></path>
+    <path stroke-width="9" d={lesionBranches}></path>
+    <path class="normal-only" stroke-width="9" d={openBranches}></path>
+    <!-- Open branches are overfilled with the blood that cannot pass the blocked ones -->
+    <path class="disease-only" stroke-width="12" d={openBranches}></path>
+    <!-- Drawn last so the large branches stay open where the smaller ones leave them -->
+    <path stroke-width="12" d={mains}></path>
+  </g>
+
+  <!-- Chronic lesions of organized fibrotic material (not a fresh clot) -->
+  <g class="disease-only" fill="none" stroke-linecap="butt">
+    <path d={ring} stroke="var(--color-muted)" stroke-width="9"></path>
+    <path d={ring} stroke="var(--diagram-venous-fill)" stroke-width="2.5"></path>
+    <path d={web} stroke="var(--color-muted)" stroke-width="4.5"></path>
+    <path
+      d={emptyBeyondPlug}
+      stroke="var(--color-bg)"
+      stroke-width="9"
+      stroke-linecap="round"
+    ></path>
+    <path d={plug} stroke="var(--color-muted)" stroke-width="9"></path>
+  </g>
+  <g class="disease-only">
+    {markers.map(({ n, x, y }) => (
+      <>
+        <circle
+          cx={x}
+          cy={y}
+          r="7.5"
+          fill="var(--color-bg)"
+          stroke="var(--color-text)"
+          stroke-width="1.2"
+        />
+        <text class="diagram-small" x={x} y={y + 4} text-anchor="middle">
+          {n}
+        </text>
+      </>
+    ))}
+  </g>
+
+  <!-- Right ventricle: thin wall and normal cavity, or a thick wall around a wider cavity -->
+  <g class="cteph-beat">
+    <g class="normal-only">
+      <path
+        d="M34,186 Q34,172 48,172 L122,172 Q136,172 136,186 L136,240 Q136,292 85,300 Q34,292 34,240 Z"
+        fill="var(--diagram-muscle)"
+      ></path>
+      <path
+        d="M42,180 L128,180 L128,240 Q128,284 85,291 Q42,284 42,240 Z"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      ></path>
+    </g>
+    <g class="disease-only">
+      <path
+        d="M16,170 Q16,156 30,156 L140,156 Q154,156 154,170 L154,240 Q154,312 85,320 Q16,312 16,240 Z"
+        fill="var(--diagram-muscle)"
+      ></path>
+      <path
+        d="M30,170 L140,170 L140,240 Q140,298 85,306 Q30,298 30,240 Z"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      ></path>
+    </g>
+  </g>
+
+  <!-- Flow direction, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2" marker-end={`url(#${arrowId})`}>
+    <path d="M85,150 V104"></path>
+    <path d="M130,60 H176"></path>
+  </g>
+
+  <!-- Moving blood along the pulmonary artery and its open branches -->
+  <g class="flow">
+    <path
+      class="dash-flow normal-only"
+      d={normalFlow}
+      stroke="var(--diagram-venous)"
+      stroke-width="2.5"
+    ></path>
+    <path
+      class="dash-flow disease-only"
+      d={diseaseFlow}
+      stroke="var(--diagram-venous)"
+      stroke-width="2.5"
+    ></path>
+  </g>
+
+  <!-- Labels -->
+  <text x="138" y="30" text-anchor="middle">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text x="448" y="236" text-anchor="end">
+    {t['diagram.label.lungs']}
+  </text>
+  <text x="85" y="246" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+
+  <g class="normal-only">
+    <text class="diagram-small" x="448" y="256" text-anchor="end">
+      {t['diagram.label.open-branches']}
+    </text>
+    <text class="diagram-small" x="85" y="334" text-anchor="middle">
+      {t['diagram.label.rv-normal-size']}
+    </text>
+  </g>
+
+  <g class="disease-only">
+    <line x1="149" y1="236" x2="166" y2="236" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="172" y="234">
+      {hypertrophyLines[0]}
+    </text>
+    <text class="diagram-small" x="172" y="249">
+      {hypertrophyLines[1]}
+    </text>
+    <text class="diagram-small" x="85" y="334" text-anchor="middle">
+      {t['diagram.label.rv-dilated']}
+    </text>
+
+    <!-- Legend -->
+    <rect
+      x={legend.swatchX - 8}
+      y={legend.fibrotic - 9}
+      width="16"
+      height="10"
+      rx="2"
+      fill="var(--color-muted)"
+    ></rect>
+    <text class="diagram-small" x={legend.textX} y={legend.fibrotic}>
+      {t['diagram.label.fibrotic-material']}
+    </text>
+    {lesionLegend.map(({ n, y, label }) => (
+      <>
+        <circle
+          cx={legend.swatchX}
+          cy={y - 4}
+          r="7.5"
+          fill="var(--color-bg)"
+          stroke="var(--color-text)"
+          stroke-width="1.2"
+        />
+        <text class="diagram-small" x={legend.swatchX} y={y} text-anchor="middle">
+          {n}
+        </text>
+        <text class="diagram-small" x={legend.textX} y={y}>
+          {label}
+        </text>
+      </>
+    ))}
+    <rect
+      x={legend.swatchX - 8}
+      y={legend.reduced - 10}
+      width="16"
+      height="12"
+      rx="2"
+      fill="var(--color-bg)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+    <text class="diagram-small" x={legend.textX} y={legend.reduced}>
+      {t['diagram.label.reduced-blood-flow']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .cteph-beat {
+    transform-box: view-box;
+    transform-origin: 85px 170px;
+    animation: cteph-beat 1.2s ease-in-out infinite;
+  }
+
+  @keyframes cteph-beat {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    35% {
+      transform: scale(0.95, 0.97);
+    }
+  }
+</style>

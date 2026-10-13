@@ -1,0 +1,258 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. Unused: no ids here. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Long labels do not fit their free space on one line: split them in two at the word boundary
+// that gives the most even lines.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  for (let split = 1; split < words.length; split++) {
+    const lines: [string, string] = [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+    const longest = Math.max(lines[0].length, lines[1].length);
+    if (best[1] === '' || longest < Math.max(best[0].length, best[1].length)) best = lines;
+  }
+  return best;
+}
+
+/*
+ * A long-axis section of the left ventricle: the base at the top, the apex at the bottom. The
+ * outer edge of the wall is the same in both states, so the ventricle keeps its size and shape
+ * (it is not the dilated cardiomyopathy diagram). Normal: one dense (compact) wall of even
+ * thickness with a smooth inner surface. Disease: a thin compact outer layer and, inside it, a
+ * thick spongy layer of trabeculae with deep recesses that open into the cavity. The change is
+ * largest at the apex and in the middle of the lateral (right-hand) wall; the base looks almost
+ * as usual. No numbers, no thrombus, no scar: the captions do not describe them.
+ */
+type Point = readonly [x: number, y: number];
+const cx = 130;
+const baseY = 66;
+const outer = { x: 104, y: 246 };
+// Normal wall thickness, and the thin compact layer where the spongy layer is fullest.
+const normalWall = 26;
+const thinWall = 10;
+// Deepest reach of the spongy layer into the cavity.
+const spongyDepth = 44;
+
+// A point on a wall contour `inset` units inside the outer edge. The angle runs from -90 (base,
+// septal side, left) through 0 (apex) to 90 (base, lateral side, right).
+const rad = (deg: number) => (deg * Math.PI) / 180;
+const at = (inset: number, deg: number): Point => [
+  cx + (outer.x - inset) * Math.sin(rad(deg)),
+  baseY + (outer.y - inset) * Math.cos(rad(deg)),
+];
+const fmt = ([x, y]: Point) => `${x.toFixed(1)},${y.toFixed(1)}`;
+const angles = (from: number, to: number, step: number) => {
+  const list: number[] = [];
+  for (let a = from; step > 0 ? a <= to : a >= to; a += step) list.push(a);
+  return list;
+};
+
+// How much of the change each part of the wall has, 0 to 1: full at the apex and the middle of
+// the lateral wall, less far up the septal side, none at the base.
+const ramp = (abs: number, full: number, none: number) =>
+  abs <= full ? 1 : abs >= none ? 0 : (none - abs) / (none - full);
+const weight = (deg: number) => (deg >= 0 ? ramp(deg, 52, 80) : ramp(-deg, 36, 72));
+const compactInset = (deg: number) => normalWall - (normalWall - thinWall) * weight(deg);
+
+const contour = (inset: (deg: number) => number, from: number, to: number) =>
+  angles(from, to, from < to ? 2 : -2).map((deg) => at(inset(deg), deg));
+const outerEdge = contour(() => 0, -90, 90);
+const wallPath = (inset: (deg: number) => number) =>
+  `M${[...outerEdge, ...contour(inset, 90, -90)].map(fmt).join(' L')} Z`;
+const cavityPath = (inset: (deg: number) => number) =>
+  `M${contour(inset, -90, 90).map(fmt).join(' L')} Z`;
+
+const normalWallPath = wallPath(() => normalWall);
+const normalInner = `M${contour(() => normalWall, -90, 90)
+  .map(fmt)
+  .join(' L')}`;
+const compactWallPath = wallPath(compactInset);
+const diseaseCavity = cavityPath(compactInset);
+// The spongy layer: a band of muscle inside the thin compact layer, with an uneven inner edge.
+// Narrow deep recesses run from the cavity down to the compact layer and split the band into
+// broad trabeculae; small holes inside the trabeculae make it look spongy rather than a comb.
+const reach = (deg: number) => spongyDepth * weight(deg) * (0.82 + 0.18 * Math.sin(rad(deg * 7)));
+const spongyInset = (deg: number) => compactInset(deg) + reach(deg);
+const spongyBand = `M${[...contour(compactInset, -90, 90), ...contour(spongyInset, 90, -90)]
+  .map(fmt)
+  .join(' L')} Z`;
+const recessAngles = angles(-63, 75, 6.5).filter((deg) => reach(deg) > 8);
+// Each recess is a filled slot (it reaches just past the band's edge, so its mouth stays open to
+// the cavity) and an outline of its two sides and floor only.
+const recesses = recessAngles.map((deg) => {
+  const floor = compactInset(deg) + 1;
+  const mouth = spongyInset(deg) + 1.5;
+  const mid = (floor + mouth) / 2;
+  const sides = [
+    at(mouth, deg - 1.7),
+    at(mid, deg - 0.8),
+    at(floor, deg - 0.3),
+    at(floor, deg + 0.3),
+    at(mid, deg + 0.8),
+    at(mouth, deg + 1.7),
+  ];
+  const path = sides.map(fmt).join(' L');
+  return { fill: `M${path} Z`, edge: `M${path}` };
+});
+const holes = recessAngles
+  .slice(0, -1)
+  .map((deg) => deg + 3.25)
+  .filter((deg) => reach(deg) > 22)
+  .map((deg, i) => at(compactInset(deg) + reach(deg) * (i % 2 === 0 ? 0.42 : 0.66), deg));
+
+// Labels in a column right of the ventricle, each with a leader line to what it names.
+const labelX = 262;
+const leader = (from: Point, to: Point) => `M${fmt(from)} L${fmt(to)}`;
+const compactWallLines = twoLines(t['diagram.label.compact-wall']);
+const smoothLines = twoLines(t['diagram.label.smooth-inner-surface']);
+const thinCompactLines = twoLines(t['diagram.label.thin-compact-layer']);
+const spongyLines = twoLines(t['diagram.label.spongy-trabecular-layer']);
+const recessLines = twoLines(t['diagram.label.deep-recesses']);
+const normalLabels = [
+  { y: 128, lines: compactWallLines, to: at(normalWall / 2, 62) },
+  { y: 206, lines: smoothLines, to: at(normalWall, 40) },
+];
+const diseaseLabels = [
+  { y: 112, lines: thinCompactLines, to: at(compactInset(56) / 2, 56) },
+  { y: 186, lines: spongyLines, to: at(compactInset(37.75) + reach(37.75) * 0.18, 37.75) },
+  { y: 260, lines: recessLines, to: at(compactInset(15) + reach(15) * 0.5, 15) },
+];
+const apex = at(0, 0);
+---
+
+<svg
+  viewBox="0 0 460 360"
+  role="img"
+  aria-label={t['diagram.left-ventricular-noncompaction.title']}
+  lang={locale}
+>
+  <!-- What the drawing shows -->
+  <text x="8" y="22">
+    {t['diagram.label.lv-long-axis-section']}
+  </text>
+  <text class="diagram-small" x={cx} y={baseY - 10} text-anchor="middle">
+    {t['diagram.label.lv-base']}
+  </text>
+  <text class="diagram-small" x={apex[0]} y={apex[1] + 22} text-anchor="middle">
+    {t['diagram.label.lv-apex']}
+  </text>
+
+  <!-- Normal: one compact wall of even thickness, smooth inner surface -->
+  <g class="normal-only">
+    <path d={cavityPath(() => normalWall)} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={normalWallPath}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+    ></path>
+    <path
+      class="lvnc-pulse"
+      d={normalInner}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+    ></path>
+  </g>
+
+  <!-- Disease: same outer edge, thin compact layer, thick spongy layer with deep recesses -->
+  <g class="disease-only">
+    <path d={diseaseCavity} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={compactWallPath}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+    ></path>
+    <path
+      d={spongyBand}
+      fill="var(--diagram-muscle)"
+      fill-opacity="0.75"
+      stroke="var(--color-muted)"
+      stroke-width="1"
+      stroke-linejoin="round"
+    ></path>
+    <g fill="var(--diagram-arterial-fill)">
+      {recesses.map(({ fill }) => (
+        <path d={fill} />
+      ))}
+    </g>
+    <g fill="var(--diagram-arterial-fill)" stroke="var(--color-muted)" stroke-width="1">
+      {holes.map(([x, y]) => (
+        <circle cx={x} cy={y} r="2.4" />
+      ))}
+    </g>
+    <g
+      class="lvnc-pulse"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="1.2"
+      stroke-linejoin="round"
+    >
+      {recesses.map(({ edge }) => (
+        <path d={edge} />
+      ))}
+    </g>
+  </g>
+
+  <text class="diagram-small" x={cx} y={baseY + 98} text-anchor="middle">
+    {t['diagram.label.lv-cavity']}
+  </text>
+
+  <!-- Labels with leader lines -->
+  {[
+    { className: 'normal-only', labels: normalLabels },
+    { className: 'disease-only', labels: diseaseLabels },
+  ].map(({ className, labels }) => (
+    <g class={className}>
+      {labels.map(({ y, lines, to }) => (
+        <g>
+          <path
+            d={leader([labelX - 6, y - 4], to)}
+            fill="none"
+            stroke="var(--color-muted)"
+            stroke-width="1.5"
+          />
+          <circle cx={to[0]} cy={to[1]} r="2.5" fill="var(--color-muted)" />
+          <text class="diagram-small" x={labelX} y={y}>
+            <tspan x={labelX}>{lines[0]}</tspan>
+            <tspan x={labelX} dy="15">
+              {lines[1]}
+            </tspan>
+          </text>
+        </g>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* Draws the eye to the inner surface of the wall: smooth in the normal heart, the deep recesses
+     in the disease. Without motion it stays solid. */
+  .diagram .lvnc-pulse {
+    animation: lvnc-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes lvnc-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.35;
+    }
+  }
+</style>

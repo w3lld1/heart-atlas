@@ -1,0 +1,413 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const impulseArrowId = `${uid}-vf-impulse-arrow`;
+const bloodArrowId = `${uid}-vf-blood-arrow`;
+const clipId = `${uid}-vf-ventricles-clip`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+
+/*
+ * A flat pathway scheme like the ventricular tachycardia diagram: atria on top, the AV node
+ * between, the ventricles as a large band below, and on the right the way blood leaves the
+ * ventricles. Normal: the impulse from the SA node goes through the atria and the AV node and
+ * spreads through the ventricles as one wave; the ventricles contract and pump blood out.
+ * Ventricular fibrillation: many small chaotic wavelets in many places of the ventricles at once,
+ * changing all the time; the ventricles only quiver, and no blood is pumped out. The atria are
+ * left without activity in this state: the sources do not describe them. No numbers.
+ */
+// Normal route: SA node across the atria into the AV node and down into the ventricles.
+const normalRoute = 'M60,42 Q120,74 166,104 L166,150';
+// The single wave front in the ventricles, drawn as a still arc for the static picture.
+const waveFront = 'M86,170 A80,80 0 0 0 246,170';
+// From the front the excitation spreads to both sides of the ventricles.
+const spreadLeft = 'M120,236 Q80,262 52,286';
+const spreadRight = 'M212,236 Q252,262 280,286';
+// Blood leaves the ventricles on the right and goes up to the arteries.
+const outflow = 'M316,250 L346,250 L346,40';
+
+// Fibrillation: small curved wavelets in many places of the ventricles, each with its own
+// direction. `delay` and `duration` make them flicker out of step, so the picture keeps changing.
+const wavelets = [
+  { d: 'M44,192 q14,-16 30,-4', delay: 0, duration: 0.42 },
+  { d: 'M108,180 q16,10 8,28', delay: 0.17, duration: 0.5 },
+  { d: 'M170,190 q-18,4 -22,22', delay: 0.31, duration: 0.38 },
+  { d: 'M230,176 q18,6 22,24', delay: 0.08, duration: 0.46 },
+  { d: 'M282,198 q-6,18 -24,20', delay: 0.24, duration: 0.4 },
+  { d: 'M62,246 q18,-8 26,10', delay: 0.36, duration: 0.44 },
+  { d: 'M116,268 q-4,-18 14,-26', delay: 0.12, duration: 0.52 },
+  { d: 'M198,250 q18,4 24,-14', delay: 0.27, duration: 0.36 },
+  { d: 'M268,248 q-16,-10 -30,0', delay: 0.04, duration: 0.48 },
+];
+
+const bloodLabelX = 358;
+const bloodLabelMax = 12;
+const pumpedLines = wrap(t['diagram.label.blood-pumped-out'], bloodLabelMax);
+const notPumpedLines = wrap(t['diagram.label.no-blood-pumped-out'], bloodLabelMax);
+const bloodLabelY = 186;
+---
+
+<svg
+  viewBox="0 0 480 360"
+  role="img"
+  aria-label={t['diagram.ventricular-fibrillation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={impulseArrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+    <marker
+      id={bloodArrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <clipPath id={clipId}>
+      <rect x="16" y="130" width="300" height="214" rx="16"></rect>
+    </clipPath>
+  </defs>
+
+  <!-- Atria on top -->
+  <rect x="16" y="16" width="300" height="72" rx="16" fill="var(--diagram-muscle)"></rect>
+
+  <!-- Ventricles: they contract on each beat normally and only quiver in fibrillation -->
+  <rect
+    class="vf-ventricles vf-contract normal-only"
+    x="16"
+    y="130"
+    width="300"
+    height="214"
+    rx="16"
+    fill="var(--diagram-muscle)"
+  ></rect>
+  <rect
+    class="vf-ventricles vf-quiver disease-only"
+    x="16"
+    y="130"
+    width="300"
+    height="214"
+    rx="16"
+    fill="var(--diagram-muscle)"
+  ></rect>
+
+  <!-- Normal: one impulse from the SA node through the AV node, one wave through the ventricles -->
+  <g class="normal-only">
+    <path class="vf-mark" d={normalRoute}></path>
+    <path class="vf-mark vf-front" d={waveFront}></path>
+    <path class="vf-mark vf-mark-thin" d={spreadLeft} marker-end={`url(#${impulseArrowId})`}></path>
+    <path
+      class="vf-mark vf-mark-thin"
+      d={spreadRight}
+      marker-end={`url(#${impulseArrowId})`}
+    ></path>
+    <g class="flow">
+      <path class="vf-run" d={normalRoute} pathLength="100"></path>
+      <g clip-path={`url(#${clipId})`}>
+        <circle class="vf-wave" cx="166" cy="150" r="10"></circle>
+      </g>
+    </g>
+    <!-- Blood is pumped out of the ventricles -->
+    <path class="vf-blood" d={outflow} marker-end={`url(#${bloodArrowId})`}></path>
+    <g class="flow">
+      <path class="vf-blood-flow dash-flow" d={outflow}></path>
+    </g>
+    <text class="diagram-small" x={bloodLabelX} y={bloodLabelY}>
+      {pumpedLines.map((line, i) => (
+        <tspan x={bloodLabelX} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Fibrillation: many chaotic wavelets; no blood leaves the ventricles -->
+  <g class="disease-only">
+    {wavelets.map((w) => (
+      <path class="vf-mark vf-wavelet" d={w.d} marker-end={`url(#${impulseArrowId})`} />
+    ))}
+    <g class="flow">
+      {wavelets.map((w) => (
+        <path
+          class="vf-flicker"
+          d={w.d}
+          style={`animation-delay: ${w.delay}s; animation-duration: ${w.duration}s`}
+        />
+      ))}
+    </g>
+    <path class="vf-blood vf-blood-none" d={outflow}></path>
+    <path class="vf-cross" d="M334,138 L358,162 M358,138 L334,162"></path>
+    <text class="diagram-small" x={bloodLabelX} y={bloodLabelY}>
+      {notPumpedLines.map((line, i) => (
+        <tspan x={bloodLabelX} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Nodes -->
+  <circle class="vf-node" cx="60" cy="42" r="7"></circle>
+  <ellipse class="vf-node" cx="166" cy="110" rx="14" ry="9"></ellipse>
+
+  <!-- Labels -->
+  <text x="76" y="38">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="200" y="76">
+    {t['diagram.label.atria']}
+  </text>
+  <text x="188" y="116">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="30" y="158">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small normal-only" x="30" y="314">
+    {t['diagram.label.one-excitation-wave']}
+  </text>
+  <text class="diagram-small normal-only" x="30" y="332">
+    {t['diagram.label.ventricles-contract']}
+  </text>
+  <text class="diagram-small disease-only" x="30" y="314">
+    {t['diagram.label.many-chaotic-waves']}
+  </text>
+  <text class="diagram-small disease-only" x="30" y="332">
+    {t['diagram.label.ventricles-quiver']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .vf-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .vf-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .diagram .vf-mark-thin,
+  .diagram .vf-wavelet {
+    stroke-width: 3;
+  }
+
+  /* The one wave front: a wide band across the ventricles. */
+  .diagram .vf-front {
+    stroke-width: 6;
+    opacity: 0.8;
+  }
+
+  .diagram .vf-blood {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 6;
+    stroke-linejoin: round;
+  }
+
+  .diagram .vf-blood-flow {
+    stroke: var(--color-bg);
+    stroke-width: 2;
+  }
+
+  /* No blood is pumped out: the way out stays as a faint dashed line, crossed out. */
+  .diagram .vf-blood-none {
+    stroke-width: 3;
+    stroke-dasharray: 4 6;
+    opacity: 0.5;
+  }
+
+  .diagram .vf-cross {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  /* The ventricles contract once per beat, after the wave has spread through them. */
+  .diagram .vf-ventricles {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .diagram .vf-contract {
+    animation: vf-contract 1s ease-in-out infinite;
+  }
+
+  /* Quivering: a small fast tremor without a real contraction. */
+  .diagram .vf-quiver {
+    animation: vf-quiver 0.18s linear infinite;
+  }
+
+  /* The moving impulse along the route: a short dash (pathLength is 100). */
+  .diagram .vf-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+    animation: vf-run 1s linear infinite;
+  }
+
+  /* The one wave: a ring that grows from the end of the route over the whole ventricles. */
+  .diagram .vf-wave {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 4;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: vf-wave 1s linear infinite;
+  }
+
+  /* Each wavelet flashes on and off at its own pace. */
+  .diagram .vf-flicker {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0;
+    animation-name: vf-flicker;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes vf-run {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    35% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    36%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes vf-wave {
+    0%,
+    35% {
+      opacity: 0;
+      transform: scale(1);
+    }
+
+    36% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    65% {
+      opacity: 1;
+      transform: scale(26);
+    }
+
+    66%,
+    100% {
+      opacity: 0;
+      transform: scale(26);
+    }
+  }
+
+  @keyframes vf-contract {
+    0%,
+    60% {
+      transform: scale(1);
+    }
+
+    72% {
+      transform: scale(0.95);
+    }
+
+    90%,
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes vf-quiver {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+
+    25% {
+      transform: translate(1.5px, -1px);
+    }
+
+    50% {
+      transform: translate(-1px, 1.5px);
+    }
+
+    75% {
+      transform: translate(-1.5px, -0.5px);
+    }
+  }
+
+  @keyframes vf-flicker {
+    0%,
+    100% {
+      opacity: 0;
+    }
+
+    30%,
+    60% {
+      opacity: 1;
+    }
+  }
+</style>

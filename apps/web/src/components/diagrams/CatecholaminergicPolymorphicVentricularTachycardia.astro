@@ -1,0 +1,518 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-cpvt-arrow`;
+const hormoneArrowId = `${uid}-cpvt-hormone-arrow`;
+const calciumArrowId = `${uid}-cpvt-calcium-arrow`;
+
+/*
+ * A flat pathway scheme like the ventricular tachycardia diagram: atria on top, the AV node
+ * between, the ventricles as a band below. The heart itself looks the same in both states: no
+ * thickened wall, scar or enlarged chamber, and no ECG strip (the resting ECG is usually normal).
+ * Normal (at rest): one impulse from the sinus node through the AV node into the ventricles per
+ * beat. Disease (exertion or emotion): stress hormones reach the heart from the right; extra
+ * impulses start from several points in the ventricles and spread in different directions, while
+ * the usual route stays as a faint dashed line. Below: a ventricular muscle cell close up with its
+ * calcium store. Normally the calcium stays in the store; in the disease the store leaks calcium
+ * into the cell.
+ */
+const normalRoute = 'M56,70 Q120,92 180,110 L180,170';
+const spreadLeft = 'M180,170 Q130,200 84,262';
+const spreadRight = 'M180,170 Q230,200 276,262';
+
+// Extra impulses: a few foci in the ventricles, each sending short arrows in other directions.
+const foci = [
+  { x: 82, y: 214, arrows: ['M82,214 L56,240', 'M82,214 L116,196'], delay: '0s' },
+  { x: 250, y: 190, arrows: ['M250,190 L292,174', 'M250,190 L228,160'], delay: '0.13s' },
+  { x: 168, y: 246, arrows: ['M168,246 L130,268', 'M168,246 L206,270'], delay: '0.27s' },
+];
+
+// Stress hormones arrive from the right and reach the ventricles.
+const hormones = [
+  { x: 396, y: 62 },
+  { x: 416, y: 98 },
+  { x: 382, y: 124 },
+  { x: 412, y: 150 },
+  { x: 388, y: 196 },
+  { x: 416, y: 232 },
+  { x: 392, y: 276 },
+];
+const hormoneArrows = ['M372,172 L338,172', 'M372,216 L338,216', 'M372,260 L338,260'];
+
+// Close-up marker in the ventricles and the inset with one cell.
+const zoom = { x: 302, y: 268, r: 14 };
+const inset = { x: 16, y: 320, width: 408, height: 142 };
+const store = { cx: 150, cy: 404, rx: 100, ry: 34 };
+// The leaking store: the same ellipse with a gap on the right (from -25 to 25 degrees).
+const gapX = (store.cx + store.rx * Math.cos((25 * Math.PI) / 180)).toFixed(1);
+const gapDy = store.ry * Math.sin((25 * Math.PI) / 180);
+const leakyStore = `M${gapX},${(store.cy + gapDy).toFixed(1)} A${store.rx},${store.ry} 0 1,1 ${gapX},${(store.cy - gapDy).toFixed(1)}`;
+const storedCalcium = [92, 116, 140, 164, 188, 212].map((x) => ({ x, y: 416 }));
+const remainingCalcium = [104, 140, 176].map((x) => ({ x, y: 416 }));
+const leakedCalcium = [
+  { x: 266, y: 396 },
+  { x: 290, y: 412 },
+  { x: 314, y: 396 },
+  { x: 340, y: 410 },
+  { x: 366, y: 398 },
+];
+const leakPath = 'M246,404 L390,404';
+---
+
+<svg
+  viewBox="0 0 440 472"
+  role="img"
+  aria-label={t['diagram.catecholaminergic-polymorphic-ventricular-tachycardia.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+    <marker
+      id={hormoneArrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={calciumArrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- State: at rest or during exertion or emotion -->
+  <text class="normal-only" x="16" y="24">
+    {t['diagram.label.at-rest']}
+  </text>
+  <text class="disease-only" x="16" y="24">
+    {t['diagram.label.exertion-or-emotion']}
+  </text>
+
+  <!-- Atria on top, ventricles below: the same shape in both states -->
+  <rect x="16" y="36" width="314" height="64" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect x="16" y="136" width="314" height="166" rx="16" fill="var(--diagram-muscle)"></rect>
+
+  <!-- Ventricles light up on each beat: evenly at rest, fast and unevenly during an attack -->
+  <g class="flow">
+    <rect
+      class="cpvt-beat cpvt-beat-normal normal-only"
+      x="16"
+      y="136"
+      width="314"
+      height="166"
+      rx="16"
+    ></rect>
+    <rect
+      class="cpvt-beat cpvt-beat-fast disease-only"
+      x="16"
+      y="136"
+      width="314"
+      height="166"
+      rx="16"
+    ></rect>
+  </g>
+
+  <!-- At rest: the impulse comes from the sinus node through the AV node into the ventricles -->
+  <g class="normal-only">
+    <path class="cpvt-mark" d={normalRoute}></path>
+    <path class="cpvt-mark" d={spreadLeft} marker-end={`url(#${arrowId})`}></path>
+    <path class="cpvt-mark" d={spreadRight} marker-end={`url(#${arrowId})`}></path>
+    <g class="flow">
+      <path class="cpvt-run cpvt-run-route" d={normalRoute} pathLength="100"></path>
+      <path class="cpvt-run cpvt-run-spread" d={spreadLeft} pathLength="100"></path>
+      <path class="cpvt-run cpvt-run-spread" d={spreadRight} pathLength="100"></path>
+    </g>
+  </g>
+
+  <!-- Exertion or emotion: stress hormones reach the heart, extra impulses start in the
+       ventricles; the usual route stays faint -->
+  <g class="disease-only">
+    <path class="cpvt-mark cpvt-mark-faint" d={normalRoute}></path>
+    <path class="cpvt-mark cpvt-mark-faint" d={spreadLeft}></path>
+    <path class="cpvt-mark cpvt-mark-faint" d={spreadRight}></path>
+
+    {hormones.map(({ x, y }) => (
+      <circle class="cpvt-hormone" cx={x} cy={y} r="5" />
+    ))}
+    {hormoneArrows.map((d) => (
+      <path class="cpvt-hormone-arrow" d={d} marker-end={`url(#${hormoneArrowId})`} />
+    ))}
+
+    {foci.map((focus) => (
+      <g>
+        {focus.arrows.map((d) => (
+          <path class="cpvt-mark cpvt-mark-thin" d={d} marker-end={`url(#${arrowId})`} />
+        ))}
+        <circle class="cpvt-focus" cx={focus.x} cy={focus.y} r="6" />
+        <circle
+          class="flow cpvt-flash"
+          cx={focus.x}
+          cy={focus.y}
+          r="11"
+          style={`animation-delay: ${focus.delay}`}
+        />
+      </g>
+    ))}
+  </g>
+
+  <!-- Nodes -->
+  <circle class="cpvt-node" cx="56" cy="70" r="7"></circle>
+  <ellipse class="cpvt-node" cx="180" cy="118" rx="14" ry="9"></ellipse>
+
+  <!-- Close-up marker in the ventricles, linked to the inset below -->
+  <circle class="cpvt-zoom" cx={zoom.x} cy={zoom.y} r={zoom.r}></circle>
+  <line class="cpvt-zoom" x1={zoom.x} y1={zoom.y + zoom.r} x2={zoom.x} y2={inset.y}></line>
+
+  <!-- Labels of the heart -->
+  <text x="70" y="58">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="220" y="90">
+    {t['diagram.label.atria']}
+  </text>
+  <text x="200" y="124">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="28" y="160">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small normal-only" x="28" y="292">
+    {t['diagram.label.normal-rhythm']}
+  </text>
+  <text class="diagram-small disease-only" x="28" y="292">
+    {t['diagram.label.extra-ventricular-impulses']}
+  </text>
+  <text class="diagram-small disease-only" x="424" y="24" text-anchor="end">
+    {t['diagram.label.stress-hormones']}
+  </text>
+
+  <!-- Inset: one ventricular muscle cell close up -->
+  <rect
+    class="cpvt-inset"
+    x={inset.x}
+    y={inset.y}
+    width={inset.width}
+    height={inset.height}
+    rx="12"
+  ></rect>
+  <rect
+    x="28"
+    y="354"
+    width="384"
+    height="98"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.35"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></rect>
+  <text x="28" y="343">
+    {t['diagram.label.ventricleCell']}
+  </text>
+
+  <!-- Normal: the calcium store is closed and holds its calcium -->
+  <g class="normal-only">
+    <ellipse class="cpvt-store" cx={store.cx} cy={store.cy} rx={store.rx} ry={store.ry}></ellipse>
+    {storedCalcium.map(({ x, y }) => (
+      <circle class="cpvt-calcium" cx={x} cy={y} r="5" />
+    ))}
+  </g>
+
+  <!-- Disease: the store leaks calcium into the cell -->
+  <g class="disease-only">
+    <path class="cpvt-store" d={leakyStore}></path>
+    {remainingCalcium.map(({ x, y }) => (
+      <circle class="cpvt-calcium" cx={x} cy={y} r="5" />
+    ))}
+    {leakedCalcium.map(({ x, y }) => (
+      <circle class="cpvt-calcium" cx={x} cy={y} r="5" />
+    ))}
+    <path class="cpvt-leak" d={leakPath} marker-end={`url(#${calciumArrowId})`}></path>
+    <g class="flow">
+      <circle class="cpvt-calcium cpvt-drift" cx="252" cy="404" r="5"></circle>
+      <circle
+        class="cpvt-calcium cpvt-drift"
+        cx="252"
+        cy="404"
+        r="5"
+        style="animation-delay: -0.6s"
+      ></circle>
+    </g>
+    <text class="diagram-small" x="262" y="378">
+      {t['diagram.label.calcium-leak']}
+    </text>
+  </g>
+
+  <text class="diagram-small" x={store.cx} y="398" text-anchor="middle">
+    {t['diagram.label.calcium-store']}
+  </text>
+
+  <!-- Legend: what a dot in the cell is -->
+  <circle class="cpvt-calcium" cx="270" cy="438" r="5"></circle>
+  <text class="diagram-small" x="282" y="442">
+    {t['diagram.label.calcium']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .cpvt-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .cpvt-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .diagram .cpvt-mark-thin {
+    stroke-width: 3;
+  }
+
+  /* The usual route still works, but it is no longer the only source of beats. */
+  .diagram .cpvt-mark-faint {
+    stroke-width: 2;
+    stroke-dasharray: 4 6;
+    stroke-linecap: butt;
+    opacity: 0.6;
+  }
+
+  .diagram .cpvt-focus {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .cpvt-flash {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2;
+    opacity: 0;
+    animation: cpvt-flash 1.2s linear infinite;
+  }
+
+  .diagram .cpvt-hormone {
+    fill: var(--diagram-arterial-fill);
+    stroke: var(--diagram-arterial);
+    stroke-width: 1.5;
+  }
+
+  .diagram .cpvt-hormone-arrow {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .diagram .cpvt-zoom {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .diagram .cpvt-inset {
+    fill: var(--color-bg);
+    stroke: var(--color-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .diagram .cpvt-store {
+    fill: var(--color-bg);
+    stroke: var(--color-text);
+    stroke-width: 2;
+  }
+
+  .diagram .cpvt-calcium {
+    fill: var(--diagram-venous);
+    stroke: var(--color-text);
+    stroke-width: 1;
+  }
+
+  .diagram .cpvt-leak {
+    fill: none;
+    stroke: var(--diagram-venous);
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+  }
+
+  /* Leaking calcium drifts out of the gap in the store. */
+  .diagram .cpvt-drift {
+    opacity: 0;
+    animation: cpvt-drift 1.2s linear infinite;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .cpvt-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  .diagram .cpvt-run-route {
+    animation: cpvt-run-route 1s linear infinite;
+  }
+
+  .diagram .cpvt-run-spread {
+    animation: cpvt-run-spread 1s linear infinite;
+  }
+
+  .diagram .cpvt-beat {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+  }
+
+  .diagram .cpvt-beat-normal {
+    animation: cpvt-beat-normal 1s linear infinite;
+  }
+
+  .diagram .cpvt-beat-fast {
+    animation: cpvt-beat-fast 0.5s linear infinite;
+  }
+
+  /* At rest: sinus node to the AV node and down (first 35 %), then into the ventricles. */
+  @keyframes cpvt-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    35% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    36%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes cpvt-run-spread {
+    0%,
+    35% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    36% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    55% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes cpvt-beat-normal {
+    0%,
+    54% {
+      opacity: 0;
+    }
+
+    58% {
+      opacity: 0.45;
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Attack: the foci fire one after another, so the ventricles light up fast and unevenly. */
+  @keyframes cpvt-flash {
+    0% {
+      opacity: 1;
+    }
+
+    40%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cpvt-beat-fast {
+    0%,
+    30% {
+      opacity: 0;
+    }
+
+    40% {
+      opacity: 0.35;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cpvt-drift {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    90% {
+      opacity: 1;
+      transform: translateX(120px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateX(120px);
+    }
+  }
+</style>
