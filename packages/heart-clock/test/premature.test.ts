@@ -10,6 +10,7 @@ import {
 import { cycleState } from '../src/cycle.ts';
 import { resolveParams } from '../src/params.ts';
 import { soundEvents } from '../src/sounds.ts';
+import { leadBaselines, presetParams } from '../src/presets.ts';
 import { prAt } from '../src/timing.ts';
 
 // Spec: docs/plans/2026-10-13-heart-clock-premature-beats.md.
@@ -90,7 +91,7 @@ describe('ventricular premature beats', () => {
     expect(params).toMatchObject({ pAmplitude: 0, qrsDuration: 140, tAmplitude: -0.3 });
     const sinus = clock.beatAt(1000);
     const wide = visibleQrs(clock, start + timing.rPeak);
-    expect(wide).toBeGreaterThanOrEqual(120);
+    expect(wide).toBeGreaterThanOrEqual(0.85 * 140);
     expect(wide).toBeGreaterThan(visibleQrs(clock, sinus.start + sinus.timing.rPeak));
     // Before the QRS the line is flat: no P wave of its own.
     for (let t = start - 40; t < start; t += 5) expect(Math.abs(clock.ecgAt(t))).toBeLessThan(0.03);
@@ -138,10 +139,34 @@ describe('ventricular premature beats', () => {
     }
   });
 
+  it('keep the clock working after any valid patch on the shortened beat', () => {
+    const off = { prematureEvery: 0, prematureOrigin: 0 };
+    for (const patch of [
+      { ...off, atrialRate: 90, atrialContribution: 0, heartRate: 40 },
+      { ...off, pauseEvery: 3, blockedP: 1 },
+      { ...off, atrialPacing: 1 },
+      { ...off, ventricularPacing: 1 },
+      { ...off, heartRate: 180 },
+      { heartRate: 30 },
+    ]) {
+      const clock = createHeartClock({ ...ventricular, heartRate: 75 });
+      clock.beatAt(1700);
+      clock.setParams(patch, 1700);
+      const beats = clock.beatsBetween(1600, 9000);
+      // The premature beat comes from the parameters it was checked with: no pacing spike on it.
+      expect(beats[1]?.premature, JSON.stringify(patch)).toBe(2);
+      expect(beats[1]?.params.ventricularPacing).toBe(0);
+      expect(() => clock.sample(8000)).not.toThrow();
+    }
+  });
+
   it('start a fresh run after a long jump with a sinus beat', () => {
     const clock = createHeartClock({ ...ventricular, heartRate: 60 });
-    clock.beatAt(1000);
-    expect(clock.beatAt(60_000).premature).toBe(0);
+    // The last scheduled beat is the shortened one, so a premature beat would come next.
+    expect(clock.beatAt(0).index).toBe(0);
+    expect(clock.beatsBetween(0, 2100).at(-1)?.beforePremature).toBe(true);
+    const fresh = clock.beatAt(60_000);
+    expect(fresh.premature).toBe(0);
   });
 
   it('limit the heart rate by the short beat and by the premature beat', () => {
@@ -150,6 +175,33 @@ describe('ventricular premature beats', () => {
     expect(heartRateLimits(params)).toEqual([30, 86]);
     expect(() => checkParams({ ...params, heartRate: 87 })).toThrow(RangeError);
     expect(ventricularPrematureParams(params)).toBe(ventricularPrematureParams(params));
+  });
+});
+
+describe('a QRS without Q and S waves', () => {
+  it('stays visible over 0.85 of its duration in leads II and V1', () => {
+    for (const lead of ['II', 'V1'] as const) {
+      for (const patch of [ventricular, presetParams('av-block-third-degree-paced', lead)]) {
+        const clock = createHeartClock({ ...leadBaselines[lead], ...patch, heartRate: 60 });
+        const beat = clock
+          .beatsBetween(0, 6000)
+          .find((b) => b.params.qAmplitude === 0 && b.params.sAmplitude === 0) as Beat;
+        const width = visibleQrs(clock, beat.start + beat.timing.rPeak);
+        expect(width, lead).toBeGreaterThanOrEqual(0.85 * beat.params.qrsDuration);
+      }
+    }
+  });
+});
+
+describe('monitorPhase', () => {
+  it('shows a sinus pause as a pause and a pause with a blocked P wave as filling', () => {
+    const sss = createHeartClock({ heartRate: 60, pauseEvery: 3, pauseDuration: 2000 });
+    expect(monitorPhase(sss.sample(3500))).toBe('pause');
+    const mobitz = createHeartClock({ heartRate: 60, pauseEvery: 2, blockedP: 1 });
+    const beat = mobitz.beatsBetween(0, 5000).find((b) => b.pause > 0) as Beat;
+    const inPause = mobitz.sample(beat.start + beat.timing.rr + 200);
+    expect(inPause.pause).toBe(true);
+    expect(monitorPhase(inPause)).toBe('filling');
   });
 });
 

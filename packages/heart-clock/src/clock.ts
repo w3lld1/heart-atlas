@@ -17,7 +17,7 @@ export interface Beat {
    */
   pause: number;
   /** 0 for a sinus beat, 1 for an atrial and 2 for a ventricular premature beat. */
-  premature: number;
+  premature: 0 | 1 | 2;
   /** Whether this beat is cut short because the next one is premature. */
   beforePremature: boolean;
   timing: BeatTiming;
@@ -237,17 +237,20 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
 
   /**
    * Beat `index` starting at `start`. A premature beat follows a beat marked `beforePremature`
-   * and takes its kind and coupling from that beat, so a parameter change between them cannot
-   * leave one without the other.
+   * and is built from that beat's parameters, which passed `checkParams` together with it, so a
+   * parameter change between them cannot leave one without the other or make a beat that does
+   * not fit.
    */
   function makeBeat(index: number, start: number, previous?: Beat): Beat {
-    const rhythmRr = rrFor(params, index);
-    const origin = previous?.beforePremature ? previous.params.prematureOrigin : 0;
+    const before = previous?.beforePremature ? previous : undefined;
+    const beatParams = before ? before.params : params;
+    const origin = before ? beatParams.prematureOrigin : 0;
+    const rhythmRr = rrFor(beatParams, index);
     if (origin === 2) {
       // Full compensatory pause: the next sinus beat comes two rhythm RRs after the start of the
       // beat before this one (assumption: the sources do not define it in RRs).
-      const beatParams = ventricularPrematureParams(params);
-      const pause = (1 - (previous?.params.prematureCoupling ?? 0)) * rhythmRr;
+      const prematureParams = ventricularPrematureParams(beatParams);
+      const pause = (1 - beatParams.prematureCoupling) * rhythmRr;
       return {
         index,
         start,
@@ -255,26 +258,26 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
         pause,
         premature: 2,
         beforePremature: false,
-        timing: ventricularPrematureTiming(rhythmRr, beatParams),
-        params: beatParams,
+        timing: ventricularPrematureTiming(rhythmRr, prematureParams),
+        params: prematureParams,
       };
     }
-    const every = params.prematureEvery;
+    const every = beatParams.prematureEvery;
     const beforePremature = every > 0 && index % every === every - 2;
-    const pause = pauseFor(params, index, rhythmRr);
+    const pause = pauseFor(beatParams, index, rhythmRr);
     const timing = beforePremature
-      ? beforePrematureTiming(rhythmRr, params)
-      : beatTiming(rhythmRr, params, prExtraFor(params, index));
+      ? beforePrematureTiming(rhythmRr, beatParams)
+      : beatTiming(rhythmRr, beatParams, prExtraFor(beatParams, index));
     return {
       index,
       start,
       rr: timing.rr + pause,
       pause,
       // An atrial premature beat resets the sinus node: the next beat comes one rhythm RR after it.
-      premature: origin,
+      premature: origin === 1 ? 1 : 0,
       beforePremature,
       timing,
-      params,
+      params: beatParams,
     };
   }
 
