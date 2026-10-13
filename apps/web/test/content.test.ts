@@ -21,13 +21,19 @@ import { testDiagrams } from './fixtures/diagrams/index.ts';
 // validates frontmatter at build time too, but it does not see file paths, so the
 // <locale>/<type>/<slug>.mdx layout is checked here.
 const articleSchema = createArticleSchema(trustedSources);
-/** Diagrams with the after-treatment state, including the test-only ones. */
-const hasTreated = (name: string): boolean =>
-  name in testDiagrams ||
-  (name in diagrams && diagramStates(name as DiagramName).states.includes('treated'));
+/** Diagrams with the after-treatment state; the test-only ones count only in the test articles. */
+const hasTreated =
+  (withTestDiagrams: boolean) =>
+  (name: string): boolean =>
+    (withTestDiagrams && name in testDiagrams) ||
+    (name in diagrams && diagramStates(name as DiagramName).states.includes('treated'));
 const trees = [
-  { name: 'content/', url: new URL('../../../content/', import.meta.url) },
-  { name: 'test/fixtures/site-content/', url: new URL('fixtures/site-content/', import.meta.url) },
+  { name: 'content/', url: new URL('../../../content/', import.meta.url), fixtures: false },
+  {
+    name: 'test/fixtures/site-content/',
+    url: new URL('fixtures/site-content/', import.meta.url),
+    fixtures: true,
+  },
 ];
 
 for (const tree of trees) {
@@ -68,7 +74,7 @@ for (const tree of trees) {
       expect(
         treatedCaptionErrors(
           text,
-          hasTreated,
+          hasTreated(tree.fixtures),
           article.sources.map((source) => source.tier),
         ),
       ).toEqual([]);

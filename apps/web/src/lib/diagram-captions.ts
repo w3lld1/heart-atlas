@@ -9,16 +9,18 @@ export function treatedCaptionErrors(
   sourceTiers: readonly string[],
 ): string[] {
   const errors: string[] = [];
-  for (const [, name = '', body = ''] of mdx.matchAll(
-    /<Diagram\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/Diagram>/g,
+  // Attributes may come in any order; a self-closing `<Diagram />` has no captions at all.
+  for (const [, attributes = '', body = ''] of mdx.matchAll(
+    /<Diagram\b([^>]*?)(?:\/>|>([\s\S]*?)<\/Diagram>)/g,
   )) {
+    const name = /\bname="([^"]+)"/.exec(attributes)?.[1] ?? '';
     if (!hasTreated(name)) continue;
-    const caption = /<p\s+slot="treated"\s*>([\s\S]*?)<\/p>/.exec(body)?.[1];
+    const caption = /<p\b[^>]*\bslot="treated"[^>]*>([\s\S]*?)<\/p>/.exec(body)?.[1];
     if (caption === undefined) {
       errors.push(`<Diagram name="${name}"> has no <p slot="treated"> caption`);
       continue;
     }
-    const cited = [...caption.matchAll(/<Cite n=\{([^}]*)\}/g)]
+    const cited = [...caption.matchAll(/<Cite\b[^>]*?\bn=\{([^}]*)\}/g)]
       .flatMap((match) => (match[1] ?? '').replace(/[[\]\s]/g, '').split(','))
       .map(Number);
     if (cited.length === 0) {
