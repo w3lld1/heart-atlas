@@ -187,3 +187,15 @@ describe('slow rhythms', () => {
     );
   });
 });
+
+describe('atrial pacing', () => {
+  it('changes no curve, phase or beat: the spike is drawn apart from the trace', () => {
+    const sinus = createHeartClock({ heartRate: 60 });
+    const paced = createHeartClock({ heartRate: 60, atrialPacing: 1 });
+    for (let t = 0; t < 4000; t += 7) {
+      expect(paced.ecgAt(t)).toBe(sinus.ecgAt(t));
+      expect(paced.hemodynamicsAt(t)).toEqual(sinus.hemodynamicsAt(t));
+      expect(paced.beatAt(t).timing).toEqual(sinus.beatAt(t).timing);
+    }
+  });
+});

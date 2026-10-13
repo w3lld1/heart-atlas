@@ -227,7 +227,8 @@ export function resolveParams(
   if (!Number.isInteger(params.atrialPacing)) {
     throw new RangeError(`atrialPacing must be 0 or 1, got ${params.atrialPacing}`);
   }
-  // A paced atrium gives a regular rhythm with a captured P wave after every stimulus.
+  // A paced atrium gives a regular rhythm with a captured, upright P wave after every stimulus (the
+  // model keeps the lead II P; an inverted P is not part of this mode).
   if (
     params.atrialPacing === 1 &&
     (params.fWaveAmplitude > 0 ||

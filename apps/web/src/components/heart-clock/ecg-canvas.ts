@@ -97,7 +97,9 @@ export function traceEcg(
     if (x === 0) context.moveTo(offset + x, y);
     else context.lineTo(offset + x, y);
   });
-  for (const t of pacingSpikes(clock, from, now)) {
+  // Spikes start at 0 mV: pacing rules out f and F waves, and T ends before the next P, so the
+  // trace is on the baseline where a paced beat starts.
+  for (const t of pacingSpikes(clock, from, from + (count - 1) / perMs)) {
     const x = offset + (t - from) * perMs;
     context.moveTo(x, baseline);
     context.lineTo(x, baseline - pacingSpikeMv * perMv);

@@ -40,9 +40,7 @@ describe('pacemaker spikes', () => {
   it('follow each beat, so a change mid-strip leaves earlier beats without spikes', () => {
     const clock = createHeartClock({ heartRate: 60 });
     clock.setParams({ atrialPacing: 1 }, 1500);
-    const spikes = pacingSpikes(clock, 0, 4500);
-    expect(spikes.length).toBeGreaterThan(0);
-    expect(spikes.every((t) => t >= 1500)).toBe(true);
+    expect(pacingSpikes(clock, 0, 4500)).toEqual([2000, 3000, 4000]);
   });
 
   it('are drawn as vertical lines from the baseline, none left of the strip', () => {
@@ -52,14 +50,22 @@ describe('pacemaker spikes', () => {
     const baseline = 72;
     const now = 3100;
     traceEcg(context, clock, now, { width, pxPerMs, baseline, pxPerMv });
-    const from = now - width / pxPerMs;
-    const expected = pacingSpikes(clock, from, now).map((t) => width - (now - t) * pxPerMs);
-    expect(expected.length).toBeGreaterThan(0);
+    // The strip spans 1100–3100 ms at 0.1 px/ms: beats start at 2000 and 3000.
     const spikes = vertical.filter((segment) => segment.from === baseline);
-    expect(spikes.map((segment) => segment.x)).toEqual(expected);
+    expect(spikes.map((segment) => segment.x)).toEqual([90, 190]);
     for (const segment of spikes) {
       expect(segment.to).toBe(baseline - pacingSpikeMv * pxPerMv);
       expect(segment.x).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it('line up with the trace while the strip is still filling from the left', () => {
+    const clock = createHeartClock({ heartRate: 60, atrialPacing: 1 });
+    const { context, vertical } = recorder();
+    // At 500 ms only 50 px of trace exist, drawn at the right of a 200 px strip.
+    traceEcg(context, clock, 500, { width: 200, pxPerMs, baseline: 72, pxPerMv });
+    expect(vertical.filter((segment) => segment.from === 72).map((segment) => segment.x)).toEqual([
+      150,
+    ]);
   });
 });
