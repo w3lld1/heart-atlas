@@ -19,6 +19,9 @@ function twoLines(text: string): [string, string] {
 }
 const ligamentLines = twoLines(t['diagram.label.ligamentum-arteriosum']);
 const ductLines = twoLines(t['diagram.label.open-duct']);
+const closedLines = twoLines(t['diagram.label.closed-duct']);
+// Normal-width flow shows normally and after treatment (no more extra blood to the lungs).
+const thin = [{ class: 'normal-only' }, { 'data-only': 'treated' }];
 // The vessels are drawn in their own coordinates and shifted right by 150; the branch to the
 // right lung runs on into the left column, where its label sits. The aorta rises, arches over and
 // descends; the pulmonary trunk rises between its two limbs and divides under the arch. The duct
@@ -85,13 +88,15 @@ const flow = {
     <path d={vessel.rightPa} stroke="var(--diagram-venous)" stroke-width="24"></path>
     <path d={vessel.rightPa} stroke="var(--diagram-venous-fill)" stroke-width="20"></path>
     <g stroke-linecap="round">
-      <path
-        class="normal-only"
-        d={flow.toRightLung}
-        stroke="var(--diagram-venous)"
-        stroke-width="3"
-        marker-end={`url(#${arrowV})`}
-      ></path>
+      {thin.map((only) => (
+        <path
+          {...only}
+          d={flow.toRightLung}
+          stroke="var(--diagram-venous)"
+          stroke-width="3"
+          marker-end={`url(#${arrowV})`}
+        />
+      ))}
       <path
         class="disease-only"
         d={flow.toRightLung}
@@ -101,7 +106,11 @@ const flow = {
       ></path>
     </g>
     <g class="flow" stroke="var(--color-bg)">
-      <path class="dash-flow normal-only" d={flow.toRightLung} stroke-width="1.5"></path>
+      {thin.map((only) => (
+        <g {...only}>
+          <path class="dash-flow" d={flow.toRightLung} stroke-width="1.5" />
+        </g>
+      ))}
       <path class="dash-flow disease-only" d={flow.toRightLung} stroke-width="2.5"></path>
     </g>
 
@@ -130,25 +139,18 @@ const flow = {
       stroke-width="18"
     ></path>
     <g stroke-linecap="round">
-      <path
-        class="normal-only"
-        d={flow.trunk}
-        stroke="var(--diagram-venous)"
-        stroke-width="3"
-      ></path>
-      <path
-        class="normal-only"
-        d={flow.rightStart}
-        stroke="var(--diagram-venous)"
-        stroke-width="3"
-      ></path>
-      <path
-        class="normal-only"
-        d={flow.toLeftLung}
-        stroke="var(--diagram-venous)"
-        stroke-width="3"
-        marker-end={`url(#${arrowV})`}
-      ></path>
+      {thin.map((only) => (
+        <g {...only}>
+          <path d={flow.trunk} stroke="var(--diagram-venous)" stroke-width="3" />
+          <path d={flow.rightStart} stroke="var(--diagram-venous)" stroke-width="3" />
+          <path
+            d={flow.toLeftLung}
+            stroke="var(--diagram-venous)"
+            stroke-width="3"
+            marker-end={`url(#${arrowV})`}
+          />
+        </g>
+      ))}
       <path
         class="disease-only"
         d={flow.trunk}
@@ -170,9 +172,13 @@ const flow = {
       ></path>
     </g>
     <g class="flow" stroke="var(--color-bg)">
-      <path class="dash-flow normal-only" d={flow.trunk} stroke-width="1.5"></path>
-      <path class="dash-flow normal-only" d={flow.rightStart} stroke-width="1.5"></path>
-      <path class="dash-flow normal-only" d={flow.toLeftLung} stroke-width="1.5"></path>
+      {thin.map((only) => (
+        <g {...only}>
+          <path class="dash-flow" d={flow.trunk} stroke-width="1.5" />
+          <path class="dash-flow" d={flow.rightStart} stroke-width="1.5" />
+          <path class="dash-flow" d={flow.toLeftLung} stroke-width="1.5" />
+        </g>
+      ))}
       <path class="dash-flow disease-only" d={flow.trunk} stroke-width="2.5"></path>
       <path class="dash-flow disease-only" d={flow.rightStart} stroke-width="2.5"></path>
       <path class="dash-flow disease-only" d={flow.toLeftLung} stroke-width="2.5"></path>
@@ -205,6 +211,24 @@ const flow = {
       </g>
     </g>
 
+    <!--
+      After treatment: the duct is closed (Минздрав 43_2, 3.2–3.3: ligation, division or a clip in
+      surgery, an occluder or coils through a catheter). One generic closure with no device shape,
+      so no method is preferred. No more blood through the duct, so the flow to the lungs is back to
+      normal width. A residual shunt is rare (Минздрав 43_2; ESC 2020 ACHD 4.4.5, MSD): the caption
+      names it.
+    -->
+    <g data-only="treated">
+      <path d={vessel.duct} stroke="var(--color-text)" stroke-width="16"></path>
+      <path d={vessel.duct} stroke="var(--color-border)" stroke-width="12"></path>
+      <!-- Three short marks across vessel.duct at 30, 50 and 70% of its length: move them with it. -->
+      <path
+        d="M209.4,114.8 L219,117.8 M206.2,125 L215.8,128 M203,135.2 L212.6,138.2"
+        stroke="var(--color-text)"
+        stroke-width="1"
+      ></path>
+    </g>
+
     <text x="160" y="38" text-anchor="middle">
       {t['diagram.label.aorta']}
     </text>
@@ -220,6 +244,12 @@ const flow = {
       <tspan x="195">{ductLines[0]}</tspan>
       <tspan x="195" dy="15">
         {ductLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" data-only="treated" x="195" y="118" text-anchor="end">
+      <tspan x="195">{closedLines[0]}</tspan>
+      <tspan x="195" dy="15">
+        {closedLines[1]}
       </tspan>
     </text>
   </g>
