@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Where is the sinus node?
+    options:
+      - text: In the wall of the aorta
+      - text: In the right atrium
+        correct: true
+      - text: In the left ventricle
+    explanation: "The sinus node is a small area of the right atrium that acts as the heart's natural pacemaker: its cells produce electrical impulses on their own."
+    cite: [4]
+  - level: patient
+    prompt: What is the main cause of sick sinus syndrome?
+    options:
+      - text: A high blood cholesterol level
+      - text: A low iron level in the blood
+      - text: Age-related replacement of sinus node tissue by fibrous and fatty tissue
+        correct: true
+    explanation: The main cause is that, with age, the tissue of the sinus node is replaced by fibrous (scar) and fatty tissue.
+    cite: [1, 4]
+  - level: patient
+    prompt: When is sick sinus syndrome diagnosed?
+    options:
+      - text: When the rhythm disturbance is recorded on an ECG and matches the symptoms
+        correct: true
+      - text: From a chest X-ray
+      - text: From a single blood pressure reading
+    explanation: The diagnosis is made when the rhythm disturbance is recorded on an ECG or on a long ECG recording and matches the symptoms.
+    cite: [1, 3, 4]
+  - level: patient
+    prompt: What is the main treatment for sick sinus syndrome with symptoms?
+    options:
+      - text: Heart valve replacement
+      - text: Heart transplant
+      - text: A permanent pacemaker
+        correct: true
+    explanation: The main treatment for sick sinus syndrome with symptoms is a permanent pacemaker.
+    cite: [1, 2, 3]
+  - level: student
+    prompt: What alternates in tachy-brady syndrome?
+    options:
+      - text: Periods of raised and lowered body temperature
+      - text: Paroxysms of supraventricular tachyarrhythmia and episodes of slow rhythm
+        correct: true
+      - text: Periods of high and low blood pressure
+    explanation: Tachy-brady syndrome is the alternation of paroxysms of supraventricular tachyarrhythmia (atrial fibrillation or atrial flutter) with episodes of slow rhythm and/or ventricular asystole.
+    cite: [1]
+  - level: student
+    prompt: What is chronotropic incompetence?
+    options:
+      - text: Reduced contractility of the left ventricle
+      - text: An excessive rise in blood pressure with exercise
+      - text: An inadequate rise in heart rate with exercise
+        correct: true
+    explanation: Chronotropic incompetence is an inadequate rise in heart rate with exercise.
+    cite: [2, 3]
