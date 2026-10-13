@@ -16,6 +16,8 @@ export const presetIds = [
   'aortic-stenosis',
   'atrial-septal-defect',
   'av-block-first-degree',
+  'av-block-third-degree',
+  'av-block-third-degree-paced',
   'supraventricular-tachycardia',
   'long-qt-syndrome',
   'ventricular-tachycardia',
@@ -83,6 +85,38 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // heart rate this preset allows (40–96 bpm; about 233 ms at 75 and 205 ms at 96). With 240,
     // PR would drop below 200 ms from 87 bpm. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
     prInterval: 260,
+  }),
+  // Complete (third-degree) AV block and its pacemaker: docs/plans/2026-10-13-heart-clock-av-block.md.
+  'av-block-third-degree': Object.freeze({
+    // No P wave reaches the ventricles: P waves and QRS complexes are unrelated (AV dissociation),
+    // and the P wave rate is above the QRS rate (MSD Manuals, Atrioventricular Block, 2024;
+    // StatPearls, Third-Degree AV Block). assumption: P waves at a steady 75, the model's sinus rate;
+    // no source says that P–P is regular.
+    atrialRate: 75,
+    // An escape rhythm above the His bundle bifurcation: narrow QRS at 35–50 bpm (MSD, same), a
+    // junctional escape (StatPearls, same). The QRS stays the model's narrow one. assumption: 40.
+    heartRate: 40,
+    // Atria and ventricles lose their coordination (StatPearls, same). assumption: averaged as no
+    // atrial share of filling; the model does not follow which atrial beats meet a closed valve.
+    atrialContribution: 0,
+  }),
+  'av-block-third-degree-paced': Object.freeze({
+    // After treatment (`presetTreated`): a permanent pacemaker, indicated in complete AV block
+    // without a reversible cause regardless of symptoms (Minzdrav 2025, Bradyarrhythmias, §3.3.2;
+    // ESC 2021 pacing, §5.2.1.3); dual-chamber with sinus rhythm (ESC 2021, §5.2.2.1). It senses
+    // the heart's own P wave and paces the ventricle at the end of the AV delay (StatPearls,
+    // Pacemaker Malfunction; Pacemaker Types and Selection). assumption: the AV delay is the model's
+    // default PR (ESC 2021 only says to avoid over 230 ms), and the rate, 75, follows the P waves.
+    ventricularPacing: 1,
+    heartRate: 75,
+    // A paced ventricle gives a wide QRS like left bundle branch block (StatPearls, Left Bundle
+    // Branch Block), where ST–T run opposite to the QRS (same). assumption: 160 ms (LBBB is
+    // ≥120 ms), one broad positive R in lead II without Q or S, a T wave of -0.3 mV, and the
+    // default QTc.
+    qrsDuration: 160,
+    qAmplitude: 0,
+    sAmplitude: 0,
+    tAmplitude: -0.3,
   }),
   'supraventricular-tachycardia': Object.freeze({
     // Typical AV nodal re-entrant tachycardia. The rate is the sign, so this preset sets it:
@@ -233,6 +267,11 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   'sick-sinus-syndrome': 30,
   // Pacemaker lower rate: assumption, see the preset.
   'sick-sinus-syndrome-paced': 50,
+  // Escape rhythm with a narrow QRS: 35–50 bpm (MSD Manuals, Atrioventricular Block, 2024).
+  'av-block-third-degree': 35,
+  // Rates the pacemaker follows the P waves at: assumption, the sources give no lower or upper
+  // tracking rate. Without it the model would allow 40–132 for this QRS.
+  'av-block-third-degree-paced': 60,
 });
 
 /**
@@ -251,6 +290,10 @@ export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = O
   // Pacemaker lower rate: assumption, see the preset. The model draws no own beats above it and no
   // rate-adaptive pacing.
   'sick-sinus-syndrome-paced': 70,
+  // Escape rhythm with a narrow QRS: 35–50 bpm (MSD, as above).
+  'av-block-third-degree': 50,
+  // assumption, as above.
+  'av-block-third-degree-paced': 100,
 });
 
 /**
@@ -260,6 +303,7 @@ export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = O
  */
 export const presetTreated: Readonly<Partial<Record<PresetId, PresetId>>> = Object.freeze({
   'sick-sinus-syndrome': 'sick-sinus-syndrome-paced',
+  'av-block-third-degree': 'av-block-third-degree-paced',
 });
 
 export function isPresetId(value: string): value is PresetId {

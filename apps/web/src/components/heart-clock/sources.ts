@@ -194,4 +194,17 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://doi.org/10.1016/j.hrthm.2007.01.027',
     lang: 'en',
   },
+  // Complete AV block and its pacemaker: docs/plans/2026-10-13-heart-clock-av-block.md. MSD AV
+  // block, the Bradyarrhythmias guideline (160_2), the ESC 2021 pacing translation and the two
+  // pacemaker StatPearls chapters are listed above.
+  {
+    text: 'Knabben V, Chhabra L, Slane M. Third-Degree Atrioventricular Block. StatPearls. Updated 2023-07-31.',
+    href: 'https://www.ncbi.nlm.nih.gov/books/NBK545199/',
+    lang: 'en',
+  },
+  {
+    text: 'Scherbak D, Shams P, Hicks GJ. Left Bundle Branch Block. StatPearls. Updated 2024-10-05.',
+    href: 'https://www.ncbi.nlm.nih.gov/books/NBK482167/',
+    lang: 'en',
+  },
 ];

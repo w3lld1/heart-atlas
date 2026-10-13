@@ -160,6 +160,15 @@ test.describe('embed parameters', () => {
     );
   });
 
+  test('keeps a URL rate inside the complete AV block escape range', async ({ page }) => {
+    await page.goto('en/embed/ecg/?preset=av-block-third-degree&rate=120');
+    await hydrated(page);
+    await expect(
+      page.getByRole('radio', { name: en['heartClock.preset.av-block-third-degree'], exact: true }),
+    ).toBeChecked();
+    await expect(slider(page)).toHaveValue('50');
+  });
+
   test('keeps a URL rate inside the VT range and the long QT upper limit', async ({ page }) => {
     const vt = page.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] });
     await page.goto('en/embed/ecg/?preset=ventricular-tachycardia');

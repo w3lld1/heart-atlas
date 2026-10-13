@@ -29,6 +29,8 @@ import { soundEvents } from '../src/sounds.ts';
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
+  'av-block-third-degree': [35, 50],
+  'av-block-third-degree-paced': [60, 100],
   'supraventricular-tachycardia': [120, 180],
   'long-qt-syndrome': [40, 137],
   'ventricular-tachycardia': [101, 169],
@@ -53,6 +55,16 @@ describe('presetTreated', () => {
     const params = presetParams('sick-sinus-syndrome-paced');
     expect(params).toMatchObject({ atrialPacing: 1, pauseEvery: 0, heartRate: 60 });
     expect(presetParams('sick-sinus-syndrome').atrialPacing).toBe(0);
+  });
+
+  it('paces the ventricles after complete AV block, following the P waves', () => {
+    const block = presetParams('av-block-third-degree');
+    expect(block).toMatchObject({ atrialRate: 75, heartRate: 40, atrialContribution: 0 });
+    const paced = presetParams('av-block-third-degree-paced');
+    expect(paced).toMatchObject({ ventricularPacing: 1, atrialRate: 0, heartRate: 75 });
+    expect(paced.qrsDuration).toBeGreaterThanOrEqual(120);
+    expect(paced.tAmplitude).toBeLessThan(0);
+    expect(presetTreated['av-block-third-degree']).toBe('av-block-third-degree-paced');
   });
 });
 
@@ -422,12 +434,16 @@ describe('preset heart rate', () => {
 
   it('sets the rate only when switching to or from a preset that has its own', () => {
     expect(presetIds.filter(setsHeartRate)).toEqual([
+      'av-block-third-degree',
+      'av-block-third-degree-paced',
       'supraventricular-tachycardia',
       'ventricular-tachycardia',
       'atrial-flutter',
       'sick-sinus-syndrome',
       'sick-sinus-syndrome-paced',
     ]);
+    expect(switchedHeartRate('av-block-third-degree', 'av-block-third-degree-paced', 40)).toBe(75);
+    expect(switchedHeartRate('normal', 'av-block-third-degree', 90)).toBe(40);
     expect(switchedHeartRate('sick-sinus-syndrome', 'sick-sinus-syndrome-paced', 35)).toBe(60);
     expect(switchedHeartRate('sick-sinus-syndrome-paced', 'normal', 60)).toBe(75);
     expect(presetRateFloors['ventricular-tachycardia']).toBe(101);
