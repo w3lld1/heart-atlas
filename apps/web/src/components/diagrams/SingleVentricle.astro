@@ -1,0 +1,347 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-sv-arrow-v`;
+const arrowA = `${uid}-sv-arrow-a`;
+const arrowMix = `${uid}-sv-arrow-mix`;
+const mixFill = `${uid}-sv-mix-fill`;
+// A circulation scheme like the hypoplastic left heart diagram: lungs on top, the body below, the
+// right heart (venous blood) on the viewer's left and the left heart (arterial blood) on the right.
+// Normal: four chambers, one loop in series, body → right heart → lungs → left heart → body.
+const normal = {
+  raToRv: 'M185,160 V178',
+  pulmonaryArtery: 'M220,207 H235 V53',
+  pulmonaryVeins: 'M295,30 H400 V132 H322',
+  laToLv: 'M285,160 V178',
+  aorta: 'M320,207 H440 V315 H297',
+};
+// Double-inlet left ventricle with transposed great arteries, one of several variants: both atria
+// open through their valves into one large ventricle, where venous and arterial blood mix. The
+// underdeveloped second ventricle is a small outlet chamber joined to the main one by an opening.
+// Here the pulmonary artery leaves the main ventricle and the aorta the outlet chamber; the caption
+// says the arrangement varies.
+const sv = {
+  pulmonaryVeins: 'M293,40 V103',
+  raToVentricle: 'M185,160 V178',
+  laToVentricle: 'M285,160 V178',
+  pulmonaryArtery: 'M235,180 V53',
+  toOutlet: 'M310,209 H330',
+  aorta: 'M372,209 H440 V315 H297',
+};
+const venaCava = 'M175,315 H30 V132 H148';
+const chamber = { width: 70, height: 55, rx: 10 };
+const ventricle = { x: 150, y: 180, width: 160, height: 60, rx: 12 };
+const outlet = { x: 332, y: 192, width: 40, height: 34, rx: 8 };
+// Labels too long for one line in some languages: split at the middle space, if there is one.
+function lines(text: string): string[] {
+  const words = text.split(' ');
+  if (words.length < 2) return [text];
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const ventricleLines = lines(t['diagram.label.common-ventricle']);
+const outletLines = lines(t['diagram.label.outlet-chamber']);
+---
+
+<svg
+  viewBox="0 0 470 345"
+  role="img"
+  aria-label={t['diagram.single-ventricle.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowMix}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+    <!-- Mixed blood inside a chamber: venous and arterial stripes -->
+    <pattern
+      id={mixFill}
+      width="10"
+      height="10"
+      patternUnits="userSpaceOnUse"
+      patternTransform="rotate(45)"
+    >
+      <rect width="10" height="10" fill="var(--diagram-venous-fill)"></rect>
+      <rect width="5" height="10" fill="var(--diagram-arterial-fill)"></rect>
+    </pattern>
+  </defs>
+
+  <!-- Lungs and body -->
+  <rect
+    x="175"
+    y="10"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="35" text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <rect
+    x="175"
+    y="295"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="320" text-anchor="middle">
+    {t['diagram.label.body']}
+  </text>
+
+  <!-- Atria: the same in both states -->
+  <g stroke-width="2">
+    <rect
+      x="150"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="250"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+  </g>
+  <text x="185" y="138" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="285" y="138" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+
+  <!-- Normal: two ventricles -->
+  <g data-only="normal">
+    <g stroke-width="2">
+      <rect
+        x="150"
+        y="180"
+        width={chamber.width}
+        height={chamber.height}
+        rx={chamber.rx}
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+      ></rect>
+      <rect
+        x="250"
+        y="180"
+        width={chamber.width}
+        height={chamber.height}
+        rx={chamber.rx}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+      ></rect>
+    </g>
+    <text x="185" y="213" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text x="285" y="213" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+  </g>
+
+  <!-- Disease: one large ventricle with mixed blood and a small outlet chamber -->
+  <g data-only="disease">
+    <rect
+      x={ventricle.x}
+      y={ventricle.y}
+      width={ventricle.width}
+      height={ventricle.height}
+      rx={ventricle.rx}
+      fill={`url(#${mixFill})`}
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></rect>
+    <rect
+      x={ventricle.x}
+      y={ventricle.y}
+      width={ventricle.width}
+      height={ventricle.height}
+      rx={ventricle.rx}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+      stroke-dasharray="6 6"
+    ></rect>
+    <rect
+      x={outlet.x}
+      y={outlet.y}
+      width={outlet.width}
+      height={outlet.height}
+      rx={outlet.rx}
+      fill={`url(#${mixFill})`}
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></rect>
+    <rect
+      x={outlet.x}
+      y={outlet.y}
+      width={outlet.width}
+      height={outlet.height}
+      rx={outlet.rx}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+      stroke-dasharray="6 6"
+    ></rect>
+    <text x="230" y={ventricleLines.length > 1 ? 206 : 216} text-anchor="middle">
+      {ventricleLines.map((line, i) => (
+        <tspan x="230" dy={i === 0 ? 0 : 19}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Vessels with arrows, readable without motion -->
+  <g fill="none" stroke-width="3">
+    <path d={venaCava} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <g data-only="normal">
+      <path d={normal.raToRv} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+      <path
+        d={normal.pulmonaryArtery}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        d={normal.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path
+        d={normal.laToLv}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path d={normal.aorta} stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    </g>
+    <g data-only="disease">
+      <path
+        d={sv.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <!-- Both atria empty into the one ventricle -->
+      <path
+        d={sv.raToVentricle}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        d={sv.laToVentricle}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <!-- Mixed blood: a venous line with arterial dashes on it -->
+      <path
+        d={sv.pulmonaryArtery}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowMix})`}
+      ></path>
+      <path d={sv.pulmonaryArtery} stroke="var(--diagram-arterial)" stroke-dasharray="6 6"></path>
+      <path d={sv.toOutlet} stroke="var(--diagram-venous)" marker-end={`url(#${arrowMix})`}></path>
+      <path d={sv.toOutlet} stroke="var(--diagram-arterial)" stroke-dasharray="6 6"></path>
+      <path d={sv.aorta} stroke="var(--diagram-venous)" marker-end={`url(#${arrowMix})`}></path>
+      <path d={sv.aorta} stroke="var(--diagram-arterial)" stroke-dasharray="6 6"></path>
+    </g>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="2">
+    <path class="dash-flow" d={venaCava}></path>
+    <g data-only="normal">
+      <path class="dash-flow" d={normal.raToRv}></path>
+      <path class="dash-flow" d={normal.pulmonaryArtery}></path>
+      <path class="dash-flow" d={normal.pulmonaryVeins}></path>
+      <path class="dash-flow" d={normal.laToLv}></path>
+      <path class="dash-flow" d={normal.aorta}></path>
+    </g>
+    <g data-only="disease">
+      <path class="dash-flow" d={sv.pulmonaryVeins}></path>
+      <path class="dash-flow" d={sv.raToVentricle}></path>
+      <path class="dash-flow" d={sv.laToVentricle}></path>
+      <path class="dash-flow" d={sv.pulmonaryArtery}></path>
+      <path class="dash-flow" d={sv.toOutlet}></path>
+      <path class="dash-flow" d={sv.aorta}></path>
+    </g>
+  </g>
+
+  <!-- Disease labels -->
+  <g data-only="disease">
+    <text class="diagram-small" x="318" y="240">
+      {outletLines.map((line, i) => (
+        <tspan x="318" dy={i === 0 ? 0 : 14}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="230" y="262" text-anchor="middle">
+      {t['diagram.label.mixed-blood']}
+    </text>
+    <text class="diagram-small" x="297" y="80">
+      {t['diagram.label.pulmonaryVeins']}
+    </text>
+  </g>
+
+  <!-- Vessel labels -->
+  <text class="diagram-small" x="36" y="225">
+    {t['diagram.label.venaCava']}
+  </text>
+  <text class="diagram-small" x="229" y="88" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small" x="434" y="270" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" data-only="normal" x="394" y="62" text-anchor="end">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+</svg>
