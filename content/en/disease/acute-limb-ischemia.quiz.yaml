@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is acute limb ischaemia?
+    options:
+      - text: A gradual narrowing of the leg arteries that develops over many years
+      - text: A blood clot in a deep vein of the leg that blocks blood flowing back
+      - text: A sudden loss of arterial blood flow to an arm or a leg
+        correct: true
+    explanation: Acute limb ischaemia is a sudden loss or reduction of arterial blood flow to an arm or a leg that threatens the survival of the limb and needs urgent diagnosis and treatment.
+    cite: [1, 3]
+  - level: patient
+    prompt: Where does the clot most often come from in embolism of a leg artery?
+    options:
+      - text: From the heart, and the main cause is atrial fibrillation
+        correct: true
+      - text: From the aorta, and the main cause is aortic dissection
+      - text: From the leg veins, and the main cause is deep vein thrombosis
+    explanation: In embolism, the clot forms somewhere else and is carried in the bloodstream. Most often it comes from a diseased heart, and the main cause is atrial fibrillation. Aortic dissection is a rare cause of acute ischaemia.
+    cite: [1]
+  - level: patient
+    prompt: How does the leg usually look in acute ischaemia?
+    options:
+      - text: Red and hot, with a pulse in the foot that is stronger than usual
+      - text: Pale or bluish and cold, with no pulse below the blockage
+        correct: true
+      - text: Swollen and hot, with a firm red streak running along a vein
+    explanation: The leg becomes pale, mottled or bluish and cold, and below the blockage there is no pulse.
+    cite: [1]
+  - level: patient
+    prompt: According to the article, when should you call an ambulance straight away?
+    options:
+      - text: When the skin on the shins becomes dry and flaky in cold weather
+      - text: When both legs feel a little tired at the end of a long working day
+      - text: When a leg or an arm suddenly turns cold, pale, painful or numb
+        correct: true
+    explanation: Acute limb ischaemia is an emergency. Call your local emergency number straight away if a leg or an arm suddenly becomes very painful, pale or bluish, cold, numb or tingling, or weak, or if you cannot move the foot or the toes.
+    cite: [1, 3, 4]
+  - level: student
+    prompt: What does Rutherford category IIb mean in the ESC and ACC/AHA guidelines?
+    options:
+      - text: The limb is viable and not immediately threatened
+      - text: Immediately threatened, needs immediate revascularisation
+        correct: true
+      - text: Marginally threatened, the limb can be saved if treated promptly
+    explanation: 'Rutherford categories: I, the limb is viable and not immediately threatened; IIa, marginally threatened, salvageable if promptly treated; IIb, immediately threatened, requiring immediate revascularisation if the limb is to be saved; III, irreversibly damaged.'
+    cite: [2, 3]
+  - level: student
+    prompt: According to the Russian guideline, when does irreversible muscle necrosis develop?
+    options:
+      - text: After 4–6 hours in embolism or after 12–24 hours in thrombosis
+        correct: true
+      - text: After 4–6 minutes in embolism or after 12–24 minutes in thrombosis
+      - text: In the first few seconds, both in embolism and in thrombosis
+    explanation: 'According to the Russian Ministry of Health guideline, irreversible muscle necrosis develops after 4–6 hours in embolism or after 12–24 hours in thrombosis. Do not wait for it to pass: according to ACC/AHA, skeletal muscle tolerates a lack of blood for only about 4–6 hours.'
+    cite: [1, 3]
