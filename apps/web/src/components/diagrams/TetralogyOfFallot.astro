@@ -11,13 +11,15 @@ const { locale, uid } = Astro.props;
 const t = getMessages(locale);
 const arrowV = `${uid}-tof-arrow-v`;
 const arrowA = `${uid}-tof-arrow-a`;
-// The narrowed-outflow label is too long for one line in the label column: split it in two.
-const outflowWords = t['diagram.label.rv-outflow-narrowing'].split(' ');
-const outflowSplit = Math.ceil(outflowWords.length / 2);
-const outflowLines = [
-  outflowWords.slice(0, outflowSplit).join(' '),
-  outflowWords.slice(outflowSplit).join(' '),
-];
+// Labels too long for one line in the label column are split in two.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const outflowLines = twoLines(t['diagram.label.rv-outflow-narrowing']);
+const widenedLines = twoLines(t['diagram.label.rv-outflow-widened']);
+const backflowLines = twoLines(t['diagram.label.pulmonary-backflow']);
 // Paths of the blood, shared by the arrows and the moving dashes on top of them. The heart is
 // drawn in its own coordinates and shifted right by 160; labels sit in the free column on the left.
 const flow = {
@@ -29,6 +31,12 @@ const flow = {
   toPulmonaryNarrow: 'M105,262 L105,46',
   shunt: 'M130,262 Q150,215 158,170 L158,44',
   toOverridingAorta: 'M235,270 Q185,230 180,170 L180,44',
+  // After repair: the patch over the defect leads the left ventricle into the aorta, and the
+  // widened outflow lets the right ventricle empty into the pulmonary artery. Blood may leak back
+  // from the pulmonary artery into the right ventricle (pulmonary regurgitation).
+  toPulmonaryRepaired: 'M100,262 L100,46',
+  toAortaRepaired: 'M232,270 Q184,236 172,190 L170,44',
+  backflow: 'M116,60 L116,206',
 };
 ---
 
@@ -97,6 +105,28 @@ const flow = {
       stroke-width="2"
     ></path>
 
+    <!-- After repair: the outflow from the right ventricle is widened with a patch; the trunk
+         itself stays as it was -->
+    <g data-only="treated">
+      <path
+        d="M86,172 C76,156 76,128 86,112 L86,30 L124,30 L124,172 Z"
+        fill="var(--diagram-venous-fill)"
+      ></path>
+      <path
+        d="M86,112 L86,30 M124,30 L124,150"
+        fill="none"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      ></path>
+      <path
+        d="M86,112 C76,128 76,156 84,172"
+        fill="none"
+        stroke="var(--color-muted)"
+        stroke-width="5"
+        stroke-linecap="round"
+      ></path>
+    </g>
+
     <!-- Aorta: from the left ventricle in the normal heart; in tetralogy shifted towards the right
          ventricle, over the septum, with less than half of it over the right ventricle -->
     <path
@@ -124,6 +154,17 @@ const flow = {
       stroke-width="2"
     ></path>
 
+    <!-- After repair the aorta stays where it was -->
+    <g data-only="treated">
+      <path d="M143,172 L143,26 L193,26 L193,172 Z" fill="var(--diagram-arterial-fill)"></path>
+      <path
+        d="M143,150 L143,26 M193,26 L193,150"
+        fill="none"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></path>
+    </g>
+
     <!-- Right ventricle cavity: the wall is thicker in tetralogy, so the cavity is smaller -->
     <path
       class="normal-only"
@@ -135,6 +176,13 @@ const flow = {
     <path
       class="disease-only"
       d="M78,172 L155,172 L155,276 C118,270 82,236 78,172 Z"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+    <path
+      data-only="treated"
+      d="M78,172 L141,172 L157,214 L157,276 C118,270 82,236 78,172 Z"
       fill="var(--diagram-venous-fill)"
       stroke="var(--diagram-venous)"
       stroke-width="2"
@@ -188,6 +236,25 @@ const flow = {
       ></path>
     </g>
 
+    <!-- After repair: a patch closes the defect so that the aorta opens only into the left
+         ventricle; the wide opening into the pulmonary artery -->
+    <g data-only="treated">
+      <rect x="175" y="162" width="18" height="6" fill="var(--diagram-arterial-fill)"></rect>
+      <rect x="82" y="170" width="40" height="4" fill="var(--diagram-venous-fill)"></rect>
+      <path
+        d="M146,168 L192,168 L176,180 L176,224 L166,224 L158,214 Z"
+        fill="var(--diagram-arterial-fill)"
+      ></path>
+      <path
+        d="M143,170 L158,214 L165,222"
+        fill="none"
+        stroke="var(--color-muted)"
+        stroke-width="5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+    </g>
+
     <!-- Flow arrows, visible with and without motion -->
     <g fill="none" stroke-linecap="round">
       <path
@@ -225,6 +292,29 @@ const flow = {
         stroke-width="4"
         marker-end={`url(#${arrowA})`}
       ></path>
+      <path
+        data-only="treated"
+        d={flow.toPulmonaryRepaired}
+        stroke="var(--diagram-venous)"
+        stroke-width="4"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        data-only="treated"
+        d={flow.toAortaRepaired}
+        stroke="var(--diagram-arterial)"
+        stroke-width="4"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <!-- Backflow is dashed and does not move: it is possible, not always present -->
+      <path
+        data-only="treated"
+        d={flow.backflow}
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+        stroke-dasharray="4 3"
+        marker-end={`url(#${arrowV})`}
+      ></path>
     </g>
 
     <!-- Moving blood: dashes running along the arrows -->
@@ -234,6 +324,13 @@ const flow = {
       <path class="dash-flow disease-only" d={flow.toPulmonaryNarrow} stroke-width="1"></path>
       <path class="dash-flow disease-only" d={flow.shunt} stroke-width="2"></path>
       <path class="dash-flow disease-only" d={flow.toOverridingAorta} stroke-width="2"></path>
+      <path
+        class="dash-flow"
+        data-only="treated"
+        d={flow.toPulmonaryRepaired}
+        stroke-width="2"
+      ></path>
+      <path class="dash-flow" data-only="treated" d={flow.toAortaRepaired} stroke-width="2"></path>
     </g>
 
     <!-- Chamber and vessel labels inside the drawing -->
@@ -241,6 +338,9 @@ const flow = {
       {t['diagram.label.rv']}
     </text>
     <text class="disease-only" x="127" y="214" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text data-only="treated" x="127" y="246" text-anchor="middle">
       {t['diagram.label.rv']}
     </text>
     <text x="248" y="236" text-anchor="middle">
@@ -252,11 +352,15 @@ const flow = {
     <text class="diagram-small disease-only" x="168" y="19" text-anchor="middle">
       {t['diagram.label.overriding-aorta']}
     </text>
+    <text data-only="treated" x="168" y="19" text-anchor="middle">
+      {t['diagram.label.aorta']}
+    </text>
 
     <!-- Septum (normal) or defect (tetralogy), labelled below the heart -->
     <g stroke="var(--color-text)" stroke-width="1.5">
       <line class="normal-only" x1="165" y1="230" x2="165" y2="322"></line>
       <line class="disease-only" x1="165" y1="220" x2="165" y2="322"></line>
+      <line data-only="treated" x1="165" y1="222" x2="165" y2="322"></line>
     </g>
   </g>
 
@@ -266,6 +370,9 @@ const flow = {
   <text class="disease-only" x="325" y="341" text-anchor="middle">
     {t['diagram.label.defect']}
   </text>
+  <text data-only="treated" x="325" y="341" text-anchor="middle">
+    {t['diagram.label.vsd-patch']}
+  </text>
 
   <!-- Labels in the left column with leader lines into the drawing -->
   <g stroke="var(--color-muted)" stroke-width="1.5">
@@ -273,6 +380,9 @@ const flow = {
     <line class="disease-only" x1="150" y1="70" x2="244" y2="70"></line>
     <line class="disease-only" x1="150" y1="148" x2="256" y2="148"></line>
     <line class="disease-only" x1="150" y1="226" x2="222" y2="226"></line>
+    <line data-only="treated" x1="150" y1="70" x2="244" y2="70"></line>
+    <line data-only="treated" x1="150" y1="148" x2="236" y2="148"></line>
+    <line data-only="treated" x1="178" y1="208" x2="274" y2="208"></line>
   </g>
   <text class="diagram-small" x="8" y="74">
     {t['diagram.label.pulmonaryArtery']}
@@ -285,5 +395,17 @@ const flow = {
   </text>
   <text class="diagram-small disease-only" x="8" y="230">
     {t['diagram.label.rv-hypertrophy']}
+  </text>
+  <text class="diagram-small" data-only="treated" x="8" y="145">
+    <tspan x="8">{widenedLines[0]}</tspan>
+    <tspan x="8" dy="15">
+      {widenedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" data-only="treated" x="8" y="205">
+    <tspan x="8">{backflowLines[0]}</tspan>
+    <tspan x="8" dy="15">
+      {backflowLines[1]}
+    </tspan>
   </text>
 </svg>
