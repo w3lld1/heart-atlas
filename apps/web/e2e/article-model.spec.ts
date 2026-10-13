@@ -14,7 +14,7 @@ test.use({
 const LOAD = { timeout: 30_000 };
 
 // docs/plans/2026-10-12-article-interactivity.md: the 3D model with highlights inside articles.
-test.describe('3D model in a disease article without signs on the model', () => {
+test.describe('3D model in an article without signs on the model', () => {
   test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
 
   const places: Record<string, string[]> = {
@@ -51,9 +51,19 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
     'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
   };
-  for (const [slug, ids] of Object.entries(places)) {
-    test(`${slug} highlights the place the article names`, async ({ page }) => {
-      await page.goto(`en/disease/${slug}/`);
+  // Diagnostic articles with the model (spec addendum «3D-модель в статьях диагностики»).
+  const diagnosticPlaces: Record<string, string[]> = {
+    'natriuretic-peptides': ['left-ventricle', 'right-ventricle'],
+    echocardiography: ['left-ventricle', 'right-ventricle', 'left-atrium', 'right-atrium'],
+    ecg: ['sa-node', 'right-atrium', 'left-atrium', 'right-ventricle', 'left-ventricle'],
+  };
+  const pages = [
+    ...Object.entries(places).map(([slug, ids]) => [`disease/${slug}`, ids] as const),
+    ...Object.entries(diagnosticPlaces).map(([slug, ids]) => [`diagnostic/${slug}`, ids] as const),
+  ];
+  for (const [path, ids] of pages) {
+    test(`${path} highlights the place the article names`, async ({ page }) => {
+      await page.goto(`en/${path}/`);
       const load = page.getByRole('button', { name: en['viewer.load'] });
       await load.scrollIntoViewIfNeeded();
       await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
