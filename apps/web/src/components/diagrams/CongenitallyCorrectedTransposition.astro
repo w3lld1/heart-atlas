@@ -1,0 +1,323 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-cctga-arrow-v`;
+const arrowA = `${uid}-cctga-arrow-a`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const lvPumpsLines = twoLines(t['diagram.label.lv-pumps-to-aorta']);
+const rvPumpsLines = twoLines(t['diagram.label.rv-pumps-to-aorta']);
+const swappedLines = twoLines(t['diagram.label.ventricles-swapped']);
+// A circulation scheme like the transposition diagram: lungs on top, the body below, the right
+// atrium on the viewer's left and the left atrium on the right, as seen from the front. The route
+// of the blood is the same in both states: the ventricle under the right atrium sends venous blood
+// to the lungs, the one under the left atrium sends arterial blood into the aorta. What changes is
+// which ventricle sits where: in congenitally corrected transposition the two ventricles swap
+// places together with their atrioventricular valves.
+const path = {
+  venaCava: 'M220,350 H40 V132 H178',
+  raToVentricle: 'M220,160 V182',
+  laToVentricle: 'M340,160 V182',
+  pulmonaryArtery: 'M260,222 H280 V53',
+  pulmonaryVeins: 'M340,30 H470 V132 H382',
+  aorta: 'M380,232 H520 V350 H343',
+  // Disease: blood leaking back through the tricuspid valve into the left atrium.
+  backflow: 'M362,202 V146',
+};
+// Ventricle art: a muscle wall around a cavity filled with blood. The wall follows the load, not
+// the morphology: the ventricle that pumps into the aorta (arterial blood) has the thick wall, the
+// one that pumps into the lungs a thin wall. So in the disease state the systemic morphologic right
+// ventricle is not drawn thinner than the subpulmonary left ventricle. The morphologic right
+// ventricle is marked by its coarse trabeculae, the sign by which echocardiography tells the two
+// apart; the morphologic left ventricle has a smooth cavity.
+type Ventricle = { x: number; morph: 'lv' | 'rv'; blood: 'venous' | 'arterial' };
+const top = 185;
+const width = 80;
+const height = 75;
+function inset(v: Ventricle) {
+  return v.blood === 'arterial' ? 10 : 4;
+}
+function cavity(v: Ventricle) {
+  const i = inset(v);
+  return {
+    x: v.x + i,
+    y: top + i,
+    width: width - 2 * i,
+    height: height - 2 * i,
+  };
+}
+function trabeculae(v: Ventricle) {
+  if (v.morph !== 'rv') return [];
+  const bottom = top + height - inset(v);
+  return [18, 30, 50, 62].map(
+    (dx, i) => `M${v.x + dx},${bottom} L${v.x + dx + (i < 2 ? 3 : -3)},${bottom - 12}`,
+  );
+}
+const normalVentricles: Ventricle[] = [
+  { x: 180, morph: 'rv', blood: 'venous' },
+  { x: 300, morph: 'lv', blood: 'arterial' },
+];
+const diseaseVentricles: Ventricle[] = [
+  { x: 180, morph: 'lv', blood: 'venous' },
+  { x: 300, morph: 'rv', blood: 'arterial' },
+];
+const states = [
+  { cls: 'normal-only', ventricles: normalVentricles },
+  { cls: 'disease-only', ventricles: diseaseVentricles },
+];
+---
+
+<svg
+  viewBox="0 0 560 380"
+  role="img"
+  aria-label={t['diagram.congenitally-corrected-transposition.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lungs and body -->
+  <rect
+    x="220"
+    y="10"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="280" y="35" text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <rect
+    x="220"
+    y="330"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="280" y="355" text-anchor="middle">
+    {t['diagram.label.body']}
+  </text>
+
+  <!-- Atria: the same in both states -->
+  <g stroke-width="2">
+    <rect
+      x="180"
+      y="105"
+      width="80"
+      height="55"
+      rx="10"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="300"
+      y="105"
+      width="80"
+      height="55"
+      rx="10"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+  </g>
+  <text x="220" y="138" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="330" y="138" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+
+  <!-- Ventricles: under each atrium the blood colour stays, the ventricle itself changes -->
+  {states.map(({ cls, ventricles }) => (
+    <g class={cls}>
+      {ventricles.map((v) => {
+        const c = cavity(v);
+        return (
+          <g>
+            <rect
+              x={v.x}
+              y={top}
+              width={width}
+              height={height}
+              rx="12"
+              fill="var(--diagram-muscle)"
+              stroke="var(--color-muted)"
+              stroke-width="1.5"
+            />
+            <rect
+              x={c.x}
+              y={c.y}
+              width={c.width}
+              height={c.height}
+              rx="8"
+              fill={`var(--diagram-${v.blood}-fill)`}
+              stroke={`var(--diagram-${v.blood})`}
+              stroke-width="2"
+            />
+            {trabeculae(v).map((d) => (
+              <path
+                d={d}
+                fill="none"
+                stroke={`var(--diagram-${v.blood})`}
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            ))}
+            <text x={v.x + width / 2} y="226" text-anchor="middle">
+              {t[v.morph === 'lv' ? 'diagram.label.lv' : 'diagram.label.rv']}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  ))}
+
+  <!-- Atrioventricular valves: the ring between each atrium and its ventricle -->
+  <g stroke="var(--color-muted)" stroke-width="4" stroke-linecap="round">
+    <line x1="194" y1="172" x2="212" y2="172"></line>
+    <line x1="228" y1="172" x2="246" y2="172"></line>
+    <line x1="314" y1="172" x2="332" y2="172"></line>
+    <line x1="348" y1="172" x2="366" y2="172"></line>
+  </g>
+
+  <!-- Disease: blood often leaks back through the tricuspid valve into the left atrium -->
+  <path
+    class="disease-only"
+    d={path.backflow}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-dasharray="6 4"
+    marker-end={`url(#${arrowA})`}
+  ></path>
+
+  <!-- Vessels with arrows, readable without motion: the same route in both states -->
+  <g fill="none" stroke-width="3">
+    <path d={path.venaCava} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <path
+      d={path.raToVentricle}
+      stroke="var(--diagram-venous)"
+      marker-end={`url(#${arrowV})`}
+    ></path>
+    <path
+      d={path.pulmonaryArtery}
+      stroke="var(--diagram-venous)"
+      marker-end={`url(#${arrowV})`}
+    ></path>
+    <path
+      d={path.pulmonaryVeins}
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <path
+      d={path.laToVentricle}
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <path d={path.aorta} stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="3">
+    <path class="dash-flow" d={path.venaCava}></path>
+    <path class="dash-flow" d={path.raToVentricle}></path>
+    <path class="dash-flow" d={path.pulmonaryArtery}></path>
+    <path class="dash-flow" d={path.pulmonaryVeins}></path>
+    <path class="dash-flow" d={path.laToVentricle}></path>
+    <path class="dash-flow" d={path.aorta}></path>
+    <path class="dash-flow disease-only" d={path.backflow}></path>
+  </g>
+
+  <!-- Valve labels: each valve goes with its ventricle -->
+  <text class="diagram-small normal-only" x="186" y="176" text-anchor="end">
+    {t['diagram.label.tricuspid']}
+  </text>
+  <text class="diagram-small normal-only" x="374" y="176">
+    {t['diagram.label.mitral']}
+  </text>
+  <text class="diagram-small disease-only" x="186" y="176" text-anchor="end">
+    {t['diagram.label.mitral']}
+  </text>
+  <text class="diagram-small disease-only" x="374" y="176">
+    {t['diagram.label.tricuspid']}
+  </text>
+
+  <!-- Which ventricle pumps into the aorta -->
+  <text class="diagram-small normal-only" x="388" y="254">
+    <tspan x="388">{lvPumpsLines[0]}</tspan>
+    <tspan x="388" dy="14">
+      {lvPumpsLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="388" y="254">
+    <tspan x="388">{rvPumpsLines[0]}</tspan>
+    <tspan x="388" dy="14">
+      {rvPumpsLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Disease: the swap and the leak -->
+  <text class="diagram-small disease-only" x="280" y="284" text-anchor="middle">
+    <tspan x="280">{swappedLines[0]}</tspan>
+    <tspan x="280" dy="14">
+      {swappedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="292" y="96">
+    {t['diagram.label.backflow-often']}
+  </text>
+
+  <!-- Vessel labels -->
+  <text class="diagram-small" x="46" y="250">
+    {t['diagram.label.venaCava']}
+  </text>
+  <text class="diagram-small" x="274" y="88" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small" x="464" y="62" text-anchor="end">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="diagram-small normal-only" x="514" y="318" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small disease-only" x="514" y="318" text-anchor="end">
+    {t['diagram.label.aorta-anterior-left']}
+  </text>
+</svg>
