@@ -549,5 +549,10 @@
   "diagram.label.pa-trunk-dilated": "[RTL] Dilated PA trunk",
   "diagram.pulmonary-valve-stenosis.title": "[RTL] Diagram of the right ventricle, the pulmonary valve and the pulmonary trunk: normally the valve leaflets are thin and open wide, and blood flows freely from the right ventricle into the pulmonary artery; in typical valvular stenosis the leaflets are fused into a dome with a narrow opening, blood passes through it as a fast turbulent jet, the right ventricular wall is thickened and the pulmonary trunk beyond the valve is dilated",
   "diagram.label.mixed-blood": "[RTL] Mixed blood",
-  "diagram.eisenmenger-syndrome.title": "[RTL] Diagram of the ventricles, the pulmonary artery, the aorta and small lung arteries in cross-section: normally the septum between the ventricles is intact, there is no shunt, and the walls of the small lung arteries are thin; in Eisenmenger syndrome there is a large defect in the septum, the pressure in the pulmonary artery is high, the walls of the small lung arteries are thickened, blood crosses the defect from right to left, and mixed blood enters the aorta"
+  "diagram.eisenmenger-syndrome.title": "[RTL] Diagram of the ventricles, the pulmonary artery, the aorta and small lung arteries in cross-section: normally the septum between the ventricles is intact, there is no shunt, and the walls of the small lung arteries are thin; in Eisenmenger syndrome there is a large defect in the septum, the pressure in the pulmonary artery is high, the walls of the small lung arteries are thickened, blood crosses the defect from right to left, and mixed blood enters the aorta",
+  "diagram.label.to-heart": "[RTL] To the heart",
+  "diagram.label.to-lungs-pe": "[RTL] To the lungs (PE)",
+  "diagram.label.calf-muscle": "[RTL] Calf muscle",
+  "diagram.label.edema": "[RTL] Swelling",
+  "diagram.deep-vein-thrombosis.title": "[RTL] Diagram of part of the lower leg with a deep vein in longitudinal section: normally blood flows up the vein towards the heart through open valves; in deep vein thrombosis a clot starts at a valve and grows up the vein, blood flow below it is slowed, the leg below the clot swells, and a piece of the clot can break off and travel to the lungs (pulmonary embolism)"
 }

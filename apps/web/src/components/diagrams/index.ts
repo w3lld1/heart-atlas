@@ -15,6 +15,7 @@ import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
+import DeepVeinThrombosis from './DeepVeinThrombosis.astro';
 import DilatedCardiomyopathy from './DilatedCardiomyopathy.astro';
 import Dyslipidemia from './Dyslipidemia.astro';
 import EbsteinAnomaly from './EbsteinAnomaly.astro';
@@ -66,6 +67,7 @@ export const diagrams = {
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
   'coronary-heart-disease': CoronaryHeartDisease,
+  'deep-vein-thrombosis': DeepVeinThrombosis,
   'dilated-cardiomyopathy': DilatedCardiomyopathy,
   dyslipidemia: Dyslipidemia,
   'ebstein-anomaly': EbsteinAnomaly,

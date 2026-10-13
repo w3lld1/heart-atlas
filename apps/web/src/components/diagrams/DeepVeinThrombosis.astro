@@ -1,0 +1,270 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const veinArrowId = `${uid}-dvt-vein-arrow`;
+const clotArrowId = `${uid}-dvt-clot-arrow`;
+// A segment of the lower leg with one deep vein in long section; the heart is up. The vein runs
+// along x = 200 with its lumen from x = 188 to 212. Labels sit in free columns on both sides.
+// Outline of the leg segment; in disease it is wider below the clot (swelling).
+const legNormal =
+  'M146,40 L254,40 C262,130 266,220 260,290 C256,330 250,355 246,370 L154,370 C150,355 144,330 140,290 C134,220 138,130 146,40 Z';
+const legSwollen =
+  'M146,40 L254,40 C262,130 266,200 265,245 C284,280 284,340 270,370 L130,370 C116,340 116,280 135,245 C134,200 138,130 146,40 Z';
+// Venous valves: two cusps each, open (pressed towards the wall) so blood passes upwards.
+const valveYs = [185, 335];
+const cusps = valveYs.flatMap((y) => [
+  `M187,${y} Q190,${y - 10} 193,${y - 18}`,
+  `M213,${y} Q210,${y - 10} 207,${y - 18}`,
+]);
+// The clot starts in the pocket of the lower valve and has grown up the vein.
+const clot =
+  'M188,338 C186,310 189,282 194,260 C197,248 200,238 203,232 C207,242 210,260 211,282 C212,306 208,326 200,338 Z';
+// Moving blood: start delays so the particles are spread along the vein.
+const rising = [0, -1.2, -2.4];
+const crawling = [0, -2];
+---
+
+<svg
+  viewBox="0 0 460 380"
+  role="img"
+  aria-label={t['diagram.deep-vein-thrombosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={veinArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={clotArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Direction to the heart, the same in both states -->
+  <path
+    d="M60,150 V40"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    marker-end={`url(#${veinArrowId})`}
+  ></path>
+  <text x="8" y="24">
+    {t['diagram.label.to-heart']}
+  </text>
+
+  <!-- Leg segment with the calf muscle; wider below the clot in disease -->
+  <path
+    class="normal-only"
+    d={legNormal}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    class="disease-only"
+    d={legSwollen}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Deep vein: the wall first, then the lumen -->
+  <path d="M200,30 V378" stroke="var(--diagram-venous)" stroke-width="30"></path>
+  <path d="M200,30 V378" stroke="var(--diagram-venous-fill)" stroke-width="24"></path>
+
+  <!-- Clot growing up from the lower valve -->
+  <g class="disease-only">
+    <path d={clot} fill="var(--diagram-arterial)"></path>
+    <circle cx="198" cy="270" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="203" cy="300" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+    <circle cx="195" cy="320" r="1.5" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+
+  <!-- Open valve cusps; in disease the lower pair sits on the clot and takes a lighter stroke -->
+  <g fill="none" stroke-width="3" stroke-linecap="round">
+    <g stroke="var(--color-muted)">
+      {cusps.slice(0, 2).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g class="normal-only" stroke="var(--color-muted)">
+      {cusps.slice(2).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g class="disease-only" stroke="var(--diagram-arterial-fill)">
+      {cusps.slice(2).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Flow arrows in the vein, visible with and without motion: up towards the heart in the
+       normal state, a short arrow for slowed blood below the clot in disease -->
+  <g
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    marker-end={`url(#${veinArrowId})`}
+  >
+    <path class="normal-only" d="M200,300 V258"></path>
+    <path class="normal-only" d="M200,140 V98"></path>
+    <path class="disease-only" d="M200,374 V354"></path>
+  </g>
+
+  <!-- Broken-off piece of the clot and its way up the vein towards the heart and lungs -->
+  <g class="disease-only">
+    <ellipse cx="200" cy="150" rx="5" ry="8" fill="var(--diagram-arterial)"></ellipse>
+    <path
+      d="M200,140 V50 Q200,34 216,34 H306"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+      stroke-dasharray="6 4"
+      marker-end={`url(#${clotArrowId})`}
+    ></path>
+    <text x="452" y="24" text-anchor="end">
+      {t['diagram.label.to-lungs-pe']}
+    </text>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-venous)">
+    <g class="normal-only">
+      {rising.map((delay) => (
+        <circle
+          class="dvt-p dvt-rise"
+          cx="200"
+          cy="372"
+          r="3.5"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {crawling.map((delay) => (
+        <circle
+          class="dvt-p dvt-crawl"
+          cx="200"
+          cy="376"
+          r="3.5"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="300" y1="100" x2="216" y2="100"></line>
+    <line x1="90" y1="260" x2="186" y2="178"></line>
+    <line x1="90" y1="264" x2="186" y2="328"></line>
+    <line x1="134" y1="186" x2="156" y2="186"></line>
+    <g class="disease-only">
+      <line x1="288" y1="160" x2="207" y2="152"></line>
+      <line x1="288" y1="270" x2="211" y2="270"></line>
+      <line x1="288" y1="316" x2="276" y2="316"></line>
+      <line x1="288" y1="362" x2="214" y2="362"></line>
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="304" y="104">
+    {t['diagram.label.leg-vein']}
+  </text>
+  <text class="diagram-small" x="8" y="266">
+    {t['diagram.label.valves']}
+  </text>
+  <text class="diagram-small" x="8" y="190">
+    {t['diagram.label.calf-muscle']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="292" y="164">
+      {t['diagram.label.embolus']}
+    </text>
+    <text class="diagram-small" x="292" y="274">
+      {t['diagram.label.clot']}
+    </text>
+    <text class="diagram-small" x="292" y="320">
+      {t['diagram.label.edema']}
+    </text>
+    <text class="diagram-small" x="292" y="366">
+      {t['diagram.label.reduced-blood-flow']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .dvt-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .dvt-rise {
+    animation: dvt-rise 3.6s linear infinite;
+  }
+
+  .diagram .dvt-crawl {
+    animation: dvt-crawl 4s linear infinite;
+  }
+
+  /* Normal: blood runs up the vein through the open valves, towards the heart. */
+  @keyframes dvt-rise {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6%,
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, -340px);
+    }
+  }
+
+  /* Disease: below the clot blood creeps slowly and does not get past it. */
+  @keyframes dvt-crawl {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    75% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, -30px);
+    }
+  }
+</style>
