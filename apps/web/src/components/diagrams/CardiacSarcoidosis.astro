@@ -1,0 +1,424 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. Unused: no ids here. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+/*
+ * A four-chamber section (the same outline as the amyloidosis diagram, normal wall thickness)
+ * with the conduction system on top: SA node, the route over the atria, the AV node, the bundle
+ * of His down the top of the interventricular septum and its two branches. Disease: patchy foci
+ * (granulomas) in the muscle. One sits in the basal septum over the bundle of His, where the
+ * impulse stops (the caption: granulomas near the conduction system cause AV block); the others,
+ * in the LV lateral wall and the RV free wall, only show that foci are patchy and can be anywhere
+ * in the muscle (the caption says the places are an example). Chamber size is normal in both
+ * states. The heart is drawn in its own coordinates and shifted right; labels sit on the left.
+ */
+const shift = 170;
+const at = (x: number) => x + shift;
+// The valve plane between atria and ventricles, the middle of the septum and the wall thickness.
+const base = 140;
+const mid = 150;
+const wall = 18;
+const r = mid - wall / 2;
+const l = mid + wall / 2;
+const atriumBottom = 130;
+const atriumCorner = 26;
+const atrialSeptum = 5;
+const atrium = { rx: 44, ry: 38 };
+const ra = { cx: mid - atrialSeptum / 2 - atrium.rx, cy: atriumBottom - atrium.ry };
+const la = { cx: mid + atrialSeptum / 2 + atrium.rx, cy: atriumBottom - atrium.ry };
+
+// Cavities: the free wall as a cubic curve from the valve plane to the apex, closed along the
+// septum. Stroked wide in the muscle colour they give walls exactly `wall` thick.
+const rvCavity = `M${r},${base} L${r - 78},${base} C${r - 86},205 ${r - 40},262 ${r},292 Z`;
+const lvCavity = `M${l},${base} L${l + 84},${base} C${l + 92},215 ${l + 50},280 ${l},298 Z`;
+const apexLine = `M${r},292 L${l},298`;
+const tricuspid = { left: r - 62, right: r - 16 };
+const mitral = { left: l + 18, right: l + 66 };
+
+// Conduction system.
+const sa = { x: 76, y: 66 };
+const av = { x: mid, y: 135 };
+const hisEnd = 176;
+const atrialRoute = `M${sa.x},${sa.y} Q138,78 ${av.x},${av.y}`;
+const his = `M${mid},${base} L${mid},${hisEnd}`;
+const rightBranch = `M${mid},${hisEnd} Q${mid - 5},220 ${mid - 5},270`;
+const leftBranch = `M${mid},${hisEnd} Q${mid + 5},222 ${mid + 5},276`;
+// The impulse runs this route; in disease it stops at the top of the septal focus.
+const route = `${atrialRoute} L${mid},${hisEnd}`;
+
+// Granulomas: a dashed patch with a few cells, placed along the wall (angle of the wall there).
+const septalFocus = { x: mid, y: 166, angle: 90, len: 13 };
+const blockY = septalFocus.y - septalFocus.len;
+const stoppedRoute = `${atrialRoute} L${mid},${blockY}`;
+const foci = [
+  septalFocus,
+  // LV lateral wall and RV free wall: points in the middle of the wall, from the curves above.
+  { x: 246.5, y: 206, angle: 105, len: 13 },
+  { x: 67, y: 217, angle: 65, len: 13 },
+];
+const rvFocus = foci[2] ?? septalFocus;
+---
+
+<svg
+  viewBox="0 0 460 330"
+  role="img"
+  aria-label={t['diagram.cardiac-sarcoidosis.title']}
+  lang={locale}
+>
+  <g transform={`translate(${shift} 0)`}>
+    <!-- Walls: the cavity outlines stroked wide -->
+    <g stroke-linejoin="round">
+      {[rvCavity, lvCavity].map((d) => (
+        <path
+          d={d}
+          fill="var(--color-muted)"
+          stroke="var(--color-muted)"
+          stroke-width={2 * wall + 3}
+        />
+      ))}
+      <path
+        d={apexLine}
+        stroke="var(--color-muted)"
+        stroke-width={2 * wall + 3}
+        stroke-linecap="round"
+      ></path>
+      {[rvCavity, lvCavity].map((d) => (
+        <path
+          d={d}
+          fill="var(--diagram-muscle)"
+          stroke="var(--diagram-muscle)"
+          stroke-width={2 * wall}
+        />
+      ))}
+      <path
+        d={apexLine}
+        stroke="var(--diagram-muscle)"
+        stroke-width={2 * wall}
+        stroke-linecap="round"
+      ></path>
+    </g>
+
+    <!-- Septum between the atria, then the atria -->
+    <rect
+      x={mid - atrialSeptum / 2 - 1}
+      y={atriumBottom - 2 * atrium.ry + atriumCorner / 2}
+      width={atrialSeptum + 2}
+      height={2 * atrium.ry - atriumCorner / 2}
+      fill="var(--diagram-muscle)"
+    ></rect>
+    <rect
+      x={ra.cx - atrium.rx}
+      y={ra.cy - atrium.ry}
+      width={2 * atrium.rx}
+      height={2 * atrium.ry}
+      rx={atriumCorner}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></rect>
+    <rect
+      x={la.cx - atrium.rx}
+      y={la.cy - atrium.ry}
+      width={2 * atrium.rx}
+      height={2 * atrium.ry}
+      rx={atriumCorner}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></rect>
+
+    <!-- Ventricular cavities and the openings into them from the atria -->
+    <path
+      d={rvCavity}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="1.5"
+    ></path>
+    <path
+      d={lvCavity}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="1.5"
+    ></path>
+    <rect
+      x={tricuspid.left}
+      y={atriumBottom - 12}
+      width={tricuspid.right - tricuspid.left}
+      height={base - atriumBottom + 13}
+      fill="var(--diagram-venous-fill)"
+    ></rect>
+    <rect
+      x={mitral.left}
+      y={atriumBottom - 12}
+      width={mitral.right - mitral.left}
+      height={base - atriumBottom + 13}
+      fill="var(--diagram-arterial-fill)"
+    ></rect>
+
+    <!-- Chamber labels, with a halo in the chamber colour -->
+    <text class="cs-label-v" x="96" y="122" text-anchor="middle">
+      {t['diagram.label.ra']}
+    </text>
+    <text class="cs-label-a" x={la.cx} y="98" text-anchor="middle">
+      {t['diagram.label.la']}
+    </text>
+    <text class="cs-label-v" x="105" y="196" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text class="cs-label-a" x="200" y="250" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+
+    <!-- Normal: the whole pathway, outlined so it reads on the muscle and the cavities -->
+    <g class="normal-only">
+      <g class="cs-path-under">
+        <path d={atrialRoute}></path>
+        <path d={his}></path>
+        <path d={rightBranch}></path>
+        <path d={leftBranch}></path>
+      </g>
+      <g class="cs-path">
+        <path d={atrialRoute}></path>
+        <path d={his}></path>
+        <path d={rightBranch}></path>
+        <path d={leftBranch}></path>
+      </g>
+      <g class="flow">
+        <path class="cs-run cs-run-route" d={route} pathLength="100"></path>
+        <path class="cs-run cs-run-branch" d={rightBranch} pathLength="100"></path>
+        <path class="cs-run cs-run-branch" d={leftBranch} pathLength="100"></path>
+      </g>
+    </g>
+
+    <!-- Disease: the bundle of His is interrupted at the septal focus; below it the pathway is
+         drawn faint, because the impulse does not get through there -->
+    <g class="disease-only">
+      <g class="cs-path-under">
+        <path d={atrialRoute}></path>
+        <path d={`M${mid},${base} L${mid},${blockY}`}></path>
+      </g>
+      <g class="cs-path">
+        <path d={atrialRoute}></path>
+        <path d={`M${mid},${base} L${mid},${blockY}`}></path>
+      </g>
+      <g class="cs-path cs-path-faint">
+        <path d={rightBranch}></path>
+        <path d={leftBranch}></path>
+      </g>
+      {foci.map((focus) => (
+        <g transform={`translate(${focus.x} ${focus.y}) rotate(${focus.angle})`}>
+          <ellipse class="cs-focus" rx={focus.len} ry="7.5" />
+          <circle class="cs-cell" cx={-focus.len / 2} cy="-1" r="2" />
+          <circle class="cs-cell" cx="0" cy="1.5" r="2" />
+          <circle class="cs-cell" cx={focus.len / 2} cy="-1" r="2" />
+        </g>
+      ))}
+      <line class="cs-block" x1={mid - 10} y1={blockY} x2={mid + 10} y2={blockY}></line>
+      <g class="flow">
+        <path class="cs-run cs-run-stop" d={stoppedRoute} pathLength="100"></path>
+      </g>
+    </g>
+
+    <!-- Nodes on top -->
+    <circle class="cs-node" cx={sa.x} cy={sa.y} r="7"></circle>
+    <ellipse class="cs-node" cx={av.x} cy={av.y} rx="9" ry="5.5"></ellipse>
+  </g>
+
+  <!-- Labels in the left column with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="150" y1="66" x2={at(sa.x - 8)} y2={sa.y}></line>
+    <line x1="150" y1="135" x2={at(av.x - 10)} y2={av.y}></line>
+    <line x1="150" y1="160" x2={at(mid - 2)} y2={base + 6}></line>
+    <g class="normal-only">
+      <line x1="150" y1="224" x2={at(mid - 6)} y2="226"></line>
+    </g>
+    <g class="disease-only">
+      <line x1="150" y1="196" x2={at(mid - 8)} y2={septalFocus.y}></line>
+      <line x1="150" y1="250" x2={at(rvFocus.x - 4)} y2={rvFocus.y + 6}></line>
+    </g>
+  </g>
+  <text class="diagram-small" x="8" y="70">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text class="diagram-small" x="8" y="139">
+    {t['diagram.label.av-node']}
+  </text>
+  <text class="diagram-small" x="8" y="164">
+    {t['diagram.label.his']}
+  </text>
+  <text class="diagram-small normal-only" x="8" y="228">
+    {t['diagram.label.branches']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="200">
+    {t['diagram.label.impulse-blocked']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="254">
+    {t['diagram.label.granulomas']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .cs-label-v,
+  .diagram .cs-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .cs-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .cs-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .cs-path-under path,
+  .diagram .cs-path path {
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  /* A casing in the text colour under the yellow pathway keeps it visible on the muscle in both themes. */
+  .diagram .cs-path-under path {
+    stroke: var(--color-text);
+    stroke-width: 6;
+  }
+
+  .diagram .cs-path path {
+    stroke: var(--diagram-impulse);
+    stroke-width: 3.5;
+  }
+
+  .diagram .cs-path-faint path {
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 3 5;
+    stroke-linecap: butt;
+    opacity: 0.7;
+  }
+
+  .diagram .cs-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .cs-focus {
+    fill: var(--color-bg);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2;
+  }
+
+  .diagram .cs-cell {
+    fill: var(--color-text);
+  }
+
+  .diagram .cs-block {
+    stroke: var(--color-text);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .cs-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  /* In the dark theme the text colour is light like the casing; the background colour stands out. */
+  @media (prefers-color-scheme: dark) {
+    .diagram .cs-run {
+      stroke: var(--color-bg);
+    }
+  }
+
+  .diagram .cs-run-route {
+    animation: cs-run-route 1.6s linear infinite;
+  }
+
+  .diagram .cs-run-branch {
+    animation: cs-run-branch 1.6s linear infinite;
+  }
+
+  .diagram .cs-run-stop {
+    animation: cs-run-stop 1.6s linear infinite;
+  }
+
+  /* Normal: SA node over the atria to the AV node and down the bundle of His. */
+  @keyframes cs-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    40% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    41%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  /* Then down both branches. */
+  @keyframes cs-run-branch {
+    0%,
+    40% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    41% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    65% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    66%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  /* Disease: the impulse reaches the focus in the septum and goes no further. */
+  @keyframes cs-run-stop {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    38% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    48%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+</style>

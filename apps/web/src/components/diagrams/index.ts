@@ -13,6 +13,7 @@ import BloodFlow from './BloodFlow.astro';
 import BrugadaSyndrome from './BrugadaSyndrome.astro';
 import CardiacAmyloidosis from './CardiacAmyloidosis.astro';
 import CardiacMyxoma from './CardiacMyxoma.astro';
+import CardiacSarcoidosis from './CardiacSarcoidosis.astro';
 import CardiacTamponade from './CardiacTamponade.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
@@ -71,6 +72,7 @@ export const diagrams = {
   'brugada-syndrome': BrugadaSyndrome,
   'cardiac-amyloidosis': CardiacAmyloidosis,
   'cardiac-myxoma': CardiacMyxoma,
+  'cardiac-sarcoidosis': CardiacSarcoidosis,
   'cardiac-tamponade': CardiacTamponade,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
