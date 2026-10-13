@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Why does LDL cholesterol stay high in familial hypercholesterolaemia?
+    options:
+      - text: A changed gene means LDL particles leave the blood less well
+        correct: true
+      - text: An infection slowly destroys the cells of the liver and kidneys
+      - text: A food allergy persists throughout life
+    explanation: In familial hypercholesterolaemia a gene needed for liver cells to take up LDL particles is changed, so LDL particles leave the blood less well and LDL cholesterol stays high.
+    cite: [1]
+  - level: patient
+    prompt: What is the main danger of familial hypercholesterolaemia?
+    options:
+      - text: Early hearing loss and constant ringing in the ears
+      - text: Early short-sightedness and cataracts
+      - text: Early coronary heart disease
+        correct: true
+    explanation: 'The main danger is early coronary heart disease: angina and heart attack.'
+    cite: [1, 5]
+  - level: patient
+    prompt: Does the absence of xanthomas rule out familial hypercholesterolaemia?
+    options:
+      - text: 'Yes: every person with FH has xanthomas from the day of birth'
+      - text: 'No: not everyone has them, and they are rare in childhood'
+        correct: true
+      - text: 'Yes: without xanthomas LDL cholesterol is always normal'
+    explanation: Not everyone has xanthomas, and in childhood they rarely appear, so their absence does not rule the condition out.
+    cite: [3, 5]
+  - level: patient
+    prompt: Why are the relatives of a person with familial hypercholesterolaemia tested?
+    options:
+      - text: They may have the condition too
+        correct: true
+      - text: The condition may spread through the air
+      - text: They may need to give blood for a transfusion to the person
+    explanation: When the condition is found in one person, their relatives are tested, because they may have it too.
+    cite: [1, 2]
+  - level: student
+    prompt: A mutation in which gene is the most common cause of FH?
+    options:
+      - text: The haemoglobin beta-chain gene (HBB)
+      - text: The dystrophin gene (DMD)
+      - text: The LDL receptor gene (LDLR)
+        correct: true
+    explanation: The most common cause is a mutation in the LDL receptor gene (LDLR); the receptor is located mainly on the surface of hepatocytes.
+    cite: [1]
+  - level: student
+    prompt: For which DLCN score result is a diagnosis of HeFH made?
+    options:
+      - text: Only for the possible form, not the probable one
+      - text: For the definite or probable form
+        correct: true
+      - text: For any score at all, even zero
+    explanation: By the DLCN score, HeFH may be definite, probable or possible; the diagnosis is made only for the definite or probable form.
+    cite: [1]

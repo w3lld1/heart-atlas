@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: How is Fabry disease inherited?
+    options:
+      - text: It is Y-linked
+      - text: It is X-linked
+        correct: true
+      - text: Only from mother to daughter
+    explanation: The GLA gene sits on the X chromosome, so the disease is X-linked.
+    cite: [1]
+  - level: patient
+    prompt: Can women have signs of Fabry disease?
+    options:
+      - text: Yes, in many women who carry it
+        correct: true
+      - text: No, only men are affected
+      - text: No, women can never be carriers at all
+    explanation: It is not only men who are affected. According to the clinical guidelines, 60–70% of women who carry the variant have signs of the disease, sometimes as severe as in men, although in women it is usually milder.
+    cite: [1]
+  - level: patient
+    prompt: Which heart sign is typical of Fabry disease?
+    options:
+      - text: A hole in the wall between the two atria
+      - text: A thinned wall of the right atrium
+      - text: A thickened wall of the left ventricle
+        correct: true
+    explanation: Its typical sign is a thickened wall of the left ventricle, which can make the disease look like hypertrophic cardiomyopathy.
+    cite: [1, 5]
+  - level: patient
+    prompt: Why is the genetic test especially important for women?
+    options:
+      - text: Women are never given blood tests
+      - text: Their enzyme activity often stays normal
+        correct: true
+      - text: Women's bodies do not have a GLA gene at all
+    explanation: In women, enzyme activity often stays normal, so the genetic test is especially important for them.
+    cite: [1, 2]
+  - level: student
+    prompt: What mainly causes left ventricular hypertrophy in Fabry disease?
+    options:
+      - text: Calcium deposits in the valve leaflets
+      - text: Fluid collecting in the pericardial cavity
+      - text: Myocyte hypertrophy and fibrosis
+        correct: true
+    explanation: 'The hypertrophy cannot be explained by deposits in myocytes and conduction tissue alone: myocyte hypertrophy and fibrosis matter more.'
+    cite: [1]
+  - level: student
+    prompt: Which pedigree feature does the ESC list among the red flags of Anderson–Fabry disease?
+    options:
+      - text: Absence of male-to-male transmission
+        correct: true
+      - text: Transmission only from father to son
+      - text: Transmission that skips every other male generation
+    explanation: The ESC lists the absence of male-to-male transmission in the pedigree among the red flags of Anderson–Fabry disease.
+    cite: [2]
