@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What usually triggers an attack of CPVT?
+    options:
+      - text: Physical exertion or strong emotion
+        correct: true
+      - text: Deep sleep at night lying on the back
+      - text: A large meal late in the evening before bed
+    explanation: 'An attack is usually triggered by physical exertion or strong emotion: stress hormones increase the release of calcium in heart cells, and extra impulses appear in the ventricles.'
+    cite: [2]
+  - level: patient
+    prompt: What is the resting ECG usually like in people with CPVT?
+    options:
+      - text: Always markedly abnormal
+      - text: With constant tachycardia
+      - text: Usually normal
+        correct: true
+    explanation: 'Between attacks the heart looks healthy: the resting ECG is usually normal and there are no signs of structural heart disease, so tests at rest may find nothing.'
+    cite: [1, 2]
+  - level: patient
+    prompt: What is the key test for CPVT?
+    options:
+      - text: A blood test for cholesterol level
+      - text: An exercise test with an ECG
+        correct: true
+      - text: A resting ECG while lying on the back
+    explanation: "The key test is an exercise test: the ECG is recorded during physical exercise. The diagnosis is confirmed if exercise brings on polymorphic, especially bidirectional, ventricular tachycardia that reproduces the person's symptoms."
+    cite: [1, 2]
+  - level: patient
+    prompt: What causes CPVT?
+    options:
+      - text: A viral infection with a high temperature in the past
+      - text: Narrowing of the coronary arteries by plaques
+      - text: Mutations in genes for calcium-control proteins
+        correct: true
+    explanation: CPVT is caused by changes (mutations) in the genes for proteins that control calcium inside heart cells.
+    cite: [2]
+  - level: student
+    prompt: Which arrhythmia is most characteristic of CPVT?
+    options:
+      - text: Bidirectional VT
+        correct: true
+      - text: Monomorphic VT
+      - text: Atrial flutter (AFL)
+    explanation: 'The most characteristic arrhythmia is bidirectional VT: the frontal QRS axis alternates from beat to beat. Any polymorphic VT or ventricular fibrillation may also occur in CPVT.'
+    cite: [1, 2]
+  - level: student
+    prompt: Is invasive electrophysiological study recommended for sudden death risk stratification in CPVT?
+    options:
+      - text: Yes, for all patients with CPVT
+      - text: No, it is not recommended
+        correct: true
+      - text: Yes, but only when there are no symptoms
+    explanation: Invasive electrophysiological study is not recommended for sudden cardiac death risk stratification in CPVT.
+    cite: [1]

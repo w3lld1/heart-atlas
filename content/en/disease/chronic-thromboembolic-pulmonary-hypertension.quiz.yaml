@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the pulmonary arteries in CTEPH?
+    options:
+      - text: They widen, and blood flows through them more freely
+      - text: Branches stay narrowed or blocked by clots after PE
+        correct: true
+      - text: They are completely blocked by cholesterol plaques
+    explanation: In CTEPH, branches of the pulmonary artery stay narrowed or blocked by organised clots after a thromboembolism, and the small lung vessels then change as well.
+    cite: [1, 3]
+  - level: patient
+    prompt: What is the main symptom of CTEPH?
+    options:
+      - text: A severe headache in the morning right after waking
+      - text: An itchy rash on the skin of the shins and feet
+      - text: Gradually worsening breathlessness on exertion
+        correct: true
+    explanation: The symptoms of CTEPH are non-specific and may be absent early on. The main symptom is breathlessness on exertion that builds up gradually.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: Which test is the main way to rule out CTEPH?
+    options:
+      - text: A ventilation/perfusion lung scan
+        correct: true
+      - text: A blood test for cholesterol level
+      - text: An ultrasound scan of the abdominal organs
+    explanation: 'The main way to rule out CTEPH is a ventilation/perfusion lung scan: if the blood supply to the lungs on the scan is normal, CTEPH is very unlikely.'
+    cite: [1, 2]
+  - level: patient
+    prompt: What does the surgeon do in pulmonary endarterectomy?
+    options:
+      - text: Removes only a fresh clot, as in acute PE
+      - text: Replaces the pulmonary valve with an artificial one
+      - text: Removes dense fibrotic material from the arteries
+        correct: true
+    explanation: 'Pulmonary endarterectomy is not the removal of a fresh clot as in acute PE: the surgeon frees the organised fibrotic material from the wall and removes it from the branches of both pulmonary arteries, down to small branches.'
+    cite: [1, 2, 3]
+  - level: student
+    prompt: Without parenchymal lung disease, what excludes CTEPH with a negative predictive value of 98%?
+    options:
+      - text: A normal CT pulmonary angiogram
+      - text: A normal perfusion scan
+        correct: true
+      - text: A normal 12-lead ECG
+    explanation: 'In the absence of parenchymal lung disease, a normal perfusion scan excludes CTEPH with a negative predictive value of 98%. A negative CT pulmonary angiogram does not exclude CTEPD, as distal disease can be missed.'
+    cite: [2]
+  - level: student
+    prompt: What is diagnosed when post-thromboembolic lesions are present without pre-capillary PH?
+    options:
+      - text: CTEPD
+        correct: true
+      - text: PAH
+      - text: Acute PE
+    explanation: When such lesions are present without pre-capillary PH, chronic thromboembolic pulmonary disease (CTEPD) is diagnosed; ESC/ERS 2022 keeps the term CTEPH for patients with PH.
+    cite: [1, 2]

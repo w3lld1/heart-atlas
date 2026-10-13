@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is noncompaction?
+    options:
+      - text: A narrowed aortic valve at the outlet of the left ventricle
+      - text: A ventricular wall of muscle strands with deep recesses
+        correct: true
+      - text: A bulge in the ventricular wall left after a heart attack
+    explanation: 'Noncompaction is a feature of the structure of the ventricular wall: its inner layer is made of many prominent muscle strands (trabeculae) with deep recesses between them, and the outer dense (compact) layer is often thin.'
+    cite: [1, 6]
+  - level: patient
+    prompt: What is true about the symptoms of noncompaction?
+    options:
+      - text: In many people it causes no symptoms at all
+        correct: true
+      - text: It always shows itself already in early childhood
+      - text: Its main sign is pain in the small joints
+    explanation: 'Many people with noncompaction have no symptoms at all. When there are symptoms, they are most often signs of heart failure: breathlessness on exertion, tiredness and swelling.'
+    cite: [1, 6, 7]
+  - level: patient
+    prompt: Why does noncompaction raise the risk of thromboembolism?
+    options:
+      - text: The muscle strands break off and travel with the blood
+      - text: The ventricle shrinks and stops letting blood through
+      - text: Blood can pool in the deep recesses of the wall
+        correct: true
+    explanation: Blood can pool in the deep recesses of the wall, which raises the risk of thromboembolism, including stroke.
+    cite: [6]
+  - level: patient
+    prompt: Which tests show noncompaction?
+    options:
+      - text: Only a blood test for heart enzymes
+      - text: Echocardiography and cardiac MRI
+        correct: true
+      - text: Only a plain chest X-ray, with no other imaging
+    explanation: Noncompaction is seen on heart ultrasound (echocardiography) and cardiac MRI; according to the MSD Manual, MRI with a contrast agent is more sensitive than ultrasound.
+    cite: [1, 6]
+  - level: student
+    prompt: Which layer thickness ratio does the Russian guideline give in its diagnostic criteria?
+    options:
+      - text: Noncompacted to compact layer greater than 2
+        correct: true
+      - text: Noncompacted to compact layer less than 1
+      - text: Layers of equal thickness, a ratio of exactly 1
+    explanation: In the wording of the Russian Ministry of Health guideline, the diagnosis is made on echocardiographic and/or MRI criteria, with a ratio of noncompacted to compact layer thickness greater than 2.
+    cite: [1]
+  - level: student
+    prompt: According to MSD, what predisposes to heart failure and ventricular tachyarrhythmias?
+    options:
+      - text: Blood flow stasis in the intertrabecular recesses
+      - text: Atherosclerotic narrowing of the coronary arteries
+      - text: Fibrosis from disordered myocardial architecture
+        correct: true
+    explanation: According to MSD, the disordered myocardial architecture and associated microvascular abnormalities lead to fibrosis, which predisposes to systolic and diastolic heart failure and to ventricular tachyarrhythmias; stasis in the deep recesses predisposes to thromboembolic events.
+    cite: [6]

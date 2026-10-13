@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the ventricles in ventricular fibrillation?
+    options:
+      - text: They contract more slowly but in a coordinated way
+      - text: They contract faster and pump out more blood
+      - text: They only quiver and pump no blood out
+        correct: true
+    explanation: 'In VF, many chaotic electrical impulses keep the ventricles from contracting in a coordinated way: they only quiver. No blood is pumped out of the heart, so VF is a form of cardiac arrest.'
+    cite: [5]
+  - level: patient
+    prompt: What is the most common cause of VF?
+    options:
+      - text: A lack of vitamins in the daily diet
+      - text: Heart disease, mainly coronary disease
+        correct: true
+      - text: A cold with a runny nose and sore throat
+    explanation: The most common cause of VF is heart disease, above all too little blood flow to the heart muscle in coronary heart disease, for example during a heart attack.
+    cite: [5]
+  - level: patient
+    prompt: What does cardiac arrest often turn out to be?
+    options:
+      - text: The first sign of an unknown heart disease
+        correct: true
+      - text: The result only of a mild cold left untreated
+      - text: The result only of very old age
+    explanation: Cardiac arrest is often the first sign of a heart disease the person did not know about.
+    cite: [1, 6]
+  - level: patient
+    prompt: What does an implantable cardioverter defibrillator (ICD) do?
+    options:
+      - text: It dissolves clots in the coronary arteries
+      - text: It detects VF and delivers a shock
+        correct: true
+      - text: It takes the place of a damaged heart valve
+    explanation: An ICD is a small battery-powered device placed under the skin just below the collarbone, with thin wires (leads) in the heart. It constantly monitors the rhythm, detects VF by itself and delivers a shock.
+    cite: [3, 5]
+  - level: student
+    prompt: How does VF appear on the ECG?
+    options:
+      - text: Wide identical QRS complexes in a regular rhythm
+      - text: Sawtooth F waves with a regular ventricular rhythm
+      - text: Ultrarapid irregular baseline undulations
+        correct: true
+    explanation: On the ECG, VF appears as ultrarapid baseline undulations that are irregular in timing and morphology.
+    cite: [4]
+  - level: student
+    prompt: What mechanism underlies VF?
+    options:
+      - text: Multiple wavelet re-entry
+        correct: true
+      - text: A single focus of enhanced automaticity
+      - text: Complete conduction block in the AV node
+    explanation: The mechanism of VF is multiple wavelet re-entry.
+    cite: [4]
