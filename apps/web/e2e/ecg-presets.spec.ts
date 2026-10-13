@@ -155,3 +155,72 @@ test('the VT article keeps the monitor still with motion off', async ({ page }) 
     .check();
   await expect(play).toBeVisible();
 });
+
+test('the atrial flutter article starts at the preset rate and keeps the F waves in range', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/atrial-flutter/');
+  // The article also has a normal / disease diagram: look only at the monitor's switch.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.atrial-flutter.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+  // 2:1 conduction with F waves at 250–350 per minute: ventricles at 126–175.
+  await expect(slider).toHaveValue('150');
+  await expect(slider).toHaveAttribute('min', '126');
+  await expect(slider).toHaveAttribute('max', '175');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.atrial-flutter.ecg'].replace('{rate}', '150'),
+  );
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '180');
+  await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
+});
+
+test('the sick sinus syndrome article starts below 40 with sinus pauses', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/sick-sinus-syndrome/');
+  // The article also has a normal / disease diagram: look only at the monitor's switch.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.sick-sinus-syndrome.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+  // The slider goes below the usual 40 only for this preset, and stays below 40.
+  await expect(slider).toHaveValue('35');
+  await expect(slider).toHaveAttribute('min', '30');
+  await expect(slider).toHaveAttribute('max', '39');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.sick-sinus-syndrome.ecg'].replace('{rate}', '35'),
+  );
+  await expect(ecg).toHaveAccessibleDescription(/pause of 3 seconds with no P wave/);
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '180');
+  await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
+});

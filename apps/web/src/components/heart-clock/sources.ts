@@ -141,4 +141,27 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-tachycardia-vt',
     lang: 'en',
   },
+  // Atrial flutter and sick sinus syndrome: docs/plans/2026-10-12-more-ecg-presets.md. The
+  // AF/flutter guideline (382_2) is listed above with atrial fibrillation, and the
+  // Bradyarrhythmias guideline (160_2) with first-degree AV block.
+  {
+    text: '2019 Рекомендации ESC по лечению пациентов с наджелудочковыми тахикардиями. Рос кардиол журн. 2020;25(7):3864.',
+    href: 'https://doi.org/10.15829/1560-4071-2020-3864',
+    lang: 'ru',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Atrial Flutter. 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/atrial-flutter',
+    lang: 'en',
+  },
+  {
+    text: '2021 Рекомендации ESC по электрокардиостимуляции и сердечной ресинхронизирующей терапии. Рос кардиол журн. 2022;27(7):5159.',
+    href: 'https://doi.org/10.15829/1560-4071-2022-5159',
+    lang: 'ru',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Sick Sinus Syndrome (Sinus Node Dysfunction). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/sinus-node-dysfunction',
+    lang: 'en',
+  },
 ];

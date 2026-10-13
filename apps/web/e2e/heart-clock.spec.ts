@@ -167,6 +167,12 @@ test.describe('disease presets', () => {
     await expect(
       conditions.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] }),
     ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] }),
+    ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }),
+    ).toHaveCount(1);
     await conditions
       .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
       .check();
@@ -235,6 +241,21 @@ test.describe('disease presets', () => {
     const [, longQtMax] = presetRateLimits('long-qt-syndrome');
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
     await expect(slider).toHaveAttribute('max', String(longQtMax));
+
+    // Atrial flutter has a floor and a ceiling; sick sinus syndrome goes below 40 and stays there.
+    await page.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] }).check();
+    const [flutterMin, flutterMax] = presetRateLimits('atrial-flutter');
+    await expect(slider).toHaveValue(String(presetParams('atrial-flutter').heartRate));
+    await expect(slider).toHaveAttribute('min', String(flutterMin));
+    await expect(slider).toHaveAttribute('max', String(flutterMax));
+    await page.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }).check();
+    const [sssMin, sssMax] = presetRateLimits('sick-sinus-syndrome');
+    await expect(slider).toHaveValue(String(presetParams('sick-sinus-syndrome').heartRate));
+    await expect(slider).toHaveAttribute('min', String(sssMin));
+    await expect(slider).toHaveAttribute('max', String(sssMax));
+    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await expect(slider).toHaveValue(String(defaultParams.heartRate));
+    await expect(slider).toHaveAttribute('min', String(defaultRateLimits[0]));
   });
 
   test('keep drawing when switched after playing for a while', async ({ page }) => {

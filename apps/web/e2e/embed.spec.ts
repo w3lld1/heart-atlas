@@ -185,6 +185,38 @@ test.describe('embed parameters', () => {
     await expect(slider(page)).toHaveValue(String(longQtMax));
   });
 
+  test('keeps a URL rate inside the atrial flutter and sick sinus syndrome ranges', async ({
+    page,
+  }) => {
+    const flutter = page.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] });
+    await page.goto('en/embed/ecg/?preset=atrial-flutter');
+    await hydrated(page);
+    await expect(flutter).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(presetParams('atrial-flutter').heartRate));
+    const [flutterMin, flutterMax] = presetRateLimits('atrial-flutter');
+    await page.goto(`en/embed/ecg/?preset=atrial-flutter&rate=${flutterMin - 1}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(flutterMin));
+    await page.goto(`en/embed/ecg/?preset=atrial-flutter&rate=${flutterMax + 1}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(flutterMax));
+
+    const sss = page.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] });
+    await page.goto('en/embed/ecg/?preset=sick-sinus-syndrome');
+    await hydrated(page);
+    await expect(sss).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(presetParams('sick-sinus-syndrome').heartRate));
+    // Below 40 only for this preset: the model's lowest rate is accepted, 40 is not.
+    const [sssMin, sssMax] = presetRateLimits('sick-sinus-syndrome');
+    await page.goto(`en/embed/ecg/?preset=sick-sinus-syndrome&rate=${sssMin}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(sssMin));
+    await page.goto(`en/embed/ecg/?preset=sick-sinus-syndrome&rate=${sssMax + 1}`);
+    await hydrated(page);
+    await expect(sss).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(sssMax));
+  });
+
   test('the reader can change the rate set by the URL', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
@@ -278,6 +310,13 @@ test.describe('embed builder', () => {
     const vtOption = condition.locator('option[value="ventricular-tachycardia"]');
     await expect(vtOption).toHaveAttribute('data-min', String(vtMin));
     await expect(vtOption).toHaveAttribute('data-max', String(vtMax));
+    // Atrial flutter has a floor and a ceiling; sick sinus syndrome goes below 40 and stays there.
+    for (const id of ['atrial-flutter', 'sick-sinus-syndrome'] as const) {
+      const [min, max] = presetRateLimits(id);
+      const option = condition.locator(`option[value="${id}"]`);
+      await expect(option).toHaveAttribute('data-min', String(min));
+      await expect(option).toHaveAttribute('data-max', String(max));
+    }
     // A rate the preset does not allow is reported and left out of the code.
     const [, asdMax] = heartRateLimits(presetParams('atrial-septal-defect'));
     await condition.selectOption('atrial-septal-defect');

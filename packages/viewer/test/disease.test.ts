@@ -121,11 +121,14 @@ describe('diseaseView', () => {
       beat: true,
     });
     expect(diseaseView(undefined, 'normal', true)).toBeNull();
-    // Presets with no shape in the model: first-degree AV block, SVT, long QT syndrome and VT.
+    // Presets with no shape in the model: first-degree AV block, SVT, long QT syndrome, VT,
+    // atrial flutter and sick sinus syndrome.
     expect(diseaseView(undefined, 'av-block-first-degree', true)).toBeNull();
     expect(diseaseView(undefined, 'supraventricular-tachycardia', true)).toBeNull();
     expect(diseaseView(undefined, 'long-qt-syndrome', true)).toBeNull();
     expect(diseaseView(undefined, 'ventricular-tachycardia', true)).toBeNull();
+    expect(diseaseView(undefined, 'atrial-flutter', true)).toBeNull();
+    expect(diseaseView(undefined, 'sick-sinus-syndrome', true)).toBeNull();
     expect(diseaseView(undefined, null, false)).toBeNull();
   });
 

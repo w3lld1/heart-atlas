@@ -13,18 +13,23 @@ import {
   switchedHeartRate,
   type PresetId,
 } from '../src/presets.ts';
+import { flutterWaves } from '../src/ecg.ts';
 import { soundEvents } from '../src/sounds.ts';
 
 // Presets that do not fit every heart rate: the wide QRS of atrial septal defect does not fit the
 // fastest rates, nor does the long PR of first-degree AV block or the long QT of long QT syndrome.
 // SVT has a floor: its rate is the sign, 120–250 bpm. VT has both: a floor above 100 bpm, and its
-// wide QRS does not fit the fastest rates.
+// wide QRS does not fit the fastest rates. Atrial flutter has a floor and a ceiling: at 2:1 its F
+// waves run at twice the ventricular rate, inside 250–350 per minute. Sick sinus syndrome stays
+// below 40 bpm, from the model's lowest rate of 30.
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
   'supraventricular-tachycardia': [120, 180],
   'long-qt-syndrome': [40, 137],
   'ventricular-tachycardia': [101, 169],
+  'atrial-flutter': [126, 175],
+  'sick-sinus-syndrome': [30, 39],
 };
 
 describe('presets', () => {
@@ -172,6 +177,104 @@ describe('presets', () => {
     }
   });
 
+  it('shows regular sawtooth F waves at twice the ventricular rate in atrial flutter', () => {
+    const params = presetParams('atrial-flutter');
+    expect(params.heartRate).toBe(150);
+    expect(params.atrialContribution).toBe(0);
+    const [min, max] = presetRateLimits('atrial-flutter');
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      // 2:1 conduction: the atria run at twice the ventricular rate, 250–350 per minute, with an
+      // F-wave cycle under 240 ms.
+      const atrialRate = 2 * heartRate;
+      expect(atrialRate, `at ${heartRate}`).toBeGreaterThanOrEqual(250);
+      expect(atrialRate, `at ${heartRate}`).toBeLessThanOrEqual(350);
+      expect(60000 / atrialRate, `at ${heartRate}`).toBeLessThan(240);
+      const clock = createHeartClock({ ...params, heartRate });
+      // The same rhythm without flutter: what is left is the F waves alone.
+      const plain = createHeartClock({
+        ...params,
+        heartRate,
+        flutterConduction: 0,
+        flutterAmplitude: 0,
+      });
+      for (const time of [1000, 3000, 6000]) {
+        const beat = clock.beatAt(time);
+        // Regular rhythm: every RR is the mean RR.
+        expect(beat.rr, `at ${heartRate}`).toBeCloseTo(60000 / heartRate, 9);
+        const f = Array.from(
+          { length: Math.floor(beat.rr) },
+          (_, t) => clock.ecgAt(beat.start + t) - plain.ecgAt(beat.start + t),
+        );
+        // Two sawtooth troughs (a slow fall turning into a quick rise) in every beat.
+        let troughs = 0;
+        for (let k = 2; k < f.length; k += 1) {
+          const [a = 0, b = 0, c = 0] = [f[k - 2], f[k - 1], f[k]];
+          if (c > b && b <= a) troughs += 1;
+        }
+        expect(troughs, `at ${heartRate}, ${time} ms`).toBe(2);
+        expect(Math.max(...f) - Math.min(...f), `at ${heartRate}`).toBeCloseTo(0.2, 2);
+        // The difference is the model's F waves, which repeat every half RR.
+        const at = Math.round(0.3 * beat.rr);
+        expect(f[at]).toBeCloseTo(flutterWaves(at, beat.timing, beat.params), 9);
+        expect(flutterWaves(at, beat.timing, beat.params)).toBeCloseTo(
+          flutterWaves(at + beat.rr / 2, beat.timing, beat.params),
+          9,
+        );
+      }
+      // No P wave under the F waves: without them the trace is flat up to the QRS.
+      const plainBeat = plain.beatAt(3000);
+      for (let t = 0; t < plainBeat.timing.qOnset; t += 1) {
+        expect(Math.abs(plain.ecgAt(plainBeat.start + t)), `at ${heartRate}, ${t} ms`).toBeLessThan(
+          0.02,
+        );
+      }
+    }
+  });
+
+  it('shows sinus bradycardia with pauses that have no P wave and no QRS in sick sinus syndrome', () => {
+    const params = presetParams('sick-sinus-syndrome');
+    expect(params.heartRate).toBe(35);
+    const [min, max] = presetRateLimits('sick-sinus-syndrome');
+    // Below 40 per minute, the lowest normal daytime resting rate in both guidelines.
+    expect(max).toBeLessThan(40);
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      const clock = createHeartClock({ ...params, heartRate });
+      const rr = 60000 / heartRate;
+      const beats = clock.beatsBetween(0, 9000);
+      expect(beats.length, `at ${heartRate}`).toBeGreaterThanOrEqual(4);
+      for (const beat of beats) {
+        // A pause after every third beat, longer than 2.5 s; the rhythm between pauses is regular.
+        const pause = beat.index % 3 === 2 ? 3000 : 0;
+        expect(beat.pause, `at ${heartRate}, beat ${beat.index}`).toBe(pause);
+        expect(beat.rr, `at ${heartRate}, beat ${beat.index}`).toBeCloseTo(rr + pause, 9);
+        // Every beat starts with a P wave: sinus rhythm.
+        const pPeak = Math.max(
+          ...Array.from({ length: Math.floor(beat.timing.qOnset) }, (_, t) =>
+            clock.ecgAt(beat.start + t),
+          ),
+        );
+        expect(pPeak, `at ${heartRate}, beat ${beat.index}`).toBeGreaterThan(0.1);
+      }
+      const paused = beats.find((beat) => beat.pause > 0);
+      const next = paused && beats.find((beat) => beat.index === paused.index + 1);
+      if (!paused || !next) throw new Error(`no pause in 9 s at ${heartRate}`);
+      // From QRS to QRS around the pause: 4.5–5 s.
+      const gap = next.start + next.timing.qOnset - (paused.start + paused.timing.qOnset);
+      expect(gap, `at ${heartRate}`).toBeGreaterThanOrEqual(4500);
+      expect(gap, `at ${heartRate}`).toBeLessThanOrEqual(5000);
+      // In the pause there is no P wave and no QRS: the line stays flat, and no sound plays.
+      for (let dt = 1; dt < paused.pause; dt += 10) {
+        const t = paused.start + paused.timing.rr + dt;
+        expect(clock.sample(t).pause, `at ${heartRate}, ${t} ms`).toBe(true);
+        expect(Math.abs(clock.ecgAt(t)), `at ${heartRate}, ${t} ms`).toBeLessThan(0.02);
+      }
+      const sounds = beats.flatMap(soundEvents);
+      expect(
+        sounds.filter((e) => e.time > paused.start + paused.timing.rr && e.time < next.start),
+      ).toEqual([]);
+    }
+  });
+
   it('splits S2 on every beat in atrial septal defect', () => {
     const clock = createHeartClock(presetParams('atrial-septal-defect'));
     for (const time of [1000, 3000, 6000]) {
@@ -221,6 +324,8 @@ describe('preset heart rate', () => {
     expect(presetIds.filter(setsHeartRate)).toEqual([
       'supraventricular-tachycardia',
       'ventricular-tachycardia',
+      'atrial-flutter',
+      'sick-sinus-syndrome',
     ]);
     expect(presetRateFloors['ventricular-tachycardia']).toBe(101);
     expect(switchedHeartRate('normal', 'supraventricular-tachycardia', 90)).toBe(170);
@@ -234,6 +339,10 @@ describe('preset heart rate', () => {
     // Long QT syndrome keeps the reader's rate; leaving VT for it goes back to its 75.
     expect(switchedHeartRate('normal', 'long-qt-syndrome', 90)).toBe(90);
     expect(switchedHeartRate('ventricular-tachycardia', 'long-qt-syndrome', 150)).toBe(75);
+    // Atrial flutter and sick sinus syndrome set their own rates as well.
+    expect(switchedHeartRate('normal', 'atrial-flutter', 90)).toBe(150);
+    expect(switchedHeartRate('atrial-flutter', 'sick-sinus-syndrome', 150)).toBe(35);
+    expect(switchedHeartRate('sick-sinus-syndrome', 'stemi', 35)).toBe(75);
     // A caller that changed the next preset's starting rate gets that rate.
     expect(switchedHeartRate('supraventricular-tachycardia', 'normal', 150, 90)).toBe(90);
   });

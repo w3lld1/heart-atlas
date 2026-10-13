@@ -19,6 +19,8 @@ export const presetIds = [
   'supraventricular-tachycardia',
   'long-qt-syndrome',
   'ventricular-tachycardia',
+  'atrial-flutter',
+  'sick-sinus-syndrome',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -120,6 +122,46 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // assumption: −0.3 mV, the default T amplitude inverted; no source gives a T amplitude.
     tAmplitude: -0.3,
   }),
+  'atrial-flutter': Object.freeze({
+    // Typical atrial flutter with 2:1 conduction. The rate is the sign, so this preset sets it: the
+    // atria depolarize at 250–350 per minute, typically 300, and typically half of the impulses get
+    // through (2:1 block), giving a regular ventricular rate of 150 (MSD Manuals, Atrial Flutter,
+    // 2024; source 4 of our flutter article). 150 is that source's number, so the F waves run at
+    // 2 × 150 = 300 per minute. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    heartRate: 150,
+    // Conduction is usually a fixed multiple from 4:1 to 2:1 (Minzdrav 2025, Atrial fibrillation and
+    // flutter, §2; source 1), typically 2:1 (MSD, same). The model keeps it fixed, so the rhythm is
+    // regular: rrIrregularity and fWaveAmplitude stay 0, as flutter requires (params.ts).
+    flutterConduction: 2,
+    // In typical flutter the F waves form a sawtooth, most obvious in II, III and aVF (Minzdrav
+    // 2025, §2; MSD), negative in the inferior leads in counterclockwise flutter (ESC 2019 SVT,
+    // Russian translation, §11.1.4.1.2; source 2). The model's sawtooth points down in lead II.
+    // assumption: 0.2 mV peak to peak; no source gives an F-wave amplitude.
+    flutterAmplitude: 0.2,
+    // Flutter waves with no isoelectric line between them stand in for the P wave (Minzdrav 2025,
+    // §1.1; MSD: continuous and regular atrial activation), so there is no separate P wave.
+    pAmplitude: 0,
+    // Symptoms come from the fast rate and the loss of atrial systole (ESC 2019 SVT, Russian
+    // translation, §11.1.4.1.2): no atrial share of filling.
+    atrialContribution: 0,
+  }),
+  'sick-sinus-syndrome': Object.freeze({
+    // Sinus node dysfunction includes sinus bradycardia and sinus arrest (Minzdrav 2025,
+    // Bradyarrhythmias, §1.5; MSD Manuals, Sick Sinus Syndrome, 2024; sources 1 and 3 of our
+    // article). The rate is the sign, so this preset sets it. The lowest normal rate is 40 per
+    // minute by day at rest and 35 at night (Minzdrav 2025, §2.4.2); 40–50 at rest and 30 in
+    // sleep can be physiological (ESC 2021 pacing, Russian translation, §5.1.1.1; source 2).
+    // assumption: 35, below the daytime resting limit of 40 in both documents. The slider stays
+    // at 30–39 (floor and ceiling below). Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    heartRate: 35,
+    // Sinus pause: the sinus node stops and the P waves disappear for seconds to minutes (MSD,
+    // same). Minzdrav accepts pauses of up to 2 s (§2.4.2); in healthy people pauses over 2.5 s are
+    // rare (ESC, §5.1.1.1). assumption: 3000 ms of silence after the beat, longer than both; the
+    // gap between the beats around a pause is then 4.5–5 s at 30–39 bpm. assumption: a pause
+    // after every third beat; real pauses are irregular, and the model draws no escape beats.
+    pauseEvery: 3,
+    pauseDuration: 3000,
+  }),
 });
 
 /**
@@ -134,13 +176,29 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   // VT runs at more than 100 per minute (Minzdrav 2025, Ventricular arrhythmias): 101 is the lowest
   // whole rate above that, so the slider never shows a rate below the VT definition.
   'ventricular-tachycardia': 101,
+  // Atrial flutter: atrial rate 250–350 per minute with F waves of a cycle under 240 ms (Minzdrav
+  // 2025, Atrial fibrillation and flutter, §2). At 2:1 the F waves run at twice the ventricular
+  // rate; at 125 bpm their cycle is exactly 240 ms, so 126 (F waves at 252, cycle 238 ms) is the
+  // lowest whole rate that meets both.
+  'atrial-flutter': 126,
+  // Sick sinus syndrome: the model's lowest rate (`paramRanges.heartRate`), not a source number.
+  'sick-sinus-syndrome': 30,
 });
 
 /**
  * The highest heart rate, bpm, a preset allows, when the sign has an upper bound (atrial flutter:
  * the F waves run at `flutterConduction` times the ventricular rate, inside the source's range).
  */
-export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({});
+export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({
+  // Atrial flutter: atrial rate up to 350 per minute (Minzdrav 2025, §1.1 and §2; MSD Manuals,
+  // Atrial Flutter, 2024); at 2:1 that is a ventricular rate of 175.
+  'atrial-flutter': 175,
+  // Sick sinus syndrome: below 40 per minute, the lowest normal daytime resting rate in Minzdrav
+  // 2025 (Bradyarrhythmias, §2.4.2) and the lower end of the possibly physiological 40–50 at rest
+  // in ESC 2021 pacing (§5.1.1.1), so the slider never shows a rate that either calls normal at
+  // rest.
+  'sick-sinus-syndrome': 39,
+});
 
 export function isPresetId(value: string): value is PresetId {
   return (presetIds as readonly string[]).includes(value);

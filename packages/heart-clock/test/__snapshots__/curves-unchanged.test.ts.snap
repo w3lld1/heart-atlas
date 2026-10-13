@@ -44,6 +44,22 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       180,
     ],
   },
+  "atrial-flutter": {
+    "curves": [
+      "126:b1be0f9c",
+      "137:4a26c9e3",
+      "170:985f63b9",
+      "175:1eda8799",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      126,
+      175,
+    ],
+  },
   "atrial-septal-defect": {
     "curves": [
       "40:19c0c766",
@@ -163,6 +179,20 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
     "presetLimits": [
       40,
       180,
+    ],
+  },
+  "sick-sinus-syndrome": {
+    "curves": [
+      "30:1464d54d",
+      "39:78a9edcf",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      30,
+      39,
     ],
   },
   "stemi": {
