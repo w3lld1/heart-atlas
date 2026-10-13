@@ -9,6 +9,7 @@ import { expect, test } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
+import ru from '../src/i18n/messages/ru.json' with { type: 'json' };
 import { axe } from './axe.ts';
 import { changedShare, MOVING } from './pixels.ts';
 
@@ -21,7 +22,10 @@ test.use({
   },
 });
 
+const messages: Record<string, typeof en> = { en, ru };
+
 for (const locale of Object.keys(productionLocales)) {
+  const t = messages[locale] ?? en;
   test.describe(`heart clock page (${locale})`, () => {
     test('is linked from the home page', async ({ page }) => {
       await page.goto(`${locale}/`);
@@ -41,9 +45,14 @@ for (const locale of Object.keys(productionLocales)) {
         await expect(image).toBeVisible();
         await expect(image).toHaveAttribute('width', /^[1-9]\d*$/);
       }
-      for (const index of [1, 3]) {
-        await expect(images.nth(index)).toHaveAccessibleDescription(/\S/);
-      }
+      const strip = (lead: string) =>
+        page.getByRole('img', { name: t['heartClock.ecgLabel'].replace('{lead}', lead) });
+      await expect(strip('II')).toHaveAccessibleDescription(/\S/);
+      await expect(strip('I')).toHaveAccessibleDescription('');
+      await expect(strip('III')).toHaveAccessibleDescription('');
+      await expect(
+        page.getByRole('img', { name: t['heartClock.wiggers.label'] }),
+      ).toHaveAccessibleDescription(/\S/);
       const results = await axe(page).analyze();
       expect(results.violations).toEqual([]);
     });
