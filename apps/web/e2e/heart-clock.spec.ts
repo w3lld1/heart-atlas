@@ -173,6 +173,12 @@ test.describe('disease presets', () => {
     await expect(
       conditions.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }),
     ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] }),
+    ).toHaveCount(1);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }),
+    ).toHaveCount(1);
     await conditions
       .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
       .check();
@@ -256,6 +262,47 @@ test.describe('disease presets', () => {
     await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
     await expect(slider).toHaveAttribute('min', String(defaultRateLimits[0]));
+  });
+
+  test('draw WPW syndrome in lead II and Brugada syndrome in lead V1, keeping the rate', async ({
+    page,
+  }) => {
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecgLabel = (lead: string) => en['heartClock.ecgLabel'].replace('{lead}', lead);
+    await slider.fill('90');
+
+    // WPW keeps the reader's rate; its delta wave narrows the upper limit.
+    await conditions.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] }).check();
+    const [, wpwMax] = presetRateLimits('wpw-syndrome');
+    await expect(slider).toHaveValue('90');
+    await expect(slider).toHaveAttribute('max', String(wpwMax));
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.wpw-syndrome.summary'],
+    );
+    await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveAccessibleDescription(
+      en['heartClock.preset.wpw-syndrome.ecg'].replace('{rate}', '90'),
+    );
+
+    // Brugada syndrome is drawn in V1, and the strip label says so.
+    await conditions.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }).check();
+    await expect(slider).toHaveValue('90');
+    await expect(slider).toHaveAttribute('max', String(defaultRateLimits[1]));
+    const v1 = page.getByRole('img', { name: ecgLabel('V1') });
+    await expect(v1).toHaveAccessibleDescription(
+      en['heartClock.preset.brugada-syndrome.ecg'].replace('{rate}', '90'),
+    );
+    await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveCount(0);
+    expect((await axe(page).analyze()).violations).toEqual([]);
+
+    // Back to normal: lead II again.
+    await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveAccessibleDescription(
+      /^Sinus rhythm at 90 /,
+    );
+    await expect(v1).toHaveCount(0);
   });
 
   test('keep drawing when switched after playing for a while', async ({ page }) => {

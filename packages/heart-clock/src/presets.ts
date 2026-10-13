@@ -21,6 +21,8 @@ export const presetIds = [
   'ventricular-tachycardia',
   'atrial-flutter',
   'sick-sinus-syndrome',
+  'wpw-syndrome',
+  'brugada-syndrome',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -162,6 +164,37 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     pauseEvery: 3,
     pauseDuration: 3000,
   }),
+  'wpw-syndrome': Object.freeze({
+    // Manifest accessory pathway in sinus rhythm: a short PR interval (<120 ms), a delta wave at
+    // the start of the QRS and a wide QRS (>120 ms) (Minzdrav 2025, Supraventricular
+    // tachycardias, §2.4; ESC 2019 SVT, Russian translation, §11.3.2; sources 1 and 2 of our WPW
+    // article). MSD Manuals (WPW Syndrome, 2024; source 3) shows the short PR and the delta wave
+    // in lead II during sinus rhythm, so the preset stays in lead II and keeps the reader's rate.
+    // Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    // assumption: 90 ms at 60 bpm. The model scales PR with √RR up to RR 1500 ms, so PR is 110 ms
+    // at 40 bpm, 80 ms at 75 and shorter at faster rates: below 120 ms at every rate.
+    prInterval: 90,
+    // assumption: QRS 130 ms, above the 120 ms threshold, with a delta wave of 40 ms; the rest of
+    // the complex keeps the model's default QRS width of 90 ms. No source gives the width of the
+    // delta wave. The later R peak (timing.ts) lets the preset fit up to 153 bpm.
+    qrsDuration: 130,
+    deltaWave: 40,
+  }),
+  'brugada-syndrome': Object.freeze({
+    // Type 1 Brugada pattern: J-point and ST elevation in the right precordial leads V1 and V2;
+    // the ST segment is coved and descends to an inverted T wave (MSD Manuals, Brugada Syndrome,
+    // 2026; source 2 of our Brugada article). The diagnosis needs a type 1 ST elevation of ≥2 mm
+    // in V1 and/or V2 (Minzdrav 2025, Ventricular arrhythmias, §3.3.15; source 1), which is
+    // 0.2 mV at the standard 10 mm/mV. The preset is drawn in V1 (`presetLeads`) and keeps the
+    // reader's rate. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    // assumption: 0.3 mV; with the tail of the deep V1 S wave the trace is about 0.28 mV at the
+    // J point, above the 0.2 mV threshold at every rate.
+    stShift: 0.3,
+    // Coved: highest just after the J point (the S tail), falling in a convex curve into the T wave.
+    stSlope: 1,
+    // assumption: −0.3 mV, the default T amplitude inverted; no source gives a T amplitude.
+    tAmplitude: -0.3,
+  }),
 });
 
 /**
@@ -227,7 +260,11 @@ export const leadBaselines: Readonly<Record<Lead, Readonly<Partial<HeartParams>>
 });
 
 /** The lead a preset is drawn in; presets not listed here are drawn in lead II. */
-export const presetLeads: Readonly<Partial<Record<PresetId, Lead>>> = Object.freeze({});
+export const presetLeads: Readonly<Partial<Record<PresetId, Lead>>> = Object.freeze({
+  // The type 1 pattern is seen in the right precordial leads V1 and V2 (Minzdrav 2025, Ventricular
+  // arrhythmias, §3.3.15; MSD Manuals, Brugada Syndrome, 2026); the model draws V1.
+  'brugada-syndrome': 'V1',
+});
 
 /** The lead a preset is drawn in. */
 export function presetLead(id: PresetId): Lead {

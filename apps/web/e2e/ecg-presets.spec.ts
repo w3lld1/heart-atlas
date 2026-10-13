@@ -224,3 +224,68 @@ test('the sick sinus syndrome article starts below 40 with sinus pauses', async 
   await expect(slider).toHaveAttribute('max', '180');
   await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
 });
+
+test('the WPW article shows pre-excitation in lead II', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/wpw-syndrome/');
+  // The article also has a normal / disease diagram: look only at the monitor's switch.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.wpw-syndrome.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+  // The preset keeps the default rate; the delta wave narrows the upper limit.
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '153');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.wpw-syndrome.ecg'].replace('{rate}', '75'),
+  );
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('max', '180');
+  await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
+});
+
+test('the Brugada article compares normal and type 1 in lead V1', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/brugada-syndrome/');
+  // The article also has a normal / disease diagram: look only at the monitor's switch.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.brugada-syndrome.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'V1') });
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '180');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.brugada-syndrome.ecg'].replace('{rate}', '75'),
+  );
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  // Normal is drawn in the same lead, so the reader compares V1 with V1.
+  await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+  await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
+  await expect(
+    page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') }),
+  ).toHaveCount(0);
+});

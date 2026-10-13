@@ -217,6 +217,31 @@ test.describe('embed parameters', () => {
     await expect(slider(page)).toHaveValue(String(sssMax));
   });
 
+  test('draws Brugada syndrome in lead V1 and keeps a URL rate under the WPW upper limit', async ({
+    page,
+  }) => {
+    const ecgLabel = (lead: string) => en['heartClock.ecgLabel'].replace('{lead}', lead);
+    await page.goto('en/embed/ecg/?preset=brugada-syndrome&rate=90');
+    await hydrated(page);
+    await expect(
+      page.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }),
+    ).toBeChecked();
+    await expect(slider(page)).toHaveValue('90');
+    await expect(page.getByRole('img', { name: ecgLabel('V1') })).toHaveAccessibleDescription(
+      en['heartClock.preset.brugada-syndrome.ecg'].replace('{rate}', '90'),
+    );
+    await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveCount(0);
+
+    // The delta wave of WPW narrows the upper limit; the preset keeps lead II.
+    const wpw = page.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] });
+    const [, wpwMax] = presetRateLimits('wpw-syndrome');
+    await page.goto(`en/embed/ecg/?preset=wpw-syndrome&rate=${wpwMax + 1}`);
+    await hydrated(page);
+    await expect(wpw).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(wpwMax));
+    await expect(page.getByRole('img', { name: ecgLabel('II') })).toBeVisible();
+  });
+
   test('the reader can change the rate set by the URL', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
@@ -311,7 +336,13 @@ test.describe('embed builder', () => {
     await expect(vtOption).toHaveAttribute('data-min', String(vtMin));
     await expect(vtOption).toHaveAttribute('data-max', String(vtMax));
     // Atrial flutter has a floor and a ceiling; sick sinus syndrome goes below 40 and stays there.
-    for (const id of ['atrial-flutter', 'sick-sinus-syndrome'] as const) {
+    // The delta wave of WPW narrows the upper limit; Brugada syndrome keeps the default range.
+    for (const id of [
+      'atrial-flutter',
+      'sick-sinus-syndrome',
+      'wpw-syndrome',
+      'brugada-syndrome',
+    ] as const) {
       const [min, max] = presetRateLimits(id);
       const option = condition.locator(`option[value="${id}"]`);
       await expect(option).toHaveAttribute('data-min', String(min));

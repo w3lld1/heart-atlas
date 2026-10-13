@@ -111,6 +111,8 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'ventricular-tachycardia': null,
   'atrial-flutter': null,
   'sick-sinus-syndrome': null,
+  'wpw-syndrome': null,
+  'brugada-syndrome': null,
 };
 
 /** What the model shows of a disease: its id, and whether its still and heartbeat captions apply. */

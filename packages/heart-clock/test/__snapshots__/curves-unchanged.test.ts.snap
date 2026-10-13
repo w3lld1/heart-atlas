@@ -98,6 +98,27 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       96,
     ],
   },
+  "brugada-syndrome": {
+    "curves": [
+      "40:d3067f32",
+      "40:d3067f32",
+      "47:dd1e98ff",
+      "60:1ca08362",
+      "75:1cb1fa08",
+      "100:b0dcb8f7",
+      "137:5298a734",
+      "170:33a7a4a5",
+      "180:d15c45e5",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
   "heart-failure": {
     "curves": [
       "40:2fd1830e",
@@ -245,6 +266,26 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
     "presetLimits": [
       101,
       169,
+    ],
+  },
+  "wpw-syndrome": {
+    "curves": [
+      "40:dadce89a",
+      "40:dadce89a",
+      "47:1f54dd48",
+      "60:50ba3165",
+      "75:8b7ff295",
+      "100:efd9ab37",
+      "137:bda19085",
+      "153:3d321321",
+    ],
+    "limits": [
+      40,
+      153,
+    ],
+    "presetLimits": [
+      40,
+      153,
     ],
   },
 }

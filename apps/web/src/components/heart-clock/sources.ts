@@ -164,4 +164,17 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/sinus-node-dysfunction',
     lang: 'en',
   },
+  // WPW and Brugada syndromes: docs/plans/2026-10-12-more-ecg-presets.md. The SVT guideline
+  // (619_3) is listed above with SVT, the ESC 2019 SVT translation with atrial flutter, and the
+  // Ventricular arrhythmias guideline (569_2) with long QT syndrome and VT.
+  {
+    text: 'MSD Manuals, Professional Version. Wolff-Parkinson-White Syndrome (WPW Syndrome). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/wolff-parkinson-white-syndrome-wpw-syndrome',
+    lang: 'en',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Brugada Syndrome. 2026.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/brugada-syndrome',
+    lang: 'en',
+  },
 ];

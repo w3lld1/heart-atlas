@@ -4,6 +4,7 @@ import { defaultParams, defaultRateLimits, paramRanges } from '../src/params.ts'
 import {
   isPresetId,
   presetIds,
+  presetLead,
   presetParams,
   presetRateFloors,
   presetRateLimits,
@@ -21,7 +22,8 @@ import { soundEvents } from '../src/sounds.ts';
 // SVT has a floor: its rate is the sign, 120–250 bpm. VT has both: a floor above 100 bpm, and its
 // wide QRS does not fit the fastest rates. Atrial flutter has a floor and a ceiling: at 2:1 its F
 // waves run at twice the ventricular rate, inside 250–350 per minute. Sick sinus syndrome stays
-// below 40 bpm, from the model's lowest rate of 30.
+// below 40 bpm, from the model's lowest rate of 30. In WPW syndrome the delta wave moves the R peak
+// later, so the wide QRS does not fit the fastest rates.
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
@@ -30,6 +32,7 @@ const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'ventricular-tachycardia': [101, 169],
   'atrial-flutter': [126, 175],
   'sick-sinus-syndrome': [30, 39],
+  'wpw-syndrome': [40, 153],
 };
 
 describe('presets', () => {
@@ -275,6 +278,82 @@ describe('presets', () => {
     }
   });
 
+  it('shows a short PR, a delta wave and a wide QRS in sinus rhythm in WPW syndrome', () => {
+    const params = presetParams('wpw-syndrome');
+    expect(presetLead('wpw-syndrome')).toBe('II');
+    expect(params.heartRate).toBe(defaultParams.heartRate);
+    const [min, max] = presetRateLimits('wpw-syndrome');
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      const clock = createHeartClock({ ...params, heartRate });
+      const beat = clock.beatAt(3000);
+      const at = (t: number) => clock.ecgAt(beat.start + t);
+      // Regular sinus rhythm: every RR is the mean RR, and a P wave comes before every QRS.
+      expect(beat.rr, `at ${heartRate}`).toBeCloseTo(60000 / heartRate, 9);
+      const pPeak = Math.max(
+        ...Array.from({ length: Math.floor(beat.timing.qOnset) }, (_, t) => at(t)),
+      );
+      expect(pPeak, `at ${heartRate}`).toBeGreaterThan(0.1);
+      // PR (from the onset of P to the onset of QRS) under 120 ms, QRS over 120 ms.
+      expect(beat.timing.qOnset, `at ${heartRate}`).toBeLessThan(120);
+      expect(beat.timing.jPoint - beat.timing.qOnset, `at ${heartRate}`).toBeGreaterThan(120);
+      // Delta wave: the QRS starts with a slow rise, not a Q wave, and R then rises far faster.
+      const { qOnset } = beat.timing;
+      const delta = beat.params.deltaWave;
+      for (let t = 0; t <= delta; t += 1) {
+        expect(at(qOnset + t), `at ${heartRate}, ${t} ms into QRS`).toBeGreaterThan(-0.02);
+      }
+      const deltaSlope = (at(qOnset + delta) - at(qOnset)) / delta;
+      expect(deltaSlope, `at ${heartRate}`).toBeGreaterThan(0);
+      let steepest = 0;
+      for (let t = qOnset + delta; t < beat.timing.rPeak; t += 1) {
+        steepest = Math.max(steepest, at(t + 1) - at(t));
+      }
+      expect(deltaSlope, `at ${heartRate}`).toBeLessThan(0.3 * steepest);
+    }
+    // The normal beat starts its QRS with a small Q wave instead.
+    const normal = createHeartClock().beatAt(3000);
+    const q = Math.min(
+      ...Array.from({ length: 30 }, (_, t) =>
+        createHeartClock().ecgAt(normal.start + normal.timing.qOnset + t),
+      ),
+    );
+    expect(q).toBeLessThan(-0.05);
+  });
+
+  it('shows a coved ST elevation of at least 0.2 mV into a negative T in lead V1 in Brugada syndrome', () => {
+    const params = presetParams('brugada-syndrome');
+    expect(presetLead('brugada-syndrome')).toBe('V1');
+    // The V1 baseline: an rS complex, with a small R wave and a deep S wave.
+    expect(params.rAmplitude).toBeLessThan(-params.sAmplitude);
+    expect(params.heartRate).toBe(defaultParams.heartRate);
+    const [min, max] = presetRateLimits('brugada-syndrome');
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      const clock = createHeartClock({ ...params, heartRate });
+      const beat = clock.beatAt(3000);
+      const at = (t: number) => clock.ecgAt(beat.start + t);
+      const { jPoint, qOnset, tEnd } = beat.timing;
+      // Sinus rhythm: a P wave before every QRS, and regular RR.
+      expect(beat.rr, `at ${heartRate}`).toBeCloseTo(60000 / heartRate, 9);
+      const pPeak = Math.max(...Array.from({ length: Math.floor(qOnset) }, (_, t) => at(t)));
+      expect(pPeak, `at ${heartRate}`).toBeGreaterThan(0.1);
+      // Type 1: at least 2 mm (0.2 mV) at the J point ...
+      expect(at(jPoint), `at ${heartRate}`).toBeGreaterThanOrEqual(0.2);
+      // ... falling all the way (coved) into a negative T wave.
+      const tCentre = tEnd - 2.5 * 0.07 * (tEnd - qOnset);
+      let previous = at(jPoint + 10);
+      for (let t = jPoint + 11; t <= tCentre; t += 1) {
+        const value = at(t);
+        expect(value, `at ${heartRate}, ${t - jPoint} ms after J`).toBeLessThan(previous);
+        previous = value;
+      }
+      expect(at(tCentre), `at ${heartRate}`).toBeLessThan(-0.2);
+    }
+    // Normal in V1 has no ST elevation: the trace is near the baseline at the J point.
+    const normal = createHeartClock(presetParams('normal', 'V1'));
+    const plain = normal.beatAt(3000);
+    expect(Math.abs(normal.ecgAt(plain.start + plain.timing.jPoint))).toBeLessThan(0.05);
+  });
+
   it('splits S2 on every beat in atrial septal defect', () => {
     const clock = createHeartClock(presetParams('atrial-septal-defect'));
     for (const time of [1000, 3000, 6000]) {
@@ -343,6 +422,9 @@ describe('preset heart rate', () => {
     expect(switchedHeartRate('normal', 'atrial-flutter', 90)).toBe(150);
     expect(switchedHeartRate('atrial-flutter', 'sick-sinus-syndrome', 150)).toBe(35);
     expect(switchedHeartRate('sick-sinus-syndrome', 'stemi', 35)).toBe(75);
+    // WPW and Brugada syndromes keep the reader's rate.
+    expect(switchedHeartRate('normal', 'wpw-syndrome', 90)).toBe(90);
+    expect(switchedHeartRate('wpw-syndrome', 'brugada-syndrome', 90)).toBe(90);
     // A caller that changed the next preset's starting rate gets that rate.
     expect(switchedHeartRate('supraventricular-tachycardia', 'normal', 150, 90)).toBe(90);
   });

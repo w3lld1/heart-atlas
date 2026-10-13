@@ -122,13 +122,15 @@ describe('diseaseView', () => {
     });
     expect(diseaseView(undefined, 'normal', true)).toBeNull();
     // Presets with no shape in the model: first-degree AV block, SVT, long QT syndrome, VT,
-    // atrial flutter and sick sinus syndrome.
+    // atrial flutter, sick sinus syndrome, WPW syndrome and Brugada syndrome.
     expect(diseaseView(undefined, 'av-block-first-degree', true)).toBeNull();
     expect(diseaseView(undefined, 'supraventricular-tachycardia', true)).toBeNull();
     expect(diseaseView(undefined, 'long-qt-syndrome', true)).toBeNull();
     expect(diseaseView(undefined, 'ventricular-tachycardia', true)).toBeNull();
     expect(diseaseView(undefined, 'atrial-flutter', true)).toBeNull();
     expect(diseaseView(undefined, 'sick-sinus-syndrome', true)).toBeNull();
+    expect(diseaseView(undefined, 'wpw-syndrome', true)).toBeNull();
+    expect(diseaseView(undefined, 'brugada-syndrome', true)).toBeNull();
     expect(diseaseView(undefined, null, false)).toBeNull();
   });
 
