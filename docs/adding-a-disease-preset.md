@@ -61,11 +61,11 @@ These parameters draw signs that the default lead II rhythm cannot. Spec: [heart
 | --- | --- | --- |
 | Slow rhythm below 40 bpm | `heartRate`, `presetRateFloors` | The model runs from 30 bpm; the slider offers less than 40 only to a preset with its own floor. PR stops growing below 40 bpm. |
 | Sinus pauses | `pauseEvery` (0 or 2–20), `pauseDuration` (ms, up to 6000) | A pause after every N-th beat: no P, no QRS, ventricle and atrium hold, the aorta keeps falling. Real pauses are irregular and the model draws no escape beats; say so in the summary. The screen reader text (`.ecg`) should mention the pauses. |
-| Pre-excitation (delta wave) | `deltaWave` (ms, at most half of `qrsDuration`), with a short `prInterval` and a wide `qrsDuration` | The QRS starts with a slow rise instead of a Q wave. The R peak moves later, which can narrow the upper heart rate limit. There is no accessory pathway in the 3D model. |
+| Pre-excitation (delta wave) | `deltaWave` (ms, at most half of `qrsDuration` and at least 0.15 of the rest of the QRS), with a short `prInterval` and a wide `qrsDuration` | The QRS starts with a slow rise instead of a Q wave. The R peak moves later, which can narrow the upper heart rate limit. There is no accessory pathway in the 3D model. |
 | Another lead | `presetLeads` (`'II'` or `'V1'`) | The preset's parameters go on top of the lead's baseline (`leadBaselines`: V1 is an rS complex). An article compares normal with the disease in the disease's lead, and the strip label names the lead. |
 | QRS shape | `qAmplitude`, `rAmplitude`, `sAmplitude` (mV) | Usually set by the lead baseline. |
 | Coved ST | `stShift` with `stSlope` (0 plateau, 1 coved) and a negative `tAmplitude` | `stSlope: 1` keeps the elevation highest at the J point and lets it fall in a convex curve into the T wave. The model draws no r′ wave. |
-| Atrial flutter | `flutterConduction` (0 or 2–4), `flutterAmplitude` (mV), `presetRateCeilings` | N sawtooth F waves in every beat, so they run at N times the ventricular rate at any slider position. Use a floor and a ceiling so the atrial rate stays inside the source's range. Needs `fWaveAmplitude` and `rrIrregularity` at 0; set `pAmplitude` and `atrialContribution` to 0 with their sources. |
+| Atrial flutter | `flutterConduction` (0 or 2–4), `flutterAmplitude` (mV), `presetRateCeilings` | N sawtooth F waves in every beat, so they run at N times the ventricular rate at any slider position. Use a floor and a ceiling so the atrial rate stays inside the source's range. Needs `fWaveAmplitude`, `rrIrregularity` and `pauseEvery` at 0; set `pAmplitude` and `atrialContribution` to 0 with their sources. |
 
 ### 2. Tests
 

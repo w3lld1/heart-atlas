@@ -32,7 +32,8 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const tAfter = 0.07 * qt;
   const tCentre = tEnd - 2.5 * tAfter;
   // stSlope bends the plateau into a coved segment: highest at J, falling ever faster to T.
-  const fall = params.stSlope * Math.min(1, Math.max(0, (t - jPoint) / (tCentre - jPoint))) ** 2;
+  const fall =
+    params.stSlope * Math.min(1, Math.max(0, (t - jPoint) / Math.max(1, tCentre - jPoint))) ** 2;
   const st =
     params.stShift *
     smoothstep(jPoint - Math.min(15, 0.15 * qrs), jPoint, t) *

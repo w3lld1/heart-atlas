@@ -208,6 +208,14 @@ export function resolveParams(
   if (params.deltaWave > params.qrsDuration / 2) {
     throw new RangeError('deltaWave must be at most half of qrsDuration');
   }
+  // The slow rise keeps its slope until R overtakes it (ecg.ts); a shorter one would climb above R.
+  if (params.deltaWave > 0 && params.deltaWave < 0.15 * (params.qrsDuration - params.deltaWave)) {
+    throw new RangeError('deltaWave must be 0 or at least 0.15 of the rest of the QRS');
+  }
+  // A flutter wave train restarts with every beat; a sinus pause would break it.
+  if (params.flutterConduction > 0 && params.pauseEvery > 0) {
+    throw new RangeError('flutterConduction needs pauseEvery at 0');
+  }
   if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
     throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');
   }

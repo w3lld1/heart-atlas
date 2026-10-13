@@ -96,6 +96,19 @@ describe('delta wave', () => {
     expect(beatTiming(1000, { ...defaultParams, deltaWave: 0 })).toEqual(plain);
     expect(() => resolveParams({ qrsDuration: 90, deltaWave: 46 })).toThrow(/deltaWave/);
     expect(() => resolveParams({ qrsDuration: 90, deltaWave: 45 })).not.toThrow();
+    // A short delta wave would climb above R: the lower bound keeps R the tallest point.
+    expect(() => resolveParams({ qrsDuration: 120, deltaWave: 10 })).toThrow(/deltaWave/);
+    for (const [qrs, delta] of [
+      [120, 16],
+      [90, 12],
+      [160, 40],
+    ] as const) {
+      const p = resolveParams({ prInterval: 120, qrsDuration: qrs, deltaWave: delta });
+      const tm = beatTiming(1000, p);
+      let peak = -Infinity;
+      for (let x = tm.qOnset; x < tm.jPoint; x += 0.25) peak = Math.max(peak, beatWaves(x, tm, p));
+      expect(peak, `${qrs}/${delta}`).toBeLessThanOrEqual(1.001);
+    }
   });
 });
 
@@ -188,6 +201,7 @@ describe('atrial flutter', () => {
       { ...flutter, flutterConduction: 1 },
       { ...flutter, flutterAmplitude: 0 },
       { flutterAmplitude: 0.1 },
+      { ...flutter, pauseEvery: 3, pauseDuration: 1300 },
     ]) {
       expect(() => resolveParams(patch), JSON.stringify(patch)).toThrow(/^flutter/);
     }
