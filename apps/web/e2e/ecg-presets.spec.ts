@@ -369,3 +369,51 @@ test('the Brugada article compares normal and type 1 in lead V1', async ({ page 
     page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') }),
   ).toHaveCount(0);
 });
+
+test('the extrasystole article shows ventricular and atrial premature beats', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/extrasystole/');
+  // Normal, ventricular premature beats (`preset`), then atrial (`morePresets`).
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(3);
+  await expect(conditions.getByRole('radio').nth(1)).toHaveAccessibleName(
+    en['heartClock.preset.ventricular-premature-beats'],
+  );
+  await expect(conditions.getByRole('radio').nth(2)).toHaveAccessibleName(
+    en['heartClock.preset.atrial-premature-beats'],
+  );
+  await expect(
+    conditions.getByRole('radio', {
+      name: en['heartClock.preset.ventricular-premature-beats'],
+      exact: true,
+    }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.ventricular-premature-beats.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '86');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.ventricular-premature-beats.ecg'].replace('{rate}', '75'),
+  );
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.atrial-premature-beats'], exact: true })
+    .check();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.atrial-premature-beats.summary'],
+  );
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '40');
+  await expect(slider).toHaveAttribute('max', '86');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.atrial-premature-beats.ecg'].replace('{rate}', '75'),
+  );
+});
