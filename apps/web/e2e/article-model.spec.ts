@@ -50,6 +50,7 @@ test.describe('3D model in an article without signs on the model', () => {
     ],
     'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
     'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
+    'peripartum-cardiomyopathy': ['left-ventricle'],
   };
   // Diagnostic articles with the model (spec addendum «3D-модель в статьях диагностики»).
   const diagnosticPlaces: Record<string, string[]> = {
