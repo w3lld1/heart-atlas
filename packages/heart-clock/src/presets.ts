@@ -54,6 +54,11 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // §3.2.1); the model's lead is like lead II. 0.2 mV, reached at the J point, is twice that
     // threshold. Sources ask for two contiguous leads; the model shows one.
     stShift: 0.2,
+    // Inferior MI: ST elevation in II, III and aVF, reciprocal ST depression most often in I and
+    // aVL; ST higher in III than in II points to the right coronary artery (StatPearls, Inferior
+    // Myocardial Infarction, 2025; MSD Manuals, Acute MI, 2026). assumption: +110°, which gives
+    // ST 0.31 mV in III and −0.11 mV in I with 0.2 mV in II; no source gives an ST axis.
+    stAxis: 110,
   }),
   'heart-failure': Object.freeze({
     // Heart failure with reduced ejection fraction: LVEF ≤40% (StatPearls, Heart Failure; also
@@ -81,6 +86,13 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // Wide fixed split of S2 (StatPearls, Atrial Septal Defect; Minzdrav 2023, §2.2).
     // assumption: the split size; no source gives it in ms.
     s2Split: 50,
+    // A secundum ASD with a significant shunt may show right axis deviation, +90° to 180° (MSD
+    // Manuals, Atrial Septal Defect, 2023; MSD, Electrocardiography; StatPearls, Electrical Right
+    // and Left Axis Deviation, 2024); a primum one turns the axis up and left (MSD, Atrioventricular
+    // Septal Defect), which the model cannot draw. assumption: +100°, a mild right axis that keeps
+    // lead III inside the strip; the T wave follows the QRS (MSD, Electrocardiography).
+    qrsAxis: 100,
+    tAxis: 100,
   }),
   'av-block-first-degree': Object.freeze({
     // First-degree AV block: every P wave is followed by a QRS, but PR is longer than 0.20 s
@@ -188,6 +200,11 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // The model's QRS is mainly positive (R 1 mV, ecg.ts), so a negative T is discordant to it.
     // assumption: −0.3 mV, the default T amplitude inverted; no source gives a T amplitude.
     tAmplitude: -0.3,
+    // VT from a ventricular outflow tract has a vertical downward axis with a near-isoelectric QRS
+    // in lead I (MSD Manuals, Ventricular Tachycardia, 2024). The model draws that kind: +90°, and
+    // the discordant T on the same axis. Other VTs turn the axis elsewhere (MSD, same).
+    qrsAxis: 90,
+    tAxis: 90,
   }),
   'atrial-flutter': Object.freeze({
     // Typical atrial flutter with 2:1 conduction. The rate is the sign, so this preset sets it: the
@@ -205,6 +222,10 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // Russian translation, §11.1.4.1.2; source 2). The model's sawtooth points down in lead II.
     // assumption: 0.2 mV peak to peak; no source gives an F-wave amplitude.
     flutterAmplitude: 0.2,
+    // Typical flutter shows negative F waves in II, III and aVF and flat, low-amplitude ones in I
+    // (StatPearls, Atrial Flutter, 2022). +90° points the F waves along aVF: flat in I, the same
+    // in III as in II. The angle is a model choice; the source gives the picture, not degrees.
+    fAxis: 90,
     // Flutter waves with no isoelectric line between them stand in for the P wave (Minzdrav 2025,
     // §1.1; MSD: continuous and regular atrial activation), so there is no separate P wave.
     pAmplitude: 0,

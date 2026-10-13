@@ -130,6 +130,12 @@ const ventricularPrematureShape = {
   atrialContribution: 0,
   prematureEvery: 0,
   prematureOrigin: 0,
+  // Idiopathic premature beats from a ventricular outflow tract have a vertical downward axis,
+  // with a near-isoelectric QRS in lead I (MSD Manuals, Ventricular Premature Beats, 2024); the
+  // T wave points opposite to the QRS (ESC 2022 ventricular arrhythmias, §3.1). The model draws
+  // that kind: +90° for both, the T being negative already.
+  qrsAxis: 90,
+  tAxis: 90,
 } as const satisfies Partial<HeartParams>;
 
 const ventricularPrematureCache = new WeakMap<HeartParams, Readonly<HeartParams>>();

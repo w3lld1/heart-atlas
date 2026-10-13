@@ -187,8 +187,11 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   prematureOrigin: 0,
   // assumption: no source gives the coupling interval.
   prematureCoupling: 0.7,
-  // assumption: every wave points at +60°, along lead II, so leads I and III show half of what
-  // lead II shows.
+  // Lead angles I 0°, II +60°, III +120° (StatPearls, Electrical Right and Left Axis Deviation,
+  // 2024). Normal P axis 0° to 75° (MSD Manuals, Electrocardiography, 2026); normal adult QRS
+  // axis −30° to +90° (StatPearls, same; MSD, same); the T wave usually takes the direction of the
+  // QRS (MSD, same). assumption: +60° for every wave, inside those ranges; no source gives a T or
+  // ST axis in degrees. Leads I and III then show half of what lead II shows.
   pAxis: 60,
   qrsAxis: 60,
   tAxis: 60,

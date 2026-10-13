@@ -98,3 +98,63 @@ describe('limb leads of the clock', () => {
     }
   });
 });
+
+describe('preset pictures in leads I, II and III', () => {
+  /** Values of each limb lead over `ms` from `from`, 1 ms apart. */
+  function leadsOver(clock: ReturnType<typeof createHeartClock>, from: number, ms: number) {
+    return Object.fromEntries(
+      (['I', 'II', 'III'] as const).map((lead) => [
+        lead,
+        Array.from(clock.ecgBetween(from, from + ms, ms + 1, lead)),
+      ]),
+    ) as Record<'I' | 'II' | 'III', number[]>;
+  }
+  const peak = (values: number[]) => Math.max(...values.map(Math.abs));
+
+  it('inferior STEMI: ST up in II and more in III, down in I', () => {
+    const clock = createHeartClock(presetParams('stemi'));
+    const beat = clock.beatAt(3000);
+    const t = beat.start + beat.timing.jPoint + 20;
+    expect(clock.ecgAt(t, 'II')).toBeGreaterThanOrEqual(0.1);
+    expect(clock.ecgAt(t, 'III')).toBeGreaterThan(clock.ecgAt(t, 'II'));
+    expect(clock.ecgAt(t, 'I')).toBeLessThan(0);
+  });
+
+  it('typical flutter: F waves flat in I, as in II in III', () => {
+    const clock = createHeartClock(presetParams('atrial-flutter'));
+    const beat = clock.beatAt(3000);
+    // Between T and the next QRS only F waves move the line.
+    const from = beat.start + beat.timing.tEnd + 10;
+    const ecg = leadsOver(clock, from, Math.floor(beat.rr - beat.timing.tEnd - 20));
+    expect(peak(ecg.I)).toBeLessThan(0.05 * peak(ecg.II));
+    // The tails of T and QRS differ a little: they keep their own axes.
+    expect(peak(ecg.III)).toBeCloseTo(peak(ecg.II), 2);
+  });
+
+  it('secundum ASD: right axis, QRS mainly negative in I', () => {
+    const clock = createHeartClock(presetParams('atrial-septal-defect'));
+    const beat = clock.beatAt(3000);
+    expect(clock.ecgAt(beat.start + beat.timing.rPeak, 'I')).toBeLessThan(0);
+    expect(clock.ecgAt(beat.start + beat.timing.rPeak, 'III')).toBeGreaterThan(0);
+  });
+
+  it('outflow tract VT and ventricular premature beats: QRS near flat in I', () => {
+    const vt = createHeartClock(presetParams('ventricular-tachycardia'));
+    const beat = vt.beatAt(3000);
+    const qrs = leadsOver(vt, beat.start + beat.timing.qOnset, beat.params.qrsDuration);
+    expect(peak(qrs.I)).toBeLessThan(0.05 * peak(qrs.II));
+
+    const clock = createHeartClock(presetParams('ventricular-premature-beats'));
+    const premature = clock
+      .beatsBetween(0, 9000)
+      .find((b) => b.params.prematureOrigin === 0 && b.params.pAmplitude === 0);
+    expect(premature).toBeDefined();
+    if (!premature) return;
+    const wide = leadsOver(
+      clock,
+      premature.start + premature.timing.qOnset,
+      premature.params.qrsDuration,
+    );
+    expect(peak(wide.I)).toBeLessThan(0.05 * peak(wide.II));
+  });
+});
