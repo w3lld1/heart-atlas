@@ -115,6 +115,56 @@ const shunt = [0, -1, -2];
     ></ellipse>
   </g>
 
+  <!--
+    After treatment: the defect is closed (Минздрав 806_1, 3.2–3.3: suture, a synthetic patch or
+    an occluder). One generic closure, no device shape, so no method is preferred. No shunt, so the
+    left chambers are drawn at normal size: Минздрав 806_1 links their dilation to the shunt's volume
+    overload, and its patient appendix says the heart "быстро уменьшается в размерах" after closure;
+    ESC 2020 ACHD 4.2.2: residual shunt size determines LV volume overload. A residual defect is
+    possible but not typical, so it is named in the caption, not drawn.
+    The left atrium and ventricle below copy the normal-only ellipses on purpose: edit both together.
+  -->
+  <g data-only="treated">
+    <ellipse
+      cx="245"
+      cy="95"
+      rx="58"
+      ry="45"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="248"
+      cy="205"
+      rx="52"
+      ry="60"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <rect
+      x="170"
+      y="191"
+      width="24"
+      height="28"
+      rx="5"
+      fill="var(--color-border)"
+      stroke="var(--color-text)"
+      stroke-width="2"
+    ></rect>
+    <path
+      d="M174,197 L190,197 M174,205 L190,205 M174,213 L190,213"
+      stroke="var(--color-text)"
+      stroke-width="1"
+      fill="none"
+    ></path>
+    <line x1="182" y1="223" x2="182" y2="305" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="182" y="322" text-anchor="middle">
+      {t['diagram.label.closed-defect']}
+    </text>
+  </g>
+
   <!-- Intact ventricular septum, pointed out in the normal view -->
   <g class="normal-only">
     <line x1="183" y1="215" x2="183" y2="305" stroke="var(--color-text)" stroke-width="1.5"></line>
