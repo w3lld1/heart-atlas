@@ -73,7 +73,7 @@
 - `av-block-second-degree-mobitz-1` и `av-block-second-degree-mobitz-2` в `presetIds` сразу после `av-block-first-degree`.
 - Мобитц I: `blockedP: 1`, `pauseEvery: 3`, `prInterval: 180`, `prStep: 80`, `heartRate: 60`.
 - Мобитц II: `blockedP: 1`, `pauseEvery: 2`, `heartRate: 75`.
-- Пределы ползунка: снизу 40 (`presetRateFloors`, `assumption:`), сверху — что разрешает модель (`heartRateLimits`).
+- Пределы ползунка: снизу 40 (`presetRateFloors`, `assumption:`). Сверху у Мобитц I 70 (`presetRateCeilings`, `assumption:`): модель допускает 76, но там у последнего удара группы остаётся около 12 мс наполнения, при 70 — около 57 мс. У Мобитц II сверху предел модели (180 зубцов P в минуту), это тоже выбор модели, источники верхнего предела не дают.
 - `presetShape`: оба `null`. Строки en, ru и тестовая локаль: «АВ-блокада II степени, Мобитц I» / "Second-degree AV block, Mobitz I", то же для II; `.summary` и `.ecg`. Источник в `presetSources`: StatPearls NBK482359.
 
 ## Тесты

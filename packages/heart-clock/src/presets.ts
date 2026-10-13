@@ -97,7 +97,7 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     blockedP: 1,
     pauseEvery: 3,
     // assumption: PR 180 ms, then +80 ms per beat (180, 260, 340 at 60 bpm). The sources give no
-    // numbers, and the growth is equal, though in the classic cycle it shrinks.
+    // numbers; with equal growth the RR intervals inside a group are equal too.
     prInterval: 180,
     prStep: 80,
     // assumption: the narrow QRS of block in the AV node (MSD: with a narrow QRS, Mobitz I is
@@ -318,13 +318,13 @@ export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = O
   // Pacemaker lower rate: assumption, see the preset. The model draws no own beats above it and no
   // rate-adaptive pacing.
   'sick-sinus-syndrome-paced': 70,
+  // assumption: the model fits Mobitz I up to 76 per minute, but there the last beat of a group
+  // keeps only about 12 ms of filling; 70 leaves about 57 ms. Mobitz II keeps the model's limit.
+  'av-block-second-degree-mobitz-1': 70,
   // Escape rhythm with a narrow QRS: 35–50 bpm (MSD, as above).
   'av-block-third-degree': 50,
   // assumption, as above.
   'av-block-third-degree-paced': 100,
-  // assumption: the model fits Mobitz I up to 76 per minute, but there the last beat of a group
-  // keeps only about 12 ms of filling; 70 leaves the ventricles time to fill visibly.
-  'av-block-second-degree-mobitz-1': 70,
 });
 
 /**

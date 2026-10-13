@@ -262,14 +262,28 @@ test.describe('disease presets', () => {
     await expect(ecg).toHaveAccessibleDescription(
       en['heartClock.preset.av-block-second-degree-mobitz-2.ecg'].replace('{rate}', '75'),
     );
-    // At 75 a P wave without a QRS comes every 2.4 s; the phase in its gap is filling.
+    await expect(slider).toHaveAttribute('min', '40');
+    await expect(slider).toHaveAttribute('max', '180');
+    expect((await axe(page).analyze()).violations).toEqual([]);
+    // At 75 a P wave without a QRS comes every 2.4 s and its gap lasts 0.8 s. The phase there is
+    // filling, so a run of filling far longer than in a regular beat (about 0.2 s) shows up, and
+    // the monitor never shows a sinus pause.
     const phase = page.locator('[data-phase]');
+    let run = 0;
+    let longest = 0;
     const seen = new Set<string>();
-    for (let i = 0; i < 60; i += 1) {
-      seen.add((await phase.getAttribute('data-phase')) ?? '');
-      await page.waitForTimeout(50);
-    }
-    expect(seen).toContain('filling');
+    await expect
+      .poll(
+        async () => {
+          const value = (await phase.getAttribute('data-phase')) ?? '';
+          seen.add(value);
+          run = value === 'filling' ? run + 1 : 0;
+          longest = Math.max(longest, run);
+          return longest;
+        },
+        { timeout: 10_000, intervals: [50] },
+      )
+      .toBeGreaterThanOrEqual(10);
     expect(seen).not.toContain('pause');
   });
 

@@ -69,37 +69,6 @@ describe('presetTreated', () => {
     expect(presetTreated['av-block-third-degree']).toBe('av-block-third-degree-paced');
   });
 
-  it('drops a P wave in second-degree AV block, with a growing PR only in Mobitz I', () => {
-    const qrsGaps = (id: PresetId) => {
-      const clock = createHeartClock(presetParams(id));
-      const beats = clock.beatsBetween(0, 9000);
-      return {
-        prs: beats.slice(0, 4).map((b) => Math.round(b.timing.qOnset)),
-        gaps: beats
-          .slice(0, 4)
-          .map((b, i) =>
-            Math.round(
-              (beats[i + 1]?.start ?? 0) +
-                (beats[i + 1]?.timing.rPeak ?? 0) -
-                b.start -
-                b.timing.rPeak,
-            ),
-          ),
-      };
-    };
-    // Mobitz I at 60: PR 180, 260, 340 and back to 180; the QRS after the dropped P comes late.
-    expect(qrsGaps('av-block-second-degree-mobitz-1')).toEqual({
-      prs: [180, 260, 340, 180],
-      gaps: [1080, 1080, 1840, 1080],
-    });
-    // Mobitz II at 75: the same PR, and the RR across the block twice the others.
-    const mobitz2 = qrsGaps('av-block-second-degree-mobitz-2');
-    expect(new Set(mobitz2.prs).size).toBe(1);
-    expect(mobitz2.gaps).toEqual([800, 1600, 800, 1600]);
-    expect(presetTreated['av-block-second-degree-mobitz-1']).toBeUndefined();
-    expect(presetTreated['av-block-second-degree-mobitz-2']).toBeUndefined();
-  });
-
   it('lets the PR of complete AV block wander at the starting rate, with P waves on QRS or T', () => {
     const clock = createHeartClock(presetParams('av-block-third-degree'));
     const period = 60000 / clock.params.atrialRate;
@@ -534,5 +503,38 @@ describe('heartRateLimits', () => {
     expect(() => checkParams({ ...defaultParams, qrsDuration: 130, heartRate: max + 1 })).toThrow(
       RangeError,
     );
+  });
+});
+
+describe('second-degree AV block', () => {
+  it('drops a P wave in second-degree AV block, with a growing PR only in Mobitz I', () => {
+    const qrsGaps = (id: PresetId) => {
+      const clock = createHeartClock(presetParams(id));
+      const beats = clock.beatsBetween(0, 9000);
+      return {
+        prs: beats.slice(0, 4).map((b) => Math.round(b.timing.qOnset)),
+        gaps: beats
+          .slice(0, 4)
+          .map((b, i) =>
+            Math.round(
+              (beats[i + 1]?.start ?? 0) +
+                (beats[i + 1]?.timing.rPeak ?? 0) -
+                b.start -
+                b.timing.rPeak,
+            ),
+          ),
+      };
+    };
+    // Mobitz I at 60: PR 180, 260, 340 and back to 180; the QRS after the dropped P comes late.
+    expect(qrsGaps('av-block-second-degree-mobitz-1')).toEqual({
+      prs: [180, 260, 340, 180],
+      gaps: [1080, 1080, 1840, 1080],
+    });
+    // Mobitz II at 75: the same PR, and the RR across the block twice the others.
+    const mobitz2 = qrsGaps('av-block-second-degree-mobitz-2');
+    expect(new Set(mobitz2.prs).size).toBe(1);
+    expect(mobitz2.gaps).toEqual([800, 1600, 800, 1600]);
+    expect(presetTreated['av-block-second-degree-mobitz-1']).toBeUndefined();
+    expect(presetTreated['av-block-second-degree-mobitz-2']).toBeUndefined();
   });
 });

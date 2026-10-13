@@ -202,7 +202,9 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.ncbi.nlm.nih.gov/books/NBK545199/',
     lang: 'en',
   },
-  // Second-degree AV block: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md.
+  // Second-degree AV block: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md. MSD AV
+  // block, the Bradyarrhythmias guideline (160_2) and the ESC 2021 pacing translation are listed
+  // above.
   {
     text: 'Mangi MA, Jones WM, Mansour MK, Napier L. Second-Degree Atrioventricular Block. StatPearls. Updated 2023-08-14.',
     href: 'https://www.ncbi.nlm.nih.gov/books/NBK482359/',
