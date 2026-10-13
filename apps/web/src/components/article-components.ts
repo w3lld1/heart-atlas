@@ -1,6 +1,7 @@
 import Cite from './Cite.astro';
 import Diagram from './diagrams/Diagram.astro';
 import EcgMonitor from './EcgMonitor.astro';
+import HeartSounds from './HeartSounds.astro';
 import Patient from './Patient.astro';
 import Quiz from './Quiz.astro';
 import Structure from './Structure.astro';
@@ -15,6 +16,7 @@ export const articleComponents = {
   Diagram,
   EcgMonitor,
   HeartModel,
+  HeartSounds,
   Patient,
   Quiz,
   Structure,

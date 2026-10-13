@@ -1,0 +1,68 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { heartSoundIds } from '../../components/heart-sounds/auscultation.ts';
+import HeartSounds, {
+  heartSoundsMessageKeys,
+  type HeartSoundsMessages,
+} from '../../components/heart-sounds/HeartSounds.tsx';
+import { heartSoundSources } from '../../components/heart-sounds/sources.ts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { localeCodes } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+
+// Normal heart sounds and the murmurs of five valve diseases: docs/plans/2026-10-13-heart-sounds.md.
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+const messages = Object.fromEntries(
+  heartSoundsMessageKeys.map((key) => [key, t[key]]),
+) as HeartSoundsMessages;
+// Every source once, in the order the sounds list them.
+const sources = [
+  ...new Map(heartSoundIds.flatMap((id) => heartSoundSources[id]).map((s) => [s.href, s])).values(),
+];
+---
+
+<BaseLayout locale={locale} title={t['heartSounds.title']} description={t['heartSounds.intro']}>
+  <h1>{t['heartSounds.title']}</h1>
+  <p>{t['heartSounds.intro']}</p>
+  <p class="schematic" role="note">
+    {t['heartSounds.schematic']}
+  </p>
+  <HeartSounds
+    client:visible
+    messages={messages}
+    sounds={heartSoundIds}
+    sources={heartSoundSources}
+  />
+  <h2>{t['heartSounds.sources']}</h2>
+  <ol class="sources">
+    {sources.map((source) => (
+      <li>
+        <a href={source.href} lang={source.lang}>
+          {source.text}
+        </a>
+      </li>
+    ))}
+  </ol>
+</BaseLayout>
+
+<style>
+  .schematic {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-inline-start: 4px solid var(--color-accent);
+  }
+
+  .sources {
+    padding-inline-start: 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  /* Short one-line links sit closer than the 24 px target spacing (WCAG 2.5.8) without a gap. */
+  .sources li + li {
+    margin-block-start: 0.5rem;
+  }
+</style>

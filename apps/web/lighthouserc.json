@@ -10,6 +10,7 @@
         "http://localhost:4321/heart-atlas/en/disease/heart-failure/",
         "http://localhost:4321/heart-atlas/ru/anatomy/",
         "http://localhost:4321/heart-atlas/ru/heart-clock/",
+        "http://localhost:4321/heart-atlas/ru/heart-sounds/",
         "http://localhost:4321/heart-atlas/ru/search/?q=%D1%81%D0%B5%D1%80%D0%B4%D1%86%D0%B5",
         "http://localhost:4321/heart-atlas/ru/embed/",
         "http://localhost:4321/heart-atlas/en/embed/ecg/",

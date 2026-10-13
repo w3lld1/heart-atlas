@@ -1,0 +1,67 @@
+---
+import { isHeartSoundId, type HeartSoundId } from './heart-sounds/auscultation.ts';
+import HeartSoundsPlayer, {
+  heartSoundsMessageKeys,
+  type HeartSoundsMessages,
+} from './heart-sounds/HeartSounds.tsx';
+import { heartSoundSources } from './heart-sounds/sources.ts';
+import { defaultLocale } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+
+// The heart sounds player inside an article: <HeartSounds sound="aortic-stenosis" />, with an
+// optional article caption as children. The reader compares the sound with the normal heart
+// (docs/plans/2026-10-13-heart-sounds.md). MDX components are not hydrated themselves, so this
+// Astro wrapper renders the island.
+interface Props {
+  sound: HeartSoundId;
+}
+
+const { sound } = Astro.props;
+if (!isHeartSoundId(sound)) throw new Error(`<HeartSounds>: unknown sound "${String(sound)}"`);
+const locale = Astro.locals.locale ?? defaultLocale;
+const t = getMessages(locale);
+const messages = Object.fromEntries(
+  heartSoundsMessageKeys.map((key) => [key, t[key]]),
+) as HeartSoundsMessages;
+const sounds: HeartSoundId[] = sound === 'normal' ? ['normal'] : ['normal', sound];
+const sources = Object.fromEntries(sounds.map((id) => [id, heartSoundSources[id]]));
+---
+
+<figure class="heart-sounds" data-pagefind-ignore>
+  <!-- The player and the note are UI text in the page locale; the caption is article text. -->
+  <div lang={locale}>
+    <p class="schematic" role="note">
+      {t['heartSounds.schematic']}
+    </p>
+    <HeartSoundsPlayer
+      client:visible
+      messages={messages}
+      sounds={sounds}
+      sound={sound}
+      sources={sources}
+    />
+  </div>
+  {Astro.slots.has('default') && (
+    <figcaption>
+      <slot />
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .heart-sounds {
+    margin-block: 1.5rem;
+    margin-inline: 0;
+  }
+
+  .schematic {
+    margin-block: 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-inline-start: 4px solid var(--color-accent);
+  }
+
+  figcaption {
+    margin-block-start: 0.5rem;
+  }
+</style>
