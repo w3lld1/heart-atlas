@@ -33,13 +33,16 @@ for (const locale of Object.keys(productionLocales)) {
 
     test('draws the ECG and has no axe violations', async ({ page }) => {
       await page.goto(`${locale}/heart-clock/`);
-      // Two drawings: the ECG strip and the Wiggers diagram, each with a pixel buffer.
+      // Four drawings: ECG strips for leads I, II and III and the Wiggers diagram, each with a
+      // pixel buffer. The rhythm description goes with the lead II strip only, so it is read once.
       const images = page.locator('canvas[role="img"]');
-      await expect(images).toHaveCount(2);
+      await expect(images).toHaveCount(4);
       for (const image of await images.all()) {
         await expect(image).toBeVisible();
         await expect(image).toHaveAttribute('width', /^[1-9]\d*$/);
-        await expect(image).toHaveAccessibleDescription(/\S/);
+      }
+      for (const index of [1, 3]) {
+        await expect(images.nth(index)).toHaveAccessibleDescription(/\S/);
       }
       const results = await axe(page).analyze();
       expect(results.violations).toEqual([]);

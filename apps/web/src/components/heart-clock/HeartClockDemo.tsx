@@ -87,9 +87,8 @@ export interface HeartClockDemoProps {
    */
   wiggers?: boolean;
   /**
-   * Shows limb leads I, II and III at once for presets drawn in lead II; presets drawn in V1 keep
-   * one strip. Off until the presets get their wave axes from sources
-   * (docs/plans/2026-10-13-heart-clock-three-leads.md).
+   * Shows limb leads I, II and III at once for presets drawn in lead II (the default); presets
+   * drawn in V1 keep one strip. Spec: docs/plans/2026-10-13-heart-clock-three-leads.md.
    */
   limbLeads?: boolean;
 }
@@ -133,7 +132,7 @@ export default function HeartClockDemo({
   headingLevel = 2,
   lead,
   wiggers: showWiggers = true,
-  limbLeads: showLimbLeads = false,
+  limbLeads: showLimbLeads = true,
 }: HeartClockDemoProps) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
   // Presets that fit the caller's parameters, with their parameters and heart rate limits.
@@ -470,8 +469,8 @@ export default function HeartClockDemo({
             className={styles['ecg']}
             role="img"
             aria-label={t['heartClock.ecgLabel'].replace('{lead}', lead ?? choice.lead)}
-            // The rhythm description is read once, with the first strip.
-            aria-describedby={k === 0 ? descriptionId : undefined}
+            // The rhythm description is read once, with the strip it describes: II, or V1.
+            aria-describedby={(lead ?? choice.lead) === choice.lead ? descriptionId : undefined}
             style={{
               inlineSize: width ? `${width}px` : '100%',
               blockSize: `${lead ? limbStrip.height : ecgHeight}px`,

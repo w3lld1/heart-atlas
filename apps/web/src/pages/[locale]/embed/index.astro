@@ -21,7 +21,8 @@ const embedUrl = (path: string) =>
 const pages = articlePages(await getCollection('articles'), locales).filter(
   (page) => page.locale === locale,
 );
-const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1200 };
+// Three ECG strips (I, II, III) take 172 px more than the single strip did.
+const ecg = { src: embedUrl('ecg/'), title: t['heartClock.title'], height: 1400 };
 const heartModel = { src: embedUrl('heart-model/'), title: t['anatomy.title'], height: 1000 };
 const hasMonitor = (entry: (typeof pages)[number]['entry']) =>
   entry.data.preset !== undefined || (entry.body ?? '').includes('<EcgMonitor');
@@ -35,7 +36,7 @@ const articleGroups = articleTypes
         src: embedUrl(`${type}/${page.slug}/`),
         title: page.entry.data.title,
         // Articles with the heart clock monitor are taller.
-        height: hasMonitor(page.entry) ? 1600 : 800,
+        height: hasMonitor(page.entry) ? 1800 : 800,
       }))
       .sort((a, b) => a.title.localeCompare(b.title, locale)),
   }))
