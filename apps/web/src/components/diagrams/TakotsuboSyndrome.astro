@@ -1,0 +1,218 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-tts-arrow`;
+// Long labels do not fit the label column on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const allWallsLines = twoLines(t['diagram.label.all-walls-contract']);
+const baseLines = twoLines(t['diagram.label.base-contracts-strongly']);
+const apexLines = twoLines(t['diagram.label.apex-mid-not-contracting']);
+
+// The left ventricle in a long-axis view, as on a ventriculogram: base at the top, apex at the
+// bottom. Only the left ventricle is drawn: no coronary arteries and no scar, which would read as
+// a heart attack.
+// Cavity before contraction (end of diastole), as an open outline along the wall; the same in both
+// states.
+const relaxedWall = 'M100,60 C78,150 100,320 160,320 C220,320 242,150 220,60';
+// Normal end of contraction: every wall moves in, so the whole cavity shrinks towards the middle
+// of the base, the apex included. The relaxed outline scaled about that point.
+const squeeze = (x: number, y: number) =>
+  `${+(160 + (x - 160) * 0.72).toFixed(1)},${+(60 + (y - 60) * 0.78).toFixed(1)}`;
+const normalWall = `M${squeeze(100, 60)} C${squeeze(78, 150)} ${squeeze(100, 320)} ${squeeze(160, 320)} C${squeeze(220, 320)} ${squeeze(242, 150)} ${squeeze(220, 60)}`;
+// Takotsubo end of contraction (the typical, apical type): the base contracts strongly and forms
+// a narrow neck, while the mid and apical walls stay about where they were, so the lower part
+// stays round like the bottom of an octopus trap. No numbers, no outflow obstruction.
+const takotsuboWall =
+  'M118,60 C114,90 120,110 130,128 C80,160 96,318 160,318 C224,318 240,160 190,128 C200,110 206,90 202,60';
+const closed = (wall: string) => `${wall} Z`;
+---
+
+<svg
+  viewBox="0 0 460 390"
+  role="img"
+  aria-label={t['diagram.takotsubo-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="5"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <text x="160" y="40" text-anchor="middle">
+    {t['diagram.label.lv-base']}
+  </text>
+  <text x="160" y="376" text-anchor="middle">
+    {t['diagram.label.lv-apex']}
+  </text>
+
+  <!-- Before contraction: shown at rest and while the beat is relaxed -->
+  <g class="tts-relaxed">
+    <path d={closed(relaxedWall)} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={relaxedWall}
+      fill="none"
+      stroke="var(--diagram-muscle)"
+      stroke-width="14"
+      stroke-linejoin="round"
+    ></path>
+  </g>
+
+  <!-- End of contraction: fades in during the beat; hidden when motion is off -->
+  <g class="tts-contracted normal-only">
+    <path d={closed(normalWall)} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={normalWall}
+      fill="none"
+      stroke="var(--diagram-muscle)"
+      stroke-width="14"
+      stroke-linejoin="round"
+    ></path>
+  </g>
+  <g class="tts-contracted disease-only">
+    <path d={closed(takotsuboWall)} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={takotsuboWall}
+      fill="none"
+      stroke="var(--diagram-muscle)"
+      stroke-width="14"
+      stroke-linejoin="round"
+    ></path>
+  </g>
+
+  <!-- Outlines. Solid: before contraction. Dashed: at the end of contraction. -->
+  <path
+    d={closed(relaxedWall)}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+  <g fill="none" stroke="var(--color-text)" stroke-width="2" stroke-dasharray="6 4">
+    <path class="normal-only" d={closed(normalWall)}></path>
+    <path class="disease-only" d={closed(takotsuboWall)}></path>
+  </g>
+
+  <!-- Arrows: where the walls move in. Normal: base, middle and apex. Takotsubo: the base only. -->
+  <g stroke="var(--color-text)" stroke-width="2.5" marker-end={`url(#${arrowId})`}>
+    <line x1="48" y1="100" x2="78" y2="100"></line>
+    <line x1="272" y1="100" x2="242" y2="100"></line>
+    <g class="normal-only">
+      <line x1="50" y1="200" x2="80" y2="200"></line>
+      <line x1="270" y1="200" x2="240" y2="200"></line>
+      <line x1="160" y1="356" x2="160" y2="334"></line>
+    </g>
+  </g>
+
+  <!-- Leader lines from the label column -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="288" y1="244" x2="234" y2="244"></line>
+    <line class="disease-only" x1="288" y1="136" x2="200" y2="124"></line>
+    <line class="disease-only" x1="288" y1="232" x2="232" y2="232"></line>
+  </g>
+
+  <!-- Labels in the right column -->
+  <text class="diagram-small normal-only" x="294" y="242">
+    <tspan x="294">{allWallsLines[0]}</tspan>
+    <tspan x="294" dy="15">
+      {allWallsLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="294" y="134">
+    <tspan x="294">{baseLines[0]}</tspan>
+    <tspan x="294" dy="15">
+      {baseLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="294" y="230">
+    <tspan x="294">{apexLines[0]}</tspan>
+    <tspan x="294" dy="15">
+      {apexLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Legend -->
+  <line
+    x1="268"
+    y1="318"
+    x2="300"
+    y2="318"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></line>
+  <text class="diagram-small" x="308" y="322">
+    {t['diagram.label.before-contraction']}
+  </text>
+  <line
+    x1="268"
+    y1="344"
+    x2="300"
+    y2="344"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    stroke-dasharray="6 4"
+  ></line>
+  <text class="diagram-small" x="308" y="348">
+    {t['diagram.label.contracted']}
+  </text>
+</svg>
+
+<style is:global>
+  /* One beat: the relaxed chamber gives way to the contracted one and back. Without motion only
+     the relaxed chamber is filled and the dashed outline shows the end of contraction. */
+  .diagram .tts-contracted {
+    opacity: 0;
+    animation: tts-contract 2s ease-in-out infinite;
+  }
+
+  .diagram .tts-relaxed {
+    animation: tts-relax 2s ease-in-out infinite;
+  }
+
+  @keyframes tts-contract {
+    0%,
+    25%,
+    85%,
+    100% {
+      opacity: 0;
+    }
+
+    40%,
+    65% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes tts-relax {
+    0%,
+    25%,
+    85%,
+    100% {
+      opacity: 1;
+    }
+
+    40%,
+    65% {
+      opacity: 0;
+    }
+  }
+</style>
