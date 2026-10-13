@@ -15,12 +15,18 @@ test.describe('article page', () => {
     await page.goto(article);
     await expect(page.locator(patient)).toBeVisible();
     await expect(page.locator(student)).toBeHidden();
+    // The switch is labelled and says what the chosen level gives.
+    await expect(page.locator('.level-switch-label')).toHaveText('Уровень объяснения');
+    await expect(page.locator('.level-hint[data-hint="patient"]')).toBeVisible();
+    await expect(page.locator('.level-hint[data-hint="student"]')).toBeHidden();
 
     const studentButton = page.getByRole('button', { name: 'Для студентов' });
     await studentButton.focus();
     await page.keyboard.press('Enter');
     await expect(studentButton).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator(student)).toBeVisible();
+    await expect(page.locator('.level-hint[data-hint="student"]')).toBeVisible();
+    await expect(page.locator('.level-hint[data-hint="patient"]')).toBeHidden();
 
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-level', 'student');

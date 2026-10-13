@@ -9,11 +9,24 @@ const t = getMessages(Astro.props.locale);
 const levels = ['patient', 'student'] as const;
 ---
 
-<div class="level-switch" role="group" data-pagefind-ignore aria-label={t['level.label']}>
+<div class="level-switch" data-pagefind-ignore>
+  <div class="level-buttons">
+    <span id="level-switch-label" class="level-switch-label">
+      {t['level.label']}
+    </span>
+    <div class="level-options" role="group" aria-labelledby="level-switch-label">
+      {levels.map((level) => (
+        <button type="button" data-set-level={level} aria-pressed="false">
+          {t[`level.${level}`]}
+        </button>
+      ))}
+    </div>
+  </div>
+  {/* Says what the chosen level changes; the article text below swaps without other notice. */}
   {levels.map((level) => (
-    <button type="button" data-set-level={level} aria-pressed="false">
-      {t[`level.${level}`]}
-    </button>
+    <p class="level-hint" data-hint={level}>
+      {t[`level.${level}.hint`]}
+    </p>
   ))}
 </div>
 
@@ -45,12 +58,41 @@ const levels = ['patient', 'student'] as const;
 <style>
   .level-switch {
     display: none;
-    gap: 0.5rem;
     margin-block: 1rem;
   }
 
   :global(html[data-level]) .level-switch {
+    display: block;
+  }
+
+  .level-buttons {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* The two buttons wrap as one, so on a narrow screen the label sits on its own line. */
+  .level-options {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .level-switch-label {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .level-hint {
+    margin-block: 0.5rem 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+  }
+
+  :global(html[data-level='patient']) .level-hint[data-hint='student'],
+  :global(html[data-level='student']) .level-hint[data-hint='patient'] {
+    display: none;
   }
 
   button {

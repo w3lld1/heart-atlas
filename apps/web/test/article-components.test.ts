@@ -47,7 +47,10 @@ describe('LevelSwitch', () => {
   it('renders a labelled group of toggle buttons', async () => {
     const html = await container.renderToString(LevelSwitch, { props: { locale: 'en' } });
     expect(html).toContain('role="group"');
-    expect(html).toContain('aria-label="Explanation level"');
+    expect(html).toContain('aria-labelledby="level-switch-label"');
+    expect(html).toContain('id="level-switch-label"');
+    expect(html).toContain('Explanation level');
+    expect(html).toContain('A plain explanation without unnecessary medical terms.');
     expect(html.match(/aria-pressed="false"/g)).toHaveLength(2);
   });
 });
