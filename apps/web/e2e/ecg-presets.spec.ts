@@ -7,24 +7,51 @@ import { axe } from './axe.ts';
 // Real articles; the HA_TEST_CONTENT build has fixture articles instead.
 const fixtures = process.env['HA_TEST_CONTENT'] === '1';
 
-test('the AV block article switches between normal and first-degree AV block', async ({ page }) => {
+test('the AV block article shows complete AV block and the pacemaker after treatment', async ({
+  page,
+}) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/av-block/');
+  // The third choice is the state after treatment.
   const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
-  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(conditions.getByRole('radio')).toHaveCount(3);
   await expect(
-    conditions.getByRole('radio', { name: en['heartClock.preset.av-block-first-degree'] }),
+    conditions.getByRole('radio', {
+      name: en['heartClock.preset.av-block-third-degree'],
+      exact: true,
+    }),
   ).toBeChecked();
   await expect(conditions).toHaveAccessibleDescription(
-    en['heartClock.preset.av-block-first-degree.summary'],
+    en['heartClock.preset.av-block-third-degree.summary'],
   );
 
   // The island is client:visible: scroll to it and wait for hydration before switching.
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
   const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
-  await expect(ecg).toHaveAccessibleDescription(/long PR interval of more than 0\.20 s/);
+  await expect(slider).toHaveValue('40');
+  await expect(slider).toHaveAttribute('min', '35');
+  await expect(slider).toHaveAttribute('max', '50');
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-third-degree.ecg'].replace('{rate}', '40'),
+  );
   expect((await axe(page).analyze()).violations).toEqual([]);
+
+  // After treatment: ventricular pacing that follows the P waves.
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.av-block-third-degree-paced'] })
+    .check();
+  await expect(slider).toHaveValue('75');
+  await expect(slider).toHaveAttribute('min', '60');
+  await expect(slider).toHaveAttribute('max', '100');
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-third-degree-paced.summary'],
+  );
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-third-degree-paced.ecg'].replace('{rate}', '75'),
+  );
+
   await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
   await expect(conditions).toHaveAccessibleDescription(en['heartClock.preset.normal.summary']);
   await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
