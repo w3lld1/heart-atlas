@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: When do signs of heart failure appear in peripartum cardiomyopathy?
+    options:
+      - text: In childhood, long before pregnancy
+      - text: Towards the end of pregnancy or in the first months after childbirth
+        correct: true
+      - text: Only many years after childbirth
+    explanation: PPCM is a form of dilated cardiomyopathy in which signs of heart failure appear towards the end of pregnancy or in the first months after childbirth.
+    cite: [2]
+  - level: patient
+    prompt: Why may PPCM be recognised late?
+    options:
+      - text: The disease never causes any symptoms
+      - text: It can only be detected by a genetic test
+      - text: Similar sensations also occur in a normal pregnancy
+        correct: true
+    explanation: 'The symptoms are those of heart failure: breathlessness, palpitations and swollen feet. Similar sensations also occur in a normal pregnancy, so the disease may be recognised late.'
+    cite: [2, 4]
+  - level: patient
+    prompt: Which test shows how weak the left ventricle is and whether there is a blood clot in the heart?
+    options:
+      - text: Echocardiography (an ultrasound scan of the heart)
+        correct: true
+      - text: A urine test
+      - text: Measuring body temperature
+    explanation: Echocardiography is an ultrasound scan of the heart that shows how weak and how enlarged the left ventricle is and whether there is a blood clot in the heart. It is repeated to check how well the treatment is working.
+    cite: [1, 2]
+  - level: patient
+    prompt: What do the ESC and the Russian Ministry of Health guideline advise for all women after PPCM?
+    options:
+      - text: Nothing, if heart function has recovered
+      - text: Counselling about the risk of recurrence and about contraception
+        correct: true
+      - text: A heart transplant in every case
+    explanation: PPCM can come back in a later pregnancy, so counselling about the risk of recurrence and about contraception is advised for all women after PPCM, even if heart function has recovered.
+    cite: [1, 2, 4]
+  - level: student
+    prompt: In the proposed mechanism, which fragment damages the endothelium and causes myocardial dysfunction in PPCM?
+    options:
+      - text: An insulin fragment
+      - text: A haemoglobin fragment
+      - text: A 16 kDa prolactin fragment
+        correct: true
+    explanation: Oxidative stress activates cathepsin D, which cleaves prolactin into a 16 kDa fragment; this fragment damages the endothelium and causes myocardial dysfunction.
+    cite: [2]
+  - level: student
+    prompt: Which LVEF, as a rule, is part of the PPCM criteria in the Russian Ministry of Health guideline?
+    options:
+      - text: Above 70%
+      - text: Below 45%
+        correct: true
+      - text: LVEF is not a criterion; only the atria are assessed
+    explanation: 'PPCM criteria in the Russian Ministry of Health guideline: HF during the last month of pregnancy or within 5 months after delivery, no other cause of HF, and LV systolic dysfunction (as a rule, LVEF below 45%).'
+    cite: [2]
