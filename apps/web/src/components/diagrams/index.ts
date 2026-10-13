@@ -125,6 +125,7 @@ export const withTreatment: StateSpec = {
 
 /** Diagrams that do not use the default normal / disease pair. One state means no switch. */
 const customStates: Partial<Record<DiagramName, StateSpec>> = {
+  'aortic-stenosis': withTreatment,
   'blood-flow': single,
   'coarctation-of-the-aorta': withTreatment,
   'conduction-system': single,

@@ -20,6 +20,8 @@ const particles = [
   { x: 138, y: 248, delay: 0.2 },
 ];
 // In stenosis the same particles start a little wider and converge on the narrow opening (x = 115).
+// The open valve (normal) and the valve prosthesis (after treatment) share the wide stream.
+const open = [{ class: 'normal-only' }, { 'data-only': 'treated' }];
 const jet = particles.map((p) => ({ ...p, offset: Math.sign(p.x - 115) * 27 }));
 // Valve seen from above: the cusps meet at three commissures.
 const cx = 285;
@@ -72,11 +74,15 @@ function orifice(r: number, c: number): string {
   ></path>
 
   <!-- Flow arrows, visible with and without motion -->
-  <g class="normal-only as-arrows" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
-    <path d="M92,226 L92,32" marker-end={`url(#${asArrowId})`}></path>
-    <path d="M115,226 L115,32" marker-end={`url(#${asArrowId})`}></path>
-    <path d="M138,226 L138,32" marker-end={`url(#${asArrowId})`}></path>
-  </g>
+  {open.map((only) => (
+    <g {...only}>
+      <g class="as-arrows" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+        <path d="M92,226 L92,32" marker-end={`url(#${asArrowId})`} />
+        <path d="M115,226 L115,32" marker-end={`url(#${asArrowId})`} />
+        <path d="M138,226 L138,32" marker-end={`url(#${asArrowId})`} />
+      </g>
+    </g>
+  ))}
   <g
     class="disease-only as-arrows"
     fill="none"
@@ -102,17 +108,28 @@ function orifice(r: number, c: number): string {
   </g>
 
   <!-- Valve cusps (side view). Drawn in the open position; the animation closes them between beats. -->
-  <g class="normal-only">
-    <g transform="translate(73,150) rotate(-80)">
-      <g class="as-cusp as-cusp-wide">
-        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+  {open.map((only) => (
+    <g {...only}>
+      <g transform="translate(73,150) rotate(-80)">
+        <g class="as-cusp as-cusp-wide">
+          <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z" />
+        </g>
+      </g>
+      <g transform="translate(157,150) scale(-1,1) rotate(-80)">
+        <g class="as-cusp as-cusp-wide">
+          <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z" />
+        </g>
       </g>
     </g>
-    <g transform="translate(157,150) scale(-1,1) rotate(-80)">
-      <g class="as-cusp as-cusp-wide">
-        <path class="as-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
-      </g>
-    </g>
+  ))}
+  <!--
+    After treatment: the narrowed valve is replaced by a prosthesis, in open heart surgery or through
+    a catheter (TAVI) (ACC/AHA 2020, Минздрав 37_2, NICE NG208). One generic ring at the base of the
+    leaflets stands for the prosthesis, with no frame or stent shape, so no method is preferred.
+  -->
+  <g data-only="treated" fill="var(--color-border)" stroke="var(--color-text)" stroke-width="2">
+    <rect x="62" y="144" width="14" height="12" rx="3"></rect>
+    <rect x="154" y="144" width="14" height="12" rx="3"></rect>
   </g>
   <g class="disease-only">
     <g transform="translate(77,150) rotate(-50)">
@@ -134,18 +151,20 @@ function orifice(r: number, c: number): string {
 
   <!-- Moving blood: a wide, even stream in the normal state, a narrow fast jet in stenosis -->
   <g class="flow">
-    <g class="normal-only">
-      {particles.map((p) => (
-        <circle
-          class="as-p as-p-normal"
-          cx={p.x}
-          cy={p.y}
-          r="5"
-          fill="var(--diagram-arterial)"
-          style={`animation-delay: ${p.delay}s`}
-        ></circle>
-      ))}
-    </g>
+    {open.map((only) => (
+      <g {...only}>
+        {particles.map((p) => (
+          <circle
+            class="as-p as-p-normal"
+            cx={p.x}
+            cy={p.y}
+            r="5"
+            fill="var(--diagram-arterial)"
+            style={`animation-delay: ${p.delay}s`}
+          />
+        ))}
+      </g>
+    ))}
     <g class="disease-only">
       {jet.map((p) => (
         <circle
@@ -179,13 +198,27 @@ function orifice(r: number, c: number): string {
   {commissures.map((c) => (
     <line x1={cx} y1={cy} x2={c.x} y2={c.y} stroke="var(--color-muted)" stroke-width="2"></line>
   ))}
-  <path
-    class="as-orifice normal-only"
-    d={orifice(34, 30)}
-    fill="var(--diagram-arterial-fill)"
-    stroke="var(--color-muted)"
-    stroke-width="2"
-  ></path>
+  {open.map((only) => (
+    <g {...only}>
+      <path
+        class="as-orifice"
+        d={orifice(34, 30)}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--color-muted)"
+        stroke-width="2"
+      />
+    </g>
+  ))}
+  <!-- The prosthesis ring seen from above, round the open leaflets -->
+  <circle
+    data-only="treated"
+    cx={cx}
+    cy={cy}
+    r="44"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="3"
+  ></circle>
   <g class="disease-only">
     <path
       class="as-orifice"
@@ -207,6 +240,7 @@ function orifice(r: number, c: number): string {
     <line class="disease-only" x1="134" y1="85" x2="194" y2="85"></line>
     <line class="normal-only" x1="157" y1="128" x2="194" y2="133"></line>
     <line class="disease-only" x1="146" y1="134" x2="194" y2="133"></line>
+    <line data-only="treated" x1="168" y1="146" x2="194" y2="133"></line>
   </g>
   <text x="200" y="45">
     {t['diagram.label.aorta']}
@@ -219,6 +253,9 @@ function orifice(r: number, c: number): string {
   </text>
   <text class="disease-only" x="200" y="138">
     {t['diagram.label.calcified-leaflets']}
+  </text>
+  <text data-only="treated" x="200" y="138">
+    {t['diagram.label.valve-prosthesis']}
   </text>
   <text x={cx} y="292" text-anchor="middle">
     {t['diagram.label.valve-top-view']}
