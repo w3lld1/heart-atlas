@@ -8,6 +8,7 @@ import {
   presetParams,
   presetRateFloors,
   presetRateLimits,
+  presetTreated,
   rateLimitsFrom,
   presets,
   setsHeartRate,
@@ -23,7 +24,8 @@ import { soundEvents } from '../src/sounds.ts';
 // wide QRS does not fit the fastest rates. Atrial flutter has a floor and a ceiling: at 2:1 its F
 // waves run at twice the ventricular rate, inside 250–350 per minute. Sick sinus syndrome stays
 // below 40 bpm, from the model's lowest rate of 30. In WPW syndrome the delta wave moves the R peak
-// later, so the wide QRS does not fit the fastest rates.
+// later, so the wide QRS does not fit the fastest rates. The pacemaker after sick sinus syndrome
+// keeps its lower rate at 50–70.
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
@@ -32,8 +34,27 @@ const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'ventricular-tachycardia': [101, 169],
   'atrial-flutter': [126, 175],
   'sick-sinus-syndrome': [30, 39],
+  'sick-sinus-syndrome-paced': [50, 70],
   'wpw-syndrome': [40, 153],
 };
+
+describe('presetTreated', () => {
+  it('points each disease to an existing preset that is not normal, drawn in the same lead', () => {
+    for (const [disease, treated] of Object.entries(presetTreated) as [PresetId, PresetId][]) {
+      expect(presetIds).toContain(disease);
+      expect(presetIds).toContain(treated);
+      expect(treated).not.toBe('normal');
+      expect(treated).not.toBe(disease);
+      expect(presetLead(treated)).toBe(presetLead(disease));
+    }
+  });
+
+  it('paces the atria after sick sinus syndrome, with no pauses', () => {
+    const params = presetParams('sick-sinus-syndrome-paced');
+    expect(params).toMatchObject({ atrialPacing: 1, pauseEvery: 0, heartRate: 60 });
+    expect(presetParams('sick-sinus-syndrome').atrialPacing).toBe(0);
+  });
+});
 
 describe('presets', () => {
   it('has a parameter set for every id', () => {
@@ -405,7 +426,10 @@ describe('preset heart rate', () => {
       'ventricular-tachycardia',
       'atrial-flutter',
       'sick-sinus-syndrome',
+      'sick-sinus-syndrome-paced',
     ]);
+    expect(switchedHeartRate('sick-sinus-syndrome', 'sick-sinus-syndrome-paced', 35)).toBe(60);
+    expect(switchedHeartRate('sick-sinus-syndrome-paced', 'normal', 60)).toBe(75);
     expect(presetRateFloors['ventricular-tachycardia']).toBe(101);
     expect(switchedHeartRate('normal', 'supraventricular-tachycardia', 90)).toBe(170);
     expect(switchedHeartRate('supraventricular-tachycardia', 'normal', 150)).toBe(75);

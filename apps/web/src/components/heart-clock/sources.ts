@@ -177,4 +177,21 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/brugada-syndrome',
     lang: 'en',
   },
+  // Sick sinus syndrome after treatment (pacemaker): docs/plans/2026-10-13-heart-clock-after-treatment.md.
+  // The ESC 2021 pacing translation and the Bradyarrhythmias guideline (160_2) are listed above.
+  {
+    text: 'Liaquat MT, Ahmed I, Alzahrani T. Pacemaker Malfunction. StatPearls. Updated 2023-07-30.',
+    href: 'https://www.ncbi.nlm.nih.gov/books/NBK553149/',
+    lang: 'en',
+  },
+  {
+    text: 'Lak HM, Goyal A. Pacemaker Types and Selection. StatPearls. Updated 2022-12-11.',
+    href: 'https://www.ncbi.nlm.nih.gov/books/NBK556011/',
+    lang: 'en',
+  },
+  {
+    text: 'Kligfield P, et al. Recommendations for the standardization and interpretation of the electrocardiogram: part I. Heart Rhythm. 2007;4(3):394–412.',
+    href: 'https://doi.org/10.1016/j.hrthm.2007.01.027',
+    lang: 'en',
+  },
 ];
