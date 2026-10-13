@@ -125,6 +125,21 @@ export interface HeartParams {
    * When a premature beat comes, as a share of the rhythm RR from the start of the beat before it.
    */
   prematureCoupling: number;
+  /**
+   * Frontal-plane axes of the waves, degrees: 0 points at the left arm, +90 at the feet. Leads I,
+   * II and III show each wave's projection (`leadGains`, leads.ts); the amplitudes above stay what
+   * lead II shows. From −15 to 135, so every wave stays visible in lead II. Spec:
+   * docs/plans/2026-10-13-heart-clock-three-leads.md.
+   */
+  pAxis: number;
+  /** Axis of Q, R, S and the delta wave, degrees. */
+  qrsAxis: number;
+  /** Axis of the T wave, degrees. */
+  tAxis: number;
+  /** Axis of `stShift`, degrees. */
+  stAxis: number;
+  /** Axis of f and F waves, degrees. */
+  fAxis: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -172,6 +187,13 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   prematureOrigin: 0,
   // assumption: no source gives the coupling interval.
   prematureCoupling: 0.7,
+  // assumption: every wave points at +60°, along lead II, so leads I and III show half of what
+  // lead II shows.
+  pAxis: 60,
+  qrsAxis: 60,
+  tAxis: 60,
+  stAxis: 60,
+  fAxis: 60,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -214,6 +236,11 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   prematureEvery: [0, 20],
   prematureOrigin: [0, 2],
   prematureCoupling: [0.5, 0.9],
+  pAxis: [-15, 135],
+  qrsAxis: [-15, 135],
+  tAxis: [-15, 135],
+  stAxis: [-15, 135],
+  fAxis: [-15, 135],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */

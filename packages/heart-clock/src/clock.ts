@@ -1,3 +1,4 @@
+import { leadGains, unitGains, type LimbLead } from './leads.ts';
 import { beatWaves, dissociatedP, flutterWaves, fWaves, pWave } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
@@ -53,11 +54,16 @@ export interface HeartClock {
   /** Beats that overlap [from, to]. The span must fit in the kept history. */
   beatsBetween(from: number, to: number): Beat[];
   sample(t: number): ClockSample;
-  ecgAt(t: number): number;
+  /**
+   * ECG at `t`, mV. With `lead` it is limb lead I, II or III (`leadGains`); without it the beat's
+   * amplitudes are drawn as they are, which is lead II, or V1 for a clock with V1 parameters. A V1
+   * clock has no limb leads: asking it for one draws nothing meaningful.
+   */
+  ecgAt(t: number, lead?: LimbLead): number;
   /** Pressures and LV volume at `t`, for the Wiggers diagram. */
   hemodynamicsAt(t: number): Hemodynamics;
   /** ECG at `count` evenly spaced times from `from` to `to`, for drawing a strip in one pass. */
-  ecgBetween(from: number, to: number, count: number): Float64Array;
+  ecgBetween(from: number, to: number, count: number, lead?: LimbLead): Float64Array;
 }
 
 /** How far back beats are kept, ms. */
@@ -339,13 +345,17 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
   }
 
   /** ECG at `t` given the index of the beat that contains it. */
-  function ecgFrom(i: number, t: number): number {
+  function ecgFrom(i: number, t: number, lead?: LimbLead): number {
     const beat = beats[i] as Beat;
     const previous = beats[i - 1];
-    const atrial = (b: Beat) =>
-      fWaves(t, b.params) +
-      flutterWaves(t - b.start, b.timing, b.params) +
-      dissociatedP(t, b.params);
+    const gainsOf = (b: Beat) => (lead ? leadGains(b.params, lead) : unitGains);
+    const atrial = (b: Beat) => {
+      const gains = gainsOf(b);
+      return (
+        gains.f * (fWaves(t, b.params) + flutterWaves(t - b.start, b.timing, b.params)) +
+        gains.p * dissociatedP(t, b.params)
+      );
+    };
     let value = atrial(beat);
     if (previous && previous.params !== beat.params) {
       // Fade the previous beat's f or F waves out, so a parameter change does not step the baseline.
@@ -354,10 +364,11 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
     }
     for (const b of [previous, beat, beats[i + 1]]) {
       if (!b) continue;
-      value += beatWaves(t - b.start, b.timing, b.params);
+      const gains = gainsOf(b);
+      value += beatWaves(t - b.start, b.timing, b.params, gains);
       // Second-degree AV block: the P wave at the start of the pause has no QRS after it.
       if (b.pause > 0 && b.params.blockedP === 1) {
-        value += pWave(t - b.start - b.timing.rr, b.timing.pDuration, b.params);
+        value += gains.p * pWave(t - b.start - b.timing.rr, b.timing.pDuration, b.params);
       }
     }
     return value;
@@ -367,8 +378,8 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
     return beats[locate(t)] as Beat;
   }
 
-  function ecgAt(t: number): number {
-    return ecgFrom(locate(t), t);
+  function ecgAt(t: number, lead?: LimbLead): number {
+    return ecgFrom(locate(t), t, lead);
   }
 
   return {
@@ -419,7 +430,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       };
       return hemodynamics(t - beat.start, beat, previous, beats[i + 1] as Beat);
     },
-    ecgBetween(from, to, count) {
+    ecgBetween(from, to, count, lead) {
       if (!Number.isInteger(count) || count < 2) {
         throw new RangeError(`ecgBetween: count must be an integer ≥ 2, got ${count}`);
       }
@@ -431,7 +442,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       for (let k = 0; k < count; k += 1) {
         const t = from + k * step;
         while (i + 1 < beats.length && (beats[i + 1] as Beat).start <= t) i += 1;
-        out[k] = ecgFrom(i, t);
+        out[k] = ecgFrom(i, t, lead);
       }
       return out;
     },

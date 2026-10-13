@@ -15,6 +15,14 @@ export {
   type BeatTiming,
   type Phase,
 } from './timing.ts';
+export {
+  leadGains,
+  limbLeadAngles,
+  limbLeads,
+  unitGains,
+  type LeadGains,
+  type LimbLead,
+} from './leads.ts';
 export { beatWaves, dissociatedP, dissociatedPOnset, flutterWaves, fWaves } from './ecg.ts';
 export {
   checkParams,

@@ -1,4 +1,5 @@
 import type { HeartParams } from './params.ts';
+import { unitGains, type LeadGains } from './leads.ts';
 import { pDurationAt, type BeatTiming } from './timing.ts';
 
 /** Gaussian wave with separate widths before and after its centre (the T wave is asymmetric). */
@@ -27,8 +28,15 @@ export function pWave(t: number, pDuration: number, params: HeartParams): number
  * ECG of one beat at `t` ms from its start, mV, without f waves. A sum of Gaussians as in ECGSYN
  * (McSharry et al. 2003), placed in time by the beat timing. Values outside the beat are the tails
  * of its waves, so a caller can add the previous beat to cover a T wave that runs past RR.
+ * `gains` project the beat into a limb lead (`leadGains`); by default the amplitudes are drawn as
+ * they are. The shape of every wave comes from the amplitudes, so a lead only scales it.
  */
-export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): number {
+export function beatWaves(
+  t: number,
+  timing: BeatTiming,
+  params: HeartParams,
+  gains: LeadGains = unitGains,
+): number {
   const { pDuration, qOnset, jPoint, tEnd } = timing;
   const { qAmplitude, rAmplitude, sAmplitude } = params;
   const qrs = params.qrsDuration;
@@ -62,13 +70,12 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
   // With P waves on their own clock (`atrialRate`, `dissociatedP`) the beat has no P wave.
   const p = params.atrialRate > 0 ? 0 : pWave(t, pDuration, params);
+  const s = wave(t, sCentre, sAmplitude, 0.07 * rest, 0.07 * rest);
   return (
-    p +
-    q +
-    rWithDelta +
-    wave(t, sCentre, sAmplitude, 0.07 * rest, 0.07 * rest) +
-    wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
-    st
+    gains.p * p +
+    gains.qrs * (q + rWithDelta + s) +
+    gains.t * wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
+    gains.st * st
   );
 }
 
