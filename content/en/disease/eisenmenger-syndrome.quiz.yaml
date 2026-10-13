@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: Which way does blood flow through the defect in Eisenmenger syndrome?
+    options:
+      - text: Only from left to right, as at the start of the disease
+      - text: No blood passes through the defect at all
+      - text: From right to left or in both directions
+        correct: true
+    explanation: The pressure in the lung vessels rises to the level of the systemic circulation, and blood flows through the defect from right to left or in both directions.
+    cite: [1]
+  - level: patient
+    prompt: What do clinical guidelines say about closing the defect in Eisenmenger syndrome?
+    options:
+      - text: They call it contraindicated or do not recommend it
+        correct: true
+      - text: They recommend it for everyone as the main treatment
+      - text: They recommend it as soon as cyanosis appears
+    explanation: Clinical guidelines call closing the defect in Eisenmenger syndrome contraindicated or do not recommend it.
+    cite: [1, 2, 3, 4]
+  - level: patient
+    prompt: Why is routine bloodletting not recommended in Eisenmenger syndrome?
+    options:
+      - text: Because there are too few red blood cells in the syndrome
+      - text: Because the extra red blood cells are an adaptation to the lack of oxygen
+        correct: true
+      - text: Because the blood does not clot in the syndrome
+    explanation: The extra red blood cells are an adaptation to the lack of oxygen, so routine bloodletting is not recommended, and iron deficiency is corrected.
+    cite: [2, 3, 4]
+  - level: patient
+    prompt: Which symptom means a person with Eisenmenger syndrome should call an ambulance?
+    options:
+      - text: A mild runny nose without fever
+      - text: Dry skin
+      - text: Coughing up blood
+        correct: true
+    explanation: Haemoptysis is the most common major bleeding event in the syndrome, and it may be only the visible part of bleeding inside the lungs; it is a reason to call an ambulance.
+    cite: [4]
+  - level: student
+    prompt: With which shunts do symptoms usually appear at age 20 to 40?
+    options:
+      - text: Pre-tricuspid shunts (ASD, partial anomalous pulmonary venous return)
+        correct: true
+      - text: Unrepaired post-tricuspid shunts (VSD, PDA)
+    explanation: With pre-tricuspid shunts symptoms usually appear at age 20 to 40; with unrepaired post-tricuspid shunts irreversible pulmonary vascular disease may develop within the first few years of life.
+    cite: [5]
+  - level: student
+    prompt: What is the second heart sound usually like on auscultation?
+    options:
+      - text: Soft and widely split
+      - text: Loud and single
+        correct: true
+      - text: It cannot be heard
+    explanation: On auscultation the second heart sound is loud and single, and a pulmonary ejection click is common.
+    cite: [5]
