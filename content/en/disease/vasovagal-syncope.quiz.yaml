@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Why should anyone who has fainted see a doctor?
+    options:
+      - text: Fainting may bring on a cold
+      - text: Fainting may spread to other people through contact
+      - text: Fainting caused by heart disease can look the same
+        correct: true
+    explanation: 'Fainting caused by heart disease can look the same, so anyone who has fainted should see a doctor: only a doctor can tell a harmless cause from a serious one.'
+    cite: [4]
+  - level: patient
+    prompt: What often triggers vasovagal syncope?
+    options:
+      - text: Pain, prolonged standing or emotional stress
+        correct: true
+      - text: A deep night's sleep lying on the back
+      - text: Quietly reading a book while sitting in a cool room
+    explanation: Vasovagal syncope is often, but not always, triggered by pain, prolonged standing (especially in a warm place) or emotional stress.
+    cite: [2]
+  - level: patient
+    prompt: Why should a person who is breathing after a faint stay lying down?
+    options:
+      - text: Sitting up may set off an allergy to dust
+      - text: Sitting up too quickly can bring the faint back
+        correct: true
+      - text: Sitting up may make their body temperature rise sharply
+    explanation: 'If they are breathing, let them stay lying down: sitting up too quickly can bring the faint back. Even if everything has passed, see a doctor after fainting.'
+    cite: [4]
+  - level: patient
+    prompt: Why does a description from witnesses matter for the diagnosis?
+    options:
+      - text: Without witnesses the doctor cannot record an ECG
+      - text: Witnesses can fully replace the doctor's own examination
+      - text: The person who fainted may not remember what happened
+        correct: true
+    explanation: A description from witnesses matters, because the person who fainted may not remember what happened.
+    cite: [1, 4]
+  - level: student
+    prompt: Does the haemodynamic response in reflex syncope depend on the trigger?
+    options:
+      - text: No, it is independent of the trigger
+        correct: true
+      - text: 'Yes: pain always causes asystole alone'
+      - text: 'Yes: standing always causes bradycardia alone'
+    explanation: The haemodynamic response (cardioinhibitory, vasodepressor or both) is independent of the trigger.
+    cite: [1]
+  - level: student
+    prompt: What does syncope while lying down suggest?
+    options:
+      - text: A lack of vitamin C in the diet
+      - text: An arrhythmia
+        correct: true
+      - text: Developing short-sightedness
+    explanation: Syncope while lying down suggests an arrhythmia, because the vasovagal mechanism does not cause syncope in the recumbent position.
+    cite: [3]

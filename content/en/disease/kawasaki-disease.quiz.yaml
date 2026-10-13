@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What develops in about a quarter of children with Kawasaki disease without treatment?
+    options:
+      - text: A narrowed aortic valve that was present from birth
+      - text: Coronary artery dilation or aneurysms
+        correct: true
+      - text: A benign tumour of the heart muscle and valves
+    explanation: Without treatment, coronary artery dilation or aneurysms develop in about a quarter of children.
+    cite: [2, 3]
+  - level: patient
+    prompt: How is Kawasaki disease diagnosed?
+    options:
+      - text: With a single specific blood test that detects Kawasaki disease
+      - text: With a genetic test done at birth
+      - text: 'From the signs of the illness: there is no specific test'
+        correct: true
+    explanation: 'There is no specific test for Kawasaki disease: the diagnosis is based on the signs of the illness.'
+    cite: [4, 5]
+  - level: patient
+    prompt: Why is a heart ultrasound done when Kawasaki disease is suspected?
+    options:
+      - text: To look for coronary artery aneurysms
+        correct: true
+      - text: To measure the size of the child's liver and spleen
+      - text: To find out the child's blood group
+    explanation: When Kawasaki disease is suspected, an ECG and an ultrasound of the heart (echocardiography) are done to look for coronary artery aneurysms, leaking heart valves, pericarditis or myocarditis.
+    cite: [5]
+  - level: patient
+    prompt: What does treatment within the first 10 days of the illness do?
+    options:
+      - text: It protects the child from all colds for ever
+      - text: It markedly speeds up the child's growth and weight gain over the next year
+      - text: It significantly reduces the risk of coronary artery damage
+        correct: true
+    explanation: 'Treatment is started as early as possible: treatment within the first 10 days of the illness significantly reduces the risk of coronary artery damage.'
+    cite: [5]
+  - level: student
+    prompt: When do cardiac manifestations of Kawasaki disease usually begin?
+    options:
+      - text: In the prenatal period, long before the child has been born
+      - text: In the subacute phase, about 1 to 4 weeks after onset
+        correct: true
+      - text: Only 10 to 20 years after recovery
+    explanation: Cardiac manifestations usually begin in the subacute phase, about 1 to 4 weeks after onset, as the rash and fever subside, but they can also appear in the acute phase.
+    cite: [4]
+  - level: student
+    prompt: What do giant coronary artery aneurysms carry the greatest risk of?
+    options:
+      - text: Thrombosis, infarction and cardiac tamponade
+        correct: true
+      - text: Congenital deafness and loss of vision in the child
+      - text: Bone fractures and dislocations of large joints
+    explanation: Giant aneurysms are rare but carry the greatest risk of thrombosis, infarction and cardiac tamponade.
+    cite: [4]

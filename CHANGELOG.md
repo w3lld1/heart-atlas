@@ -2,6 +2,27 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-10-13
+
+Twenty new disease articles, heart clock presets for AV block, pacemakers and premature beats, and quizzes in fifteen more articles.
+
+### Articles
+
+- New disease articles in Russian and English, each with a diagram: cardiac myxoma, constrictive pericarditis, atrioventricular septal defect and bicuspid aortic valve ([#226](https://github.com/w3lld1/heart-atlas/pull/226)), cardiac sarcoidosis ([#233](https://github.com/w3lld1/heart-atlas/pull/233)), Takayasu arteritis ([#237](https://github.com/w3lld1/heart-atlas/pull/237)), varicose veins ([#245](https://github.com/w3lld1/heart-atlas/pull/245)), mitral valve prolapse, extrasystole, rheumatic heart disease and takotsubo syndrome ([#247](https://github.com/w3lld1/heart-atlas/pull/247)), thoracic aortic aneurysm ([#249](https://github.com/w3lld1/heart-atlas/pull/249)), truncus arteriosus ([#259](https://github.com/w3lld1/heart-atlas/pull/259)), total anomalous pulmonary venous return ([#262](https://github.com/w3lld1/heart-atlas/pull/262)), congenitally corrected transposition ([#271](https://github.com/w3lld1/heart-atlas/pull/271)), Kawasaki disease, familial hypercholesterolemia, vasovagal syncope and Fabry disease ([#273](https://github.com/w3lld1/heart-atlas/pull/273)) and myocardial infarction ([#275](https://github.com/w3lld1/heart-atlas/pull/275)). The site now has sixty-five disease articles.
+- Structure names are buttons that highlight that structure on the 3D model or the beating heart clock model in thirteen more articles ([#230](https://github.com/w3lld1/heart-atlas/pull/230), [#234](https://github.com/w3lld1/heart-atlas/pull/234)), and fifteen of the twenty new articles show the 3D model with their structures highlighted ([#242](https://github.com/w3lld1/heart-atlas/pull/242) and the article PRs).
+- The AV block article shows complete block with the pacemaker after treatment, and Mobitz I and Mobitz II ([#254](https://github.com/w3lld1/heart-atlas/pull/254), [#276](https://github.com/w3lld1/heart-atlas/pull/276)); first-degree block stays on the heart clock page. The extrasystole article shows ventricular and atrial premature beats ([#285](https://github.com/w3lld1/heart-atlas/pull/285)), and the myocardial infarction article opens the heart clock on the ST-elevation preset ([#275](https://github.com/w3lld1/heart-atlas/pull/275)).
+- For article authors: an article can offer several heart clock presets (`morePresets`), hide the Wiggers diagram (`wiggers: false`) and leave out the states after treatment (`afterTreatment: false`) ([#270](https://github.com/w3lld1/heart-atlas/pull/270), [#278](https://github.com/w3lld1/heart-atlas/pull/278), [#287](https://github.com/w3lld1/heart-atlas/pull/287)). Articles written in parallel no longer conflict in shared files ([#241](https://github.com/w3lld1/heart-atlas/pull/241), [#256](https://github.com/w3lld1/heart-atlas/pull/256)).
+
+### Heart clock
+
+- Pacemakers after treatment: sick sinus syndrome with atrial pacing ([#231](https://github.com/w3lld1/heart-atlas/pull/231), [#232](https://github.com/w3lld1/heart-atlas/pull/232)) and complete AV block with P waves on their own clock, a slow escape rhythm and a dual-chamber pacemaker ([#238](https://github.com/w3lld1/heart-atlas/pull/238), [#246](https://github.com/w3lld1/heart-atlas/pull/246)). Pacemaker spikes are drawn on the ECG and in the Wiggers diagram.
+- Second-degree AV block: Mobitz I, where the PR interval grows until a P wave is not conducted, and Mobitz II, where a P wave is dropped with the same PR before and after ([#257](https://github.com/w3lld1/heart-atlas/pull/257), [#261](https://github.com/w3lld1/heart-atlas/pull/261)).
+- Atrial and ventricular premature beats: every fourth beat comes early, the ventricular one with a wide QRS and a full compensatory pause, the atrial one with a P wave and a shorter pause ([#266](https://github.com/w3lld1/heart-atlas/pull/266), [#274](https://github.com/w3lld1/heart-atlas/pull/274), [#281](https://github.com/w3lld1/heart-atlas/pull/281)).
+
+### Learning
+
+- Quizzes in fifteen new disease articles, 70 articles in all ([#239](https://github.com/w3lld1/heart-atlas/pull/239), [#242](https://github.com/w3lld1/heart-atlas/pull/242), [#248](https://github.com/w3lld1/heart-atlas/pull/248), [#253](https://github.com/w3lld1/heart-atlas/pull/253), [#258](https://github.com/w3lld1/heart-atlas/pull/258), [#260](https://github.com/w3lld1/heart-atlas/pull/260), [#265](https://github.com/w3lld1/heart-atlas/pull/265), [#272](https://github.com/w3lld1/heart-atlas/pull/272), [#279](https://github.com/w3lld1/heart-atlas/pull/279)).
+
 ## [0.5.0] - 2026-10-13
 
 Eight new disease articles, four heart clock presets that use the new rhythms, and clickable structure names in nineteen more articles.
