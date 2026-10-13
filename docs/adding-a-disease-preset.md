@@ -66,6 +66,11 @@ These parameters draw signs that the default lead II rhythm cannot. Spec: [heart
 | QRS shape | `qAmplitude`, `rAmplitude`, `sAmplitude` (mV) | Usually set by the lead baseline. |
 | Coved ST | `stShift` with `stSlope` (0 plateau, 1 coved) and a negative `tAmplitude` | `stSlope: 1` keeps the elevation highest at the J point and lets it fall in a convex curve into the T wave. The model draws no r′ wave. |
 | Atrial flutter | `flutterConduction` (0 or 2–4), `flutterAmplitude` (mV), `presetRateCeilings` | N sawtooth F waves in every beat, so they run at N times the ventricular rate at any slider position. Use a floor and a ceiling so the atrial rate stays inside the source's range. Needs `fWaveAmplitude`, `rrIrregularity` and `pauseEvery` at 0; set `pAmplitude` and `atrialContribution` to 0 with their sources. |
+| Pacemaker (atrial pacing) | `atrialPacing` (0 or 1) | Every beat starts with a pacemaker spike drawn where the P wave begins, on the strip and in the Wiggers diagram; the curves do not change, and the 3D model does not light the sinus node. Needs a positive `pAmplitude` and `fWaveAmplitude`, `flutterConduction`, `rrIrregularity` and `pauseEvery` at 0. Spec: [heart clock after treatment](plans/2026-10-13-heart-clock-after-treatment.md). |
+
+#### A state after treatment
+
+When a disease's treatment changes the ECG away from normal, as a pacemaker does in sick sinus syndrome, add it as its own preset (for example `sick-sinus-syndrome-paced`, right after the disease in `presetIds`, with a name that names the disease) and link the two in `presetTreated`. The article then offers three choices: normal, the disease and after treatment. The treated preset is drawn in the disease's lead and cannot be an article's `preset:`. When treatment brings the ECG back to normal, add nothing: the normal choice already shows it, and the article text says so.
 
 ### 2. Tests
 
@@ -99,7 +104,7 @@ Add every document your numbers come from to `presetSources` in [`apps/web/src/c
 ### 5. Using the preset
 
 - **Heart clock page.** `[locale]/heart-clock.astro` passes all `presetIds`, so the new preset appears there with no further change.
-- **Article.** Set `preset: <id>` in the frontmatter of the disease article (see [Adding an article](adding-an-article.md)). The schema in `apps/web/src/lib/content.ts` accepts any id from `presetIds` except `normal`. The article page then shows the monitor after the text with the switch `normal` / `<id>`, starting on the preset.
+- **Article.** Set `preset: <id>` in the frontmatter of the disease article (see [Adding an article](adding-an-article.md)). The schema in `apps/web/src/lib/content.ts` accepts any id from `presetIds` except `normal`. The article page then shows the monitor after the text with the switch `normal` / `<id>` (and the state after treatment when `presetTreated` has one), starting on the preset. Ids that are a `presetTreated` target are not accepted.
 - **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range or has a floor, `presetRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped. Without `?rate=` the embed starts at the preset's own rate, if it has one.
 
 ### 6. Check

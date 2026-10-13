@@ -2,6 +2,26 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-13
+
+Eight new disease articles, four heart clock presets that use the new rhythms, and clickable structure names in nineteen more articles.
+
+### Articles
+
+- New disease articles in Russian and English, each with a diagram: Marfan syndrome, cardiac tamponade, pulmonary valve stenosis and Eisenmenger syndrome ([#215](https://github.com/w3lld1/heart-atlas/pull/215)), peripartum cardiomyopathy ([#214](https://github.com/w3lld1/heart-atlas/pull/214)), deep vein thrombosis ([#217](https://github.com/w3lld1/heart-atlas/pull/217)), peripheral artery disease of the legs ([#222](https://github.com/w3lld1/heart-atlas/pull/222)) and hypoplastic left heart syndrome ([#224](https://github.com/w3lld1/heart-atlas/pull/224)). The site now has forty-five disease articles.
+- In seventeen disease articles and two anatomy articles, the names of valves, chambers, septa, great vessels and the conduction system are buttons that highlight that structure on the article's 3D model ([#213](https://github.com/w3lld1/heart-atlas/pull/213)).
+- Marfan syndrome, pulmonary valve stenosis, Eisenmenger syndrome, peripartum cardiomyopathy and hypoplastic left heart syndrome show the 3D model with the structures they name highlighted ([#214](https://github.com/w3lld1/heart-atlas/pull/214), [#215](https://github.com/w3lld1/heart-atlas/pull/215), [#223](https://github.com/w3lld1/heart-atlas/pull/223), [#224](https://github.com/w3lld1/heart-atlas/pull/224)). Peripartum cardiomyopathy also opens the heart clock on the heart failure preset ([#214](https://github.com/w3lld1/heart-atlas/pull/214)).
+
+### Heart clock
+
+- Atrial flutter: downward sawtooth F waves with 2:1 conduction. Sick sinus syndrome: sinus bradycardia at 35 per minute with a 3-second pause after every third beat ([#216](https://github.com/w3lld1/heart-atlas/pull/216)).
+- WPW syndrome: a short PR interval, a delta wave and a wide QRS. Brugada syndrome: lead V1 with a type 1 coved ST elevation, and the normal comparison is drawn in V1 too ([#219](https://github.com/w3lld1/heart-atlas/pull/219)).
+- All four presets open in their articles and can be chosen on the heart clock page and in the embed builder.
+
+### Learning
+
+- Quizzes in seven new disease articles: peripartum cardiomyopathy, Marfan syndrome, cardiac tamponade, pulmonary valve stenosis, Eisenmenger syndrome, deep vein thrombosis and peripheral artery disease, 54 in all ([#218](https://github.com/w3lld1/heart-atlas/pull/218), [#223](https://github.com/w3lld1/heart-atlas/pull/223)).
+
 ## [0.4.0] - 2026-10-13
 
 Twelve new disease articles, an "After treatment" state in the congenital defect diagrams, two patient 3D models, new ECG presets and quizzes in 47 articles. Under the hood, the heart clock can now model slow rhythms, sinus pauses, pre-excitation, lead V1 and atrial flutter for upcoming presets.
@@ -126,6 +146,7 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.5.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.5.0
 [0.4.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.4.0
 [0.3.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.3.0
 [0.2.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.2.0

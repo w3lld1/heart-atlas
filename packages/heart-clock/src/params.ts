@@ -83,6 +83,12 @@ export interface HeartParams {
   flutterConduction: number;
   /** Peak-to-peak size of the F waves, mV. 0 exactly when `flutterConduction` is 0. */
   flutterAmplitude: number;
+  /**
+   * Atrial pacing: 1 starts every beat with a pacemaker stimulus that the atria capture, drawn as a
+   * spike where the P wave begins (`clock.beatsBetween`, ecg-canvas.ts); 0 is the sinus node.
+   * Spec: docs/plans/2026-10-13-heart-clock-after-treatment.md.
+   */
+  atrialPacing: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -121,6 +127,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   stSlope: 0,
   flutterConduction: 0,
   flutterAmplitude: 0,
+  atrialPacing: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -155,6 +162,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   stSlope: [0, 1],
   flutterConduction: [0, 4],
   flutterAmplitude: [0, 0.3],
+  atrialPacing: [0, 1],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
@@ -215,6 +223,23 @@ export function resolveParams(
   // A flutter wave train restarts with every beat; a sinus pause would break it.
   if (params.flutterConduction > 0 && params.pauseEvery > 0) {
     throw new RangeError('flutterConduction needs pauseEvery at 0');
+  }
+  if (!Number.isInteger(params.atrialPacing)) {
+    throw new RangeError(`atrialPacing must be 0 or 1, got ${params.atrialPacing}`);
+  }
+  // A paced atrium gives a regular rhythm with a captured, upright P wave after every stimulus (the
+  // model keeps the lead II P; an inverted P is not part of this mode).
+  if (
+    params.atrialPacing === 1 &&
+    (params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.pAmplitude <= 0)
+  ) {
+    throw new RangeError(
+      'atrialPacing needs a positive pAmplitude and fWaveAmplitude, flutterConduction, rrIrregularity and pauseEvery at 0',
+    );
   }
   if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
     throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');

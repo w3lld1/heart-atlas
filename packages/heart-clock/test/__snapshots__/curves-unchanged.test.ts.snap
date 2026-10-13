@@ -216,6 +216,21 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       39,
     ],
   },
+  "sick-sinus-syndrome-paced": {
+    "curves": [
+      "50:d6fbbff3",
+      "60:58b8387",
+      "70:90219d84",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      50,
+      70,
+    ],
+  },
   "stemi": {
     "curves": [
       "40:e1a837a3",

@@ -21,6 +21,7 @@ export const presetIds = [
   'ventricular-tachycardia',
   'atrial-flutter',
   'sick-sinus-syndrome',
+  'sick-sinus-syndrome-paced',
   'wpw-syndrome',
   'brugada-syndrome',
 ] as const;
@@ -164,6 +165,20 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     pauseEvery: 3,
     pauseDuration: 3000,
   }),
+  'sick-sinus-syndrome-paced': Object.freeze({
+    // After treatment (`presetTreated`): symptomatic SND is treated with a permanent pacemaker (I B),
+    // dual-chamber, programmed to avoid unnecessary ventricular pacing (I A) (ESC 2021 pacing, table
+    // of recommendations for SND; Minzdrav 2025, Bradyarrhythmias, §3.3.1). The pacemaker sends an
+    // impulse when the heart's own rhythm slows or stops (Minzdrav 2025, appendix V), so
+    // the pauses go and every beat starts with an atrial stimulus that the atria capture
+    // (StatPearls, Pacemaker Malfunction, 2023). assumption: AV conduction is intact, so the paced
+    // P wave is followed by the model's default PR and a narrow QRS, and the P wave keeps its shape.
+    // Spec: docs/plans/2026-10-13-heart-clock-after-treatment.md.
+    atrialPacing: 1,
+    // assumption: a lower rate of 60, inside the 50–70 slider. Sources give only examples: 50
+    // (StatPearls, Pacemaker Malfunction) and 70 for permanent AF (ESC 2021, §5.2.2.2).
+    heartRate: 60,
+  }),
   'wpw-syndrome': Object.freeze({
     // Manifest accessory pathway in sinus rhythm: a short PR interval (<120 ms), a delta wave at
     // the start of the QRS and a wide QRS (>120 ms) (Minzdrav 2025, Supraventricular
@@ -216,6 +231,8 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   'atrial-flutter': 126,
   // Sick sinus syndrome: the model's lowest rate (`paramRanges.heartRate`), not a source number.
   'sick-sinus-syndrome': 30,
+  // Pacemaker lower rate: assumption, see the preset.
+  'sick-sinus-syndrome-paced': 50,
 });
 
 /**
@@ -231,6 +248,18 @@ export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = O
   // in ESC 2021 pacing (§5.1.1.1), so the slider never shows a rate that either calls normal at
   // rest.
   'sick-sinus-syndrome': 39,
+  // Pacemaker lower rate: assumption, see the preset. The model draws no own beats above it and no
+  // rate-adaptive pacing.
+  'sick-sinus-syndrome-paced': 70,
+});
+
+/**
+ * The "after treatment" preset of a disease preset, offered next to it in the article. Spec:
+ * docs/plans/2026-10-13-heart-clock-after-treatment.md. Only treatments that change the ECG away
+ * from normal get one; the target is drawn in the disease's lead.
+ */
+export const presetTreated: Readonly<Partial<Record<PresetId, PresetId>>> = Object.freeze({
+  'sick-sinus-syndrome': 'sick-sinus-syndrome-paced',
 });
 
 export function isPresetId(value: string): value is PresetId {

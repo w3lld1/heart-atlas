@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Why does the heart pump out less blood in tamponade?
+    options:
+      - text: The heart becomes too large
+      - text: Pericardial pressure is higher than in the chambers, so they cannot fill properly
+        correct: true
+      - text: The heart valves close
+    explanation: When the pressure in the pericardium becomes higher than in the chambers of the heart, they cannot fill with blood properly, and the heart pumps out less blood.
+    cite: [1]
+  - level: patient
+    prompt: Can a small amount of fluid in the pericardium cause tamponade?
+    options:
+      - text: No, tamponade happens only with a very large amount of fluid
+      - text: No, only gas causes tamponade
+      - text: Yes, if the fluid builds up quickly
+        correct: true
+    explanation: If fluid (usually blood) builds up quickly, the pericardium cannot stretch in time, and even a small amount, for example 150 mL, can cause tamponade; if it builds up slowly, even 1500 mL may not.
+    cite: [3]
+  - level: patient
+    prompt: What happens to the neck veins in tamponade?
+    options:
+      - text: They swell markedly
+        correct: true
+      - text: They collapse
+      - text: They do not change
+    explanation: Blood pressure falls and the pulse speeds up, as in shock, but the veins in the neck swell markedly.
+    cite: [3]
+  - level: patient
+    prompt: What is the main step in treating tamponade?
+    options:
+      - text: Bed rest at home without tests
+      - text: Removing the fluid from the pericardium so the heart can fill again
+        correct: true
+      - text: Waiting for the fluid to go away on its own
+    explanation: The main step is to remove the fluid from the pericardium; the simplest and fastest way is pericardiocentesis, which saves lives in tamponade.
+    cite: [1]
+  - level: student
+    prompt: What makes up Beck's triad?
+    options:
+      - text: Hypertension, bradycardia, leg oedema
+      - text: Fever, pericardial friction rub, chest pain
+      - text: Hypotension, muffled heart sounds, distended jugular veins
+        correct: true
+    explanation: The combination of hypotension, muffled heart sounds and distended jugular veins is called Beck's triad.
+    cite: [1]
+  - level: student
+    prompt: What is pulsus paradoxus?
+    options:
+      - text: A fall in systolic pressure of more than 10 mm Hg on inspiration
+        correct: true
+      - text: A rise in systolic pressure of more than 10 mm Hg on inspiration
+      - text: A slowing of the pulse on inspiration during quiet breathing
+    explanation: Pulsus paradoxus is a fall in systolic blood pressure of more than 10 mm Hg on inspiration during quiet breathing; the Russian Ministry of Health guideline calls it a pathognomonic sign of tamponade. According to MSD, it also occurs in COPD, bronchial asthma and pulmonary embolism.
+    cite: [1, 3]

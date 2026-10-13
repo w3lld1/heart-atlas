@@ -1,0 +1,345 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-hlhs-arrow-v`;
+const arrowA = `${uid}-hlhs-arrow-a`;
+const arrowMix = `${uid}-hlhs-arrow-mix`;
+// Labels too long for one line: split each in two.
+function twoLines(text: string): [string, string] {
+  const words = text.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const commLines = twoLines(t['diagram.label.atrial-communication']);
+const valveLines = twoLines(t['diagram.label.valves-closed']);
+// A circulation scheme like the transposition diagram: lungs on top, the body below, the right
+// heart (venous blood) on the viewer's left and the left heart (arterial blood) on the right.
+// Normal: one loop in series, body → right heart → lungs → left heart → body.
+const normal = {
+  pulmonaryArtery: 'M220,207 H235 V53',
+  pulmonaryVeins: 'M295,30 H400 V132 H322',
+  laToLv: 'M285,160 V178',
+  aorta: 'M320,207 H440 V315 H297',
+};
+// Hypoplastic left heart, the variant with both left valves closed (atresia): blood from the
+// lungs cannot pass the mitral valve, so it leaves the left atrium through the atrial
+// communication into the right atrium and mixes there. The right ventricle pumps the mixed
+// blood into the pulmonary trunk: on to the lungs, and through the open duct into the aorta and
+// the body. The small left ventricle, the narrow ascending aorta and the arch get blood only
+// backwards from the duct. The descending aorta crosses the pulmonary trunk on its way down.
+const hlhs = {
+  pulmonaryVeins: 'M293,40 V103',
+  laToRa: 'M248,132 H224',
+  // Pulmonary trunk from the bottom of the right ventricle, round the right side to the lungs.
+  trunk: 'M185,235 V258 H455 V30 H297',
+  // Up the open duct into the aorta, then down the descending aorta to the body.
+  ductToBody: 'M400,258 V226 H425 V315 H297',
+  // Narrow ascending aorta and arch, drawn in the direction blood moves: backwards from where the
+  // duct joins to the closed aortic valve.
+  narrowAorta: 'M400,226 H330 V199 H311',
+};
+const venaCava = 'M175,315 H30 V132 H148';
+const raToRv = 'M185,160 V178';
+const chamber = { width: 70, height: 55, rx: 10 };
+---
+
+<svg
+  viewBox="0 0 470 345"
+  role="img"
+  aria-label={t['diagram.hypoplastic-left-heart-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowMix}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lungs and body -->
+  <rect
+    x="175"
+    y="10"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="35" text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <rect
+    x="175"
+    y="295"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="320" text-anchor="middle">
+    {t['diagram.label.body']}
+  </text>
+
+  <!-- Heart chambers: right side (viewer's left) holds venous blood, left side arterial. The
+       left ventricle is small in the disease state. -->
+  <g stroke-width="2">
+    <rect
+      x="150"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="150"
+      y="180"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="250"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+    <rect
+      class="normal-only"
+      x="250"
+      y="180"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+    <rect
+      class="disease-only"
+      x="263"
+      y="184"
+      width="44"
+      height="30"
+      rx="8"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+  </g>
+  <text x="185" y="138" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="185" y="213" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="285" y="138" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text class="normal-only" x="285" y="213" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small disease-only" x="280" y="232" text-anchor="middle">
+    {t['diagram.label.small-lv']}
+  </text>
+
+  <!-- Vessels with arrows, readable without motion -->
+  <g fill="none" stroke-width="3">
+    <path d={venaCava} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <path d={raToRv} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <g class="normal-only">
+      <path
+        d={normal.pulmonaryArtery}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        d={normal.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path
+        d={normal.laToLv}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path d={normal.aorta} stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    </g>
+    <g class="disease-only">
+      <path
+        d={hlhs.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <!-- Mixed blood: a venous line with arterial dashes on it -->
+      <path d={hlhs.trunk} stroke="var(--diagram-venous)" marker-end={`url(#${arrowMix})`}></path>
+      <path d={hlhs.trunk} stroke="var(--diagram-arterial)" stroke-dasharray="6 6"></path>
+      <path
+        d={hlhs.narrowAorta}
+        stroke="var(--diagram-venous)"
+        stroke-width="1.5"
+        marker-end={`url(#${arrowMix})`}
+      ></path>
+      <path
+        d={hlhs.narrowAorta}
+        stroke="var(--diagram-arterial)"
+        stroke-width="1.5"
+        stroke-dasharray="4 4"
+      ></path>
+      <!-- The descending aorta passes over the pulmonary trunk: a gap in the trunk under it -->
+      <path d="M425,244 V272" stroke="var(--color-bg)" stroke-width="10"></path>
+      <path
+        d={hlhs.ductToBody}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowMix})`}
+      ></path>
+      <path d={hlhs.ductToBody} stroke="var(--diagram-arterial)" stroke-dasharray="6 6"></path>
+    </g>
+  </g>
+
+  <!-- Disease: closed mitral and aortic valves -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="5"
+    stroke-linecap="round"
+  >
+    <path d="M272,172 H298"></path>
+    <path d="M309,191 V207"></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="2">
+    <path class="dash-flow" d={venaCava}></path>
+    <path class="dash-flow" d={raToRv}></path>
+    <g class="normal-only">
+      <path class="dash-flow" d={normal.pulmonaryArtery}></path>
+      <path class="dash-flow" d={normal.pulmonaryVeins}></path>
+      <path class="dash-flow" d={normal.laToLv}></path>
+      <path class="dash-flow" d={normal.aorta}></path>
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow" d={hlhs.pulmonaryVeins}></path>
+      <path class="dash-flow" d={hlhs.trunk}></path>
+      <path class="dash-flow" d={hlhs.ductToBody}></path>
+    </g>
+  </g>
+
+  <!-- Disease: blood from the left atrium crosses the atrial communication into the right atrium -->
+  <g class="disease-only">
+    <rect
+      x="221"
+      y="125"
+      width="28"
+      height="14"
+      fill="var(--color-bg)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+    <path
+      d={hlhs.laToRa}
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <line x1="235" y1="100" x2="235" y2="123" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="232" y="82" text-anchor="middle">
+      <tspan x="232">{commLines[0]}</tspan>
+      <tspan x="232" dy="14">
+        {commLines[1]}
+      </tspan>
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1="356" y1="141" x2="302" y2="174"></line>
+      <line x1="368" y1="141" x2="314" y2="196"></line>
+    </g>
+    <text class="diagram-small" x="448" y="118" text-anchor="end">
+      <tspan x="448">{valveLines[0]}</tspan>
+      <tspan x="448" dy="14">
+        {valveLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="336" y="218">
+      {t['diagram.label.narrow-aorta']}
+    </text>
+    <text class="diagram-small" x="394" y="250" text-anchor="end">
+      {t['diagram.label.open-duct']}
+    </text>
+    <text class="diagram-small" x="193" y="278">
+      {t['diagram.label.mixed-blood']}
+    </text>
+  </g>
+
+  <!-- Vessel labels -->
+  <text class="diagram-small" x="36" y="225">
+    {t['diagram.label.venaCava']}
+  </text>
+  <text class="diagram-small normal-only" x="394" y="62" text-anchor="end">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="diagram-small normal-only" x="229" y="88" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small normal-only" x="434" y="270" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small disease-only" x="297" y="80">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="diagram-small disease-only" x="448" y="22" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small disease-only" x="414" y="306" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+</svg>

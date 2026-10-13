@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Before surgery, how does blood from the right ventricle reach the body in a newborn with HLHS?
+    options:
+      - text: Through the left ventricle and the aortic valve, as in a healthy heart
+      - text: Only through the open ductus arteriosus
+        correct: true
+      - text: Through the superior vena cava, bypassing the pulmonary artery
+    explanation: The right ventricle takes over the work of the left side, but its blood reaches the body only through the open ductus arteriosus, a vessel that connects the pulmonary artery to the aorta and closes on its own after birth.
+    cite: [1, 3]
+  - level: patient
+    prompt: Why is a newborn with HLHS given a medicine from the prostaglandin group into a vein?
+    options:
+      - text: To keep the ductus arteriosus from closing
+        correct: true
+      - text: To close the opening between the atria
+      - text: To make the underdeveloped left ventricle grow
+    explanation: A medicine from the prostaglandin group is given into a vein to keep the ductus arteriosus from closing.
+    cite: [1, 3]
+  - level: patient
+    prompt: What is the aim of the staged operations for HLHS?
+    options:
+      - text: To fully restore the normal structure of the heart
+      - text: To replace the underdeveloped left ventricle with an artificial one
+      - text: For the right ventricle to pump blood to the body, with lungs supplied another way
+        correct: true
+    explanation: The aim is for the single working ventricle, the right one, to pump blood to the body, while blood reaches the lungs by another route. These operations do not make the heart normal.
+    cite: [1, 3]
+  - level: patient
+    prompt: Which sign in a newborn with HLHS is a reason to call your local emergency number?
+    options:
+      - text: Brief hiccups after a feed while the baby is otherwise well
+      - text: Pale, grey or bluish skin with cold hands and feet
+        correct: true
+      - text: Occasional sneezing without any other changes
+    explanation: If a newborn is breathing fast and hard, has pale, grey or bluish skin, has cold hands and feet, has become floppy, feeds poorly or passes little urine, call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK).
+    cite: [3]
+  - level: student
+    prompt: Why does metabolic acidosis in HLHS worsen when supplemental oxygen is given?
+    options:
+      - text: It lowers pulmonary resistance, so RV output goes to the lungs, not the systemic circulation
+        correct: true
+      - text: It raises pulmonary resistance and pressure-overloads the right ventricle
+      - text: It widens the PDA, so blood from the aorta flows back into the right ventricle
+    explanation: Oxygen lowers pulmonary vascular resistance, so more of the right ventricular output flows to the lungs rather than through the PDA to the systemic circulation.
+    cite: [3]
+  - level: student
+    prompt: In what order are the three stages of surgical treatment for HLHS done according to the Russian guideline?
+    options:
+      - text: Fontan operation, then BCPA (Glenn), then Norwood operation
+      - text: PDA stenting, then BCPA, then heart transplant
+      - text: Norwood operation, then BCPA (Glenn), then Fontan operation
+        correct: true
+    explanation: 'The Russian Ministry of Health guideline: staged surgical treatment creating single-ventricle physiology in three stages, the Norwood operation, the bidirectional cavopulmonary anastomosis (BCPA, Glenn) and the Fontan operation.'
+    cite: [1]

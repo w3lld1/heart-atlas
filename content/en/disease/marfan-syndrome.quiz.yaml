@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Changes in which gene cause Marfan syndrome?
+    options:
+      - text: The FBN1 gene, which encodes the protein fibrillin-1
+        correct: true
+      - text: The gene that encodes haemoglobin
+      - text: The gene that encodes insulin
+    explanation: Marfan syndrome is caused by changes (pathogenic variants) in the FBN1 gene, which encodes the protein fibrillin-1.
+    cite: [1, 4]
+  - level: patient
+    prompt: What is the chance that a child of a person with Marfan syndrome has it?
+    options:
+      - text: The condition is not inherited
+      - text: 50%
+        correct: true
+      - text: 100%, always
+    explanation: The condition is inherited — a child of a person with Marfan syndrome has a 50% chance of having it.
+    cite: [1]
+  - level: patient
+    prompt: Why is a widened aorta in Marfan syndrome looked for during check-ups?
+    options:
+      - text: Because it always causes severe pain
+      - text: Because it can be seen from the outside
+      - text: Because in many cases it causes no symptoms at all
+        correct: true
+    explanation: In many cases a widened aorta causes no symptoms at all, so it is looked for during check-ups.
+    cite: [3]
+  - level: patient
+    prompt: When should a person with Marfan syndrome call an ambulance?
+    options:
+      - text: For sudden, severe pain in the chest or back
+        correct: true
+      - text: For ordinary tiredness after work
+      - text: For mild muscle soreness after exercise
+    explanation: Marfan syndrome is a high-risk condition for aortic dissection; call an ambulance for sudden, severe pain in the chest or back, sometimes in the abdomen.
+    cite: [1]
+  - level: student
+    prompt: Which valve lesion can aortic root dilation cause in Marfan syndrome?
+    options:
+      - text: Tricuspid stenosis
+      - text: Aortic regurgitation with a diastolic decrescendo murmur
+        correct: true
+      - text: Pulmonary valve stenosis
+    explanation: Most patients, including children, have aortic root dilation; it can cause aortic regurgitation with a diastolic decrescendo murmur.
+    cite: [4]
+  - level: student
+    prompt: At what maximal aortic sinus diameter does the ESC indicate surgery (I B)?
+    options:
+      - text: ≥ 35 mm
+      - text: ≥ 65 mm
+      - text: ≥ 50 mm
+        correct: true
+    explanation: Per the ESC, surgery is indicated at a maximal aortic sinus diameter ≥ 50 mm (I B) and should be considered at ≥ 45 mm with additional risk factors (IIa C).
+    cite: [2]

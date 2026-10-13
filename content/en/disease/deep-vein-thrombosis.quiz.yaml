@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is the most dangerous complication of deep vein thrombosis?
+    options:
+      - text: Skin inflammation (cellulitis)
+      - text: Pulmonary embolism (PE)
+        correct: true
+      - text: A broken leg bone
+    explanation: 'The most dangerous complication of DVT is PE: part of the clot breaks off and is carried by the blood through the heart into the lungs.'
+    cite: [1, 5]
+  - level: patient
+    prompt: What do anticoagulants do to a clot that has already formed?
+    options:
+      - text: They dissolve it completely straight away
+      - text: They make it harder so that it cannot break off
+      - text: They do not dissolve it, but stop it growing and help prevent new ones
+        correct: true
+    explanation: Anticoagulants do not dissolve a clot that has already formed, but they stop it from growing and help prevent new ones from forming.
+    cite: [5]
+  - level: patient
+    prompt: If the probability of DVT is not high, what does a normal D-dimer blood test result mean?
+    options:
+      - text: DVT can be ruled out with high probability
+        correct: true
+      - text: Thrombosis is definitely present
+      - text: Urgent vein surgery is needed
+    explanation: A normal D-dimer makes it possible to rule out DVT with high probability, while a raised D-dimer does not prove thrombosis, and then an ultrasound scan is needed.
+    cite: [1, 4]
+  - level: patient
+    prompt: Which signs mean you should call an ambulance because they may be signs of PE?
+    options:
+      - text: Mild tiredness in the legs in the evening
+      - text: Shortness of breath, chest pain, coughing up blood, fainting
+        correct: true
+      - text: A small bruise after a knock
+    explanation: Call your local emergency number if you develop shortness of breath, chest pain, coughing up blood, feeling faint or fainting, as these may be signs of PE.
+    cite: [1, 5]
+  - level: student
+    prompt: What makes up Virchow's triad?
+    options:
+      - text: Fever, tachycardia and hypotension
+      - text: Hypertrophy, fibrosis and calcification
+      - text: Stasis, endothelial injury and hypercoagulability
+        correct: true
+    explanation: "Thrombosis is classically explained by Virchow's triad: impaired blood flow (stasis), endothelial injury and hypercoagulability."
+    cite: [1, 4]
+  - level: student
+    prompt: Which DVT is called distal?
+    options:
+      - text: Thrombosis of the deep calf veins without extension into the popliteal vein
+        correct: true
+      - text: Thrombosis of the inferior vena cava
+      - text: Thrombosis of the iliac veins
+    explanation: Distal DVT is thrombosis of the deep calf veins without extension into the popliteal vein; thrombus in the popliteal, femoral or iliac veins or the inferior vena cava is proximal DVT.
+    cite: [1]

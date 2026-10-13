@@ -34,6 +34,17 @@ describe('cycleState', () => {
     }
   });
 
+  it('does not light the sinus node when a pacemaker starts the beat', () => {
+    const clock = createHeartClock({ heartRate: 60, atrialPacing: 1 });
+    const start = clock.beatAt(1000).start;
+    const { timing } = clock.beatAt(start);
+    expect(cycleState(clock, start + 1).excited).toEqual([]);
+    expect(cycleState(clock, start + (timing.pDuration + timing.qOnset) / 2).excited).toEqual([
+      'av-node',
+      'bundle-of-his',
+    ]);
+  });
+
   it('follows the conduction system and the valves through a normal beat', () => {
     const { clock, start, timing } = beat('normal');
     const at = (t: number) => cycleState(clock, start + t);

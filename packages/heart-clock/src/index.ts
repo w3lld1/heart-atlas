@@ -29,6 +29,7 @@ export {
   presetRateCeilings,
   presetRateFloors,
   presetRateLimits,
+  presetTreated,
   rateLimitsFrom,
   presets,
   setsHeartRate,

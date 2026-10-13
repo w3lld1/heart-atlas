@@ -45,6 +45,23 @@ describe('resolveParams', () => {
     }
   });
 
+  it('takes atrial pacing as 0 or 1, only with a regular sinus-like P wave', () => {
+    expect(resolveParams({ atrialPacing: 1 }).atrialPacing).toBe(1);
+    expect(() => resolveParams({ atrialPacing: 0.5 })).toThrow(/^atrialPacing must be 0 or 1/);
+    for (const patch of [
+      { pAmplitude: 0 },
+      { pAmplitude: -0.1 },
+      { rrIrregularity: 0.1 },
+      { fWaveAmplitude: 0.1 },
+      { flutterConduction: 2, flutterAmplitude: 0.2, pAmplitude: 0.15 },
+      { pauseEvery: 3, pauseDuration: 2000 },
+    ]) {
+      expect(() => resolveParams({ ...patch, atrialPacing: 1 }), JSON.stringify(patch)).toThrow(
+        /^atrialPacing needs/,
+      );
+    }
+  });
+
   it('allows a valve gradient right up to the aortic peak limit', () => {
     // The aortic peak is lvSystolic less the peak drop; it must be at least diastolic + 10.
     const limit = (120 - 90) / gradientPeakPerMean;

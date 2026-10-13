@@ -194,9 +194,10 @@ test('the atrial flutter article starts at the preset rate and keeps the F waves
 test('the sick sinus syndrome article starts below 40 with sinus pauses', async ({ page }) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/sick-sinus-syndrome/');
-  // The article also has a normal / disease diagram: look only at the monitor's switch.
+  // The article also has a normal / disease diagram: look only at the monitor's switch. The third
+  // choice is the state after treatment.
   const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
-  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(conditions.getByRole('radio')).toHaveCount(3);
   await expect(
     conditions.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }),
   ).toBeChecked();
@@ -217,6 +218,20 @@ test('the sick sinus syndrome article starts below 40 with sinus pauses', async 
   );
   await expect(ecg).toHaveAccessibleDescription(/pause of 3 seconds with no P wave/);
   expect((await axe(page).analyze()).violations).toEqual([]);
+
+  // After treatment: a pacemaker at its lower rate, with no pauses.
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome-paced'] })
+    .check();
+  await expect(slider).toHaveValue('60');
+  await expect(slider).toHaveAttribute('min', '50');
+  await expect(slider).toHaveAttribute('max', '70');
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.sick-sinus-syndrome-paced.summary'],
+  );
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.sick-sinus-syndrome-paced.ecg'].replace('{rate}', '60'),
+  );
 
   await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
   await expect(slider).toHaveValue('75');

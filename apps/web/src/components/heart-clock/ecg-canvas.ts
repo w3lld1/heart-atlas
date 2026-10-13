@@ -97,5 +97,32 @@ export function traceEcg(
     if (x === 0) context.moveTo(offset + x, y);
     else context.lineTo(offset + x, y);
   });
+  // Spikes start at 0 mV: pacing rules out f and F waves, and T ends before the next P, so the
+  // trace is on the baseline where a paced beat starts.
+  for (const t of pacingSpikes(clock, from, from + (count - 1) / perMs)) {
+    const x = offset + (t - from) * perMs;
+    context.moveTo(x, baseline);
+    context.lineTo(x, baseline - pacingSpikeMv * perMv);
+  }
   context.stroke();
+}
+
+/**
+ * Height of a pacemaker spike, mV. assumption: real spikes are often too small to see on a standard
+ * ECG, and the ECG standard (Kligfield 2007) advises against enlarging them; the model draws them
+ * at half the R wave so they are visible. Spec: docs/plans/2026-10-13-heart-clock-after-treatment.md.
+ */
+export const pacingSpikeMv = 0.5;
+
+/**
+ * Clock times of the pacemaker spikes in [from, to]: the start of every beat with atrial pacing.
+ * A stimulus is shorter than 0.5 ms, narrower than a pixel, so it is not part of the sampled trace
+ * and is drawn as a vertical line. Each beat's own parameters decide, so a preset change in the
+ * middle of the strip leaves the earlier beats without spikes.
+ */
+export function pacingSpikes(clock: HeartClock, from: number, to: number): number[] {
+  return clock
+    .beatsBetween(from, to)
+    .filter((beat) => beat.start >= from && beat.start <= to && beat.params.atrialPacing === 1)
+    .map((beat) => beat.start);
 }

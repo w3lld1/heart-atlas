@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the right ventricle in pulmonary valve stenosis?
+    options:
+      - text: It contracts harder, and its wall gradually thickens
+        correct: true
+      - text: Its wall gradually becomes thinner
+      - text: It stops contracting
+    explanation: To push blood through the narrow valve, the right ventricle has to contract harder; the pressure inside it rises and its muscular wall gradually thickens.
+    cite: [1]
+  - level: patient
+    prompt: What is the main test for the diagnosis?
+    options:
+      - text: A full blood count
+      - text: A blood pressure measurement
+      - text: A heart ultrasound (echocardiography) with Doppler
+        correct: true
+    explanation: The main test is a heart ultrasound with Doppler; it confirms the diagnosis, shows at what level the narrowing is and makes it possible to assess how severe it is.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What is the main treatment for pulmonary valve stenosis?
+    options:
+      - text: A heart transplant
+      - text: Balloon valvuloplasty
+        correct: true
+      - text: Lifelong medicines for every patient
+    explanation: The main treatment is balloon valvuloplasty; a catheter with a balloon is passed to the valve and the balloon is inflated to widen the narrowed valve.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: How can critical stenosis show itself in a newborn?
+    options:
+      - text: With cyanosis and heart failure
+        correct: true
+      - text: With hiccups after feeding
+      - text: With sneezing
+    explanation: Critical stenosis in a newborn can show itself as cyanosis and heart failure and needs an urgent intervention; if a newborn's lips and skin turn blue, call an ambulance straight away.
+    cite: [1]
+  - level: student
+    prompt: Which peak Doppler gradient does the ESC class as severe obstruction?
+    options:
+      - text: Below 36 mm Hg
+      - text: 36–64 mm Hg
+      - text: Above 64 mm Hg
+        correct: true
+    explanation: Per the ESC, mild obstruction is below 36 mm Hg, moderate 36–64 mm Hg and severe above 64 mm Hg (with normal RV function and normal transvalvular flow).
+    cite: [2]
+  - level: student
+    prompt: What happens to the pulmonary component of the second heart sound as stenosis worsens?
+    options:
+      - text: It becomes louder
+      - text: It becomes softer
+        correct: true
+      - text: It does not change
+    explanation: On auscultation the second heart sound is widely split; as the stenosis becomes more severe, its pulmonary component becomes softer.
+    cite: [2, 3]

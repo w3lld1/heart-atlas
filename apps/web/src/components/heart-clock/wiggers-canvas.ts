@@ -1,4 +1,5 @@
 import { phaseStarts, type HeartClock } from '@heart-atlas/heart-clock';
+import { pacingSpikeMv } from './ecg-canvas.ts';
 
 export const wiggersHeight = 320;
 
@@ -130,6 +131,13 @@ export function drawWiggers(
   line(colors.volume, (k) => volumeY(samples[k]?.volume ?? 0), 2, [2, 3]);
   line(colors.ecg, (k) => ecgY(ecg[k] ?? 0), 1.5);
   context.setLineDash([]);
+  // A pacemaker spike where the paced beat starts (ecg-canvas.ts).
+  if (beat.params.atrialPacing === 1) {
+    context.beginPath();
+    context.moveTo(xAt(0), ecgY(0));
+    context.lineTo(xAt(0), ecgY(pacingSpikeMv));
+    context.stroke();
+  }
 
   const cursor = Math.round(xAt(now - beat.start)) + 0.5;
   context.strokeStyle = colors.cursor;
