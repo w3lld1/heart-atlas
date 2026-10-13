@@ -14,9 +14,16 @@ test.use({
 
 const LOAD = { timeout: 30_000 };
 
-/** `<section>/<slug>` and highlighted structure ids of the English articles in these sections. */
-function highlightedArticles(sections: string[]): (readonly [string, string[]])[] {
-  return sections.flatMap((section) => {
+/**
+ * `<section>/<slug>` and highlighted structure ids of the English articles in these sections, and
+ * the articles with a <HeartModel> whose highlight list could not be read.
+ */
+function highlightedArticles(sections: string[]): {
+  pages: (readonly [string, string[]])[];
+  unparsed: string[];
+} {
+  const unparsed: string[] = [];
+  const pages = sections.flatMap((section) => {
     const dir = new URL(`../../../content/en/${section}/`, import.meta.url);
     return readdirSync(dir)
       .filter((file) => file.endsWith('.mdx'))
@@ -24,11 +31,16 @@ function highlightedArticles(sections: string[]): (readonly [string, string[]])[
       .flatMap((file) => {
         const source = readFileSync(new URL(file, dir), 'utf8');
         const list = /<HeartModel\b[^>]*?\bhighlight=\{\[([^\]]*)\]\}/s.exec(source)?.[1];
-        if (list === undefined) return [];
+        const path = `${section}/${file.slice(0, -'.mdx'.length)}`;
+        if (list === undefined) {
+          if (/<HeartModel\b/.test(source)) unparsed.push(path);
+          return [];
+        }
         const ids = [...list.matchAll(/'([^']+)'|"([^"]+)"/g)].map((m) => m[1] ?? m[2] ?? '');
-        return [[`${section}/${file.slice(0, -'.mdx'.length)}`, ids] as const];
+        return [[path, ids] as const];
       });
   });
+  return { pages, unparsed };
 }
 
 // docs/plans/2026-10-12-article-interactivity.md: the 3D model with highlights inside articles.
@@ -37,21 +49,22 @@ test.describe('3D model in an article without signs on the model', () => {
 
   // Every disease and diagnostic article with a <HeartModel highlight={[...]}>, read from its
   // source, so a new article needs no line here.
-  const pages = highlightedArticles(['disease', 'diagnostic']);
-  test('finds the articles with highlights', () => {
-    expect(pages.length).toBeGreaterThan(30);
+  const { pages, unparsed } = highlightedArticles(['disease', 'diagnostic']);
+  test('reads the highlights of every article with the model', () => {
+    expect(pages.length).toBeGreaterThan(0);
+    expect(unparsed, 'articles whose <HeartModel highlight={[...]}> could not be read').toEqual([]);
   });
   for (const [path, ids] of pages) {
     test(`${path} highlights the place the article names`, async ({ page }) => {
+      expect(ids).not.toHaveLength(0);
       await page.goto(`en/${path}/`);
       const load = page.getByRole('button', { name: en['viewer.load'] });
       await load.scrollIntoViewIfNeeded();
       await expect(page.locator('astro-island', { has: load })).not.toHaveAttribute('ssr');
       const selected = page.getByText(`${en['viewer.selected']}:`).locator('..');
-      expect(ids).not.toHaveLength(0);
       for (const id of ids) {
         const name = en[`structure.${id}` as keyof typeof en];
-        expect(name, `structure.${id}`).toBeDefined();
+        expect(name, `structure.${id}`).toBeTruthy();
         await expect(selected).toContainText(name);
       }
       expect((await axe(page).analyze()).violations).toEqual([]);
