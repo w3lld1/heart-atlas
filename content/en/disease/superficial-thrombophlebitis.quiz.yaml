@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is superficial thrombophlebitis?
+    options:
+      - text: A clot in a vein under the skin, with inflammation around it
+        correct: true
+      - text: A clot in a deep vein that lies among the muscles of the leg
+      - text: Widened, twisted veins under the skin of the leg with no clot at all
+    explanation: Superficial thrombophlebitis is a condition in which a blood clot forms in a vein under the skin, and the vein wall, the fatty tissue under the skin and the skin around it become inflamed.
+    cite: [1]
+  - level: patient
+    prompt: What is the greatest danger in superficial thrombophlebitis?
+    options:
+      - text: The clot in the superficial vein often breaks off on its own
+      - text: The inflammation quickly spreads from the vein to nearby joints
+      - text: The clot spreads into the deep veins and can cause PE
+        correct: true
+    explanation: The greatest danger is that the clot spreads into the deep veins (deep vein thrombosis) and causes pulmonary embolism. A clot in a superficial vein itself rarely breaks off.
+    cite: [1, 4, 5]
+  - level: patient
+    prompt: How does a vein with a clot feel in thrombophlebitis?
+    options:
+      - text: Soft and easy to squeeze, like a normal vein
+      - text: Hard, like a firm cord under the skin
+        correct: true
+      - text: Pulsing with each heartbeat, like an artery
+    explanation: The vein with the clot feels like a hard cord under the skin, not soft like a normal or varicose vein.
+    cite: [5]
+  - level: patient
+    prompt: What is the main test when thrombophlebitis is suspected?
+    options:
+      - text: A vein ultrasound (duplex scanning)
+        correct: true
+      - text: A laboratory blood test for clotting
+      - text: An X-ray image of both legs
+    explanation: The main test is an ultrasound scan of the veins (duplex scanning). The Russian Ministry of Health guideline does not recommend laboratory tests for diagnosis or for choosing treatment.
+    cite: [1]
+  - level: student
+    prompt: What primarily determines the risk of the thrombus spreading into the deep veins in SVT?
+    options:
+      - text: The patient's blood D-dimer level
+      - text: How red the skin over the vein is
+      - text: The proximal end of the thrombus
+        correct: true
+    explanation: The risk of the thrombus spreading into the deep veins is determined primarily by the proximal end of the thrombus. Markers of thrombus formation, including D-dimer, cannot fully determine the activity of the process.
+    cite: [1]
+  - level: student
+    prompt: How is the diagnosis stated if the thrombus has spread from a superficial vein into the deep veins?
+    options:
+      - text: As varicothrombophlebitis
+      - text: As deep vein thrombosis
+        correct: true
+      - text: As migratory thrombophlebitis
+    explanation: If the thrombus has spread into the deep veins, or DVT is found at the same time, the diagnosis is stated as deep vein thrombosis.
+    cite: [1]
