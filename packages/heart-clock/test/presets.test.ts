@@ -26,10 +26,11 @@ import { soundEvents } from '../src/sounds.ts';
 // waves run at twice the ventricular rate, inside 250–350 per minute. Sick sinus syndrome stays
 // below 40 bpm, from the model's lowest rate of 30. In WPW syndrome the delta wave moves the R peak
 // later, so the wide QRS does not fit the fastest rates. The pacemaker after sick sinus syndrome
-// keeps its lower rate at 50–70.
+// keeps its lower rate at 50–70. Mobitz I stops at 70, below the 76 its longest PR allows.
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
+  'av-block-second-degree-mobitz-1': [40, 70],
   'av-block-third-degree': [35, 50],
   'av-block-third-degree-paced': [60, 100],
   'supraventricular-tachycardia': [120, 180],
@@ -66,6 +67,37 @@ describe('presetTreated', () => {
     expect(paced.qrsDuration).toBeGreaterThanOrEqual(120);
     expect(paced.tAmplitude).toBeLessThan(0);
     expect(presetTreated['av-block-third-degree']).toBe('av-block-third-degree-paced');
+  });
+
+  it('drops a P wave in second-degree AV block, with a growing PR only in Mobitz I', () => {
+    const qrsGaps = (id: PresetId) => {
+      const clock = createHeartClock(presetParams(id));
+      const beats = clock.beatsBetween(0, 9000);
+      return {
+        prs: beats.slice(0, 4).map((b) => Math.round(b.timing.qOnset)),
+        gaps: beats
+          .slice(0, 4)
+          .map((b, i) =>
+            Math.round(
+              (beats[i + 1]?.start ?? 0) +
+                (beats[i + 1]?.timing.rPeak ?? 0) -
+                b.start -
+                b.timing.rPeak,
+            ),
+          ),
+      };
+    };
+    // Mobitz I at 60: PR 180, 260, 340 and back to 180; the QRS after the dropped P comes late.
+    expect(qrsGaps('av-block-second-degree-mobitz-1')).toEqual({
+      prs: [180, 260, 340, 180],
+      gaps: [1080, 1080, 1840, 1080],
+    });
+    // Mobitz II at 75: the same PR, and the RR across the block twice the others.
+    const mobitz2 = qrsGaps('av-block-second-degree-mobitz-2');
+    expect(new Set(mobitz2.prs).size).toBe(1);
+    expect(mobitz2.gaps).toEqual([800, 1600, 800, 1600]);
+    expect(presetTreated['av-block-second-degree-mobitz-1']).toBeUndefined();
+    expect(presetTreated['av-block-second-degree-mobitz-2']).toBeUndefined();
   });
 
   it('lets the PR of complete AV block wander at the starting rate, with P waves on QRS or T', () => {
@@ -455,6 +487,8 @@ describe('preset heart rate', () => {
 
   it('sets the rate only when switching to or from a preset that has its own', () => {
     expect(presetIds.filter(setsHeartRate)).toEqual([
+      'av-block-second-degree-mobitz-1',
+      'av-block-second-degree-mobitz-2',
       'av-block-third-degree',
       'av-block-third-degree-paced',
       'supraventricular-tachycardia',

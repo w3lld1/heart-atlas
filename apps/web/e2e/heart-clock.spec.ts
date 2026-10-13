@@ -226,6 +226,53 @@ test.describe('disease presets', () => {
     );
   });
 
+  test('show second-degree AV block, with filling and not a sinus pause in the gap', async ({
+    page,
+  }) => {
+    // docs/plans/2026-10-13-heart-clock-second-degree-av-block.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    await conditions
+      .getByRole('radio', {
+        name: en['heartClock.preset.av-block-second-degree-mobitz-1'],
+        exact: true,
+      })
+      .check();
+    await expect(slider).toHaveValue('60');
+    await expect(slider).toHaveAttribute('min', '40');
+    await expect(slider).toHaveAttribute('max', '70');
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-second-degree-mobitz-1.summary'],
+    );
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-second-degree-mobitz-1.ecg'].replace('{rate}', '60'),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+
+    await conditions
+      .getByRole('radio', {
+        name: en['heartClock.preset.av-block-second-degree-mobitz-2'],
+        exact: true,
+      })
+      .check();
+    await expect(slider).toHaveValue('75');
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-second-degree-mobitz-2.ecg'].replace('{rate}', '75'),
+    );
+    // At 75 a P wave without a QRS comes every 2.4 s; the phase in its gap is filling.
+    const phase = page.locator('[data-phase]');
+    const seen = new Set<string>();
+    for (let i = 0; i < 60; i += 1) {
+      seen.add((await phase.getAttribute('data-phase')) ?? '');
+      await page.waitForTimeout(50);
+    }
+    expect(seen).toContain('filling');
+    expect(seen).not.toContain('pause');
+  });
+
   test('limit the heart rate to what the preset fits', async ({ page }) => {
     await page.goto('en/heart-clock/');
     // Wait for hydration, so the slider value is React's and not reset by it.

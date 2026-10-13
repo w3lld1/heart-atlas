@@ -16,6 +16,8 @@ export const presetIds = [
   'aortic-stenosis',
   'atrial-septal-defect',
   'av-block-first-degree',
+  'av-block-second-degree-mobitz-1',
+  'av-block-second-degree-mobitz-2',
   'av-block-third-degree',
   'av-block-third-degree-paced',
   'supraventricular-tachycardia',
@@ -85,6 +87,32 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // heart rate this preset allows (40–96 bpm; about 233 ms at 75 and 205 ms at 96). With 240,
     // PR would drop below 200 ms from 87 bpm. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
     prInterval: 260,
+  }),
+  // Second-degree AV block: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md. The slider
+  // sets the P wave rate; the ventricles beat at 3/4 of it (Mobitz I) or 2/3 of it (Mobitz II).
+  'av-block-second-degree-mobitz-1': Object.freeze({
+    // Mobitz I (Wenckebach): PR lengthens with each beat until a P wave is not conducted and the QRS
+    // is dropped; the next beat has the shortest PR, and the cycle repeats (MSD Manuals,
+    // Atrioventricular Block, 2024). 4:3 groups, three QRS for four P waves (MSD, figure).
+    blockedP: 1,
+    pauseEvery: 3,
+    // assumption: PR 180 ms, then +80 ms per beat (180, 260, 340 at 60 bpm). The sources give no
+    // numbers, and the growth is equal, though in the classic cycle it shrinks.
+    prInterval: 180,
+    prStep: 80,
+    // assumption: the narrow QRS of block in the AV node (MSD: with a narrow QRS, Mobitz I is
+    // nearly always in the AV node), and a P wave rate of 60.
+    heartRate: 60,
+  }),
+  'av-block-second-degree-mobitz-2': Object.freeze({
+    // Mobitz II: the PR stays the same before and after the P wave that is not conducted
+    // (StatPearls, Second-Degree AV Block; MSD). Usually every third or fourth P wave is not
+    // conducted, and the RR across the block is twice the others (MSD); the model drops every third.
+    blockedP: 1,
+    pauseEvery: 2,
+    // assumption: a P wave rate of 75. The QRS stays narrow, though in Mobitz II it is often wide
+    // (StatPearls; MSD); the summary says so.
+    heartRate: 75,
   }),
   // Complete (third-degree) AV block and its pacemaker: docs/plans/2026-10-13-heart-clock-av-block.md.
   'av-block-third-degree': Object.freeze({
@@ -294,6 +322,9 @@ export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = O
   'av-block-third-degree': 50,
   // assumption, as above.
   'av-block-third-degree-paced': 100,
+  // assumption: the model fits Mobitz I up to 76 per minute, but there the last beat of a group
+  // keeps only about 12 ms of filling; 70 leaves the ventricles time to fill visibly.
+  'av-block-second-degree-mobitz-1': 70,
 });
 
 /**

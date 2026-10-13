@@ -98,6 +98,44 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       96,
     ],
   },
+  "av-block-second-degree-mobitz-1": {
+    "curves": [
+      "40:a3d33cfe",
+      "40:a3d33cfe",
+      "47:3f5b27e2",
+      "60:ead526f0",
+      "70:54869afd",
+    ],
+    "limits": [
+      40,
+      76,
+    ],
+    "presetLimits": [
+      40,
+      70,
+    ],
+  },
+  "av-block-second-degree-mobitz-2": {
+    "curves": [
+      "40:dfc43213",
+      "40:dfc43213",
+      "47:599e36a3",
+      "60:d73906b2",
+      "75:419d8927",
+      "100:a46fff86",
+      "137:27dea65f",
+      "170:c7c597cd",
+      "180:9c93b96b",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
   "av-block-third-degree": {
     "curves": [
       "35:14a8298",

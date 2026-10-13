@@ -202,6 +202,12 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.ncbi.nlm.nih.gov/books/NBK545199/',
     lang: 'en',
   },
+  // Second-degree AV block: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md.
+  {
+    text: 'Mangi MA, Jones WM, Mansour MK, Napier L. Second-Degree Atrioventricular Block. StatPearls. Updated 2023-08-14.',
+    href: 'https://www.ncbi.nlm.nih.gov/books/NBK482359/',
+    lang: 'en',
+  },
   {
     text: 'Scherbak D, Shams P, Hicks GJ. Left Bundle Branch Block. StatPearls. Updated 2024-10-05.',
     href: 'https://www.ncbi.nlm.nih.gov/books/NBK482167/',
