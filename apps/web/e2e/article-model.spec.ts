@@ -65,6 +65,7 @@ test.describe('3D model in an article without signs on the model', () => {
     'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
     'takayasu-arteritis': ['aorta'],
     'takotsubo-syndrome': ['left-ventricle'],
+    'thoracic-aortic-aneurysm': ['aorta', 'aortic-valve'],
     'tricuspid-regurgitation': ['tricuspid-valve'],
     'ventricular-septal-defect': ['interventricular-septum'],
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is Takayasu arteritis?
+    options:
+      - text: An inborn defect of the heart valves
+      - text: Inflammation of the wall of the aorta, its branches and pulmonary arteries
+        correct: true
+      - text: Cholesterol build-up in the walls of the arteries, known as atherosclerosis
+    explanation: Non-specific aortoarteritis, or Takayasu arteritis, is inflammation of the wall of the aorta, its branches and the pulmonary arteries.
+    cite: [1, 3]
+  - level: patient
+    prompt: Who most often gets Takayasu arteritis?
+    options:
+      - text: Only newborn babies
+      - text: Mainly men over the age of 70
+      - text: Mainly young women
+        correct: true
+    explanation: The disease is rare; it is most common in Asia but occurs worldwide, and it mainly affects young women.
+    cite: [3]
+  - level: patient
+    prompt: How is the diagnosis confirmed?
+    options:
+      - text: By imaging the aorta and its branches, such as MR or CT angiography
+        correct: true
+      - text: By a blood test, because raised ESR and C-reactive protein confirm it
+      - text: Only by listening to the heart, with no other tests at all
+    explanation: The diagnosis is confirmed by imaging the whole aorta and its branches with MR or CT angiography. Blood tests often show inflammation, but they cannot confirm the diagnosis.
+    cite: [2, 3]
+  - level: patient
+    prompt: What is true about new artery narrowings in Takayasu arteritis?
+    options:
+      - text: They appear only in the first few weeks of the disease
+      - text: How a person feels and their blood tests always reveal them at once
+      - text: They also occur when a person feels well and tests are normal
+        correct: true
+    explanation: New narrowings can appear even when a person feels well and tests are normal, so the aorta and large arteries are checked regularly.
+    cite: [3]
+  - level: student
+    prompt: How many diagnostic criteria from the ACC/AHA table are needed for the diagnosis?
+    options:
+      - text: Any single criterion is enough
+      - text: 3 or more criteria
+        correct: true
+      - text: All 6 criteria at the same time
+    explanation: In the ACC/AHA table, the diagnosis is established when 3 or more criteria are present (sensitivity 90.5%, specificity 97.8%).
+    cite: [2]
+  - level: student
+    prompt: According to MSD, why is stenting usually not recommended in Takayasu arteritis?
+    options:
+      - text: Because the restenosis rate is high
+        correct: true
+      - text: Autologous bypass grafts have worse patency rates than stents
+      - text: A stent cannot technically be placed in this disease
+    explanation: According to MSD, vascular stenting is usually not recommended because the restenosis rate is high, and bypass grafting with an autologous graft has the best patency rates.
+    cite: [3]

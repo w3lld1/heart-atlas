@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to blood flow in varicose veins?
+    options:
+      - text: Blood flows towards the heart faster than usual
+      - text: Blood flows in the reverse direction
+        correct: true
+      - text: Blood does not stay in them, and the vein empties
+    explanation: In varicose veins, blood flows in the reverse direction. The valve cusps separate, and when the person stands, blood flows backward, downwards; it pools in the vein and stretches it even more.
+    cite: [1, 3, 5]
+  - level: patient
+    prompt: How is varicose vein disease linked to heredity?
+    options:
+      - text: It is a genetic disease, and lifestyle has no effect on it at all
+      - text: Only outside factors cause it, and heredity does not matter
+      - text: A weak vein wall is inherited, but outside factors are needed
+        correct: true
+    explanation: 'The disease is based on an inherited weakness of the vein wall. Yet varicose vein disease is not a genetic disease: for it to appear, outside factors are needed, above all lifestyle.'
+    cite: [1]
+  - level: patient
+    prompt: When do the symptoms of varicose veins usually get worse?
+    options:
+      - text: Towards the end of the day and with long standing or sitting
+        correct: true
+      - text: In the morning, right after a whole night's rest lying in bed
+      - text: While walking, and they go away with long periods of standing
+    explanation: The symptoms get worse towards the end of the day and with long standing or sitting, and ease after walking or resting lying down.
+    cite: [1]
+  - level: patient
+    prompt: How can varicose veins that have already formed be got rid of?
+    options:
+      - text: By taking pills until the veins disappear
+      - text: By removing the vein or closing it from inside
+        correct: true
+      - text: By rubbing ointment on the legs until the veins fade
+    explanation: 'Varicose veins that have already formed do not go away with pills, ointments or stockings; treatment without a procedure only relieves symptoms. They can only be removed or closed from inside: with heat, without heat, or by injecting a special substance (sclerotherapy).'
+    cite: [1]
+  - level: student
+    prompt: What diameter in the standing position do subcutaneous veins have that the Russian guideline calls varicose?
+    options:
+      - text: Under 1 mm
+      - text: From 1 to 3 mm
+      - text: Over 3 mm
+        correct: true
+    explanation: Varicose veins are subcutaneous veins more than 3 mm in diameter in the standing position; telangiectasias are intradermal veins less than 1 mm in diameter, reticular veins 1–3 mm.
+    cite: [1]
+  - level: student
+    prompt: According to the Russian guideline, how often do new varicose veins appear 5 years after a procedure?
+    options:
+      - text: The rate reaches 50%
+        correct: true
+      - text: Never more than 1%
+      - text: New veins do not appear after a procedure
+    explanation: According to the Russian Ministry of Health guideline, after a procedure the rate of new varicose veins reaches 30% at 3 years and 50% at 5 years; varicose veins can be treated again an unlimited number of times.
+    cite: [1]
