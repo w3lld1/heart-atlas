@@ -1,0 +1,261 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ea-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const sailLines = twoLines(t['diagram.label.sail-like-leaflet']);
+const septalLines = twoLines(t['diagram.label.displaced-septal-leaflet']);
+const atrializedLines = twoLines(t['diagram.label.atrialized-rv']);
+// The right heart in anatomical orientation (atrium on top, apex below), not the echo display:
+// the right ventricle below the atrium, its free wall on the viewer's left and the septum on the
+// right. The tricuspid annulus runs from x = 200 to x = 340 at y = 170 in both states.
+// Normal: both leaflets start at the annulus and meet in the ventricle.
+const normalLeaflets = ['M200,170 Q235,182 268,192', 'M340,170 Q305,182 272,192'];
+// Ebstein anomaly: the anterior leaflet starts at the annulus but is long, like a sail; the septal
+// leaflet is stuck to the septum down to y = 238 and only then comes free. The leaflets stop
+// short of each other (x = 266–282), and the part of the ventricle above them is atrialized.
+const anteriorLeaflet = 'M200,170 Q220,235 266,252';
+const septalStuck = 'M340,176 Q342,208 341,238';
+const septalFree = 'M341,238 Q314,248 282,254';
+const atrialized =
+  'M200,170 L340,170 Q342,208 341,238 Q314,248 282,254 L266,252 Q220,235 200,170 Z';
+// Blood pushed back through the gap; each particle fans out sideways (dx) as it rises.
+const back = [
+  { dx: -18, delay: 0 },
+  { dx: 0, delay: 0.15 },
+  { dx: 18, delay: 0.3 },
+];
+---
+
+<svg viewBox="0 0 520 345" role="img" aria-label={t['diagram.ebstein-anomaly.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Right ventricle wall: the same in both states -->
+  <path
+    d="M186,166 C164,236 205,318 294,338 C346,320 360,240 356,166 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Right ventricle cavity below the annulus -->
+  <path
+    d="M200,170 C182,230 215,300 292,322 C330,305 344,240 340,170 Z"
+    fill="var(--diagram-venous-fill)"
+  ></path>
+  <path
+    d="M200,170 C182,230 215,300 292,322 C330,305 344,240 340,170"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Right atrium above the annulus. It is drawn larger only in the disease state, as the caption
+       says. -->
+  <g fill="var(--diagram-venous-fill)" stroke="var(--diagram-venous)" stroke-width="2">
+    <path class="normal-only" d="M200,170 C170,130 180,52 270,50 C360,52 370,130 340,170"></path>
+    <path class="disease-only" d="M200,170 C148,128 158,22 270,20 C382,22 392,128 340,170"></path>
+  </g>
+
+  <!-- Atrialized part of the ventricle between the annulus and the displaced leaflets -->
+  <path
+    class="disease-only"
+    d={atrialized}
+    fill="var(--diagram-venous)"
+    fill-opacity="0.2"
+    stroke="var(--diagram-venous)"
+    stroke-width="1"
+    stroke-dasharray="3 3"
+  ></path>
+
+  <!-- Tricuspid annulus: the same level in both states -->
+  <line
+    x1="200"
+    y1="170"
+    x2="340"
+    y2="170"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></line>
+
+  <!-- Backflow through the valve: only in the disease state -->
+  <g class="disease-only">
+    <path
+      d="M268,256 L280,256 L296,82 L252,82 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+    ></path>
+    <path
+      class="ea-pulse"
+      d="M274,300 L274,90"
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="4"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+  </g>
+
+  <!-- Tricuspid leaflets -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+    {normalLeaflets.map((d) => (
+      <path class="normal-only" d={d} />
+    ))}
+    <path class="disease-only" d={anteriorLeaflet}></path>
+    <path class="disease-only" d={septalStuck}></path>
+    <path class="disease-only" d={septalFree}></path>
+  </g>
+  <circle cx="200" cy="170" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="340" cy="170" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Moving blood: back through the gap into the atrialized part and the atrium -->
+  <g class="flow disease-only">
+    {back.map((p) => (
+      <circle
+        class="ea-p"
+        cx="274"
+        cy="292"
+        r="5"
+        fill="var(--diagram-venous)"
+        style={`--ea-dx: ${p.dx}px; animation-delay: ${p.delay}s`}
+      />
+    ))}
+  </g>
+
+  <!-- Leader lines from the drawing to the label columns -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="343" y1="170" x2="366" y2="170"></line>
+    <line class="normal-only" x1="228" y1="184" x2="176" y2="192"></line>
+    <line class="disease-only" x1="256" y1="130" x2="156" y2="130"></line>
+    <line class="disease-only" x1="212" y1="220" x2="166" y2="224"></line>
+    <line class="disease-only" x1="262" y1="300" x2="196" y2="300"></line>
+    <line class="disease-only" x1="322" y1="204" x2="366" y2="204"></line>
+    <line class="disease-only" x1="338" y1="244" x2="366" y2="250"></line>
+  </g>
+
+  <!-- Labels inside the chambers -->
+  <text class="normal-only" x="270" y="116" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="disease-only" x="270" y="66" text-anchor="middle">
+    {t['diagram.label.ra-dilated']}
+  </text>
+  <text class="normal-only" x="270" y="272" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+
+  <!-- Labels in the column on the right (septal side) -->
+  <text class="diagram-small" x="372" y="174">
+    {t['diagram.label.valve-annulus']}
+  </text>
+  <text class="diagram-small disease-only" x="372" y="202">
+    <tspan x="372">{atrializedLines[0]}</tspan>
+    <tspan x="372" dy="15">
+      {atrializedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="372" y="248">
+    <tspan x="372">{septalLines[0]}</tspan>
+    <tspan x="372" dy="15">
+      {septalLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Labels in the column on the left (free wall side) -->
+  <text class="diagram-small normal-only" x="170" y="196" text-anchor="end">
+    {t['diagram.label.tricuspid-valve']}
+  </text>
+  <text class="diagram-small disease-only" x="150" y="134" text-anchor="end">
+    {t['diagram.label.backflow']}
+  </text>
+  <text class="diagram-small disease-only" x="160" y="222" text-anchor="end">
+    <tspan x="160">{sailLines[0]}</tspan>
+    <tspan x="160" dy="15">
+      {sailLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="190" y="304" text-anchor="end">
+    {t['diagram.label.functional-rv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ea-pulse {
+    animation: ea-pulse 2.4s ease-in-out infinite;
+  }
+
+  .diagram .ea-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: ea-back 2.4s linear infinite;
+  }
+
+  /* The arrow fades between contractions; without motion it stays solid. */
+  @keyframes ea-pulse {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Systole: blood squeezes back through the gap, through the atrialized part into the atrium. */
+  @keyframes ea-back {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    30% {
+      opacity: 1;
+      transform: translate(0, -70px);
+    }
+
+    50% {
+      opacity: 1;
+      transform: translate(var(--ea-dx), -180px);
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--ea-dx), -192px);
+    }
+  }
+</style>

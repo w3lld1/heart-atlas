@@ -1,0 +1,288 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-tga-arrow-v`;
+const arrowA = `${uid}-tga-arrow-a`;
+const arrowMix = `${uid}-tga-arrow-mix`;
+// The atrial communication label is too long for one line above the heart: split it in two.
+const commWords = t['diagram.label.atrial-communication'].split(' ');
+const commSplit = Math.ceil(commWords.length / 2);
+const commLines = [commWords.slice(0, commSplit).join(' '), commWords.slice(commSplit).join(' ')];
+// A circulation scheme like the blood-flow diagram: lungs on top, the body below, the right heart
+// (venous blood) on the viewer's left and the left heart (arterial blood) on the right.
+// Normal: one loop in series, body → right heart → lungs → left heart → body. The pulmonary
+// artery rises between the two halves of the heart so that it does not cross the caval veins.
+// Transposition: the aorta leaves the right ventricle and the pulmonary artery the left
+// ventricle, so each side of the heart runs its own closed loop. Both arteries leave the bottom
+// of their ventricle, so the open duct can join them between the two.
+const normal = {
+  venaCava: 'M175,315 H30 V132 H148',
+  raToRv: 'M185,160 V178',
+  pulmonaryArtery: 'M220,207 H235 V53',
+  pulmonaryVeins: 'M295,30 H400 V132 H322',
+  laToLv: 'M285,160 V178',
+  aorta: 'M320,207 H440 V315 H297',
+};
+const tga = {
+  venaCava: 'M175,325 H30 V132 H148',
+  aorta: 'M185,235 V265 H70 V305 H173',
+  pulmonaryArtery: 'M285,235 V265 H440 V20 H297',
+  pulmonaryVeins: 'M295,40 H400 V132 H322',
+};
+const chamber = { width: 70, height: 55, rx: 10 };
+---
+
+<svg
+  viewBox="0 0 470 345"
+  role="img"
+  aria-label={t['diagram.transposition-of-the-great-arteries.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowMix}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lungs and body -->
+  <rect
+    x="175"
+    y="10"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="35" text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <rect
+    x="175"
+    y="295"
+    width="120"
+    height="40"
+    rx="20"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-border)"
+  ></rect>
+  <text x="235" y="320" text-anchor="middle">
+    {t['diagram.label.body']}
+  </text>
+
+  <!-- Heart chambers: right side (viewer's left) holds venous blood, left side arterial -->
+  <g stroke-width="2">
+    <rect
+      x="150"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="150"
+      y="180"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+    ></rect>
+    <rect
+      x="250"
+      y="105"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+    <rect
+      x="250"
+      y="180"
+      width={chamber.width}
+      height={chamber.height}
+      rx={chamber.rx}
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+    ></rect>
+  </g>
+  <text x="185" y="138" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="185" y="213" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="285" y="138" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="285" y="213" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Transposition: the open duct between the aorta and the pulmonary artery, drawn under the
+       vessels so that it joins both -->
+  <g class="disease-only" fill="none">
+    <path d="M185,265 H285" stroke="var(--color-muted)" stroke-width="8"></path>
+    <path d="M185,265 H285" stroke="var(--color-bg)" stroke-width="4"></path>
+  </g>
+
+  <!-- Vessels with arrows, readable without motion -->
+  <g fill="none" stroke-width="3">
+    <path d={normal.raToRv} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+    <path d={normal.laToLv} stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    <g class="normal-only">
+      <path
+        d={normal.venaCava}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        d={normal.pulmonaryArtery}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <path
+        d={normal.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path d={normal.aorta} stroke="var(--diagram-arterial)" marker-end={`url(#${arrowA})`}></path>
+    </g>
+    <g class="disease-only">
+      <path d={tga.venaCava} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+      <path d={tga.aorta} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+      <path
+        d={tga.pulmonaryArtery}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path
+        d={tga.pulmonaryVeins}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+    </g>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="3">
+    <path class="dash-flow" d={normal.raToRv}></path>
+    <path class="dash-flow" d={normal.laToLv}></path>
+    <g class="normal-only">
+      <path class="dash-flow" d={normal.venaCava}></path>
+      <path class="dash-flow" d={normal.pulmonaryArtery}></path>
+      <path class="dash-flow" d={normal.pulmonaryVeins}></path>
+      <path class="dash-flow" d={normal.aorta}></path>
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow" d={tga.venaCava}></path>
+      <path class="dash-flow" d={tga.aorta}></path>
+      <path class="dash-flow" d={tga.pulmonaryArtery}></path>
+      <path class="dash-flow" d={tga.pulmonaryVeins}></path>
+    </g>
+  </g>
+
+  <!-- Transposition: small mixing between the two loops, through an opening between the atria
+       and through the open duct between the aorta and the pulmonary artery. Two-way arrows: the
+       scheme shows mixing, not the direction of the shunt. -->
+  <g class="disease-only">
+    <rect
+      x="219"
+      y="125"
+      width="32"
+      height="14"
+      fill="var(--color-bg)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+    <path
+      d="M226,132 H244"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="2"
+      marker-start={`url(#${arrowMix})`}
+      marker-end={`url(#${arrowMix})`}
+    ></path>
+    <line x1="235" y1="100" x2="235" y2="123" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="235" y="82" text-anchor="middle">
+      <tspan x="235">{commLines[0]}</tspan>
+      <tspan x="235" dy="14">
+        {commLines[1]}
+      </tspan>
+    </text>
+
+    <path
+      d="M207,265 H263"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="2"
+      marker-start={`url(#${arrowMix})`}
+      marker-end={`url(#${arrowMix})`}
+    ></path>
+    <text class="diagram-small" x="235" y="285" text-anchor="middle">
+      {t['diagram.label.open-duct']}
+    </text>
+  </g>
+
+  <!-- Vessel labels: the veins keep their place, the arteries swap sides -->
+  <text class="diagram-small" x="36" y="225">
+    {t['diagram.label.venaCava']}
+  </text>
+  <text class="diagram-small" x="394" y="62" text-anchor="end">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="diagram-small normal-only" x="229" y="88" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small normal-only" x="434" y="270" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small disease-only" x="76" y="290">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small disease-only" x="434" y="255" text-anchor="end">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+</svg>

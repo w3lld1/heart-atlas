@@ -1,6 +1,7 @@
 import AorticDissection from './AorticDissection.astro';
 import AorticRegurgitation from './AorticRegurgitation.astro';
 import AorticStenosis from './AorticStenosis.astro';
+import ArrhythmogenicRightVentricularCardiomyopathy from './ArrhythmogenicRightVentricularCardiomyopathy.astro';
 import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
@@ -12,6 +13,7 @@ import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
 import DilatedCardiomyopathy from './DilatedCardiomyopathy.astro';
 import Dyslipidemia from './Dyslipidemia.astro';
+import EbsteinAnomaly from './EbsteinAnomaly.astro';
 import HeartChambers from './HeartChambers.astro';
 import HeartFailure from './HeartFailure.astro';
 import HeartValves from './HeartValves.astro';
@@ -28,8 +30,10 @@ import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
 import PulmonaryHypertension from './PulmonaryHypertension.astro';
+import RestrictiveCardiomyopathy from './RestrictiveCardiomyopathy.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
+import TranspositionOfTheGreatArteries from './TranspositionOfTheGreatArteries.astro';
 import TricuspidRegurgitation from './TricuspidRegurgitation.astro';
 import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
 import VentricularTachycardia from './VentricularTachycardia.astro';
@@ -40,6 +44,7 @@ export const diagrams = {
   'aortic-dissection': AorticDissection,
   'aortic-regurgitation': AorticRegurgitation,
   'aortic-stenosis': AorticStenosis,
+  'arrhythmogenic-right-ventricular-cardiomyopathy': ArrhythmogenicRightVentricularCardiomyopathy,
   'atrial-fibrillation': AtrialFibrillation,
   'atrial-septal-defect': AtrialSeptalDefect,
   'av-block': AvBlock,
@@ -51,6 +56,7 @@ export const diagrams = {
   'coronary-heart-disease': CoronaryHeartDisease,
   'dilated-cardiomyopathy': DilatedCardiomyopathy,
   dyslipidemia: Dyslipidemia,
+  'ebstein-anomaly': EbsteinAnomaly,
   'heart-chambers': HeartChambers,
   'heart-failure': HeartFailure,
   'heart-valves': HeartValves,
@@ -67,8 +73,10 @@ export const diagrams = {
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
   'pulmonary-hypertension': PulmonaryHypertension,
+  'restrictive-cardiomyopathy': RestrictiveCardiomyopathy,
   'supraventricular-tachycardia': SupraventricularTachycardia,
   'tetralogy-of-fallot': TetralogyOfFallot,
+  'transposition-of-the-great-arteries': TranspositionOfTheGreatArteries,
   'tricuspid-regurgitation': TricuspidRegurgitation,
   'ventricular-septal-defect': VentricularSeptalDefect,
   'ventricular-tachycardia': VentricularTachycardia,
