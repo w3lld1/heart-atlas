@@ -159,6 +159,31 @@ test.describe('embed parameters', () => {
     );
   });
 
+  test('keeps a URL rate inside the VT range and the long QT upper limit', async ({ page }) => {
+    const vt = page.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] });
+    await page.goto('en/embed/ecg/?preset=ventricular-tachycardia');
+    await hydrated(page);
+    await expect(vt).toBeChecked();
+    await expect(slider(page)).toHaveValue(
+      String(presetParams('ventricular-tachycardia').heartRate),
+    );
+    const [vtMin, vtMax] = presetRateLimits('ventricular-tachycardia');
+    await page.goto('en/embed/ecg/?preset=ventricular-tachycardia&rate=90');
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(vtMin));
+    await page.goto(`en/embed/ecg/?preset=ventricular-tachycardia&rate=${vtMax + 1}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(vtMax));
+
+    const [, longQtMax] = presetRateLimits('long-qt-syndrome');
+    await page.goto(`en/embed/ecg/?preset=long-qt-syndrome&rate=${longQtMax + 1}`);
+    await hydrated(page);
+    await expect(
+      page.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }),
+    ).toBeChecked();
+    await expect(slider(page)).toHaveValue(String(longQtMax));
+  });
+
   test('the reader can change the rate set by the URL', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
@@ -233,6 +258,15 @@ test.describe('embed builder', () => {
     const svtOption = condition.locator('option[value="supraventricular-tachycardia"]');
     await expect(svtOption).toHaveAttribute('data-min', String(svtMin));
     await expect(svtOption).toHaveAttribute('data-max', String(svtMax));
+    // The long QT narrows the upper limit; VT has a floor and its wide QRS narrows the top.
+    const [longQtMin, longQtMax] = presetRateLimits('long-qt-syndrome');
+    const longQtOption = condition.locator('option[value="long-qt-syndrome"]');
+    await expect(longQtOption).toHaveAttribute('data-min', String(longQtMin));
+    await expect(longQtOption).toHaveAttribute('data-max', String(longQtMax));
+    const [vtMin, vtMax] = presetRateLimits('ventricular-tachycardia');
+    const vtOption = condition.locator('option[value="ventricular-tachycardia"]');
+    await expect(vtOption).toHaveAttribute('data-min', String(vtMin));
+    await expect(vtOption).toHaveAttribute('data-max', String(vtMax));
     // A rate the preset does not allow is reported and left out of the code.
     const [, asdMax] = heartRateLimits(presetParams('atrial-septal-defect'));
     await condition.selectOption('atrial-septal-defect');

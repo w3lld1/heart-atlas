@@ -2,7 +2,12 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import Diagram from '../src/components/diagrams/Diagram.astro';
-import { diagramStates, diagrams, type DiagramName } from '../src/components/diagrams/index.ts';
+import {
+  diagramStates,
+  diagrams,
+  withTreatment,
+  type DiagramName,
+} from '../src/components/diagrams/index.ts';
 import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages, type MessageKey } from '../src/i18n/messages.ts';
 import LevelSwitch from '../src/components/LevelSwitch.astro';
@@ -10,6 +15,7 @@ import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Structure from '../src/components/Structure.astro';
 import Student from '../src/components/Student.astro';
+import CongenitalModel from '../src/components/viewer/CongenitalModel.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
 
 let container: AstroContainer;
@@ -141,10 +147,13 @@ describe('Diagram', () => {
     async (name) => {
       const { states, initial } = diagramStates(name);
       expect(states).toContain(initial);
+      // A diagram with the treated state needs its caption, so every state gets one.
+      const slots = Object.fromEntries(states.map((state) => [state, `Caption ${state}`]));
       for (const locale of localeCodes) {
         const html = await container.renderToString(Diagram, {
           props: { name },
           locals: { locale },
+          slots,
         });
         expect(html).toContain('role="img"');
         const title = getMessages(locale)[`diagram.${name}.title` as MessageKey];
@@ -155,6 +164,34 @@ describe('Diagram', () => {
       }
     },
   );
+
+  it('adds "after treatment" only as Normal · Disease · After treatment, starting on Disease', () => {
+    expect(withTreatment).toEqual({ states: ['normal', 'disease', 'treated'], initial: 'disease' });
+    const treated = (Object.keys(diagrams) as DiagramName[])
+      .map(diagramStates)
+      .filter((spec) => spec.states.includes('treated'));
+    for (const spec of treated) expect(spec).toBe(withTreatment);
+  });
+
+  it('fails the build on an after-treatment state without its caption', async () => {
+    process.env['HA_TEST_CONTENT'] = '1';
+    try {
+      await expect(
+        container.renderToString(Diagram, {
+          props: { name: 'demo-treated' as DiagramName },
+          slots: { normal: 'N', disease: 'D' },
+        }),
+      ).rejects.toThrow('needs a <p slot="treated"> caption');
+      const html = await container.renderToString(Diagram, {
+        props: { name: 'demo-treated' as DiagramName },
+        locals: { locale: 'ru' },
+        slots: { normal: 'N', disease: 'D', treated: 'T' },
+      });
+      expect(html).toContain('После лечения');
+    } finally {
+      delete process.env['HA_TEST_CONTENT'];
+    }
+  });
 
   it('fails the build on a caption for a state the diagram does not have', async () => {
     await expect(
@@ -201,5 +238,15 @@ describe('Structure', () => {
         locals: { locale: 'en' },
       }),
     ).rejects.toThrow('unknown structure');
+  });
+});
+
+describe('CongenitalModel', () => {
+  it('fails the build for an unknown model', async () => {
+    await expect(
+      container.renderToString(CongenitalModel, {
+        props: { locale: 'en', model: 'no-such-model' },
+      }),
+    ).rejects.toThrow('unknown model "no-such-model"');
   });
 });

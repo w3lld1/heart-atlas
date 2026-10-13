@@ -5,6 +5,7 @@ import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
+import BrugadaSyndrome from './BrugadaSyndrome.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
@@ -26,11 +27,14 @@ import NatriureticPeptides from './NatriureticPeptides.astro';
 import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
+import PulmonaryHypertension from './PulmonaryHypertension.astro';
 import SickSinusSyndrome from './SickSinusSyndrome.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
+import TricuspidRegurgitation from './TricuspidRegurgitation.astro';
 import VentricularSeptalDefect from './VentricularSeptalDefect.astro';
 import VentricularTachycardia from './VentricularTachycardia.astro';
+import WpwSyndrome from './WpwSyndrome.astro';
 
 /** Diagram art by name; the name is what articles pass to `<Diagram name="…">`. */
 export const diagrams = {
@@ -41,6 +45,7 @@ export const diagrams = {
   'atrial-septal-defect': AtrialSeptalDefect,
   'av-block': AvBlock,
   'blood-flow': BloodFlow,
+  'brugada-syndrome': BrugadaSyndrome,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
@@ -62,11 +67,14 @@ export const diagrams = {
   'patent-ductus-arteriosus': PatentDuctusArteriosus,
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
+  'pulmonary-hypertension': PulmonaryHypertension,
   'sick-sinus-syndrome': SickSinusSyndrome,
   'supraventricular-tachycardia': SupraventricularTachycardia,
   'tetralogy-of-fallot': TetralogyOfFallot,
+  'tricuspid-regurgitation': TricuspidRegurgitation,
   'ventricular-septal-defect': VentricularSeptalDefect,
   'ventricular-tachycardia': VentricularTachycardia,
+  'wpw-syndrome': WpwSyndrome,
 } as const;
 
 export type DiagramName = keyof typeof diagrams;
@@ -83,6 +91,7 @@ export const stateIds = [
   'recording',
   'symptom',
   'scheme',
+  'treated',
 ] as const;
 export type StateId = (typeof stateIds)[number];
 
@@ -90,6 +99,15 @@ type StateSpec = { states: readonly StateId[]; initial: StateId };
 
 const single: StateSpec = { states: ['scheme'], initial: 'scheme' };
 const cycle: StateSpec = { states: ['diastole', 'systole'], initial: 'diastole' };
+/**
+ * A disease diagram that also shows the heart after a typical intervention. The only way to add
+ * the treated state, so the switch always reads Normal · Disease · After treatment.
+ * Spec: docs/plans/2026-10-12-after-treatment-mode.md.
+ */
+export const withTreatment: StateSpec = {
+  states: ['normal', 'disease', 'treated'],
+  initial: 'disease',
+};
 
 /** Diagrams that do not use the default normal / disease pair. One state means no switch. */
 const customStates: Partial<Record<DiagramName, StateSpec>> = {

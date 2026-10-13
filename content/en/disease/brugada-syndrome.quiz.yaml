@@ -1,0 +1,53 @@
+questions:
+  - level: patient
+    prompt: When do fainting and cardiac arrest happen more often in Brugada syndrome?
+    options:
+      - text: Right after a meal
+      - text: At night, at rest or during sleep
+        correct: true
+    explanation: Such events happen more often at night, at rest or during sleep, and are not usually related to exercise.
+    cite: [1, 2]
+  - level: patient
+    prompt: What can bring on an attack in Brugada syndrome?
+    options:
+      - text: Eating sweets
+      - text: A walk in the fresh air
+      - text: Fever
+        correct: true
+    explanation: An attack can be brought on by fever, certain medicines, cocaine and large amounts of alcohol.
+    cite: [1, 2]
+  - level: patient
+    prompt: What is the main test for Brugada syndrome?
+    options:
+      - text: An ECG looking for the typical pattern in leads V1 and V2
+        correct: true
+      - text: A urine test
+      - text: Gastroscopy
+    explanation: 'The main test is an ECG: the doctor looks for the typical pattern in the right precordial leads V1 and V2, sometimes recording them one or two intercostal spaces higher than usual.'
+    cite: [1, 2]
+  - level: patient
+    prompt: What is used to protect against sudden death in Brugada syndrome?
+    options:
+      - text: A hearing aid
+      - text: An implantable cardioverter-defibrillator (ICD)
+        correct: true
+      - text: An insulin pump
+    explanation: An implantable cardioverter-defibrillator (ICD) is used to protect against sudden death.
+    cite: [1, 2]
+  - level: student
+    prompt: Which is the only gene with proven causality in Brugada syndrome?
+    options:
+      - text: MYH7
+      - text: FBN1
+      - text: SCN5A
+        correct: true
+    explanation: SCN5A is the only gene with proven causality, but mutations in it account for only about 20% of cases.
+    cite: [1]
+  - level: student
+    prompt: Are type 2 and type 3 ECG patterns considered diagnostic?
+    options:
+      - text: No, but they may change to a type 1 pattern
+        correct: true
+      - text: Yes, on a par with type 1
+    explanation: Type 2 and type 3 patterns are not considered diagnostic; they may change to a type 1 pattern spontaneously, with fever or in response to medications.
+    cite: [2]

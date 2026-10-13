@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What does very slight ("trivial") tricuspid regurgitation mean?
+    options:
+      - text: It always needs urgent surgery
+      - text: It is a normal finding and needs no treatment
+        correct: true
+    explanation: Very slight ("trivial" or "physiological") regurgitation is a normal finding and needs no treatment.
+    cite: [3]
+  - level: patient
+    prompt: What do some people with tricuspid regurgitation notice?
+    options:
+      - text: Ringing in the ears
+      - text: Joint pain
+      - text: Pulsations in the neck
+        correct: true
+    explanation: Some people notice pulsations in the neck caused by raised pressure in the veins and the right atrium.
+    cite: [3, 4]
+  - level: patient
+    prompt: How is mild tricuspid regurgitation most often found?
+    options:
+      - text: By chance, on an echocardiogram done for another reason
+        correct: true
+      - text: Because of severe chest pain
+      - text: From a urine test
+    explanation: Mild regurgitation is most often found by chance, on an echocardiogram done for another reason.
+    cite: [3]
+  - level: patient
+    prompt: What is generally preferred in tricuspid valve surgery?
+    options:
+      - text: Replacing the valve with a prosthesis
+      - text: Repairing the valve
+        correct: true
+    explanation: Repair is generally preferred to replacement.
+    cite: [3]
+  - level: student
+    prompt: How does the TR murmur change with inspiration?
+    options:
+      - text: It becomes louder (Carvallo sign)
+        correct: true
+      - text: It becomes quieter
+    explanation: The holosystolic murmur of TR is heard best at the left middle or lower sternal border and becomes louder with inspiration (Carvallo sign), but it is frequently not heard.
+    cite: [3]
+  - level: student
+    prompt: Which method is preferred for evaluating RV size and function?
+    options:
+      - text: Spirometry
+      - text: Cardiac MRI
+        correct: true
+      - text: Electroencephalography
+    explanation: Cardiac MRI is the preferred method for evaluating RV size and function.
+    cite: [3]

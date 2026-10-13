@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: What most often causes pulmonary hypertension?
+    options:
+      - text: Diseases of the left side of the heart
+        correct: true
+      - text: Food allergy
+      - text: A knee injury
+    explanation: PH most often develops because of diseases of the left side of the heart, such as heart failure or valve disease.
+    cite: [1, 2]
+  - level: patient
+    prompt: When do symptoms appear in the early stages of PH?
+    options:
+      - text: Only during sleep
+      - text: During physical activity
+        correct: true
+      - text: Only after meals
+    explanation: In the early stages, symptoms appear during physical activity.
+    cite: [1]
+  - level: patient
+    prompt: What is the main screening test when PH is suspected?
+    options:
+      - text: A foot X-ray
+      - text: Gastroscopy
+      - text: A heart ultrasound (echocardiography)
+        correct: true
+    explanation: 'The main screening test is an ultrasound scan of the heart, echocardiography: from it the doctor estimates how likely PH is.'
+    cite: [1, 2]
+  - level: patient
+    prompt: What is the main treatment for chronic thromboembolic PH (CTEPH)?
+    options:
+      - text: A kidney transplant
+      - text: An operation that removes thrombotic material from the pulmonary arteries
+        correct: true
+    explanation: In CTEPH the main treatment is an operation that removes thrombotic material from the pulmonary arteries (pulmonary endarterectomy).
+    cite: [1, 2, 3]
+  - level: student
+    prompt: Mutations in which gene are found in 75% of familial PAH?
+    options:
+      - text: BMPR2
+        correct: true
+      - text: SCN5A
+      - text: FBN1
+    explanation: In familial PAH, mutations in the BMPR2 gene are found in 75% of cases.
+    cite: [1, 3]
+  - level: student
+    prompt: What is the main prognostic factor in PH of any cause?
+    options:
+      - text: Blood cholesterol level
+      - text: RV function
+        correct: true
+      - text: Body weight
+    explanation: Whatever the cause, PH leads to RV pressure overload and dysfunction; RV function is the main factor determining prognosis.
+    cite: [1, 2]

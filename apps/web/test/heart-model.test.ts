@@ -3,6 +3,12 @@ import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages } from '../src/i18n/messages.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
 import {
+  congenitalModelEntry,
+  congenitalModelIds,
+  congenitalModelUrls,
+  congenitalSection,
+  congenitalSourceIds,
+  congenitalStructures,
   heartAttribution,
   heartModelUrls,
   heartStructures,
@@ -51,5 +57,45 @@ describe('heart model data for the viewer', () => {
       poster: '/heart-atlas/models/heart-hero-poster.webp',
       heroPoster: '/heart-atlas/models/heart-hero-poster.webp',
     });
+  });
+});
+
+describe('congenital model data for the viewer', () => {
+  it('names every layer in every locale', () => {
+    for (const locale of localeCodes) {
+      for (const id of congenitalSourceIds()) {
+        const unnamed = congenitalStructures(getMessages(locale), id).filter(
+          (s) => s.label === s.id,
+        );
+        expect(unnamed, `${locale} ${id}`).toEqual([]);
+      }
+    }
+  });
+
+  it('shows the attribution of a model made of several source files once', () => {
+    const parts = heartAttribution('congenital/transposition-of-the-great-arteries.glb');
+    expect(parts.map((p) => p.text)).toEqual([
+      'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0',
+    ]);
+  });
+
+  it('opens the tetralogy of Fallot model cut and the transposition model whole', () => {
+    expect(congenitalSection('tetralogy-of-fallot')).toBe('frontal');
+    expect(congenitalSection('transposition-of-the-great-arteries')).toBeUndefined();
+  });
+
+  it('points at the built files, the model record and the attribution of each model', () => {
+    for (const id of congenitalModelIds) {
+      expect(congenitalModelUrls('/base/', id)).toEqual({
+        models: { high: `/base/models/${id}-lod0.glb`, low: `/base/models/${id}-lod1.glb` },
+        poster: `/base/models/${id}-poster.webp`,
+      });
+      expect(congenitalModelEntry(id)).toMatch(/^https:\/\/3d\.nih\.gov\/entries\//);
+      expect(
+        heartAttribution(`congenital/${id}.glb`)
+          .map((part) => part.text)
+          .join(' '),
+      ).toContain('NIH 3D Heart Library');
+    }
   });
 });

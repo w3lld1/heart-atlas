@@ -23,6 +23,8 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'aortic-regurgitation': ['aortic-valve'],
     'mitral-stenosis': ['mitral-valve'],
     'pulmonary-embolism': ['pulmonary-trunk', 'right-ventricle'],
+    'pulmonary-hypertension': ['pulmonary-trunk', 'right-ventricle'],
+    'tricuspid-regurgitation': ['tricuspid-valve'],
     'infective-endocarditis': [
       'mitral-valve',
       'aortic-valve',
@@ -36,6 +38,8 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'coarctation-of-the-aorta': ['aorta'],
     'patent-ductus-arteriosus': ['aorta', 'pulmonary-trunk'],
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
+    'wpw-syndrome': ['av-node'],
+    'brugada-syndrome': ['right-ventricle'],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {

@@ -17,6 +17,8 @@ export const presetIds = [
   'atrial-septal-defect',
   'av-block-first-degree',
   'supraventricular-tachycardia',
+  'long-qt-syndrome',
+  'ventricular-tachycardia',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -89,6 +91,35 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // QRS, and it has no retrograde P′ at all.
     pAmplitude: 0,
   }),
+  'long-qt-syndrome': Object.freeze({
+    // Long QT syndrome is diagnosed with QTc ≥480 ms, and the risk of torsades de pointes rises
+    // with QTc, especially above 500 ms (Minzdrav 2025, Ventricular arrhythmias, quoting the ESC
+    // 2022 criteria; MSD Manuals, Long QT Interval Syndromes, 2026; sources 1 and 2 of our long QT
+    // article). The model scales QT with √RR, as the Bazett formula does, so `qtc` is the Bazett
+    // QTc at every heart rate. assumption: 500 ms, above the diagnostic threshold; a QTc of 500 ms
+    // fits the beat up to 137 bpm, so the preset allows 40–137 bpm. The heart rate stays the reader's.
+    // Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    qtc: 500,
+  }),
+  'ventricular-tachycardia': Object.freeze({
+    // Monomorphic ventricular tachycardia. The rate is the sign, so this preset sets it: VT is ≥3
+    // consecutive ventricular beats at more than 100 per minute (Minzdrav 2025, Ventricular
+    // arrhythmias; source 1 of our VT article). assumption: 150, above 100 and inside the rates
+    // the wide QRS below allows (101–169). Monomorphic VT is fast and regular with identical QRS
+    // complexes (Minzdrav 2025; MSD Manuals, Ventricular Tachycardia, 2024), so rrIrregularity
+    // stays 0. Spec: docs/plans/2026-10-12-more-ecg-presets.md.
+    heartRate: 150,
+    // ECG signs of ventricular arrhythmias: a wide QRS (≥120 ms), no preceding P wave and a T wave
+    // discordant to the main QRS deflection (Minzdrav 2025). assumption: 130 ms, the width the
+    // model already draws for complete bundle branch block in atrial septal defect; a wider QRS
+    // would cut the fastest rates further (140 ms: up to 157 bpm, 160 ms: up to 132). The model
+    // keeps the P-to-QRS delay; with no P wave it is a flat stretch before the QRS.
+    qrsDuration: 130,
+    pAmplitude: 0,
+    // The model's QRS is mainly positive (R 1 mV, ecg.ts), so a negative T is discordant to it.
+    // assumption: −0.3 mV, the default T amplitude inverted; no source gives a T amplitude.
+    tAmplitude: -0.3,
+  }),
 });
 
 /**
@@ -98,6 +129,9 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
 export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({
   // Reentrant SVT is 120–250 bpm (MSD Manuals, Reentrant (Paroxysmal) SVT, 2024).
   'supraventricular-tachycardia': 120,
+  // VT runs at more than 100 per minute (Minzdrav 2025, Ventricular arrhythmias): 101 is the lowest
+  // whole rate above that, so the slider never shows a rate below the VT definition.
+  'ventricular-tachycardia': 101,
 });
 
 export function isPresetId(value: string): value is PresetId {
