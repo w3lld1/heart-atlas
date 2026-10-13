@@ -117,12 +117,12 @@ export function checkParams(params: HeartParams): void {
   const low = clampRr(mean * (1 - params.rrIrregularity), params);
   const high = clampRr(mean * (1 + params.rrIrregularity), params);
   const steps = low === high ? 0 : 256;
-  // With `prStep` the last beat of a group has the longest PR, so it is the one that may not fit.
+  // With `prStep` the last beat of a group has the longest PR. A longer PR moves R and every later
+  // moment by the same amount, so only the end of the beat can stop fitting: the longest PR is the
+  // one to check.
   const longest = params.pauseEvery > 0 ? (params.pauseEvery - 1) * params.prStep : 0;
   for (let i = 0; i <= steps; i += 1) {
-    const rr = low + ((high - low) * i) / (steps || 1);
-    beatTiming(rr, params);
-    if (longest > 0) beatTiming(rr, params, longest);
+    beatTiming(low + ((high - low) * i) / (steps || 1), params, longest);
   }
 }
 

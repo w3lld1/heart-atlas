@@ -151,8 +151,8 @@ function volume(t: number, beat: Beat, next: Beat): number {
     return 100 - (100 - esv) * (1 - (1 - x) ** 2);
   }
   if (t < timing.mitralOpening) return esv;
-  // Rapid filling, then diastasis (ease-out cubic). In a sinus pause (after timing.rr) the volume
-  // stays where the next beat starts.
+  // Rapid filling, then diastasis (ease-out cubic). In a pause (after timing.rr: a sinus pause or a
+  // blocked P wave) the volume stays where the next beat starts.
   const x = Math.min(1, (t - timing.mitralOpening) / (timing.rr - timing.mitralOpening));
   return esv + (startVolume(next) - esv) * (1 - (1 - x) ** 3);
 }

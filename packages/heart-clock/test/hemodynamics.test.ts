@@ -193,6 +193,10 @@ describe('hemodynamicsAt in second-degree AV block', () => {
     expectContinuous(clock, 0, 7000);
     const pause = series(clock, 2000, 2999, 50);
     const first = pause[0]?.h as Hemodynamics;
-    for (const { t, h } of pause) expect(h.volume, `${t} ms`).toBeCloseTo(first.volume, 6);
+    for (const { t, h } of pause) {
+      for (const key of ['lv', 'la', 'volume'] as const) {
+        expect(h[key], `${key} at ${t} ms`).toBeCloseTo(first[key], 6);
+      }
+    }
   });
 });

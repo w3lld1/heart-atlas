@@ -323,21 +323,18 @@ export function resolveParams(
     throw new RangeError(`prStep must be an integer, got ${params.prStep}`);
   }
   // A blocked P wave is a sinus P wave that the AV node does not pass, so the pause is one P–P
-  // interval long and the rhythms that replace or move the P wave, and pacing, are other modes.
+  // interval long and the rhythms that replace the P wave are other modes. Flutter, pacing and
+  // `atrialRate` already refuse pauses above.
   if (
     params.blockedP === 1 &&
     (params.pauseEvery === 0 ||
       params.pauseDuration > 0 ||
       params.pAmplitude <= 0 ||
       params.fWaveAmplitude > 0 ||
-      params.flutterConduction > 0 ||
-      params.rrIrregularity > 0 ||
-      params.atrialRate > 0 ||
-      params.atrialPacing > 0 ||
-      params.ventricularPacing > 0)
+      params.rrIrregularity > 0)
   ) {
     throw new RangeError(
-      'blockedP needs pauseEvery above 0, a positive pAmplitude and pauseDuration, fWaveAmplitude, flutterConduction, rrIrregularity, atrialRate, atrialPacing and ventricularPacing at 0',
+      'blockedP needs pauseEvery above 0 and a positive pAmplitude, with pauseDuration, fWaveAmplitude and rrIrregularity at 0',
     );
   }
   if (params.prStep > 0 && params.blockedP === 0) {

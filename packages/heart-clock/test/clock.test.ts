@@ -298,7 +298,9 @@ describe('second-degree AV block (blockedP)', () => {
     expect(beats.map((b) => b.pause)).toEqual([0, 1000, 0, 1000, 0, 1000]);
     const r = beats.map((b) => b.start + b.timing.rPeak);
     expect((r[2] ?? 0) - (r[1] ?? 0)).toBeCloseTo(2 * ((r[1] ?? 0) - (r[0] ?? 0)), 9);
+    // The PR is the same before and after the P wave that is not conducted.
     expect(beats[1]?.timing).toEqual(beats[0]?.timing);
+    expect(beats[2]?.timing).toEqual(beats[1]?.timing);
   });
 
   it('draws a P wave without a QRS at the start of the pause', () => {
@@ -311,6 +313,9 @@ describe('second-degree AV block (blockedP)', () => {
       expect(Math.abs(clock.ecgAt(t)), `${t} ms`).toBeLessThan(0.01);
     }
     expect(clock.sample(2000 + timing.qOnset)).toMatchObject({ pause: true, phase: 'filling' });
+    // The strip is drawn with ecgBetween; it must match ecgAt in and around the pause.
+    const strip = clock.ecgBetween(1500, 3500, 201);
+    strip.forEach((value, k) => expect(value).toBeCloseTo(clock.ecgAt(1500 + 10 * k), 9));
   });
 
   it('plays no sounds in the pause', () => {
