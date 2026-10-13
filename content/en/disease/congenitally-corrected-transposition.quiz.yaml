@@ -1,0 +1,54 @@
+questions:
+  - level: patient
+    prompt: In this defect, which ventricle pumps blood into the aorta and to the whole body?
+    options:
+      - text: The morphologic left ventricle
+      - text: The morphologic right ventricle
+        correct: true
+      - text: Both ventricles in turn, beat by beat
+    explanation: It is the morphologic right ventricle that pumps blood into the aorta and to the whole body, while the left ventricle works for the lungs.
+    cite: [1]
+  - level: patient
+    prompt: Why is the circulation in this defect called "corrected"?
+    options:
+      - text: It is repaired by surgery in the first hours of life
+      - text: The heart is built the same as in healthy people
+      - text: The two "errors" cancel each other out
+        correct: true
+    explanation: 'The two "errors" cancel each other out, so blood flows in the right direction: venous blood goes to the lungs and arterial blood to the body. That is why the circulation is called "corrected".'
+    cite: [1, 3]
+  - level: patient
+    prompt: What is the main test for the diagnosis?
+    options:
+      - text: Heart ultrasound (echocardiography)
+        correct: true
+      - text: A urine test for sugar
+      - text: Measuring height, weight and head size
+    explanation: The main test is a heart ultrasound scan, echocardiography. It shows that the ventricles have swapped places and finds associated defects.
+    cite: [2, 3]
+  - level: patient
+    prompt: Why are conduction problems (AV block) common in this defect?
+    options:
+      - text: A lack of vitamins in the diet
+      - text: The conduction system lies in an unusual position
+        correct: true
+      - text: The heart has no valves at all in this defect
+    explanation: The conduction system of the heart — the AV node and the bundle of His — lies in an unusual position in this defect. That is why conduction problems — AV block — are common.
+    cite: [1, 2]
+  - level: student
+    prompt: What explains the loud second heart sound at the base of the heart left of the sternum in ccTGA?
+    options:
+      - text: The anterior and leftward position of the aorta
+        correct: true
+      - text: The posterior and rightward position of the aorta
+      - text: Fusion of the aorta and pulmonary artery into one trunk
+    explanation: The loud second heart sound at the base of the heart to the left of the sternum is due to the anterior and leftward position of the aorta; it can be mistaken for a sign of severe pulmonary hypertension.
+    cite: [1, 3]
+  - level: student
+    prompt: In ccTGA, which AV valve leads into the systemic ventricle?
+    options:
+      - text: The mitral valve
+      - text: The tricuspid valve
+        correct: true
+    explanation: The AV valve of the systemic (morphologic right) ventricle is morphologically tricuspid and is called the systemic (arterial) AV valve; the valve of the venous ventricle is mitral.
+    cite: [1]
