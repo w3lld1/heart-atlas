@@ -54,6 +54,7 @@ test.describe('3D model in an article without signs on the model', () => {
     ],
     'sick-sinus-syndrome': ['sa-node'],
     'supraventricular-tachycardia': ['av-node', 'bundle-of-his'],
+    'takayasu-arteritis': ['aorta'],
     'tricuspid-regurgitation': ['tricuspid-valve'],
     'ventricular-septal-defect': ['interventricular-septum'],
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
