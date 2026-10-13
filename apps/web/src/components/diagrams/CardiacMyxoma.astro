@@ -222,7 +222,7 @@ const mitralLines = twoLines(t['diagram.label.mitral-valve']);
   </g>
 
   <!-- The myxoma on its stalk; it swings around the attachment on the septum -->
-  <g class="disease-only mx-swing">
+  <g class="disease-only mx-swing" style={`transform-origin: ${attach.x}px ${attach.y}px`}>
     <path
       d={stalk}
       fill="none"
@@ -314,7 +314,6 @@ const mitralLines = twoLines(t['diagram.label.mitral-valve']);
      Without motion it stays drawn where it lies in the valve opening. */
   .diagram .mx-swing {
     transform-box: view-box;
-    transform-origin: 168px 96px;
     animation: mx-swing 3.2s ease-in-out infinite;
   }
 
