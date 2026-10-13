@@ -67,6 +67,7 @@ test.describe('3D model in an article without signs on the model', () => {
     'takotsubo-syndrome': ['left-ventricle'],
     'thoracic-aortic-aneurysm': ['aorta', 'aortic-valve'],
     'tricuspid-regurgitation': ['tricuspid-valve'],
+    'truncus-arteriosus': ['interventricular-septum', 'aorta', 'pulmonary-trunk'],
     'ventricular-septal-defect': ['interventricular-septum'],
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
     'wpw-syndrome': ['av-node'],
