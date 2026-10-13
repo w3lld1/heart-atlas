@@ -1,12 +1,18 @@
-import type { HeartClock } from '@heart-atlas/heart-clock';
+import type { HeartClock, LimbLead } from '@heart-atlas/heart-clock';
 
 /** Screen scale, not a physical one: 1 mm of ECG paper is 4 CSS pixels. */
 export const pxPerMm = 4;
 /** Standard paper speed 25 mm/s and gain 10 mm/mV (StatPearls, "Electrocardiogram"). */
 export const pxPerMs = (25 * pxPerMm) / 1000;
 export const pxPerMv = 10 * pxPerMm;
-/** Canvas height: 32 mm of paper. */
+/** Canvas height of a single strip: 32 mm of paper, baseline 18 mm from the top. */
 export const ecgHeight = 32 * pxPerMm;
+/**
+ * One of three limb lead strips: 24 mm, baseline 14 mm from the top, so the three fit on a phone.
+ * Room for 1.4 mV up and 1 mV down; a test checks every preset in every lead fits.
+ */
+export const limbStrip = { height: 24 * pxPerMm, baseline: 14 * pxPerMm } as const;
+const singleStrip = { height: ecgHeight, baseline: 18 * pxPerMm } as const;
 /** The trace stays inside the clock history (10 s), so the strip shows at most 9 s. */
 export const maxEcgWidth = Math.floor(9000 * pxPerMs);
 
@@ -33,7 +39,9 @@ export function windowMs(width: number): number {
 
 /**
  * Draws ECG paper and the trace for the strip that ends at clock time `now`, newest on the right.
- * `context` is already scaled so that one unit is one CSS pixel.
+ * `context` is already scaled so that one unit is one CSS pixel. With `lead` the strip is that
+ * limb lead, shorter (`limbStrip`) and labelled with the lead's name; without it the clock's own
+ * trace on a full strip.
  */
 export function drawEcg(
   context: CanvasRenderingContext2D,
@@ -41,7 +49,9 @@ export function drawEcg(
   now: number,
   clock: HeartClock,
   colors: EcgColors,
+  lead?: LimbLead,
 ): void {
+  const { height: ecgHeight, baseline } = lead ? limbStrip : singleStrip;
   context.clearRect(0, 0, width, ecgHeight);
   context.lineWidth = 1;
   for (let mm = 0; mm * pxPerMm <= Math.max(width, ecgHeight); mm += 1) {
@@ -59,10 +69,17 @@ export function drawEcg(
     context.stroke();
   }
 
-  // Baseline on a major line, 18 mm from the top: room for R above and S below.
+  // Baseline on a major line: room for R above and S below.
   context.strokeStyle = colors.trace;
   context.lineWidth = 2;
-  traceEcg(context, clock, now, { width, pxPerMs, baseline: 18 * pxPerMm, pxPerMv });
+  traceEcg(context, clock, now, { width, pxPerMs, baseline, pxPerMv, lead });
+  if (lead) {
+    // The lead's name, as on a printed ECG; the canvas label says it to screen readers.
+    context.fillStyle = colors.trace;
+    context.font = `bold ${3 * pxPerMm}px system-ui, sans-serif`;
+    context.textBaseline = 'top';
+    context.fillText(lead, pxPerMm, pxPerMm);
+  }
 }
 
 export interface TraceScale {
@@ -72,6 +89,8 @@ export interface TraceScale {
   /** Where 0 mV sits, CSS pixels from the top. */
   baseline: number;
   pxPerMv: number;
+  /** Limb lead to draw; the clock's own trace without it. */
+  lead?: LimbLead;
 }
 
 /**
@@ -82,14 +101,14 @@ export function traceEcg(
   context: CanvasRenderingContext2D,
   clock: HeartClock,
   now: number,
-  { width, pxPerMs: perMs, baseline, pxPerMv: perMv }: TraceScale,
+  { width, pxPerMs: perMs, baseline, pxPerMv: perMv, lead }: TraceScale,
 ): void {
   // The clock starts at t = 0; before that there is no trace.
   const from = Math.max(0, now - width / perMs);
   const offset = width - (now - from) * perMs;
   const count = Math.floor(width - offset) + 1;
   if (count < 2) return;
-  const values = clock.ecgBetween(from, from + (count - 1) / perMs, count);
+  const values = clock.ecgBetween(from, from + (count - 1) / perMs, count, lead);
   context.lineJoin = 'round';
   context.beginPath();
   values.forEach((value, x) => {
@@ -98,7 +117,9 @@ export function traceEcg(
     else context.lineTo(offset + x, y);
   });
   // Spikes start at 0 mV: pacing rules out f and F waves, T ends before the next P, and the PR
-  // segment is flat, so the trace is on the baseline where a paced P or QRS starts.
+  // segment is flat, so the trace is on the baseline where a paced P or QRS starts. A spike is a
+  // marker, not part of the trace: every limb lead draws it the same
+  // (docs/plans/2026-10-13-heart-clock-three-leads.md).
   for (const t of pacingSpikes(clock, from, from + (count - 1) / perMs)) {
     const x = offset + (t - from) * perMs;
     context.moveTo(x, baseline);

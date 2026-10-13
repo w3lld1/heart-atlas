@@ -1,6 +1,13 @@
-import { createHeartClock } from '@heart-atlas/heart-clock';
+import {
+  createHeartClock,
+  limbLeads,
+  presetIds,
+  presetLead,
+  presetParams,
+} from '@heart-atlas/heart-clock';
 import { describe, expect, it } from 'vitest';
 import {
+  limbStrip,
   pacingSpikeMv,
   pacingSpikes,
   pxPerMs,
@@ -111,5 +118,20 @@ describe('Wiggers ECG row', () => {
     expect(extra({ ventricularPacing: 1 })).toHaveLength(1);
     expect(extra({ atrialPacing: 1, ventricularPacing: 1 })).toEqual([atrial, ventricular]);
     expect(ventricular).toBeGreaterThan(atrial ?? Infinity);
+  });
+});
+
+describe('limb lead strips', () => {
+  it('fit every preset drawn in lead II, in every limb lead, with its spikes', () => {
+    const top = limbStrip.baseline / pxPerMv;
+    const bottom = (limbStrip.height - limbStrip.baseline) / pxPerMv;
+    for (const id of presetIds.filter((preset) => presetLead(preset) === 'II')) {
+      const clock = createHeartClock(presetParams(id));
+      for (const lead of limbLeads) {
+        const values = clock.ecgBetween(0, 9000, 9001, lead);
+        expect(Math.max(...values, pacingSpikeMv), `${id} in ${lead}`).toBeLessThan(top);
+        expect(Math.min(...values), `${id} in ${lead}`).toBeGreaterThan(-bottom);
+      }
+    }
   });
 });

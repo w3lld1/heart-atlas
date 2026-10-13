@@ -11,14 +11,16 @@ import {
   switchedHeartRate,
   withdrawCycleSource,
   type CycleSource,
+  limbLeads,
   type HeartParams,
   type Lead,
+  type LimbLead,
   type Phase,
   type PresetId,
 } from '@heart-atlas/heart-clock';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
-import { drawEcg, ecgHeight, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
+import { drawEcg, ecgHeight, limbStrip, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
 import { HeartSoundPlayer } from './heart-sounds.ts';
 import { drawWiggers, readWiggersColors, wiggersHeight } from './wiggers-canvas.ts';
 import styles from './HeartClockDemo.module.css';
@@ -84,6 +86,12 @@ export interface HeartClockDemoProps {
    * body, so an article where the right ventricle does (corrected transposition) turns it off.
    */
   wiggers?: boolean;
+  /**
+   * Shows limb leads I, II and III at once for presets drawn in lead II; presets drawn in V1 keep
+   * one strip. Off until the presets get their wave axes from sources
+   * (docs/plans/2026-10-13-heart-clock-three-leads.md).
+   */
+  limbLeads?: boolean;
 }
 
 /** Parameters of a preset with the caller's overrides, or undefined if the two do not fit. */
@@ -125,6 +133,7 @@ export default function HeartClockDemo({
   headingLevel = 2,
   lead,
   wiggers: showWiggers = true,
+  limbLeads: showLimbLeads = false,
 }: HeartClockDemoProps) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
   // Presets that fit the caller's parameters, with their parameters and heart rate limits.
@@ -172,7 +181,13 @@ export default function HeartClockDemo({
   const [dpr, setDpr] = useState(1);
   const [soundOn, setSoundOn] = useState(false);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // One strip per limb lead, or one strip with the clock's own trace (lead II or V1).
+  const threeStrips = showLimbLeads && choice.lead === 'II';
+  const strips: readonly (LimbLead | undefined)[] = useMemo(
+    () => (threeStrips ? limbLeads : [undefined]),
+    [threeStrips],
+  );
+  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const wiggersRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Clock time shown at the right edge of the strip. Starts one strip in, so the paused
@@ -253,15 +268,19 @@ export default function HeartClockDemo({
       nowClockRef.current = clock;
       nowRef.current = windowMs(maxEcgWidth);
     }
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
+    const ecgs = strips.flatMap((lead, k) => {
+      const element = canvasRefs.current[k];
+      const ctx = element?.getContext('2d');
+      return element && ctx ? [{ element, ctx, lead }] : [];
+    });
+    const canvas = ecgs[0]?.element;
     const wiggers = wiggersRef.current;
     const wiggersContext = wiggers?.getContext('2d');
-    if (!canvas || !context || width === 0) return;
+    if (!canvas || ecgs.length !== strips.length || width === 0) return;
 
-    const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = [
-      [canvas, context, ecgHeight],
-    ];
+    const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = ecgs.map(
+      ({ element, ctx, lead }) => [element, ctx, lead ? limbStrip.height : ecgHeight],
+    );
     if (wiggers && wiggersContext) canvases.push([wiggers, wiggersContext, wiggersHeight]);
     for (const [element, ctx, height] of canvases) {
       element.width = Math.round(width * dpr);
@@ -280,8 +299,7 @@ export default function HeartClockDemo({
     scheme.addEventListener('change', onScheme);
 
     function render() {
-      if (!context) return;
-      drawEcg(context, width, nowRef.current, clock, colors);
+      for (const { ctx, lead } of ecgs) drawEcg(ctx, width, nowRef.current, clock, colors, lead);
       if (wiggersContext && wiggersColors) {
         drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
       }
@@ -306,8 +324,8 @@ export default function HeartClockDemo({
       scheme.removeEventListener('change', onScheme);
       playerRef.current?.cancel();
     };
-    // showWiggers mounts and unmounts the Wiggers canvas, so its ref must be read again.
-  }, [clock, playing, width, dpr, wiggersLabels, showWiggers]);
+    // showWiggers and the strips mount and unmount canvases, so their refs must be read again.
+  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, strips]);
 
   // Closes the audio context when the island goes away.
   useEffect(
@@ -443,14 +461,22 @@ export default function HeartClockDemo({
       </p>
       {/* ECG paper runs left to right in every language. */}
       <div ref={wrapperRef} className={styles['strip']} dir="ltr">
-        <canvas
-          ref={canvasRef}
-          className={styles['ecg']}
-          role="img"
-          aria-label={t['heartClock.ecgLabel'].replace('{lead}', choice.lead)}
-          aria-describedby={descriptionId}
-          style={{ inlineSize: width ? `${width}px` : '100%', blockSize: `${ecgHeight}px` }}
-        />
+        {strips.map((lead, k) => (
+          <canvas
+            key={lead ?? choice.lead}
+            ref={(element) => {
+              canvasRefs.current[k] = element;
+            }}
+            className={styles['ecg']}
+            role="img"
+            aria-label={t['heartClock.ecgLabel'].replace('{lead}', lead ?? choice.lead)}
+            aria-describedby={descriptionId}
+            style={{
+              inlineSize: width ? `${width}px` : '100%',
+              blockSize: `${lead ? limbStrip.height : ecgHeight}px`,
+            }}
+          />
+        ))}
       </div>
       <p id={descriptionId} className={styles['description']}>
         {description}

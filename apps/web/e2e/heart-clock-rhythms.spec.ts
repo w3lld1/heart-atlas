@@ -52,3 +52,28 @@ test('runs without the Wiggers diagram and switches presets', async ({ page }) =
   await expect(clock.locator('[data-phase]')).not.toBeEmpty();
   expect(errors).toEqual([]);
 });
+
+test('shows leads I, II and III for a lead II preset and one V1 strip for Brugada', async ({
+  page,
+}) => {
+  const errors: Error[] = [];
+  page.on('pageerror', (error) => errors.push(error));
+  await page.goto('en/test/heart-clock/');
+  const clock = page.locator('[data-test="limb-leads"]');
+  const strip = (lead: string) =>
+    clock.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', lead) });
+  for (const lead of ['I', 'II', 'III']) await expect(strip(lead)).toBeVisible();
+  await expect(clock.locator('canvas')).toHaveCount(3);
+  // Something is drawn: the canvas gets its size in device pixels once the island measures it.
+  await expect
+    .poll(async () => strip('III').evaluate((c: HTMLCanvasElement) => c.width))
+    .toBeGreaterThan(0);
+
+  await clock
+    .getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'], exact: true })
+    .check();
+  await expect(strip('V1')).toBeVisible();
+  await expect(clock.locator('canvas')).toHaveCount(1);
+  expect((await axe(page).analyze()).violations).toEqual([]);
+  expect(errors).toEqual([]);
+});
