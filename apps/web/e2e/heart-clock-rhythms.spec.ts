@@ -37,3 +37,18 @@ test('shows sinus pauses, a V1 strip with a delta wave and a coved ST, and flutt
   expect((await axe(page).analyze()).violations).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test('runs without the Wiggers diagram and switches presets', async ({ page }) => {
+  const errors: Error[] = [];
+  page.on('pageerror', (error) => errors.push(error));
+  await page.goto('en/test/heart-clock/');
+  const clock = page.locator('[data-test="no-wiggers"]');
+  await expect(clock.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  await expect(clock.getByText(en['heartClock.wiggers.title'])).toHaveCount(0);
+  await expect(clock.getByRole('img', { name: en['heartClock.wiggers.label'] })).toHaveCount(0);
+  await expect(clock.getByText(en['heartClock.wiggers.description'])).toHaveCount(0);
+  await clock.getByRole('radio', { name: en['heartClock.preset.normal'], exact: true }).check();
+  await expect(clock.getByText(en['heartClock.preset.normal.summary'])).toBeVisible();
+  await expect(clock.locator('[data-phase]')).not.toBeEmpty();
+  expect(errors).toEqual([]);
+});

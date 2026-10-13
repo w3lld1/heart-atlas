@@ -296,8 +296,17 @@ describe('ArticleClock', () => {
       withReact.renderToString(ArticleClock, {
         props: { locale: 'en', preset: 'av-block-third-degree', wiggers },
       });
-    const label = getMessages('en')['heartClock.wiggers.label'];
-    expect(await render(true)).toContain(`aria-label="${label}"`);
-    expect(await render(false)).not.toContain(`aria-label="${label}"`);
+    const t = getMessages('en');
+    const shown = await render(true);
+    const hidden = await render(false);
+    // The island's props carry every message, so look for rendered markup, not the bare text.
+    for (const text of [
+      `aria-label="${t['heartClock.wiggers.label']}"`,
+      `>${t['heartClock.wiggers.title']}</h`,
+      /id="[^"]*-wiggers"/,
+    ]) {
+      expect(shown).toMatch(text);
+      expect(hidden).not.toMatch(text);
+    }
   });
 });

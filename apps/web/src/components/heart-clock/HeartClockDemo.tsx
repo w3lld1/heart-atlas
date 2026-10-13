@@ -256,7 +256,7 @@ export default function HeartClockDemo({
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     const wiggers = wiggersRef.current;
-    const wiggersContext = wiggers?.getContext('2d') ?? undefined;
+    const wiggersContext = wiggers?.getContext('2d');
     if (!canvas || !context || width === 0) return;
 
     const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = [
@@ -306,6 +306,7 @@ export default function HeartClockDemo({
       scheme.removeEventListener('change', onScheme);
       playerRef.current?.cancel();
     };
+    // showWiggers mounts and unmounts the Wiggers canvas, so its ref must be read again.
   }, [clock, playing, width, dpr, wiggersLabels, showWiggers]);
 
   // Closes the audio context when the island goes away.
