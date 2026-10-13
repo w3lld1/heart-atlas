@@ -103,7 +103,7 @@ export interface TraceScale {
   baseline: number;
   pxPerMv: number;
   /** Limb lead to draw; the clock's own trace without it. */
-  lead?: LimbLead;
+  lead?: LimbLead | undefined;
 }
 
 /**
