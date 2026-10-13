@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is total anomalous pulmonary venous return?
+    options:
+      - text: A narrowed aortic valve that makes it hard for the heart to pump blood out
+      - text: None of the pulmonary veins connects to the left atrium
+        correct: true
+      - text: A hole in the wall between the two ventricles of the heart
+    explanation: Total anomalous pulmonary venous return is a congenital heart defect in which none of the pulmonary veins connects directly to the left atrium.
+    cite: [1, 3]
+  - level: patient
+    prompt: Why does a newborn with this defect depend on an opening between the atria?
+    options:
+      - text: Through this opening, air from the lungs goes straight into the heart chambers
+      - text: It controls how fast the heart beats
+      - text: Only through it can blood from the lungs reach the left side of the heart
+        correct: true
+    explanation: Blood from the lungs can reach the left side of the heart, and from there the rest of the body, only through an opening in the wall between the atria. So a newborn's survival depends on whether there is such an opening and how large it is.
+    cite: [1, 3]
+  - level: patient
+    prompt: What happens if the route of blood from the lungs to the heart is narrowed?
+    options:
+      - text: Blood backs up in the lungs and the pressure in them rises
+        correct: true
+      - text: Blood flows through the lungs faster and more easily than normal
+      - text: The lungs shrink and stop growing
+    explanation: If the route is narrowed, blood backs up in the lungs and the pressure in them rises, so the lungs cannot work properly. This form is an indication for emergency hospital admission, and the operation is done as an emergency.
+    cite: [1, 3, 4]
+  - level: patient
+    prompt: What does the surgeon do during the operation?
+    options:
+      - text: Removes one of the lungs
+      - text: Redirects the pulmonary veins into the left atrium
+        correct: true
+      - text: Replaces the child's whole heart with a donor heart
+    explanation: "During the operation, the surgeon redirects the pulmonary veins into the left atrium: makes a wide connection between the confluence and the back wall of the left atrium, closes off the extra route to the body's veins and closes the opening between the atria with a patch."
+    cite: [1, 3]
+  - level: student
+    prompt: What shadow is seen on the chest X-ray with drainage into the left innominate vein?
+    options:
+      - text: A "boot-shaped" shadow
+      - text: An "egg-on-its-side" shadow
+      - text: A "figure-of-eight" shadow
+        correct: true
+    explanation: On the chest X-ray, with drainage into the left innominate vein, a "figure-of-eight" shadow is seen; MSD Manuals compares it to a "snowman".
+    cite: [1, 3]
+  - level: student
+    prompt: What is typical of the ECG in TAPVR?
+    options:
+      - text: Signs of right heart overload
+        correct: true
+      - text: Signs of overload of the left ventricle only
+      - text: Left axis deviation of the heart
+    explanation: 'The ECG shows signs of right heart overload: tall peaked P waves, right ventricular hypertrophy, often in the form of incomplete right bundle branch block.'
+    cite: [1]
