@@ -55,9 +55,16 @@ export const MODELS: readonly Model[] = [
   {
     name: 'tetralogy-of-fallot',
     source: 'congenital/tetralogy-of-fallot.glb',
-    structures: 'congenital/structures.yaml',
+    structures: 'congenital/tetralogy-of-fallot.structures.yaml',
     simplifyError: 0.005,
     poster: 'congenital/tetralogy-of-fallot-poster.webp',
+  },
+  {
+    name: 'transposition-of-the-great-arteries',
+    source: 'congenital/transposition-of-the-great-arteries.glb',
+    structures: 'congenital/transposition-of-the-great-arteries.structures.yaml',
+    simplifyError: 0.005,
+    poster: 'congenital/transposition-of-the-great-arteries-poster.webp',
   },
 ];
 

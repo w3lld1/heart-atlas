@@ -6,6 +6,8 @@ import {
   congenitalModelEntry,
   congenitalModelIds,
   congenitalModelUrls,
+  congenitalSection,
+  congenitalSourceIds,
   congenitalStructures,
   heartAttribution,
   heartModelUrls,
@@ -61,9 +63,25 @@ describe('heart model data for the viewer', () => {
 describe('congenital model data for the viewer', () => {
   it('names every layer in every locale', () => {
     for (const locale of localeCodes) {
-      const unnamed = congenitalStructures(getMessages(locale)).filter((s) => s.label === s.id);
-      expect(unnamed, locale).toEqual([]);
+      for (const id of congenitalSourceIds()) {
+        const unnamed = congenitalStructures(getMessages(locale), id).filter(
+          (s) => s.label === s.id,
+        );
+        expect(unnamed, `${locale} ${id}`).toEqual([]);
+      }
     }
+  });
+
+  it('shows the attribution of a model made of several source files once', () => {
+    const parts = heartAttribution('congenital/transposition-of-the-great-arteries.glb');
+    expect(parts.map((p) => p.text)).toEqual([
+      'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0',
+    ]);
+  });
+
+  it('opens the tetralogy of Fallot model cut and the transposition model whole', () => {
+    expect(congenitalSection('tetralogy-of-fallot')).toBe('frontal');
+    expect(congenitalSection('transposition-of-the-great-arteries')).toBeUndefined();
   });
 
   it('points at the built files, the model record and the attribution of each model', () => {

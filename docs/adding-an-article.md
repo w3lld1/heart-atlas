@@ -136,6 +136,31 @@ An animated schematic with a caption per state. Most diagrams switch between `no
 
 `name` must be a key of `diagrams` in `apps/web/src/components/diagrams/index.ts`; an unknown name fails the build. A new diagram is an Astro component with inline SVG in `components/diagrams/` (props `locale` and `uid`), registered in `index.ts` (and in `customStates` if it does not use normal / disease), with its labels in the strings files. Elements marked `data-only="<state>"` show only in that state. A diagram shows only what the article text says and its sources support. Design rules: [article visuals spec](plans/2026-10-11-article-visuals.md).
 
+#### After treatment
+
+A disease diagram can show a third state, "After treatment", next to Normal and Disease: for example a closed septal defect, a replaced valve or a ligated duct. It shows what an intervention changes and why, not how to treat anyone. Rules: [after-treatment spec](plans/2026-10-12-after-treatment-mode.md).
+
+- **The art** shows what was done (a patch, an occluder, a valve prosthesis) and what stays after it according to the sources. It is not a copy of Normal, names no device brands, and does not prefer one method when the sources describe several.
+- **The caption** describes the result: what is closed, replaced or restored. It promises no cure, does not say who needs which intervention, and gives no doses. When the sources describe several methods, it says that the doctor chooses the method. It cites at least one source of the article with `tier: guideline` that describes this intervention.
+- **One PR does it all.** A diagram shows the same states in every article, so the registry, the art and the captions in every article and language that uses the diagram change together.
+
+Steps:
+
+1. In `customStates` in `apps/web/src/components/diagrams/index.ts`, give the diagram the `withTreatment` set (Normal, Disease, After treatment; starts on Disease).
+2. In the diagram component, draw the state with elements marked `data-only="treated"` and `<text>` labels for them (empty `<text>` fails the tests). Shared outlines stay unmarked.
+3. Update the accessible name `diagram.<name>.title` in every strings file so it describes all three states.
+4. Find the articles with `grep -rl 'name="<diagram>"' content` and add the caption to each `<Diagram>` in every language:
+
+```mdx
+<Diagram name="atrial-septal-defect">
+  <p slot="normal">…</p>
+  <p slot="disease">…</p>
+  <p slot="treated">…what the intervention closed, replaced or restored, as the cited guideline describes it.<Cite n={1} /></p>
+</Diagram>
+```
+
+5. `pnpm build` fails when a diagram with the treated state has no treated caption. `pnpm test` fails on a missing caption too, and when the caption cites no guideline source of the article. The article e2e must pass.
+
 ### `<EcgMonitor>`
 
 The live heart clock monitor inside an article. `preset` is the preset to start with; `presets` lists the presets the reader can switch between (without it there is no switch). Children are an optional caption, which is article text and carries `<Cite>`:

@@ -5,8 +5,8 @@
  *
  * Usage: pnpm --filter @heart-atlas/models poster [congenital model id]   (run by hand after a model changes)
  *
- * With a congenital model id it renders that model's poster instead, cut along the frontal plane the
- * way the viewer opens it (section="frontal" in CongenitalModel.astro), and writes no anchors.
+ * With a congenital model id it renders that model's poster instead, cut or whole the way the viewer
+ * opens it (section in congenital/sources.yaml), and writes no anchors.
  *
  * The page uses the camera of the viewer (packages/viewer/src/camera.ts) and the same lights and
  * renderer settings as react-three-fiber's defaults there, so the poster matches the live model.
@@ -22,6 +22,7 @@ import { chromium } from '@playwright/test';
 import { FOV, HOME, TARGET } from '@heart-atlas/viewer/camera';
 import { assetsDir } from '../src/paths.ts';
 import { MODELS } from '../src/build.ts';
+import { parseSources } from '../src/congenital.ts';
 import { parseStructures } from '../src/structures.ts';
 
 /** Poster size in pixels: twice the largest size the home page shows it at (25rem), for 2x screens. */
@@ -38,7 +39,7 @@ const types: Record<string, string> = {
   '.glb': 'model/gltf-binary',
 };
 
-function page(meshIds: string[], cut: boolean): string {
+function page(meshIds: string[], congenital: boolean, cut: boolean): string {
   const settings = JSON.stringify({
     width: POSTER_WIDTH,
     height: POSTER_HEIGHT,
@@ -47,6 +48,7 @@ function page(meshIds: string[], cut: boolean): string {
     target: TARGET,
     fov: FOV,
     meshIds,
+    congenital,
     cut,
   });
   return `<!doctype html><meta charset="utf-8">
@@ -85,7 +87,7 @@ if (s.cut) {
 }
 renderer.render(scene, camera);
 const poster = renderer.domElement.toDataURL('image/webp', s.quality);
-if (s.cut) window.result = { poster, anchors: {} };
+if (s.congenital) window.result = { poster, anchors: {} };
 else {
 
 // Id buffer: structure i is drawn in colour i + 1, everything else in 0.
@@ -164,15 +166,22 @@ if (congenital !== undefined && !MODELS.some((m) => m.source === `congenital/${c
 }
 const structures = parseStructures(
   readFileSync(
-    join(assetsDir, congenital ? 'congenital/structures.yaml' : 'heart/structures.yaml'),
+    join(
+      assetsDir,
+      congenital ? `congenital/${congenital}.structures.yaml` : 'heart/structures.yaml',
+    ),
     'utf8',
   ),
 );
+const cut =
+  congenital !== undefined &&
+  parseSources(readFileSync(join(assetsDir, 'congenital/sources.yaml'), 'utf8'))[congenital]
+    ?.section === 'frontal';
 const meshIds = structures.filter((s) => s.kind === 'mesh').map((s) => s.id);
 if (meshIds.length > 255) throw new Error('The id buffer holds at most 255 structures');
 
 const server = await serve(
-  page(meshIds, congenital !== undefined),
+  page(meshIds, congenital !== undefined, cut),
   congenital ? `congenital/${congenital}.glb` : 'heart/heart.glb',
 );
 const address = server.address();

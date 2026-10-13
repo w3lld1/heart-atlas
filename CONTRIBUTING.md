@@ -37,6 +37,7 @@ Until physician reviewers join, trust comes from sources. The hard rules:
 - Articles about a disease, diagnostic method or treatment need **at least two sources, at least one of them a clinical guideline** from an organization in `content/trusted-sources.yaml`.
 - Journal articles need a DOI, textbooks an ISBN. Do not invent sources, DOIs or numbers.
 - Never give individual treatment advice or doses for self-treatment.
+- A diagram's "After treatment" state shows what an intervention changes, never who should get it or which method to choose; its caption cites a clinical guideline. See [After treatment](docs/adding-an-article.md#after-treatment).
 - Keep the "not reviewed by a physician" notice (`review: null`) until a physician has reviewed the article.
 
 The build rejects articles that break the schema. Details, fields and components: [Adding an article](docs/adding-an-article.md).

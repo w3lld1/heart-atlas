@@ -173,6 +173,26 @@ describe('Diagram', () => {
     for (const spec of treated) expect(spec).toBe(withTreatment);
   });
 
+  it('fails the build on an after-treatment state without its caption', async () => {
+    process.env['HA_TEST_CONTENT'] = '1';
+    try {
+      await expect(
+        container.renderToString(Diagram, {
+          props: { name: 'demo-treated' as DiagramName },
+          slots: { normal: 'N', disease: 'D' },
+        }),
+      ).rejects.toThrow('needs a <p slot="treated"> caption');
+      const html = await container.renderToString(Diagram, {
+        props: { name: 'demo-treated' as DiagramName },
+        locals: { locale: 'ru' },
+        slots: { normal: 'N', disease: 'D', treated: 'T' },
+      });
+      expect(html).toContain('После лечения');
+    } finally {
+      delete process.env['HA_TEST_CONTENT'];
+    }
+  });
+
   it('fails the build on a caption for a state the diagram does not have', async () => {
     await expect(
       container.renderToString(Diagram, {

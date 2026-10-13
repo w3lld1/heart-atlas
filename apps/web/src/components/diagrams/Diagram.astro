@@ -1,6 +1,7 @@
 ---
-import { defaultLocale } from '../../i18n/locales.ts';
+import { defaultLocale, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
+import type { TestDiagram } from '../../../test/fixtures/diagrams/index.ts';
 import { diagramStates, diagrams, stateIds, type DiagramName } from './index.ts';
 
 interface Props {
@@ -8,11 +9,19 @@ interface Props {
 }
 
 const { name } = Astro.props;
-const Art = diagrams[name];
+// The test content (HA_TEST_CONTENT=1) may also use fixture diagrams; other builds never load them.
+const fixtures: Partial<Record<string, TestDiagram>> =
+  process.env['HA_TEST_CONTENT'] === '1'
+    ? (await import('../../../test/fixtures/diagrams/index.ts')).testDiagrams
+    : {};
+const fixture = fixtures[name];
+const Art = fixture?.art ?? diagrams[name];
 if (!Art) throw new Error(`Unknown diagram "${name}"`);
-const { states, initial } = diagramStates(name);
+const { states, initial } = fixture ?? diagramStates(name);
 const locale = Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
+// Controls and the note are UI text in the page locale, even inside a fallback article.
+const dir = locales[locale]?.dir ?? 'ltr';
 // A unique id per diagram on the page keeps radio groups and SVG ids apart.
 Astro.locals.diagramCount = (Astro.locals.diagramCount ?? 0) + 1;
 const id = `diagram-${Astro.locals.diagramCount}`;
@@ -35,6 +44,13 @@ for (const slot of Object.keys(Astro.slots).filter((key) => key !== 'default')) 
     throw new Error(`<Diagram name="${name}">: no state "${slot}" (states: ${states.join(', ')})`);
   }
 }
+// The after-treatment state talks about treatment, so its picture never goes without a caption.
+// Spec: docs/plans/2026-10-12-after-treatment-mode.md.
+if ((states as readonly string[]).includes('treated') && !Astro.slots.has('treated')) {
+  throw new Error(
+    `<Diagram name="${name}">: the "treated" state needs a <p slot="treated"> caption`,
+  );
+}
 const captions = await Promise.all(
   states.map(async (state) => ({
     state,
@@ -45,7 +61,7 @@ const captions = await Promise.all(
 
 <figure class="diagram">
   <!-- Controls and labels are UI text in the page locale; captions are article text. -->
-  <div class="diagram-controls" lang={locale}>
+  <div class="diagram-controls" lang={locale} dir={dir}>
     {states.length > 1 && (
       <fieldset>
         <legend class="diagram-visually-hidden">{t['diagram.state']}</legend>
@@ -67,7 +83,7 @@ const captions = await Promise.all(
     {captions.map(({ state, html }) => (
       <div class="diagram-caption" data-only={state} set:html={html} />
     ))}
-    <p class="diagram-note" lang={locale}>
+    <p class="diagram-note" lang={locale} dir={dir}>
       {t['diagram.schematic']}
     </p>
   </figcaption>
@@ -204,7 +220,8 @@ const captions = await Promise.all(
   }
 
   /* The state is pure CSS, so the toggle works without JavaScript. Elements marked
-     data-only="<state>" (or the older normal-only / disease-only classes) show only in it. */
+     data-only="<state>" show only in it. The older normal-only / disease-only classes are hidden in
+     every other state, the after-treatment one included. */
   .diagram:has(.diagram-controls [type='radio']:checked:not([value='normal'])) .normal-only,
   .diagram:has(.diagram-controls [type='radio']:checked:not([value='disease'])) .disease-only {
     display: none;

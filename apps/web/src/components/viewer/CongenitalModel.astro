@@ -5,6 +5,7 @@ import { getMessages } from '../../i18n/messages.ts';
 import {
   congenitalModelEntry,
   congenitalModelUrls,
+  congenitalSection,
   congenitalStructures,
   heartAttribution,
   isCongenitalModelId,
@@ -12,7 +13,8 @@ import {
 } from '../../lib/heart-model.ts';
 
 // A patient model of a congenital heart defect from the NIH 3D Heart Library, shown in layers and
-// cut open: docs/plans/2026-10-12-congenital-models.md.
+// cut open when its defect is inside (section in congenital/sources.yaml):
+// docs/plans/2026-10-12-congenital-models.md.
 interface Props {
   /** Model id from congenitalModelIds. */
   model: string;
@@ -26,6 +28,7 @@ if (!isCongenitalModelId(model)) throw new Error(`<CongenitalModel>: unknown mod
 const locale = Astro.props.locale ?? Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
 const { models, poster } = congenitalModelUrls(import.meta.env.BASE_URL, model);
+const section = congenitalSection(model);
 // The heart model's poster text and "see-through chambers" do not fit a cut patient model.
 const messages = {
   ...viewerMessages(t),
@@ -39,12 +42,12 @@ const messages = {
     client:visible={{ rootMargin: '200px' }}
     models={models}
     poster={poster}
-    structures={congenitalStructures(t)}
+    structures={congenitalStructures(t, model)}
     messages={messages}
     attribution={heartAttribution(`congenital/${model}.glb`)}
     loadOn="click"
     headingLevel={headingLevel}
-    section="frontal"
+    {...(section ? { section } : {})}
   />
   <figcaption>
     <p class="signs-title">{t[`congenital.${model}.signs`]}</p>

@@ -451,6 +451,8 @@
   "diagram.mitral-stenosis.title": "Diagram of the mitral valve while the left ventricle fills (diastole): normally the leaflets open wide and blood flows freely from the left atrium into the ventricle; in rheumatic mitral stenosis the leaflets are thickened and fused into a funnel with a narrow opening, and the left atrium is enlarged",
   "structure.myocardium": "Heart muscle (myocardium)",
   "structure.blood-pool": "Blood in the chambers and vessels",
+  "structure.systemic-circulation": "Blood of the systemic circulation (the body's circuit)",
+  "structure.pulmonary-circulation": "Blood of the pulmonary circulation (the lungs' circuit)",
   "congenital.tetralogy-of-fallot.caption": "The heart of a patient with tetralogy of Fallot, a model built from MRI scans in the NIH 3D Heart Library. It is one person's heart: in other patients the shape and size differ. NIH did not take part in Heart Atlas and does not endorse it.",
   "congenital.source": "Model record in the NIH 3D Heart Library",
   "congenital.tetralogy-of-fallot.posterAlt": "The heart of a patient with tetralogy of Fallot, cut from the front: heart muscle and the blood inside the chambers and vessels",

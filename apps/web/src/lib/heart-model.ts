@@ -9,7 +9,6 @@ import type {
 import { viewerMessageKeys } from '@heart-atlas/viewer';
 import anchorsJson from '../../../../assets/models/heart/anchors.json';
 import licensesYaml from '../../../../assets/models/LICENSES.yaml?raw';
-import congenitalStructuresYaml from '../../../../assets/models/congenital/structures.yaml?raw';
 import congenitalSourcesYaml from '../../../../assets/models/congenital/sources.yaml?raw';
 import structuresYaml from '../../../../assets/models/heart/structures.yaml?raw';
 import { parse } from 'yaml';
@@ -57,19 +56,44 @@ export function congenitalModelUrls(
   };
 }
 
+/** Layer lists of the congenital models, congenital/<id>.structures.yaml, keyed by model id. */
+const congenitalStructuresYaml = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>('../../../../assets/models/congenital/*.structures.yaml', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  ).map(([path, text]) => [path.replace(/^.*\/(.+)\.structures\.yaml$/, '$1'), text]),
+);
+
+const congenitalSources = (): Record<string, { entry?: unknown; section?: unknown }> =>
+  parse(congenitalSourcesYaml) as Record<string, { entry?: unknown; section?: unknown }>;
+
+/** Every model pinned in congenital/sources.yaml, including ones no article shows yet. */
+export function congenitalSourceIds(): string[] {
+  return Object.keys(congenitalSources());
+}
+
 /** The NIH 3D Heart Library record a congenital model comes from (congenital/sources.yaml). */
 export function congenitalModelEntry(id: CongenitalModelId): string {
-  const sources = parse(congenitalSourcesYaml) as Record<string, { entry?: unknown }>;
-  const entry = sources[id]?.entry;
+  const entry = congenitalSources()[id]?.entry;
   if (typeof entry !== 'string' || !entry.startsWith('https://')) {
     throw new Error(`congenital/sources.yaml has no entry URL for ${id}`);
   }
   return entry;
 }
 
-/** Layers of the congenital models, with names in the reader's language. */
-export function congenitalStructures(t: Messages): ViewerStructure[] {
-  return parseStructures(congenitalStructuresYaml).map((s) => ({
+/** Whether the viewer opens a congenital model cut along the frontal plane (congenital/sources.yaml). */
+export function congenitalSection(id: string): 'frontal' | undefined {
+  return congenitalSources()[id]?.section === 'frontal' ? 'frontal' : undefined;
+}
+
+/** Layers of a congenital model, with names in the reader's language. */
+export function congenitalStructures(t: Messages, id: string): ViewerStructure[] {
+  const yaml = congenitalStructuresYaml[id];
+  if (yaml === undefined) throw new Error(`No congenital/${id}.structures.yaml`);
+  return parseStructures(yaml).map((s) => ({
     id: s.id,
     label: t[`structure.${s.id}` as keyof Messages] ?? s.id,
     group: s.group,
@@ -98,7 +122,8 @@ export function heartStructures(t: Messages): ViewerStructure[] {
 /**
  * The attributions the source licenses require, exactly as recorded in LICENSES.yaml. A source
  * published under two licenses gets both lines, since it is not settled which one applies; the
- * second carries its language, so pages can mark it with lang.
+ * second carries its language, so pages can mark it with lang. A model made of several source
+ * files has one record per file with the same attribution, shown once.
  */
 export function heartAttribution(file = 'heart/heart.glb'): AttributionPart[] {
   const { entries, errors } = parseLicenses(licensesYaml);
@@ -118,7 +143,7 @@ export function heartAttribution(file = 'heart/heart.glb'): AttributionPart[] {
   if (errors.length > 0 || sources.length === 0) {
     throw new Error(`LICENSES.yaml has no valid entry for ${file}: ${errors.join('; ')}`);
   }
-  return sources;
+  return sources.filter((part, i) => sources.findIndex((p) => p.text === part.text) === i);
 }
 
 /**
