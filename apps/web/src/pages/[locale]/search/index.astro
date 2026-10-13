@@ -111,7 +111,8 @@ const translations = Object.fromEntries(
     --pagefind-ui-background: var(--color-bg);
     --pagefind-ui-border: var(--color-border);
     --pagefind-ui-tag: var(--color-notice-bg);
-    --pagefind-ui-font: system-ui, sans-serif;
+    --pagefind-ui-font: var(--font-body);
+    --pagefind-ui-border-radius: 12px;
 
     /* Results arrive after load; reserving a screen keeps the footer from jumping (CLS). */
     min-block-size: 100vb;
@@ -121,6 +122,30 @@ const translations = Object.fromEntries(
   #search[data-settling] .pagefind-ui__results {
     visibility: hidden;
   }
+
+  /* Pagefind's own look, brought to the site tokens: display font for titles, a soft accent
+     highlight instead of the browser's yellow, a readable "clear" button. */
+  /* stylelint-disable selector-class-pattern -- class names set by Pagefind UI */
+  #search .pagefind-ui__result-title {
+    font-family: var(--font-display);
+  }
+
+  #search mark {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+    color: inherit;
+  }
+
+  #search .pagefind-ui__search-clear {
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  #search .pagefind-ui__result-nested .pagefind-ui__result-link::before {
+    color: var(--color-muted);
+  }
+  /* stylelint-enable selector-class-pattern */
 
   .visually-hidden {
     position: absolute;
