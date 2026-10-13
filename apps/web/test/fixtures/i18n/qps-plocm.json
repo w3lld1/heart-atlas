@@ -554,5 +554,11 @@
   "diagram.label.to-lungs-pe": "[RTL] To the lungs (PE)",
   "diagram.label.calf-muscle": "[RTL] Calf muscle",
   "diagram.label.edema": "[RTL] Swelling",
-  "diagram.deep-vein-thrombosis.title": "[RTL] Diagram of part of the lower leg with a deep vein in longitudinal section: normally blood flows up the vein towards the heart through open valves; in deep vein thrombosis a clot starts at a valve and grows up the vein, blood flow below it is slowed, the leg below the clot swells, and a piece of the clot can break off and travel to the lungs (pulmonary embolism)"
+  "diagram.deep-vein-thrombosis.title": "[RTL] Diagram of part of the lower leg with a deep vein in longitudinal section: normally blood flows up the vein towards the heart through open valves; in deep vein thrombosis a clot starts at a valve and grows up the vein, blood flow below it is slowed, the leg below the clot swells, and a piece of the clot can break off and travel to the lungs (pulmonary embolism)",
+  "diagram.label.femoral-artery": "[RTL] Femoral artery",
+  "diagram.label.popliteal-artery": "[RTL] Popliteal artery",
+  "diagram.label.lower-leg-arteries": "[RTL] Lower leg arteries",
+  "diagram.label.collateral-vessels": "[RTL] Collateral vessels",
+  "diagram.label.calf-pain-walking": "[RTL] Calf: pain on walking",
+  "diagram.peripheral-artery-disease.title": "[RTL] Diagram of the main artery of the leg from the femoral artery through the popliteal artery and the lower leg arteries to the foot: normally the lumen is open and blood reaches the foot freely; in lower extremity peripheral artery disease a plaque narrows the femoral–popliteal segment, less blood passes below the narrowing, thin collateral vessels run around it, and the calf is marked as the place of pain on walking"
 }

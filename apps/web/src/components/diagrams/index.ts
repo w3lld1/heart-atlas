@@ -35,6 +35,7 @@ import Myocarditis from './Myocarditis.astro';
 import NatriureticPeptides from './NatriureticPeptides.astro';
 import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
+import PeripheralArteryDisease from './PeripheralArteryDisease.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
 import PulmonaryHypertension from './PulmonaryHypertension.astro';
 import PulmonaryValveStenosis from './PulmonaryValveStenosis.astro';
@@ -87,6 +88,7 @@ export const diagrams = {
   'natriuretic-peptides': NatriureticPeptides,
   'patent-ductus-arteriosus': PatentDuctusArteriosus,
   pericarditis: Pericarditis,
+  'peripheral-artery-disease': PeripheralArteryDisease,
   'pulmonary-embolism': PulmonaryEmbolism,
   'pulmonary-hypertension': PulmonaryHypertension,
   'pulmonary-valve-stenosis': PulmonaryValveStenosis,

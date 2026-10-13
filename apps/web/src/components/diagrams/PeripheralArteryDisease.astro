@@ -1,0 +1,241 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-pad-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const collateralLines = twoLines(t['diagram.label.collateral-vessels']);
+const reducedLines = twoLines(t['diagram.label.reduced-blood-flow']);
+const calfLines = twoLines(t['diagram.label.calf-pain-walking']);
+// One leg seen from the front, foot pointing right. The thigh runs from the top to the knee
+// (y ≈ 215), the calf from the knee to the ankle (y ≈ 380), the foot along the bottom.
+const leg =
+  'M115,10 L225,10 C222,90 212,170 205,215 C215,250 214,300 198,345 L192,380 C200,392 240,395 280,402 C294,405 294,428 280,430 L160,430 C140,430 136,400 145,380 L140,345 C125,300 125,250 133,215 C126,170 118,90 115,10 Z';
+// The main artery runs down the middle of the leg: the femoral artery in the thigh, the popliteal
+// artery behind the knee, then the narrower arteries of the lower leg down to the foot. Vessels
+// are wide strokes: the wall, then the lumen on top of it.
+const upper = 'M170,0 V226';
+const lower = 'M170,250 V372 Q170,410 210,412 H274';
+// Behind the knee the artery tapers smoothly from the femoral to the lower leg width, so the
+// normal state shows no step that could be read as a narrowing.
+const taperWall = 'M159,226 L181,226 L177,250 L163,250 Z';
+const taperLumen = 'M162,226 L178,226 L174.5,250 L165.5,250 Z';
+// Route of the moving blood along the whole artery.
+const route = 'M170,4 V372 Q170,410 210,412 H268';
+// Plaques in the femoral–popliteal segment narrow the lumen from both sides.
+const plaques = ['M162,150 C170,165 170,195 162,210 Z', 'M178,150 C170,165 170,195 178,210 Z'];
+// Thin collateral vessels: separate winding branches that leave the artery above the narrowing
+// and rejoin it below, deliberately not mirrored so they do not read as one outline.
+const collaterals = [
+  'M159,128 C140,138 150,160 140,176 C132,192 150,212 163,240',
+  'M159,140 C150,156 156,186 163,224',
+  'M181,132 C196,150 186,176 196,196 C204,214 188,232 177,246',
+];
+// Negative delays so the flow is already running when the page opens.
+const normalRun = [0, -1, -2];
+const diseaseRun = [0, -2.25];
+---
+
+<svg
+  viewBox="0 0 420 440"
+  role="img"
+  aria-label={t['diagram.peripheral-artery-disease.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- The leg. The outline keeps it visible on the page background in both themes. -->
+  <path d={leg} fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5"></path>
+
+  <!-- Collateral vessels around the narrowing -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+    {collaterals.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Artery walls, then the lumens on top of them -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    <path d={upper} stroke-width="22"></path>
+    <path d={lower} stroke-width="14"></path>
+  </g>
+  <path d={taperWall} fill="var(--diagram-arterial)"></path>
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    <path d="M170,0 V226" stroke-width="16"></path>
+    <path d="M170,250 V372 Q170,410 210,412 H272" stroke-width="9"></path>
+  </g>
+  <path d={taperLumen} fill="var(--diagram-arterial-fill)"></path>
+
+  <!-- Plaques narrow the femoral–popliteal segment. The outline keeps their edge visible against the
+       lumen in the light theme. -->
+  <g class="disease-only" fill="var(--diagram-plaque)" stroke="var(--color-text)" stroke-width="1">
+    {plaques.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Calf: where walking causes pain when this segment is narrowed -->
+  <ellipse
+    class="disease-only"
+    cx="170"
+    cy="290"
+    rx="34"
+    ry="48"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    stroke-dasharray="6 4"
+  ></ellipse>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="3">
+      <path d="M170,14 V226" marker-end={`url(#${arrow})`}></path>
+      <path d="M170,250 V370 Q170,404 205,406 H258" marker-end={`url(#${arrow})`}></path>
+    </g>
+    <g class="disease-only">
+      <path d="M170,14 V138" stroke-width="3" marker-end={`url(#${arrow})`}></path>
+      <!-- Through the narrowing and below it only a thin stream passes -->
+      <path d="M170,150 V226" stroke-width="1.5" marker-end={`url(#${arrow})`}></path>
+      <path
+        d="M170,250 V370 Q170,404 205,406 H258"
+        stroke-width="1.5"
+        marker-end={`url(#${arrow})`}
+      ></path>
+    </g>
+  </g>
+
+  <!-- Moving blood: in the disease state fewer, smaller and slower particles -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    <g class="normal-only">
+      {normalRun.map((delay) => (
+        <circle
+          class="pad-run"
+          r="4"
+          style={`offset-path: path('${route}'); animation-duration: 3s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseRun.map((delay) => (
+        <circle
+          class="pad-run"
+          r="2.5"
+          style={`offset-path: path('${route}'); animation-duration: 4.5s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Vessel labels in the right column with leader lines into the drawing -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="184" y1="88" x2="236" y2="88"></line>
+    <line x1="184" y1="232" x2="236" y2="232"></line>
+    <line x1="180" y1="336" x2="236" y2="336"></line>
+  </g>
+  <text class="diagram-small" x="240" y="92">
+    {t['diagram.label.femoral-artery']}
+  </text>
+  <text class="diagram-small" x="240" y="236">
+    {t['diagram.label.popliteal-artery']}
+  </text>
+  <text class="diagram-small" x="240" y="340">
+    {t['diagram.label.lower-leg-arteries']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="172" y1="180" x2="236" y2="180"></line>
+      <line x1="204" y1="284" x2="236" y2="284"></line>
+      <line x1="120" y1="200" x2="142" y2="200"></line>
+      <line x1="120" y1="360" x2="164" y2="360"></line>
+    </g>
+    <circle cx="172" cy="180" r="2.5" fill="var(--color-text)"></circle>
+    <text x="240" y="185">
+      {t['diagram.label.plaque']}
+    </text>
+    <text class="diagram-small" x="240" y="280">
+      <tspan x="240">{calfLines[0]}</tspan>
+      <tspan x="240" dy="15">
+        {calfLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="116" y="196" text-anchor="end">
+      <tspan x="116">{collateralLines[0]}</tspan>
+      <tspan x="116" dy="15">
+        {collateralLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="116" y="356" text-anchor="end">
+      <tspan x="116">{reducedLines[0]}</tspan>
+      <tspan x="116" dy="15">
+        {reducedLines[1]}
+      </tspan>
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .pad-run {
+    offset-rotate: 0deg;
+    animation-name: pad-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .pad-run {
+      display: none;
+    }
+  }
+
+  /* Blood runs down the artery from the thigh to the foot. */
+  @keyframes pad-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6%,
+    88% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
