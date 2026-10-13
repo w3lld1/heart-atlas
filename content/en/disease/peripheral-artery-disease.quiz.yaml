@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What mainly narrows or blocks the leg arteries in this disease?
+    options:
+      - text: Widened veins in the legs where blood pools
+      - text: Plaques in the artery wall that narrow the artery or block it
+        correct: true
+      - text: A lack of vitamins and minerals in the diet
+    explanation: 'The main cause is atherosclerosis: plaques form in the artery wall and narrow the artery or block it completely.'
+    cite: [1]
+  - level: patient
+    prompt: What is compared when the ankle-brachial index (ABI) is measured?
+    options:
+      - text: The blood pressure at the ankle and in the arm
+        correct: true
+      - text: The pulse in the neck and the pulse at the wrist
+      - text: The temperature of the foot and of the hand
+    explanation: 'The main simple test is the ankle-brachial index (ABI): the blood pressure at the ankle is compared with the blood pressure in the arm.'
+    cite: [1, 6]
+  - level: patient
+    prompt: What is the first-line treatment for intermittent claudication?
+    options:
+      - text: Amputation of the leg
+      - text: Complete rest with no walking
+      - text: Walking exercise
+        correct: true
+    explanation: Walking exercise is the first-line treatment for intermittent claudication.
+    cite: [1]
+  - level: patient
+    prompt: In which situation does the article say to call an ambulance straight away?
+    options:
+      - text: The calf hurts when walking and the pain goes after a few minutes' rest
+      - text: A leg suddenly becomes very painful, pale and cold
+        correct: true
+      - text: The leg is warm, not painful, and the foot pulse is easy to feel
+    explanation: Call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK) if a leg suddenly becomes very painful, pale, cold, numb or tingling, if the pulse in the foot has disappeared or if it has become hard to move the leg.
+    cite: [7, 8]
+  - level: student
+    prompt: Which resting ABI values does ACC/AHA classify as normal?
+    options:
+      - text: 0.90 or lower
+      - text: Above 1.40
+      - text: From 1.00 to 1.40
+        correct: true
+    explanation: 'ACC/AHA: an ABI ≤0.90 is abnormal, 0.91–0.99 borderline, 1.00–1.40 normal and >1.40 non-compressible.'
+    cite: [5]
+  - level: student
+    prompt: How does pain from spinal stenosis (pseudoclaudication) differ from claudication?
+    options:
+      - text: It is relieved only by sitting, and the foot pulses remain intact
+        correct: true
+      - text: It goes as soon as the person stops, and the foot pulses disappear
+      - text: It comes only at rest and eases when the person keeps walking
+    explanation: Pain from spinal stenosis (pseudoclaudication) is relieved only by sitting, not just by stopping, and the foot pulses remain intact.
+    cite: [6]
