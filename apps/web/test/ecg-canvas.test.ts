@@ -7,6 +7,7 @@ import {
   pxPerMv,
   traceEcg,
 } from '../src/components/heart-clock/ecg-canvas.ts';
+import { drawWiggers, type WiggersColors } from '../src/components/heart-clock/wiggers-canvas.ts';
 
 /** A canvas context that records the vertical segments the trace draws. */
 function recorder() {
@@ -43,6 +44,16 @@ describe('pacemaker spikes', () => {
     expect(pacingSpikes(clock, 0, 4500)).toEqual([2000, 3000, 4000]);
   });
 
+  it('sit at the QRS onset of every beat with ventricular pacing, and at the P too with both', () => {
+    // PR at 60 bpm is the default 160 ms.
+    const ventricular = createHeartClock({ heartRate: 60, ventricularPacing: 1 });
+    expect(pacingSpikes(ventricular, 500, 3500)).toEqual([1160, 2160, 3160]);
+    // A beat that starts before the window still gives its QRS spike inside it.
+    expect(pacingSpikes(ventricular, 1100, 1200)).toEqual([1160]);
+    const both = createHeartClock({ heartRate: 60, atrialPacing: 1, ventricularPacing: 1 });
+    expect(pacingSpikes(both, 500, 2500)).toEqual([1000, 1160, 2000, 2160]);
+  });
+
   it('are drawn as vertical lines from the baseline, none left of the strip', () => {
     const clock = createHeartClock({ heartRate: 60, atrialPacing: 1 });
     const { context, vertical } = recorder();
@@ -67,5 +78,38 @@ describe('pacemaker spikes', () => {
     expect(vertical.filter((segment) => segment.from === 72).map((segment) => segment.x)).toEqual([
       150,
     ]);
+  });
+});
+
+describe('Wiggers ECG row', () => {
+  /** x of every vertical segment drawWiggers draws; other context calls do nothing. */
+  function verticals(clock: ReturnType<typeof createHeartClock>, now: number): number[] {
+    const { context, vertical } = recorder();
+    const canvas = new Proxy(context as unknown as Record<string, unknown>, {
+      get: (target, key) => (key in target ? target[key as string] : () => {}),
+      set: () => true,
+    });
+    const colors = new Proxy({}, { get: () => '#000' }) as WiggersColors;
+    drawWiggers(canvas as unknown as CanvasRenderingContext2D, 400, now, clock, colors, {
+      pressure: 'p',
+      volume: 'v',
+      ecg: 'e',
+    });
+    return vertical.map((segment) => segment.x);
+  }
+
+  it('draws a spike at the P onset for atrial pacing and at the QRS onset for ventricular', () => {
+    const now = 2500;
+    const plain = verticals(createHeartClock({ heartRate: 60 }), now);
+    const extra = (params: object) => {
+      const xs = verticals(createHeartClock({ heartRate: 60, ...params }), now);
+      return xs.filter((x) => !plain.includes(x));
+    };
+    const [atrial] = extra({ atrialPacing: 1 });
+    const [ventricular] = extra({ ventricularPacing: 1 });
+    expect(extra({ atrialPacing: 1 })).toHaveLength(1);
+    expect(extra({ ventricularPacing: 1 })).toHaveLength(1);
+    expect(extra({ atrialPacing: 1, ventricularPacing: 1 })).toEqual([atrial, ventricular]);
+    expect(ventricular).toBeGreaterThan(atrial ?? Infinity);
   });
 });

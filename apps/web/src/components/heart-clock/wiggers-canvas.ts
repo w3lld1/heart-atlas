@@ -131,11 +131,15 @@ export function drawWiggers(
   line(colors.volume, (k) => volumeY(samples[k]?.volume ?? 0), 2, [2, 3]);
   line(colors.ecg, (k) => ecgY(ecg[k] ?? 0), 1.5);
   context.setLineDash([]);
-  // A pacemaker spike where the paced beat starts (ecg-canvas.ts).
-  if (beat.params.atrialPacing === 1) {
+  // Pacemaker spikes where the paced P wave and the paced QRS start (ecg-canvas.ts).
+  const spikes = [
+    ...(beat.params.atrialPacing === 1 ? [0] : []),
+    ...(beat.params.ventricularPacing === 1 ? [beat.timing.qOnset] : []),
+  ];
+  for (const t of spikes) {
     context.beginPath();
-    context.moveTo(xAt(0), ecgY(0));
-    context.lineTo(xAt(0), ecgY(pacingSpikeMv));
+    context.moveTo(xAt(t), ecgY(0));
+    context.lineTo(xAt(t), ecgY(pacingSpikeMv));
     context.stroke();
   }
 

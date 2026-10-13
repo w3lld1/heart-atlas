@@ -1,4 +1,4 @@
-import { beatWaves, flutterWaves, fWaves } from './ecg.ts';
+import { beatWaves, dissociatedP, flutterWaves, fWaves } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
 import { beatTiming, phaseAt, type BeatTiming, type Phase } from './timing.ts';
@@ -53,7 +53,7 @@ export interface HeartClock {
 export const historyMs = 10_000;
 /** Beats kept after the one that contains the latest queried time. */
 const lookAheadBeats = 2;
-/** f and F waves of the previous beat fade into the new ones over this time, ms. */
+/** f and F waves and P waves on their own clock of the previous beat fade into the new ones over this time, ms. */
 const fWaveBlendMs = 50;
 
 const minRr = 60000 / paramRanges.heartRate[1];
@@ -95,6 +95,13 @@ function pauseFor(params: HeartParams, index: number): number {
  * monotonic in RR, so the range is sampled densely.
  */
 export function checkParams(params: HeartParams): void {
+  // Complete AV block: by definition the P wave rate is above the QRS rate (MSD Manuals,
+  // Atrioventricular Block, 2024). Checked here, so the heart rate limits respect it.
+  if (params.atrialRate > 0 && params.atrialRate <= params.heartRate) {
+    throw new RangeError(
+      `atrialRate (${params.atrialRate}) must be above heartRate (${params.heartRate})`,
+    );
+  }
   const mean = 60000 / params.heartRate;
   const low = clampRr(mean * (1 - params.rrIrregularity), params);
   const high = clampRr(mean * (1 + params.rrIrregularity), params);
@@ -216,7 +223,10 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
   function ecgFrom(i: number, t: number): number {
     const beat = beats[i] as Beat;
     const previous = beats[i - 1];
-    const atrial = (b: Beat) => fWaves(t, b.params) + flutterWaves(t - b.start, b.timing, b.params);
+    const atrial = (b: Beat) =>
+      fWaves(t, b.params) +
+      flutterWaves(t - b.start, b.timing, b.params) +
+      dissociatedP(t, b.params);
     let value = atrial(beat);
     if (previous && previous.params !== beat.params) {
       // Fade the previous beat's f or F waves out, so a parameter change does not step the baseline.
@@ -268,7 +278,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       return {
         beat,
         tInBeat,
-        phase: phaseAt(tInBeat, beat.timing),
+        phase: phaseAt(tInBeat, beat.timing, beat.params),
         pause: tInBeat >= beat.timing.rr,
         ecg: ecgFrom(i, t),
       };

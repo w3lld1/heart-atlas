@@ -97,8 +97,8 @@ export function traceEcg(
     if (x === 0) context.moveTo(offset + x, y);
     else context.lineTo(offset + x, y);
   });
-  // Spikes start at 0 mV: pacing rules out f and F waves, and T ends before the next P, so the
-  // trace is on the baseline where a paced beat starts.
+  // Spikes start at 0 mV: pacing rules out f and F waves, T ends before the next P, and the PR
+  // segment is flat, so the trace is on the baseline where a paced P or QRS starts.
   for (const t of pacingSpikes(clock, from, from + (count - 1) / perMs)) {
     const x = offset + (t - from) * perMs;
     context.moveTo(x, baseline);
@@ -115,14 +115,17 @@ export function traceEcg(
 export const pacingSpikeMv = 0.5;
 
 /**
- * Clock times of the pacemaker spikes in [from, to]: the start of every beat with atrial pacing.
+ * Clock times of the pacemaker spikes in [from, to]: the start of every beat with atrial pacing and
+ * the QRS onset of every beat with ventricular pacing (docs/plans/2026-10-13-heart-clock-av-block.md).
  * A stimulus is shorter than 0.5 ms, narrower than a pixel, so it is not part of the sampled trace
  * and is drawn as a vertical line. Each beat's own parameters decide, so a preset change in the
  * middle of the strip leaves the earlier beats without spikes.
  */
 export function pacingSpikes(clock: HeartClock, from: number, to: number): number[] {
-  return clock
-    .beatsBetween(from, to)
-    .filter((beat) => beat.start >= from && beat.start <= to && beat.params.atrialPacing === 1)
-    .map((beat) => beat.start);
+  const times: number[] = [];
+  for (const beat of clock.beatsBetween(from, to)) {
+    if (beat.params.atrialPacing === 1) times.push(beat.start);
+    if (beat.params.ventricularPacing === 1) times.push(beat.start + beat.timing.qOnset);
+  }
+  return times.filter((t) => t >= from && t <= to);
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createHeartClock } from '../src/clock.ts';
 import { cycleState } from '../src/cycle.ts';
+import { pDurationAt } from '../src/timing.ts';
 import {
   publishCycleSource,
   subscribeCycleSource,
@@ -43,6 +44,35 @@ describe('cycleState', () => {
       'av-node',
       'bundle-of-his',
     ]);
+  });
+
+  it('lights the sinus node with each P wave of complete AV block and the His bundle with the QRS', () => {
+    const clock = createHeartClock({ atrialRate: 75, heartRate: 40, atrialContribution: 0 });
+    const pDuration = pDurationAt(800, clock.params);
+    // P waves come every 800 ms of clock time, whatever the beat.
+    for (const onset of [1600, 2400, 3200]) {
+      expect(cycleState(clock, onset + pDuration / 2).excited).toContain('sa-node');
+      expect(cycleState(clock, onset + pDuration + 1).excited).not.toContain('sa-node');
+    }
+    const beat = clock.beatAt(3000);
+    const { timing } = beat;
+    expect(
+      cycleState(clock, beat.start + (timing.pDuration + timing.qOnset) / 2).excited,
+    ).not.toContain('av-node');
+    expect(cycleState(clock, beat.start + timing.rPeak).excited).toEqual(
+      expect.arrayContaining(['bundle-of-his', 'left-bundle-branch']),
+    );
+  });
+
+  it('lights no conduction system below the AV node in a paced QRS', () => {
+    const clock = createHeartClock({ heartRate: 75, ventricularPacing: 1, qrsDuration: 160 });
+    const beat = clock.beatAt(2000);
+    const { timing } = beat;
+    expect(cycleState(clock, beat.start + timing.pDuration / 2).excited).toEqual(['sa-node']);
+    expect(cycleState(clock, beat.start + (timing.pDuration + timing.qOnset) / 2).excited).toEqual(
+      [],
+    );
+    expect(cycleState(clock, beat.start + timing.rPeak).excited).toEqual([]);
   });
 
   it('follows the conduction system and the valves through a normal beat', () => {

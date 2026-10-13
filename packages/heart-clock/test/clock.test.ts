@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createHeartClock, historyMs } from '../src/clock.ts';
-import { beatTiming } from '../src/timing.ts';
-import { defaultParams } from '../src/params.ts';
+import { checkParams, createHeartClock, heartRateLimits, historyMs } from '../src/clock.ts';
+import { beatWaves, dissociatedP, dissociatedPOnset } from '../src/ecg.ts';
+import { beatTiming, pDurationAt, phaseAt } from '../src/timing.ts';
+import { defaultParams, resolveParams } from '../src/params.ts';
 import { soundEvents } from '../src/sounds.ts';
 
 describe('createHeartClock', () => {
@@ -185,6 +186,79 @@ describe('slow rhythms', () => {
     expect(Math.max(...slowIrregular.beatsBetween(0, 9000).map((b) => b.rr))).toBeLessThanOrEqual(
       60000 / 35 + 1e-9,
     );
+  });
+});
+
+describe('P waves on their own clock', () => {
+  const block = { atrialRate: 75, heartRate: 40, atrialContribution: 0 };
+
+  it('needs a P wave rate above the QRS rate, so the heart rate limits stop below it', () => {
+    expect(() => checkParams(resolveParams({ ...block, heartRate: 75 }))).toThrow(
+      /^atrialRate \(75\) must be above heartRate \(75\)/,
+    );
+    expect(heartRateLimits(resolveParams(block))[1]).toBe(74);
+  });
+
+  it('draws a P wave every 800 ms of clock time, apart from the beats, and beats without one', () => {
+    const clock = createHeartClock(block);
+    const peaks: number[] = [];
+    // Each P wave peaks at half its duration; between QRS complexes the trace is the P train.
+    for (let k = 0; k < 8; k += 1) {
+      const peak = k * 800 + pDurationAt(800, clock.params) / 2;
+      peaks.push(peak);
+      const beat = clock.beatAt(peak);
+      const inBeat = peak - beat.start;
+      if (inBeat > beat.timing.tEnd && inBeat < beat.rr - 50) {
+        expect(clock.ecgAt(peak)).toBeCloseTo(0.15, 3);
+      }
+    }
+    expect(dissociatedP(peaks[3] ?? 0, clock.params)).toBeCloseTo(0.15, 6);
+    expect(dissociatedP(peaks[3] ?? 0, { ...clock.params, atrialRate: 0 })).toBe(0);
+    // A beat alone has no P wave: at its own P peak only the far tails of other waves are left.
+    const beat = clock.beatAt(0);
+    expect(Math.abs(beatWaves(beat.timing.pDuration / 2, beat.timing, beat.params))).toBeLessThan(
+      0.01,
+    );
+  });
+
+  it('keeps P waves going after a long jump in time', () => {
+    const clock = createHeartClock(block);
+    clock.ecgAt(1000);
+    const t = 60_000 + pDurationAt(800, clock.params) / 2;
+    const beat = clock.beatAt(t);
+    const inBeat = t - beat.start;
+    const value = clock.ecgAt(t);
+    if (inBeat > beat.timing.tEnd || inBeat < beat.timing.qOnset - 50) {
+      expect(value).toBeGreaterThan(0.1);
+    }
+    expect(dissociatedPOnset(t, clock.params)).toBe(60_000);
+  });
+
+  it('calls the start of a beat filling, not atrial systole', () => {
+    const clock = createHeartClock(block);
+    const beat = clock.beatAt(3000);
+    expect(clock.sample(beat.start + 1).phase).toBe('filling');
+    expect(clock.sample(beat.start + beat.timing.rPeak + 1).phase).toBe('isovolumic-contraction');
+    expect(phaseAt(1, beat.timing, beat.params)).toBe('filling');
+    expect(phaseAt(1, beat.timing)).toBe('atrial-systole');
+  });
+
+  it('changes preset in the middle of a strip without a step', () => {
+    for (const [from, to] of [
+      [block, { atrialRate: 0, heartRate: 75, atrialContribution: 0.2 }],
+      [{ heartRate: 75 }, block],
+    ] as const) {
+      const clock = createHeartClock(from);
+      clock.ecgAt(2000);
+      clock.setParams(to, 2000);
+      const values = clock.ecgBetween(1500, 6000, 4501);
+      let largest = 0;
+      for (let i = 1; i < values.length; i += 1) {
+        largest = Math.max(largest, Math.abs((values[i] ?? 0) - (values[i - 1] ?? 0)));
+      }
+      // The steepest part of a beat is the R upstroke; a step in the baseline would be larger.
+      expect(largest).toBeLessThan(0.1);
+    }
   });
 });
 
