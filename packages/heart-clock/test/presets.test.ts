@@ -16,6 +16,7 @@ import {
   type PresetId,
 } from '../src/presets.ts';
 import { flutterWaves } from '../src/ecg.ts';
+import { pDurationAt } from '../src/timing.ts';
 import { soundEvents } from '../src/sounds.ts';
 
 // Presets that do not fit every heart rate: the wide QRS of atrial septal defect does not fit the
@@ -65,6 +66,26 @@ describe('presetTreated', () => {
     expect(paced.qrsDuration).toBeGreaterThanOrEqual(120);
     expect(paced.tAmplitude).toBeLessThan(0);
     expect(presetTreated['av-block-third-degree']).toBe('av-block-third-degree-paced');
+  });
+
+  it('lets the PR of complete AV block wander at the starting rate, with P waves on QRS or T', () => {
+    const clock = createHeartClock(presetParams('av-block-third-degree'));
+    const period = 60000 / clock.params.atrialRate;
+    const prs = new Set<number>();
+    let hidden = 0;
+    // A 9 s strip: each beat's PR is the time from the latest P onset to its QRS.
+    for (const beat of clock.beatsBetween(1000, 10_000)) {
+      const qrs = beat.start + beat.timing.qOnset;
+      prs.add(Math.round(qrs - Math.floor(qrs / period) * period));
+    }
+    for (let onset = Math.ceil(1000 / period) * period; onset < 10_000; onset += period) {
+      const peak = onset + pDurationAt(period, clock.params) / 2;
+      const beat = clock.beatAt(peak);
+      const inBeat = peak - beat.start;
+      if (inBeat >= beat.timing.qOnset && inBeat <= beat.timing.tEnd) hidden += 1;
+    }
+    expect(prs.size).toBeGreaterThanOrEqual(3);
+    expect(hidden).toBeGreaterThanOrEqual(1);
   });
 });
 
