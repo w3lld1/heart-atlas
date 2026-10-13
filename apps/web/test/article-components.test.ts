@@ -1,3 +1,4 @@
+import reactRenderer from '@astrojs/react/server.js';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
@@ -15,6 +16,7 @@ import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Structure from '../src/components/Structure.astro';
 import Student from '../src/components/Student.astro';
+import ArticleClock from '../src/components/heart-clock/ArticleClock.astro';
 import CongenitalModel from '../src/components/viewer/CongenitalModel.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
 
@@ -257,5 +259,32 @@ describe('CongenitalModel', () => {
         props: { locale: 'en', model: 'no-such-model' },
       }),
     ).rejects.toThrow('unknown model "no-such-model"');
+  });
+});
+
+describe('ArticleClock', () => {
+  it('offers normal, the preset, its state after treatment, then the more presets', async () => {
+    // The heart clock is a React island, so this container needs the React renderer.
+    const withReact = await AstroContainer.create();
+    withReact.addServerRenderer({ renderer: reactRenderer });
+    withReact.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' });
+    const html = await withReact.renderToString(ArticleClock, {
+      props: {
+        locale: 'en',
+        preset: 'av-block-third-degree',
+        morePresets: ['av-block-second-degree-mobitz-1', 'av-block-second-degree-mobitz-2'],
+      },
+    });
+    const raw = /<astro-island[^>]*\bprops="([^"]*)"/.exec(html)?.[1] ?? '{}';
+    // Astro serializes island props as [type, value] pairs; an array is [1, [[0, id], …]].
+    const props = JSON.parse(raw.replaceAll('&quot;', '"')) as Record<string, [number, unknown]>;
+    const presets = (props['presets']?.[1] as [number, string][] | undefined)?.map(([, id]) => id);
+    expect(presets).toEqual([
+      'normal',
+      'av-block-third-degree',
+      'av-block-third-degree-paced',
+      'av-block-second-degree-mobitz-1',
+      'av-block-second-degree-mobitz-2',
+    ]);
   });
 });
