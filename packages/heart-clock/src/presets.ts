@@ -220,7 +220,8 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
   'atrial-premature-beats': Object.freeze({
     // The atrial impulse resets the sinus node, so the pause after it is shorter than a full
     // compensatory pause; usually conducted normally, with a narrow QRS (MSD, Ectopic SVA). The
-    // P wave keeps the sinus shape and the next beat comes one rhythm RR after: assumptions.
+    // P wave keeps the sinus shape and the next beat comes one rhythm RR after: assumptions. Only MSD
+    // describes the ECG of atrial premature beats; the Minzdrav guidelines cover their treatment.
     prematureEvery: 4,
     prematureOrigin: 1,
   }),

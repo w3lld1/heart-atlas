@@ -155,7 +155,7 @@ export const presetSources: readonly ClockSource[] = [
     lang: 'en',
   },
   // Premature beats: docs/plans/2026-10-13-heart-clock-premature-beats.md. The ventricular
-  // arrhythmias guideline (569_2) is listed above.
+  // arrhythmias guideline (569_2), listed above with long QT syndrome, supports the ventricular one.
   {
     text: 'MSD Manuals, Professional Version. Ventricular Premature Beats (VPB). 2024.',
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-premature-beats-vpb',
