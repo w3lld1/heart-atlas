@@ -70,6 +70,11 @@ const congenitalStructuresYaml = Object.fromEntries(
 const congenitalSources = (): Record<string, { entry?: unknown; section?: unknown }> =>
   parse(congenitalSourcesYaml) as Record<string, { entry?: unknown; section?: unknown }>;
 
+/** Every model pinned in congenital/sources.yaml, including ones no article shows yet. */
+export function congenitalSourceIds(): string[] {
+  return Object.keys(congenitalSources());
+}
+
 /** The NIH 3D Heart Library record a congenital model comes from (congenital/sources.yaml). */
 export function congenitalModelEntry(id: CongenitalModelId): string {
   const entry = congenitalSources()[id]?.entry;
@@ -80,7 +85,7 @@ export function congenitalModelEntry(id: CongenitalModelId): string {
 }
 
 /** Whether the viewer opens a congenital model cut along the frontal plane (congenital/sources.yaml). */
-export function congenitalSection(id: CongenitalModelId): 'frontal' | undefined {
+export function congenitalSection(id: string): 'frontal' | undefined {
   return congenitalSources()[id]?.section === 'frontal' ? 'frontal' : undefined;
 }
 

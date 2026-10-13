@@ -39,6 +39,12 @@ m:
     expect(() => parseSources(valid.replace('a.glb', 'a.obj'))).toThrow('m is incomplete');
   });
 
+  it('rejects a null file entry as incomplete', () => {
+    expect(() => parseSources(valid.replace(/files:\n.*\n/, 'files: [~]\n'))).toThrow(
+      'm is incomplete',
+    );
+  });
+
   it('rejects a bad hash, keep share or centre mesh', () => {
     expect(() => parseSources(valid.replace('a'.repeat(64), 'abc'))).toThrow('m is incomplete');
     expect(() => parseSources(valid.replace('keep: 0.5', 'keep: 2'))).toThrow('m is incomplete');
@@ -92,6 +98,21 @@ describe('toModelAxes', () => {
     const positions = new Float32Array([1, 2, 3]);
     toModelAxes(positions, 'lps', 2);
     expect(Array.from(positions)).toEqual([2, 6, -4]);
+  });
+
+  it('rotates without mirroring, so triangles keep their winding', () => {
+    const tri = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    toModelAxes(tri, 'lps', 1);
+    const [a, b, c] = [0, 3, 6].map((i) => Array.from(tri.slice(i, i + 3)));
+    const u = [0, 1, 2].map((k) => (b?.[k] ?? 0) - (a?.[k] ?? 0));
+    const v = [0, 1, 2].map((k) => (c?.[k] ?? 0) - (a?.[k] ?? 0));
+    const normal = [
+      (u[1] ?? 0) * (v[2] ?? 0) - (u[2] ?? 0) * (v[1] ?? 0),
+      (u[2] ?? 0) * (v[0] ?? 0) - (u[0] ?? 0) * (v[2] ?? 0),
+      (u[0] ?? 0) * (v[1] ?? 0) - (u[1] ?? 0) * (v[0] ?? 0),
+    ];
+    // The source normal +Z (superior) must become +Y, not -Y.
+    expect(normal.map((n) => n + 0)).toEqual([0, 1, 0]);
   });
 
   it('only scales positions already in our axes', () => {

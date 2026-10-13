@@ -75,6 +75,8 @@ export function parseSources(text: string): Record<string, CongenitalSource> {
       s.files.length > 0 &&
       s.files.every(
         (f) =>
+          f !== null &&
+          typeof f === 'object' &&
           isText(f.file) &&
           /\.(glb|stl)$/i.test(f.file) &&
           /^https:\/\//.test(f.file_url) &&
@@ -86,7 +88,15 @@ export function parseSources(text: string): Record<string, CongenitalSource> {
       (s.section === 'frontal' || s.section === 'none') &&
       Array.isArray(s.meshes) &&
       s.meshes.length > 0 &&
-      s.meshes.every((m) => isText(m.node) && isText(m.id) && m.keep > 0 && m.keep <= 1) &&
+      s.meshes.every(
+        (m) =>
+          m !== null &&
+          typeof m === 'object' &&
+          isText(m.node) &&
+          isText(m.id) &&
+          m.keep > 0 &&
+          m.keep <= 1,
+      ) &&
       s.meshes.some((m) => m.id === s.center_on);
     if (!ok) throw new Error(`sources.yaml: ${id} is incomplete`);
   }

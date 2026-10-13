@@ -7,6 +7,7 @@ import {
   congenitalModelIds,
   congenitalModelUrls,
   congenitalSection,
+  congenitalSourceIds,
   congenitalStructures,
   heartAttribution,
   heartModelUrls,
@@ -62,7 +63,7 @@ describe('heart model data for the viewer', () => {
 describe('congenital model data for the viewer', () => {
   it('names every layer in every locale', () => {
     for (const locale of localeCodes) {
-      for (const id of [...congenitalModelIds, 'transposition-of-the-great-arteries']) {
+      for (const id of congenitalSourceIds()) {
         const unnamed = congenitalStructures(getMessages(locale), id).filter(
           (s) => s.label === s.id,
         );
@@ -78,8 +79,9 @@ describe('congenital model data for the viewer', () => {
     ]);
   });
 
-  it('opens the tetralogy of Fallot model cut', () => {
+  it('opens the tetralogy of Fallot model cut and the transposition model whole', () => {
     expect(congenitalSection('tetralogy-of-fallot')).toBe('frontal');
+    expect(congenitalSection('transposition-of-the-great-arteries')).toBeUndefined();
   });
 
   it('points at the built files, the model record and the attribution of each model', () => {
