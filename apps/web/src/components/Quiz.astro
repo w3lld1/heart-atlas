@@ -46,7 +46,7 @@ const messages = embed
   <h2 id={titleId} lang={locale}>
     {t['quiz.title']}
   </h2>
-  <ol class="quiz-questions">
+  <ol class="quiz-questions" role="list">
     {entry.data.questions.map((question, q) => {
       const answer = question.options.find((option) => option.correct)?.text ?? '';
       return (
@@ -102,8 +102,16 @@ const messages = embed
     background: var(--color-bg-2);
   }
 
+  /* The number goes before the question, not the first option: a list marker lines up with the
+     first line box of the item, and a legend is not one. */
   .quiz-questions {
-    padding-inline-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: quiz-question;
+  }
+
+  .quiz-question {
+    counter-increment: quiz-question;
   }
 
   .quiz-question + .quiz-question {
@@ -125,6 +133,10 @@ const messages = embed
   legend {
     margin-block-end: 0.5rem;
     font-weight: 600;
+  }
+
+  legend::before {
+    content: counter(quiz-question) '. ';
   }
 
   .quiz-option {
