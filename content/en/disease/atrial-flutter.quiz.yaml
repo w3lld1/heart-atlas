@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: How does the electrical activity of the atria in flutter differ from fibrillation?
+    options:
+      - text: In flutter it is chaotic, while in fibrillation it is coordinated
+      - text: In flutter it is coordinated, while in fibrillation it is chaotic
+        correct: true
+      - text: In flutter there is no electrical activity in the atria at all
+    explanation: In fibrillation the electrical activity of the atria is chaotic, while in flutter it is coordinated.
+    cite: [1, 5]
+  - level: patient
+    prompt: In the typical form of flutter, what do the flutter waves on the ECG look like?
+    options:
+      - text: The teeth of a saw
+        correct: true
+      - text: A flat straight line with no waves
+      - text: Rare single spikes every few seconds
+    explanation: The ECG shows rapid, identical flutter waves, which in the typical form look like the teeth of a saw.
+    cite: [1, 4]
+  - level: patient
+    prompt: Which method does the article call the most effective way to keep a normal rhythm in flutter?
+    options:
+      - text: Heart transplant
+      - text: Artificial valve implantation
+      - text: Catheter ablation
+        correct: true
+    explanation: Ablation is the most effective way to keep a normal rhythm, and flutter rarely returns after it, but atrial fibrillation may appear over time.
+    cite: [2]
+  - level: patient
+    prompt: Palpitations with which signs mean you should call your local emergency number?
+    options:
+      - text: A stuffy nose without fever
+      - text: Chest pain or discomfort, severe shortness of breath or fainting
+        correct: true
+      - text: Itchy skin after a shower
+    explanation: Call your local emergency number if palpitations come with chest pain or discomfort, severe shortness of breath, fainting or a feeling that you are about to faint.
+    cite: [1, 4, 5]
+  - level: student
+    prompt: Which structure must the macro re-entrant wave pass through in typical AFL?
+    options:
+      - text: The coronary sinus
+      - text: Bachmann's bundle
+      - text: The cavotricuspid isthmus
+        correct: true
+    explanation: In typical AFL (type I) the macro re-entrant wave travels around the tricuspid valve and must pass through the cavotricuspid isthmus (CTI).
+    cite: [1]
+  - level: student
+    prompt: Which F waves on the ECG are typical of counterclockwise AFL?
+    options:
+      - text: Negative in the inferior leads and positive in V1
+        correct: true
+      - text: Positive in the inferior leads and negative in V1
+      - text: No F waves are visible in any lead
+    explanation: In counterclockwise AFL the F waves are negative in the inferior leads and positive in V1.
+    cite: [2]
