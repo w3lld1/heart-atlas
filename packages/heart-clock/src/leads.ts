@@ -26,9 +26,9 @@ export interface LeadGains {
 export const unitGains: LeadGains = Object.freeze({ p: 1, qrs: 1, t: 1, st: 1, f: 1 });
 
 const radians = Math.PI / 180;
-const cache: Record<LimbLead, WeakMap<Readonly<HeartParams>, LeadGains>> = {
+// Lead II always has unit gains, so only I and III are cached.
+const cache: Record<'I' | 'III', WeakMap<Readonly<HeartParams>, LeadGains>> = {
   I: new WeakMap(),
-  II: new WeakMap(),
   III: new WeakMap(),
 };
 
