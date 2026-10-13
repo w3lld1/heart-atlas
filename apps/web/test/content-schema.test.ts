@@ -105,6 +105,10 @@ describe('article schema', () => {
     expect(messages({ preset, morePresets: [more[0], more[0]] })).toContainEqual(
       expect.stringContaining('already on the page'),
     );
+    // The switch draws every preset in the lead of the main one.
+    expect(messages({ preset: 'wpw-syndrome', morePresets: ['brugada-syndrome'] })).toContainEqual(
+      expect.stringContaining('is drawn in lead V1, not II'),
+    );
     // The same exclusions as `preset`.
     for (const id of ['normal', 'sick-sinus-syndrome-paced', 'af']) {
       expect(articleSchema.safeParse({ ...valid(), preset, morePresets: [id] }).success).toBe(

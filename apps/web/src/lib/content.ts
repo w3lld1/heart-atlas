@@ -1,4 +1,4 @@
-import { presetIds, presetTreated } from '@heart-atlas/heart-clock';
+import { presetIds, presetLead, presetTreated } from '@heart-atlas/heart-clock';
 import { z } from 'astro/zod';
 import { parse } from 'yaml';
 
@@ -135,7 +135,8 @@ export function createArticleSchema(trusted: TrustedSources) {
       // show nothing new. Spec: docs/plans/2026-10-11-stage-3-presets.md.
       preset: articlePreset.optional(),
       // More presets for the same switch, after `preset` and its state after treatment, for an
-      // article that covers several kinds of one disease (Mobitz I and II in AV block).
+      // article that covers several kinds of one disease (Mobitz I and II in AV block). Each comes
+      // with its own state after treatment.
       morePresets: z.array(articlePreset).default([]),
     })
     .superRefine((article, ctx) => {
@@ -156,6 +157,14 @@ export function createArticleSchema(trusted: TrustedSources) {
           });
         }
         presets.add(id);
+        // The switch draws every preset in the lead of the main one.
+        if (article.preset && presetLead(id) !== presetLead(article.preset)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['morePresets', index],
+            message: `Preset "${id}" is drawn in lead ${presetLead(id)}, not ${presetLead(article.preset)} like preset`,
+          });
+        }
       }
       const seen = new Set([article.title.toLocaleLowerCase()]);
       for (const [index, alias] of article.aliases.entries()) {

@@ -263,7 +263,7 @@ describe('CongenitalModel', () => {
 });
 
 describe('ArticleClock', () => {
-  it('offers normal, the preset, its state after treatment, then the more presets', async () => {
+  it('offers normal, the preset, then the more presets, each with its state after treatment', async () => {
     // The heart clock is a React island, so this container needs the React renderer.
     const withReact = await AstroContainer.create();
     withReact.addServerRenderer({ renderer: reactRenderer });
@@ -271,20 +271,20 @@ describe('ArticleClock', () => {
     const html = await withReact.renderToString(ArticleClock, {
       props: {
         locale: 'en',
-        preset: 'av-block-third-degree',
-        morePresets: ['av-block-second-degree-mobitz-1', 'av-block-second-degree-mobitz-2'],
+        preset: 'av-block-second-degree-mobitz-1',
+        morePresets: ['av-block-second-degree-mobitz-2', 'av-block-third-degree'],
       },
     });
-    const raw = /<astro-island[^>]*\bprops="([^"]*)"/.exec(html)?.[1] ?? '{}';
-    // Astro serializes island props as [type, value] pairs; an array is [1, [[0, id], …]].
-    const props = JSON.parse(raw.replaceAll('&quot;', '"')) as Record<string, [number, unknown]>;
-    const presets = (props['presets']?.[1] as [number, string][] | undefined)?.map(([, id]) => id);
+    // The island renders on the server too, with a radio button per preset.
+    const presets = [
+      ...html.matchAll(/type="radio" name="[^"]*-preset"[^>]*?value="([^"]+)"/g),
+    ].map((m) => m[1]);
     expect(presets).toEqual([
       'normal',
-      'av-block-third-degree',
-      'av-block-third-degree-paced',
       'av-block-second-degree-mobitz-1',
       'av-block-second-degree-mobitz-2',
+      'av-block-third-degree',
+      'av-block-third-degree-paced',
     ]);
   });
 });
