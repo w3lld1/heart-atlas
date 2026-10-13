@@ -21,6 +21,9 @@ const headLines = twoLines(t['diagram.label.to-head-and-arms']);
 const legsLines = twoLines(t['diagram.label.to-abdomen-and-legs']);
 const hypertrophyLines = twoLines(t['diagram.label.lv-hypertrophy']);
 const reducedLines = twoLines(t['diagram.label.reduced-blood-flow']);
+const repairedLines = twoLines(t['diagram.label.repaired-narrowing']);
+// The full stream down the aorta shows normally and after treatment.
+const fullFlow = [{ class: 'normal-only' }, { 'data-only': 'treated' }];
 // The aorta runs up from the left ventricle, turns in an arch and goes down. The three branches
 // to the head and arms leave the top of the arch; the last one is the left subclavian artery.
 const arch = 'L110,120 Q110,70 160,70 L250,70 Q300,70 300,120 L300,355';
@@ -64,11 +67,17 @@ const flow = {
     d="M55,250 L165,250 L165,292 Q165,345 110,352 Q55,345 55,292 Z"
     fill="var(--diagram-muscle)"
   ></path>
-  <path
-    class="disease-only"
-    d="M43,242 L177,242 L177,292 Q177,358 110,362 Q43,358 43,292 Z"
-    fill="var(--diagram-muscle)"
-  ></path>
+  <!-- After treatment the wall stays as thick as with coarctation: no source says it thins, and
+       the sources warn of what keeps loading it (ESC 2020 ACHD: hypertension after repair is a risk
+       factor for ventricular dysfunction; Минздрав 754_1: recoarctation can cause LV dysfunction;
+       MSD: hypertension may persist). -->
+  {[{ class: 'disease-only' }, { 'data-only': 'treated' }].map((only) => (
+    <path
+      {...only}
+      d="M43,242 L177,242 L177,292 Q177,358 110,362 Q43,358 43,292 Z"
+      fill="var(--diagram-muscle)"
+    />
+  ))}
 
   <!-- Vessel walls: the branches to the head and arms and the aorta, drawn as wide strokes -->
   <g fill="none" stroke="var(--diagram-arterial)">
@@ -99,12 +108,34 @@ const flow = {
     <path d="M314,106 L303,122 L314,138 Z"></path>
   </g>
 
+  <!--
+    After treatment: the narrowing is repaired (Минздрав 754_1, ESC 2020 ACHD, MSD: resection with
+    a direct anastomosis or a graft in surgery, or widening with a balloon or stent by catheter). One
+    generic dashed cuff marks the repaired segment, with no stent mesh or suture line, so no method
+    is preferred. A small residual narrowing, recoarctation and lasting high blood pressure are
+    possible: the caption names them.
+  -->
+  <rect
+    data-only="treated"
+    x="280"
+    y="106"
+    width="40"
+    height="32"
+    rx="4"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="4 3"
+  ></rect>
+
   <!-- Flow arrows, visible with and without motion -->
   <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
     {branches.map((x) => (
       <path d={flow.branch(x)} stroke-width="3" marker-end={`url(#${arrow})`} />
     ))}
-    <path class="normal-only" d={flow.main} stroke-width="4" marker-end={`url(#${arrow})`}></path>
+    {fullFlow.map((only) => (
+      <path {...only} d={flow.main} stroke-width="4" marker-end={`url(#${arrow})`} />
+    ))}
     <path class="disease-only" d={flow.aboveNarrowing} stroke-width="4"></path>
     <path
       class="disease-only"
@@ -119,7 +150,11 @@ const flow = {
     {branches.map((x) => (
       <path class="dash-flow" d={flow.branch(x)} stroke-width="1.5" />
     ))}
-    <path class="dash-flow normal-only" d={flow.main} stroke-width="2"></path>
+    {fullFlow.map((only) => (
+      <g {...only}>
+        <path class="dash-flow" d={flow.main} stroke-width="2" />
+      </g>
+    ))}
     <path class="dash-flow disease-only" d={flow.aboveNarrowing} stroke-width="2"></path>
     <path class="dash-flow disease-only" d={flow.belowNarrowing} stroke-width="1"></path>
   </g>
@@ -163,6 +198,12 @@ const flow = {
   </text>
   <text class="diagram-small disease-only" x="326" y="126">
     {t['diagram.label.aortic-narrowing']}
+  </text>
+  <text class="diagram-small" data-only="treated" x="326" y="118">
+    <tspan x="326">{repairedLines[0]}</tspan>
+    <tspan x="326" dy="15">
+      {repairedLines[1]}
+    </tspan>
   </text>
   <text class="diagram-small disease-only" x="326" y="226">
     <tspan x="326">{reducedLines[0]}</tspan>
