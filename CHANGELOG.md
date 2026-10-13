@@ -10,7 +10,7 @@ Eight new disease articles, four heart clock presets that use the new rhythms, a
 
 - New disease articles in Russian and English, each with a diagram: Marfan syndrome, cardiac tamponade, pulmonary valve stenosis and Eisenmenger syndrome ([#215](https://github.com/w3lld1/heart-atlas/pull/215)), peripartum cardiomyopathy ([#214](https://github.com/w3lld1/heart-atlas/pull/214)), deep vein thrombosis ([#217](https://github.com/w3lld1/heart-atlas/pull/217)), peripheral artery disease of the legs ([#222](https://github.com/w3lld1/heart-atlas/pull/222)) and hypoplastic left heart syndrome ([#224](https://github.com/w3lld1/heart-atlas/pull/224)). The site now has forty-five disease articles.
 - In seventeen disease articles and two anatomy articles, the names of valves, chambers, septa, great vessels and the conduction system are buttons that highlight that structure on the article's 3D model ([#213](https://github.com/w3lld1/heart-atlas/pull/213)).
-- Marfan syndrome, pulmonary valve stenosis, peripartum cardiomyopathy and hypoplastic left heart syndrome show the 3D model with the structures they name highlighted ([#214](https://github.com/w3lld1/heart-atlas/pull/214), [#215](https://github.com/w3lld1/heart-atlas/pull/215), [#224](https://github.com/w3lld1/heart-atlas/pull/224)).
+- Marfan syndrome, pulmonary valve stenosis, Eisenmenger syndrome, peripartum cardiomyopathy and hypoplastic left heart syndrome show the 3D model with the structures they name highlighted ([#214](https://github.com/w3lld1/heart-atlas/pull/214), [#215](https://github.com/w3lld1/heart-atlas/pull/215), [#223](https://github.com/w3lld1/heart-atlas/pull/223), [#224](https://github.com/w3lld1/heart-atlas/pull/224)). Peripartum cardiomyopathy also opens the heart clock on the heart failure preset ([#214](https://github.com/w3lld1/heart-atlas/pull/214)).
 
 ### Heart clock
 
@@ -20,7 +20,7 @@ Eight new disease articles, four heart clock presets that use the new rhythms, a
 
 ### Learning
 
-- A quiz in the peripartum cardiomyopathy article, 48 in all ([#218](https://github.com/w3lld1/heart-atlas/pull/218)).
+- Quizzes in seven new disease articles: peripartum cardiomyopathy, Marfan syndrome, cardiac tamponade, pulmonary valve stenosis, Eisenmenger syndrome, deep vein thrombosis and peripheral artery disease, 54 in all ([#218](https://github.com/w3lld1/heart-atlas/pull/218), [#223](https://github.com/w3lld1/heart-atlas/pull/223)).
 
 ## [0.4.0] - 2026-10-13
 
