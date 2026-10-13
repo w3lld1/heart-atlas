@@ -154,6 +154,18 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/atrial-flutter',
     lang: 'en',
   },
+  // Premature beats: docs/plans/2026-10-13-heart-clock-premature-beats.md. The ventricular
+  // arrhythmias guideline (569_2) is listed above.
+  {
+    text: 'MSD Manuals, Professional Version. Ventricular Premature Beats (VPB). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-premature-beats-vpb',
+    lang: 'en',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Ectopic Supraventricular Arrhythmias. 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ectopic-supraventricular-arrhythmias',
+    lang: 'en',
+  },
   {
     text: '2021 Рекомендации ESC по электрокардиостимуляции и сердечной ресинхронизирующей терапии. Рос кардиол журн. 2022;27(7):5159.',
     href: 'https://doi.org/10.15829/1560-4071-2022-5159',

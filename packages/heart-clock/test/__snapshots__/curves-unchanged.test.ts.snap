@@ -60,6 +60,24 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       175,
     ],
   },
+  "atrial-premature-beats": {
+    "curves": [
+      "40:eebfac3a",
+      "40:eebfac3a",
+      "47:d88c74ab",
+      "60:f07931b9",
+      "75:4a1a",
+      "86:e96be17b",
+    ],
+    "limits": [
+      40,
+      86,
+    ],
+    "presetLimits": [
+      40,
+      86,
+    ],
+  },
   "atrial-septal-defect": {
     "curves": [
       "40:19c0c766",
@@ -337,6 +355,24 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
     "presetLimits": [
       120,
       180,
+    ],
+  },
+  "ventricular-premature-beats": {
+    "curves": [
+      "40:f2ddd99d",
+      "40:f2ddd99d",
+      "47:a1d41dac",
+      "60:a4ef73c5",
+      "75:d8aceb1",
+      "86:b7a6a44e",
+    ],
+    "limits": [
+      40,
+      86,
+    ],
+    "presetLimits": [
+      40,
+      86,
     ],
   },
   "ventricular-tachycardia": {

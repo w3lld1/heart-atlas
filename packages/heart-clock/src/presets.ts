@@ -24,6 +24,8 @@ export const presetIds = [
   'long-qt-syndrome',
   'ventricular-tachycardia',
   'atrial-flutter',
+  'atrial-premature-beats',
+  'ventricular-premature-beats',
   'sick-sinus-syndrome',
   'sick-sinus-syndrome-paced',
   'wpw-syndrome',
@@ -209,6 +211,25 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // Symptoms come from the fast rate and the loss of atrial systole (ESC 2019 SVT, Russian
     // translation, §11.1.4.1.2): no atrial share of filling.
     atrialContribution: 0,
+  }),
+  // Premature beats: docs/plans/2026-10-13-heart-clock-premature-beats.md. A premature beat comes
+  // earlier than the next normal beat, from an impulse outside the sinus node (MSD Manuals,
+  // Ventricular Premature Beats and Ectopic Supraventricular Arrhythmias, 2024). assumption: every
+  // fourth beat, at 0.7 of the rhythm RR (`prematureCoupling` default); MSD describes VPBs at random
+  // or in regular patterns, and no source gives a coupling interval. The rate is not set: 75.
+  'atrial-premature-beats': Object.freeze({
+    // The atrial impulse resets the sinus node, so the pause after it is shorter than a full
+    // compensatory pause; usually conducted normally, with a narrow QRS (MSD, Ectopic SVA). The
+    // P wave keeps the sinus shape and the next beat comes one rhythm RR after: assumptions.
+    prematureEvery: 4,
+    prematureOrigin: 1,
+  }),
+  'ventricular-premature-beats': Object.freeze({
+    // No P wave, a QRS of 120 ms or more and a discordant T (Minzdrav 2025, Ventricular
+    // arrhythmias; MSD, VPB), usually a full compensatory pause (MSD, VPB). The shape (QRS 140 ms,
+    // T −0.3 mV) is `ventricularPrematureShape` in clock.ts.
+    prematureEvery: 4,
+    prematureOrigin: 2,
   }),
   'sick-sinus-syndrome': Object.freeze({
     // Sinus node dysfunction includes sinus bradycardia and sinus arrest (Minzdrav 2025,

@@ -226,6 +226,27 @@ test.describe('disease presets', () => {
     );
   });
 
+  test('show atrial and ventricular premature beats', async ({ page }) => {
+    // docs/plans/2026-10-13-heart-clock-premature-beats.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    for (const id of ['atrial-premature-beats', 'ventricular-premature-beats'] as const) {
+      await conditions
+        .getByRole('radio', { name: en[`heartClock.preset.${id}`], exact: true })
+        .check();
+      await expect(conditions).toHaveAccessibleDescription(en[`heartClock.preset.${id}.summary`]);
+      await expect(slider).toHaveAttribute('min', '40');
+      await expect(slider).toHaveAttribute('max', '86');
+      await expect(ecg).toHaveAccessibleDescription(
+        en[`heartClock.preset.${id}.ecg`].replace('{rate}', await slider.inputValue()),
+      );
+      expect((await axe(page).analyze()).violations).toEqual([]);
+    }
+  });
+
   test('show second-degree AV block, with filling and not a sinus pause in the gap', async ({
     page,
   }) => {

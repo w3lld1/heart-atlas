@@ -26,7 +26,8 @@ import { soundEvents } from '../src/sounds.ts';
 // waves run at twice the ventricular rate, inside 250–350 per minute. Sick sinus syndrome stays
 // below 40 bpm, from the model's lowest rate of 30. In WPW syndrome the delta wave moves the R peak
 // later, so the wide QRS does not fit the fastest rates. The pacemaker after sick sinus syndrome
-// keeps its lower rate at 50–70. Mobitz I stops at 70, below the 76 its longest PR allows.
+// keeps its lower rate at 50–70. Mobitz I stops at 70, below the 76 its longest PR allows. With
+// premature beats the shortened beat keeps the rhythm's PR, so they stop at 86.
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
@@ -37,6 +38,8 @@ const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'long-qt-syndrome': [40, 137],
   'ventricular-tachycardia': [101, 169],
   'atrial-flutter': [126, 175],
+  'atrial-premature-beats': [40, 86],
+  'ventricular-premature-beats': [40, 86],
   'sick-sinus-syndrome': [30, 39],
   'sick-sinus-syndrome-paced': [50, 70],
   'wpw-syndrome': [40, 153],
@@ -536,5 +539,21 @@ describe('second-degree AV block', () => {
     expect(mobitz2.gaps).toEqual([800, 1600, 800, 1600]);
     expect(presetTreated['av-block-second-degree-mobitz-1']).toBeUndefined();
     expect(presetTreated['av-block-second-degree-mobitz-2']).toBeUndefined();
+  });
+});
+
+describe('premature beats', () => {
+  it('make every fourth beat early, atrial with the usual QRS and ventricular with a wide one', () => {
+    for (const [id, origin] of [
+      ['atrial-premature-beats', 1],
+      ['ventricular-premature-beats', 2],
+    ] as const) {
+      const beats = createHeartClock(presetParams(id)).beatsBetween(0, 9000);
+      expect(
+        beats.slice(0, 8).map((b) => b.premature),
+        id,
+      ).toEqual([0, 0, 0, origin, 0, 0, 0, origin]);
+      expect(presetTreated[id]).toBeUndefined();
+    }
   });
 });
