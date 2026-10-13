@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is deposited in the tissues of the heart in cardiac amyloidosis?
+    options:
+      - text: Calcium salts
+      - text: Amyloid, a protein with a particular fibrillar structure
+        correct: true
+      - text: Cholesterol
+    explanation: Cardiac amyloidosis is a disease in which amyloid, a protein with a particular fibrillar structure, is deposited in the tissues of the heart.
+    cite: [3]
+  - level: patient
+    prompt: Which organ makes transthyretin, the protein deposited in ATTR amyloidosis?
+    options:
+      - text: The spleen
+      - text: The pancreas
+      - text: The liver
+        correct: true
+    explanation: In ATTR amyloidosis the deposited protein is transthyretin, which is made by the liver.
+    cite: [6]
+  - level: patient
+    prompt: Which mismatch between tests is typical of cardiac amyloidosis?
+    options:
+      - text: Thick heart walls on echocardiography, small signals on the ECG
+        correct: true
+      - text: Thin heart walls on echocardiography, large signals on the ECG
+      - text: Normal heart walls on echocardiography, large signals on the ECG
+    explanation: A typical clue is a mismatch. On echocardiography the heart walls are thick, but on the ECG the electrical signals are small.
+    cite: [3]
+  - level: patient
+    prompt: Who gets wild-type ATTR amyloidosis much more often?
+    options:
+      - text: Women
+      - text: Men
+        correct: true
+      - text: Men and women equally often
+    explanation: Wild-type amyloidosis usually affects the heart and is much more common in men than in women.
+    cite: [6]
+  - level: student
+    prompt: Which stain is used on biopsy sections to confirm amyloidosis histologically?
+    options:
+      - text: Haematoxylin and eosin
+      - text: Gram stain
+      - text: Congo red
+        correct: true
+    explanation: Amyloidosis is confirmed histologically by demonstrating fibrillar deposits in an involved organ; sections are stained with Congo red.
+    cite: [4]
+  - level: student
+    prompt: Which contrast-enhanced cardiac MRI finding is a feature of amyloidosis?
+    options:
+      - text: Global subendocardial or transmural LGE
+        correct: true
+      - text: No late gadolinium enhancement (LGE)
+      - text: Decreased native T1
+    explanation: 'CMR features of amyloidosis: global subendocardial or transmural late gadolinium enhancement (LGE), elevated native T1 and increased extracellular volume (ECV).'
+    cite: [2]
