@@ -132,6 +132,7 @@ const translations = Object.fromEntries(
 
   #search mark {
     border-radius: 3px;
+    background: var(--color-notice-bg);
     background: color-mix(in srgb, var(--color-accent) 24%, transparent);
     color: inherit;
   }
@@ -142,7 +143,14 @@ const translations = Object.fromEntries(
     font-weight: 600;
   }
 
+  /* Pagefind indents sub-results and places their arrow with physical properties; these follow
+     the page direction. */
+  #search .pagefind-ui__result-nested {
+    padding-inline: calc(20px * var(--pagefind-ui-scale)) 0;
+  }
+
   #search .pagefind-ui__result-nested .pagefind-ui__result-link::before {
+    inset-inline: auto calc(100% + 0.1em);
     color: var(--color-muted);
   }
   /* stylelint-enable selector-class-pattern */

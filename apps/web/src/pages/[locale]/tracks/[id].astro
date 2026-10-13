@@ -137,7 +137,9 @@ const langOf = (code: string) => foreign(code, locale);
     color: var(--color-accent);
     font-family: var(--font-display);
     font-weight: 700;
-    content: counter(track-step);
+
+    /* Silent: the list already tells screen readers the item number. */
+    content: counter(track-step) / '';
   }
 
   .track-step:has(.track-read :checked)::before {
@@ -206,6 +208,10 @@ const langOf = (code: string) => foreign(code, locale);
     color: var(--color-on-accent);
     font-weight: 600;
     text-decoration: none;
+  }
+
+  .track-continue :global(a:hover) {
+    background: color-mix(in srgb, var(--color-accent) 88%, var(--color-text));
   }
 
   .track-continue :global(a:focus-visible) {
