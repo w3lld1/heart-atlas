@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
     "i18n:check": "pnpm --filter @heart-atlas/web i18n:check",
+    "i18n:sort": "pnpm --filter @heart-atlas/web i18n:sort",
     "test": "vitest run",
     "e2e": "pnpm --filter @heart-atlas/web e2e",
     "lhci": "pnpm --filter @heart-atlas/web lhci"

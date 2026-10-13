@@ -1,8 +1,9 @@
-// Checks that every locale has a strings file with all keys of the English reference.
-// Missing keys and missing files fail; extra keys only warn. Run: pnpm i18n:check
+// Checks that every locale has a strings file with all keys of the English reference, sorted and
+// without duplicates. Missing keys, missing files, unsorted or repeated keys fail; extra keys only
+// warn. Run: pnpm i18n:check (pnpm i18n:sort fixes the order).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { compareKeys } from '../src/i18n/check.ts';
+import { compareKeys, keyOrder } from '../src/i18n/check.ts';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { testLocales } from '../test/fixtures/i18n/locales.ts';
 
@@ -39,6 +40,12 @@ for (const url of files) {
     failed = true;
     continue;
   }
+  const { duplicates, firstUnsorted } = keyOrder(readFileSync(url, 'utf8'));
+  for (const key of duplicates) console.error(`✗ ${path}: key "${key}" appears more than once`);
+  if (firstUnsorted !== undefined) {
+    console.error(`✗ ${path}: keys are not sorted from "${firstUnsorted}"; run pnpm i18n:sort`);
+  }
+  if (duplicates.length > 0 || firstUnsorted !== undefined) failed = true;
   const { missing, extra, invalid } = compareKeys(reference, readJson(url));
   for (const key of missing) console.error(`✗ ${path}: missing key "${key}"`);
   for (const key of invalid) console.error(`✗ ${path}: "${key}" must be a non-empty string`);

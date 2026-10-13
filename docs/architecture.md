@@ -30,7 +30,8 @@ From `package.json`:
 | `pnpm format`     | `prettier --write .`                                                                                  |
 | `pnpm typecheck`  | `typecheck` in every package (`astro check` for the site, `tsc --noEmit` for the packages).           |
 | `pnpm test`       | All Vitest unit tests.                                                                                |
-| `pnpm i18n:check` | Checks that every strings file has every key of `en.json`.                                            |
+| `pnpm i18n:check` | Checks that every strings file has every key of `en.json`, sorted and without repeats.                |
+| `pnpm i18n:sort`  | Sorts the keys of every strings file.                                                                 |
 | `pnpm e2e`        | Playwright against `astro preview`; run `pnpm build` first.                                           |
 | `pnpm lhci`       | Lighthouse CI with the thresholds in `apps/web/lighthouserc.json`; run `pnpm build` first.            |
 

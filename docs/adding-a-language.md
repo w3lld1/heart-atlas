@@ -31,13 +31,13 @@ Copy `apps/web/src/i18n/messages/en.json` to `apps/web/src/i18n/messages/<code>.
 pnpm i18n:check
 ```
 
-The check fails on a missing file, a missing key or an empty value, and warns about keys that are not in `en.json` and about strings files without a registry entry. CI runs it in the `i18n` job.
+The check fails on a missing file, a missing key, an empty value, unsorted keys or a repeated key, and warns about keys that are not in `en.json` and about strings files without a registry entry. CI runs it in the `i18n` job.
 
 At runtime `getMessages()` falls back along the chain for any missing key, but the check keeps files complete, so do not rely on that.
 
 Placeholders like `{rate}`, `{n}`, `{source}` and Pagefind's `[SEARCH_TERM]` and `[COUNT]` must stay as they are.
 
-When you add a key to `en.json` (for any feature), add it to every strings file, including the test locale `apps/web/test/fixtures/i18n/qps-plocm.json`.
+When you add a key to `en.json` (for any feature), add it to every strings file, including the test locale `apps/web/test/fixtures/i18n/qps-plocm.json`, then run `pnpm i18n:sort`: strings files keep their keys sorted, and the check fails otherwise.
 
 ## 3. Articles
 

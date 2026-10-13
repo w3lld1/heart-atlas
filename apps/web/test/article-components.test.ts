@@ -143,6 +143,14 @@ describe('Diagram', () => {
     expect(html).toContain('Caption');
   });
 
+  it('names each diagram after its file, without the Diagram wrapper', () => {
+    expect(Object.keys(diagrams)).toEqual(
+      expect.arrayContaining(['av-block', 'wpw-syndrome', 'dyslipidemia', 'blood-flow']),
+    );
+    expect(Object.keys(diagrams)).not.toContain('diagram');
+    expect(Object.keys(diagrams).every((name) => /^[a-z]+(-[a-z]+)*$/.test(name))).toBe(true);
+  });
+
   it.each(Object.keys(diagrams) as DiagramName[])(
     'renders "%s" as an image named in every locale, with labels and a valid initial state',
     async (name) => {

@@ -18,3 +18,33 @@ export function compareKeys(reference: object, messages: object): MessageCheck {
       .map(([key]) => key),
   };
 }
+
+/**
+ * Key order problems in the raw text of a strings file (one `"key": value` per line, as Prettier
+ * writes it). Keys are kept sorted, so two articles that add strings at the same time touch
+ * different lines instead of both appending to the end. JSON.parse keeps only the last of two
+ * equal keys, so duplicates are found in the text.
+ */
+export function keyOrder(text: string): { duplicates: string[]; firstUnsorted?: string } {
+  const keys = [...text.matchAll(/^ {2}"((?:[^"\\]|\\.)*)":/gm)].map((match) => match[1] ?? '');
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  let firstUnsorted: string | undefined;
+  keys.forEach((key, i) => {
+    if (seen.has(key)) duplicates.push(key);
+    seen.add(key);
+    const previous = keys[i - 1];
+    if (firstUnsorted === undefined && previous !== undefined && previous > key) {
+      firstUnsorted = key;
+    }
+  });
+  return firstUnsorted === undefined ? { duplicates } : { duplicates, firstUnsorted };
+}
+
+/** A strings file with its keys sorted, formatted as Prettier formats JSON. */
+export function sortedMessages(messages: Record<string, unknown>): string {
+  const sorted = Object.fromEntries(
+    Object.entries(messages).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  );
+  return `${JSON.stringify(sorted, null, 2)}\n`;
+}
