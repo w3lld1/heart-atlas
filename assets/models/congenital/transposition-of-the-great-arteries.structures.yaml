@@ -1,0 +1,10 @@
+# Layers of the transposition of the great arteries model (3DPX-007810): the blood of the two
+# circulations, which in this defect run side by side instead of one after the other. The
+# segmentation has no heart muscle. Ids are a public contract, as in heart/structures.yaml.
+
+- id: systemic-circulation
+  kind: mesh
+  group: layer
+- id: pulmonary-circulation
+  kind: mesh
+  group: layer

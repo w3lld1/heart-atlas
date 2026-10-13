@@ -69,8 +69,8 @@ it('every congenital model has a pinned source', () => {
   expect(congenital.map((m) => m.name).sort()).toEqual(Object.keys(sources).sort());
   for (const m of congenital) {
     const entry = licenses.entries.find((e) => e.file === m.source);
-    const source = sources[m.name];
-    expect(entry?.derived_from?.map((d) => d.sha256)).toContain(source?.sha256);
+    const hashes = entry?.derived_from?.map((d) => d.sha256) ?? [];
+    for (const f of sources[m.name]?.files ?? []) expect(hashes).toContain(f.sha256);
   }
 });
 

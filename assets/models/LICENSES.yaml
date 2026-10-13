@@ -75,6 +75,54 @@
     left out the Lungs node, renamed the nodes Myo and BP to myocardium and blood-pool, centred the model on the
     myocardium and added vertex normals. NIH has not reviewed or endorsed Heart Atlas.
 
+- file: congenital/transposition-of-the-great-arteries.glb
+  title: Heart with transposition of the great arteries (patient model)
+  license: CC-BY-SA-4.0
+  authors: [Heart Atlas contributors]
+  derived_from:
+    - name: NIH 3D Heart Library, Case Model 54 d-TGA Pre-Op (3DPX-007810, version 3), systemic circulation file
+      url: https://3d.nih.gov/entries/3DPX-007810/3
+      license: CC0-1.0
+      attribution: 'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0'
+      retrieved: 2026-10-13
+      sha256: 1260b65d37dc6fb20388dbf56833af326e9d63e3da38b471949879d51ddcf20e
+    - name: NIH 3D Heart Library, Case Model 54 d-TGA Pre-Op (3DPX-007810, version 3), pulmonary circulation file
+      url: https://3d.nih.gov/entries/3DPX-007810/3
+      license: CC0-1.0
+      attribution: 'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0'
+      retrieved: 2026-10-13
+      sha256: 5d4d47702140a46c53bee95e24d3d5510bcc1000d9d28ef8fa1d3626312de6b0
+  changes: >-
+    Prepared from the source files CM0054_MB_bp_vessel_systemic.stl and
+    CM0054_MB_bp_vessel_pulmonary.stl by packages/models/src/congenital.ts: welded vertices,
+    smoothed the voxel steps with a Taubin filter (30 iterations, lambda 0.5, mu -0.53), simplified
+    each mesh with meshoptimizer (keep shares in congenital/sources.yaml), dropped loose fragments
+    smaller than 1% of a mesh, turned the scanner axes into the model's, scaled millimetres to
+    metres with a 2.5 times zoom, named the layers systemic-circulation and pulmonary-circulation,
+    centred the model on the systemic circulation and added vertex normals. NIH has not reviewed
+    or endorsed Heart Atlas.
+
+- file: congenital/transposition-of-the-great-arteries-poster.webp
+  title: Transposition of the great arteries model poster
+  license: CC-BY-SA-4.0
+  authors: [Heart Atlas contributors]
+  derived_from:
+    - name: NIH 3D Heart Library, Case Model 54 d-TGA Pre-Op (3DPX-007810, version 3), systemic circulation file
+      url: https://3d.nih.gov/entries/3DPX-007810/3
+      license: CC0-1.0
+      attribution: 'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0'
+      retrieved: 2026-10-13
+      sha256: 1260b65d37dc6fb20388dbf56833af326e9d63e3da38b471949879d51ddcf20e
+    - name: NIH 3D Heart Library, Case Model 54 d-TGA Pre-Op (3DPX-007810, version 3), pulmonary circulation file
+      url: https://3d.nih.gov/entries/3DPX-007810/3
+      license: CC0-1.0
+      attribution: 'Mena, KA. Case Model #54 d-TGA Pre-Op, NIH 3D Heart Library (3DPX-007810), CC0 1.0'
+      retrieved: 2026-10-13
+      sha256: 5d4d47702140a46c53bee95e24d3d5510bcc1000d9d28ef8fa1d3626312de6b0
+  changes: >-
+    Front view of congenital/transposition-of-the-great-arteries.glb, rendered with three.js by
+    packages/models/scripts/render-poster.ts, shown until the 3D viewer loads.
+
 - file: congenital/tetralogy-of-fallot-poster.webp
   title: Tetralogy of Fallot model poster
   license: CC-BY-SA-4.0
