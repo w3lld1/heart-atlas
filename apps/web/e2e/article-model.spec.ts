@@ -53,6 +53,7 @@ test.describe('3D model in an article without signs on the model', () => {
     ],
     'atrial-flutter': ['right-atrium', 'tricuspid-valve'],
     'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
+    'cardiac-sarcoidosis': ['interventricular-septum', 'av-node', 'bundle-of-his'],
     'peripartum-cardiomyopathy': ['left-ventricle'],
     'hypoplastic-left-heart-syndrome': ['left-ventricle', 'aorta'],
   };
