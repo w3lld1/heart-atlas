@@ -6,7 +6,7 @@ import {
   congenitalModelEntry,
   congenitalModelUrls,
   congenitalSection,
-  congenitalSignCount,
+  congenitalSignKeys,
   congenitalStructures,
   heartAttribution,
   isCongenitalModelId,
@@ -53,11 +53,9 @@ const messages = {
   <figcaption>
     <p class="signs-title">{t[`congenital.${model}.signs`]}</p>
     <ul>
-      {([1, 2, 3, 4] as const)
-        .filter((n) => n <= congenitalSignCount[model])
-        .map((n) => (
-          <li>{t[`congenital.${model}.sign${n}` as keyof typeof t]}</li>
-        ))}
+      {congenitalSignKeys[model].map((key) => (
+        <li>{t[key]}</li>
+      ))}
     </ul>
     <p>{t['congenital.signsNote']}</p>
     <p>

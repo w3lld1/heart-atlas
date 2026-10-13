@@ -100,6 +100,12 @@ test.describe('congenital heart model in its article', () => {
         'href',
         'https://3d.nih.gov/entries/3DPX-007810/3',
       );
+      const posterImage = figure.getByRole('img', {
+        name: t['congenital.transposition-of-the-great-arteries.posterAlt'],
+      });
+      await expect
+        .poll(() => posterImage.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0);
       const load = figure.getByRole('button', { name: t['viewer.load'] });
       await load.scrollIntoViewIfNeeded();
       await expect(figure.locator('astro-island')).not.toHaveAttribute('ssr');
@@ -110,7 +116,9 @@ test.describe('congenital heart model in its article', () => {
       await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
       // Its feature shows from outside, so it opens whole, unlike tetralogy of Fallot.
       await expect(figure.getByLabel(t['viewer.section'], { exact: true })).toHaveValue('off');
-      await figure.getByLabel(t['congenital.transposition-of-the-great-arteries.ghost']).check();
+      const ghost = figure.getByLabel(t['congenital.transposition-of-the-great-arteries.ghost']);
+      await ghost.check();
+      await expect(ghost).toBeChecked();
       for (const id of ['systemic-circulation', 'pulmonary-circulation'] as const) {
         await expect(figure.getByRole('button', { name: t[`structure.${id}`] })).toBeVisible();
       }

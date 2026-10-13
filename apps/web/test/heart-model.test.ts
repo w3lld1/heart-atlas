@@ -7,7 +7,7 @@ import {
   congenitalModelIds,
   congenitalModelUrls,
   congenitalSection,
-  congenitalSignCount,
+  congenitalSignKeys,
   congenitalSourceIds,
   congenitalStructures,
   heartAttribution,
@@ -103,8 +103,10 @@ describe('congenital model data for the viewer', () => {
   it.each(localeCodes)('has the caption strings of each model (%s)', (locale) => {
     const t = getMessages(locale) as Record<string, string | undefined>;
     for (const id of congenitalModelIds) {
-      const keys = ['caption', 'posterAlt', 'ghost', 'signs'].map((k) => `congenital.${id}.${k}`);
-      for (let n = 1; n <= congenitalSignCount[id]; n++) keys.push(`congenital.${id}.sign${n}`);
+      const keys: string[] = [
+        ...['caption', 'posterAlt', 'ghost', 'signs'].map((k) => `congenital.${id}.${k}`),
+        ...congenitalSignKeys[id],
+      ];
       expect(
         keys.filter((key) => !t[key]),
         `${locale} ${id}`,
