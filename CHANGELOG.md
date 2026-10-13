@@ -2,6 +2,35 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-13
+
+Twelve new disease articles, an "After treatment" state in the congenital defect diagrams, two patient 3D models, new ECG presets and quizzes in 47 articles. The heart clock learns slow rhythms, pauses, pre-excitation, lead V1 and atrial flutter.
+
+### Articles
+
+- New disease articles in Russian and English, each with a normal/disease diagram: WPW syndrome, Brugada syndrome, pulmonary hypertension and tricuspid regurgitation ([#171](https://github.com/w3lld1/heart-atlas/pull/171)), Ebstein anomaly, restrictive cardiomyopathy, arrhythmogenic right ventricular cardiomyopathy and transposition of the great arteries ([#186](https://github.com/w3lld1/heart-atlas/pull/186)), sick sinus syndrome ([#169](https://github.com/w3lld1/heart-atlas/pull/169)), abdominal aortic aneurysm ([#189](https://github.com/w3lld1/heart-atlas/pull/189)), atrial flutter ([#195](https://github.com/w3lld1/heart-atlas/pull/195)) and cardiac amyloidosis ([#200](https://github.com/w3lld1/heart-atlas/pull/200)). The site now has thirty-seven disease articles.
+- Disease diagrams can show a third state, "After treatment", with a caption that says what treatment changes and that the doctor chooses the method ([#181](https://github.com/w3lld1/heart-atlas/pull/181), [#182](https://github.com/w3lld1/heart-atlas/pull/182)). Ventricular septal defect, atrial septal defect, tetralogy of Fallot and patent ductus arteriosus have it ([#191](https://github.com/w3lld1/heart-atlas/pull/191), [#196](https://github.com/w3lld1/heart-atlas/pull/196), [#199](https://github.com/w3lld1/heart-atlas/pull/199), [#202](https://github.com/w3lld1/heart-atlas/pull/202)). The author guide explains how to add it ([#183](https://github.com/w3lld1/heart-atlas/pull/183)).
+
+### 3D anatomy
+
+- Patient models from the NIH 3D Heart Library: the tetralogy of Fallot article shows one patient's heart from MRI, cut open with a see-through muscle layer ([#141](https://github.com/w3lld1/heart-atlas/pull/141)), and the transposition of the great arteries article shows one child's heart before surgery, with a switch that makes the systemic circulation see-through ([#185](https://github.com/w3lld1/heart-atlas/pull/185), [#188](https://github.com/w3lld1/heart-atlas/pull/188)).
+- More disease articles show the base 3D model with the structures they name highlighted: coarctation of the aorta, patent ductus arteriosus, ventricular tachycardia, pulmonary hypertension, tricuspid regurgitation, WPW, Brugada and restrictive cardiomyopathy ([#167](https://github.com/w3lld1/heart-atlas/pull/167), [#171](https://github.com/w3lld1/heart-atlas/pull/171), [#180](https://github.com/w3lld1/heart-atlas/pull/180), [#187](https://github.com/w3lld1/heart-atlas/pull/187)).
+
+### Heart clock
+
+- ECG presets for long QT syndrome and monomorphic ventricular tachycardia, in their articles, on the heart clock page and in embeds ([#174](https://github.com/w3lld1/heart-atlas/pull/174)).
+- A preset can now go down to 30 beats per minute and add sinus pauses: the ECG stays flat, the Wiggers chart stretches diastole and the phase reads "Sinus pause". The default range stays 40–180, and every existing curve is unchanged ([#204](https://github.com/w3lld1/heart-atlas/pull/204)).
+- A preset can add a delta wave with a short PR interval, show lead V1 with its own QRS and a coved ST segment, and draw atrial flutter: sawtooth F waves with fixed 2:1 to 4:1 conduction. The preset guide lists all rhythm and shape parameters ([#208](https://github.com/w3lld1/heart-atlas/pull/208)).
+
+### Learning
+
+- Quizzes in eighteen more disease articles, 47 in all ([#167](https://github.com/w3lld1/heart-atlas/pull/167), [#180](https://github.com/w3lld1/heart-atlas/pull/180), [#187](https://github.com/w3lld1/heart-atlas/pull/187), [#194](https://github.com/w3lld1/heart-atlas/pull/194), [#198](https://github.com/w3lld1/heart-atlas/pull/198), [#201](https://github.com/w3lld1/heart-atlas/pull/201), [#203](https://github.com/w3lld1/heart-atlas/pull/203)).
+
+### Fixed
+
+- The home page 3D test no longer passes when the scene has stopped drawing ([#173](https://github.com/w3lld1/heart-atlas/pull/173)).
+- The README describes what 0.3.0 and 0.4.0 brought ([#170](https://github.com/w3lld1/heart-atlas/pull/170) and this release).
+
 ## [0.3.0] - 2026-10-12
 
 Eleven new disease articles, quizzes at the end of 29 articles and the first learning tracks. The 3D heart moves into the articles, every page gets the new header and footer, and the animation setting now reaches the whole site.
@@ -98,6 +127,7 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.4.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.4.0
 [0.3.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.3.0
 [0.2.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.2.0
 [0.1.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.1.0
