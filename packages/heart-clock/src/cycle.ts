@@ -16,8 +16,11 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
   const { volume, la } = clock.hemodynamicsAt(t);
 
   const excited: string[] = [];
-  // StatPearls ECG: P is atrial depolarization; an inverted or absent P is not sinus rhythm.
-  if (tInBeat < timing.pDuration && params.pAmplitude > 0) excited.push('sa-node');
+  // StatPearls ECG: P is atrial depolarization; an inverted or absent P is not sinus rhythm. A
+  // paced P starts at the pacemaker lead, not at the sinus node.
+  if (tInBeat < timing.pDuration && params.pAmplitude > 0 && params.atrialPacing === 0) {
+    excited.push('sa-node');
+  }
   // StatPearls ECG: the PR interval includes the AV node delay. His bundle with it: assumption.
   if (tInBeat >= timing.pDuration && tInBeat < timing.qOnset) {
     excited.push('av-node', 'bundle-of-his');
