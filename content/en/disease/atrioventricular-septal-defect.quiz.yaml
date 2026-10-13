@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Which syndrome is the complete form of atrioventricular septal defect often linked with?
+    options:
+      - text: Marfan syndrome
+      - text: Down syndrome
+        correct: true
+      - text: Brugada syndrome
+    explanation: The defect is often linked with Down syndrome. Most people with the complete form have Down syndrome, while in the partial form it is rare.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: Blood shunts from left to right through the defects. What does this lead to?
+    options:
+      - text: The lungs receive extra blood
+        correct: true
+      - text: The lungs receive less blood than usual
+      - text: Blood stops reaching the aorta
+    explanation: Blood shunts from left to right through the defects, and the lungs receive extra blood.
+    cite: [1, 3]
+  - level: patient
+    prompt: How is an atrioventricular septal defect treated?
+    options:
+      - text: It is closed with a device passed through a blood vessel
+      - text: With medicines only, without surgery
+      - text: With surgery
+        correct: true
+    explanation: Treatment is surgical, and the defect cannot be closed with a device passed through a blood vessel. The surgeon closes the defects with a patch and divides the common valve into two — a right and a left valve.
+    cite: [1, 2]
+  - level: patient
+    prompt: How long does a person with this defect need follow-up by a cardiologist?
+    options:
+      - text: Only for the first month after surgery
+      - text: For life
+        correct: true
+      - text: Only until school age
+    explanation: Lifelong follow-up by a cardiologist is needed — both after surgery and without it, including in specialised centres for adults with congenital heart disease.
+    cite: [1, 2]
+  - level: student
+    prompt: What makes up the complete form according to the Russian Ministry of Health guideline?
+    options:
+      - text: A secundum ASD, a patent ductus arteriosus and two normal valves
+      - text: A primum ASD, a non-restrictive inlet VSD and a single AV valve
+        correct: true
+      - text: Only a primum ASD without a VSD, with a cleft mitral leaflet
+    explanation: The complete form is a primum ASD, a non-restrictive inlet VSD and a single AV valve. A primum ASD without a VSD, with a cleft in the anterior mitral leaflet, is the partial form.
+    cite: [1]
+  - level: student
+    prompt: What is typical on the ECG with this defect?
+    options:
+      - text: A shortened PR interval
+      - text: Right-axis deviation
+      - text: Left-axis deviation
+        correct: true
+    explanation: The ECG shows left-axis deviation, often a prolonged PR interval (first-degree AV block) and signs of right ventricular hypertrophy (rsR′).
+    cite: [1, 3]
