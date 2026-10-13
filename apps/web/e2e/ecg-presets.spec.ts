@@ -417,3 +417,30 @@ test('the extrasystole article shows ventricular and atrial premature beats', as
     en['heartClock.preset.atrial-premature-beats.ecg'].replace('{rate}', '75'),
   );
 });
+
+test('the corrected transposition article shows complete AV block without the Wiggers diagram', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/congenitally-corrected-transposition/');
+  // Normal and complete AV block (`preset`); `afterTreatment: false` leaves the pacemaker out.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.av-block-third-degree'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-third-degree.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  await expect(slider).toHaveValue('40');
+  await expect(slider).toHaveAttribute('min', '35');
+  await expect(slider).toHaveAttribute('max', '50');
+  expect((await axe(page).analyze()).violations).toEqual([]);
+  // The Wiggers diagram draws the left ventricle pumping to the body; here the right one does.
+  await expect(page.getByRole('img', { name: en['heartClock.wiggers.label'] })).toHaveCount(0);
+  await expect(page.getByText(en['heartClock.wiggers.title'])).toHaveCount(0);
+});
