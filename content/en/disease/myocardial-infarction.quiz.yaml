@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is myocardial infarction?
+    options:
+      - text: Inflammation of the outer lining of the heart from infection
+      - text: Death of an area of heart muscle from lack of blood
+        correct: true
+      - text: A narrowing of the valve between the heart and aorta from birth
+    explanation: Myocardial infarction is the death of an area of heart muscle because it does not get enough blood and oxygen.
+    cite: [1, 6]
+  - level: patient
+    prompt: Which test is done within 10 minutes where the person is first seen by medical staff?
+    options:
+      - text: An X-ray of the bones of the foot
+      - text: A urine test to check for sugar
+      - text: An electrocardiogram (ECG)
+        correct: true
+    explanation: An ECG is recorded where the person is first seen by medical staff, within 10 minutes.
+    cite: [1, 3]
+  - level: patient
+    prompt: What replaces the dead heart muscle over time?
+    options:
+      - text: A scar that does not contract
+        correct: true
+      - text: New muscle that contracts more strongly than before
+      - text: Cartilage that contracts along with the heart
+    explanation: Over time, the dead muscle is replaced by a scar that does not contract.
+    cite: [7]
+  - level: patient
+    prompt: Why should you call an ambulance straight away at the signs of a heart attack?
+    options:
+      - text: Because a heart attack is contagious and can spread to family
+      - text: Because dead heart muscle grows back if help comes at once
+      - text: Because many deaths from a heart attack happen in the first hours
+        correct: true
+    explanation: 'Do not wait to see whether the pain passes, and do not put off the call: many deaths from a heart attack happen in the first hours.'
+    cite: [6]
+  - level: student
+    prompt: What is MI with persistent ST elevation in at least two contiguous leads called?
+    options:
+      - text: STEMI
+        correct: true
+      - text: NSTEMI
+      - text: MINOCA
+    explanation: MI with persistent (more than 20 minutes) ST-segment elevation in at least two contiguous leads is called STEMI.
+    cite: [1, 2]
+  - level: student
+    prompt: Which term was removed in the Fifth Universal Definition of MI (2026)?
+    options:
+      - text: '"Primary MI"'
+      - text: '"Type 3 MI"'
+        correct: true
+      - text: '"Secondary MI"'
+    explanation: 'The Fifth Universal Definition replaced the numbered types with a clinical classification: primary, secondary and procedure-related MI; the term "type 3 MI" has been removed.'
+    cite: [4]
