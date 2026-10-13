@@ -62,6 +62,50 @@ describe('resolveParams', () => {
     }
   });
 
+  it('takes P waves on their own clock as 0 or 40–150 per minute, only with sinus P waves', () => {
+    expect(resolveParams({ atrialRate: 75, heartRate: 40, atrialContribution: 0 }).atrialRate).toBe(
+      75,
+    );
+    for (const atrialRate of [1, 39, 75.5]) {
+      expect(() => resolveParams({ atrialRate }), String(atrialRate)).toThrow(
+        /^atrialRate must be 0 or an integer from 40 to 150/,
+      );
+    }
+    expect(() => resolveParams({ atrialRate: 151 })).toThrow(/^atrialRate must be a number/);
+    for (const patch of [
+      { pAmplitude: 0 },
+      { rrIrregularity: 0.1 },
+      { fWaveAmplitude: 0.1 },
+      { flutterConduction: 2, flutterAmplitude: 0.2 },
+      { pauseEvery: 3, pauseDuration: 2000 },
+      { atrialPacing: 1 },
+      { ventricularPacing: 1 },
+      { atrialContribution: 0.2 },
+    ]) {
+      const blocked = { atrialRate: 75, atrialContribution: 0, ...patch };
+      expect(() => resolveParams(blocked), JSON.stringify(patch)).toThrow(/^atrialRate needs/);
+    }
+  });
+
+  it('takes ventricular pacing as 0 or 1, only with a regular rhythm', () => {
+    expect(resolveParams({ ventricularPacing: 1 }).ventricularPacing).toBe(1);
+    expect(() => resolveParams({ ventricularPacing: 0.5 })).toThrow(
+      /^ventricularPacing must be 0 or 1/,
+    );
+    for (const patch of [
+      { rrIrregularity: 0.1 },
+      { fWaveAmplitude: 0.1, pAmplitude: 0 },
+      { flutterConduction: 2, flutterAmplitude: 0.2 },
+      { pauseEvery: 3, pauseDuration: 2000 },
+      { deltaWave: 40 },
+    ]) {
+      expect(
+        () => resolveParams({ ...patch, ventricularPacing: 1 }),
+        JSON.stringify(patch),
+      ).toThrow(/^ventricularPacing needs/);
+    }
+  });
+
   it('allows a valve gradient right up to the aortic peak limit', () => {
     // The aortic peak is lvSystolic less the peak drop; it must be at least diastolic + 10.
     const limit = (120 - 90) / gradientPeakPerMean;

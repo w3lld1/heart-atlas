@@ -30,6 +30,20 @@ export const phases: readonly Phase[] = [
 ];
 
 /**
+ * PR interval at this RR, ms. assumption: PR stops growing below 40 bpm (RR 1500 ms); otherwise a
+ * normal PR of 160 ms would reach 226 ms at 30 bpm and look like first-degree AV block. No source
+ * gives PR below 40 bpm.
+ */
+export function prAt(rr: number, params: HeartParams): number {
+  return params.prInterval * Math.sqrt(Math.min(rr, 1500) / 1000);
+}
+
+/** P wave duration at this RR, ms. assumption: the P wave fills 60% of the PR interval. */
+export function pDurationAt(rr: number, params: HeartParams): number {
+  return 0.6 * prAt(rr, params);
+}
+
+/**
  * Timing of one beat with the given RR interval.
  * QS2 and LVET: Weissler et al., Circulation 1968, regressions for men. PR, QT and IVRT scale with
  * √RR as in ECGSYN (McSharry et al. 2003). Throws RangeError when the phases do not fit the beat.
@@ -44,14 +58,11 @@ export function beatTiming(rr: number, params: HeartParams): BeatTiming {
   const scale = Math.sqrt(rr / 1000);
   const qs2 = 546 - 2.1 * heartRate;
   const lvet = 413 - 1.7 * heartRate;
-  // assumption: PR stops growing below 40 bpm (RR 1500 ms); otherwise a normal PR of 160 ms would
-  // reach 226 ms at 30 bpm and look like first-degree AV block. No source gives PR below 40 bpm.
-  const pr = params.prInterval * Math.sqrt(Math.min(rr, 1500) / 1000);
+  const pr = prAt(rr, params);
   const qOnset = pr;
   const timing: BeatTiming = {
     rr,
-    // assumption: the P wave fills 60% of the PR interval.
-    pDuration: 0.6 * pr,
+    pDuration: pDurationAt(rr, params),
     qOnset,
     // A delta wave takes the start of the QRS; R then rises at once and peaks early in the rest
     // of the complex (ecg.ts). Without one, R is in the middle of the QRS.
@@ -87,10 +98,14 @@ export function phaseStarts(timing: BeatTiming): readonly number[] {
   return [0, timing.rPeak, timing.ejectionStart, timing.aorticClosure, timing.mitralOpening];
 }
 
-/** Phase at `t` ms from the start of the beat (0 ≤ t < rr). */
-export function phaseAt(t: number, timing: BeatTiming): Phase {
+/**
+ * Phase at `t` ms from the start of the beat (0 ≤ t < rr). With P waves on their own clock
+ * (`atrialRate`) the atria do not contract with the beat, so its start is still filling.
+ */
+export function phaseAt(t: number, timing: BeatTiming, params: HeartParams): Phase {
   const starts = phaseStarts(timing);
   let index = 0;
   while (index + 1 < starts.length && t >= (starts[index + 1] ?? Infinity)) index += 1;
-  return phases[index] ?? 'filling';
+  const phase = phases[index] ?? 'filling';
+  return phase === 'atrial-systole' && params.atrialRate > 0 ? 'filling' : phase;
 }

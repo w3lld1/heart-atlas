@@ -1,5 +1,5 @@
 import type { HeartParams } from './params.ts';
-import type { BeatTiming } from './timing.ts';
+import { pDurationAt, type BeatTiming } from './timing.ts';
 
 /** Gaussian wave with separate widths before and after its centre (the T wave is asymmetric). */
 function wave(t: number, centre: number, amplitude: number, before: number, after: number): number {
@@ -50,8 +50,13 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   // join without a step and R keeps its amplitude.
   const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;
   const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
+  // With P waves on their own clock (`atrialRate`, `dissociatedP`) the beat has no P wave.
+  const p =
+    params.atrialRate > 0
+      ? 0
+      : wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5);
   return (
-    wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5) +
+    p +
     q +
     rWithDelta +
     wave(t, sCentre, sAmplitude, 0.07 * rest, 0.07 * rest) +
@@ -68,6 +73,31 @@ export function fWaves(t: number, params: HeartParams): number {
   if (params.fWaveAmplitude === 0) return 0;
   const phase = (2 * Math.PI * params.fWaveFrequency * t) / 1000;
   return params.fWaveAmplitude * (0.6 * Math.sin(phase) + 0.4 * Math.sin(1.37 * phase + 1));
+}
+
+/** Start of the latest P wave on its own clock (`atrialRate`) at or before clock time `t`, ms. */
+export function dissociatedPOnset(t: number, params: HeartParams): number {
+  const period = 60000 / params.atrialRate;
+  return Math.floor(t / period) * period;
+}
+
+/**
+ * P waves on their own clock at absolute clock time `t`, mV (complete AV block): the beat's P wave
+ * shape, one every `60000 / atrialRate` ms, unrelated to the beats. 0 when `atrialRate` is 0.
+ * Spec: docs/plans/2026-10-13-heart-clock-av-block.md.
+ */
+export function dissociatedP(t: number, params: HeartParams): number {
+  if (params.atrialRate === 0) return 0;
+  const period = 60000 / params.atrialRate;
+  const duration = pDurationAt(period, params);
+  const onset = dissociatedPOnset(t, params);
+  let value = 0;
+  // The P wave ends well inside its period, so the latest wave and the tail of the one before
+  // cover every moment.
+  for (const start of [onset - period, onset]) {
+    value += wave(t - start, duration / 2, params.pAmplitude, duration / 5, duration / 5);
+  }
+  return value;
 }
 
 /** Share of an F wave taken by its slow fall; the rest is the quick rise. assumption. */

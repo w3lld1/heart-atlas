@@ -1,6 +1,7 @@
 import type { Beat, HeartClock } from './clock.ts';
 import type { CycleState } from './cycle-source.ts';
-import { phaseAt } from './timing.ts';
+import { dissociatedPOnset } from './ecg.ts';
+import { pDurationAt, phaseAt } from './timing.ts';
 
 /**
  * State of the heart at clock time `t` for the 3D model. Everything comes from the beat timing
@@ -12,21 +13,36 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
   const beat = clock.beatAt(t);
   const { timing, params } = beat;
   const tInBeat = t - beat.start;
-  const phase = phaseAt(tInBeat, timing);
+  const phase = phaseAt(tInBeat, timing, params);
   const { volume, la } = clock.hemodynamicsAt(t);
 
   const excited: string[] = [];
+  const dissociated = params.atrialRate > 0;
+  const inQrs = tInBeat >= timing.qOnset && tInBeat < timing.jPoint;
   // StatPearls ECG: P is atrial depolarization; an inverted or absent P is not sinus rhythm. A
-  // paced P starts at the pacemaker lead, not at the sinus node.
-  if (tInBeat < timing.pDuration && params.pAmplitude > 0 && params.atrialPacing === 0) {
-    excited.push('sa-node');
-  }
-  // StatPearls ECG: the PR interval includes the AV node delay. His bundle with it: assumption.
-  if (tInBeat >= timing.pDuration && tInBeat < timing.qOnset) {
+  // paced P starts at the pacemaker lead, not at the sinus node. P waves on their own clock
+  // (complete AV block) light the node when they come, not at the start of the beat.
+  const inP = dissociated
+    ? t - dissociatedPOnset(t, params) < pDurationAt(60000 / params.atrialRate, params)
+    : tInBeat < timing.pDuration;
+  if (inP && params.pAmplitude > 0 && params.atrialPacing === 0) excited.push('sa-node');
+  // StatPearls ECG: the PR interval includes the AV node delay. His bundle with it: assumption. In
+  // complete AV block no atrial impulse passes; with ventricular pacing the pacemaker counts the
+  // delay.
+  if (
+    !dissociated &&
+    params.ventricularPacing === 0 &&
+    tInBeat >= timing.pDuration &&
+    tInBeat < timing.qOnset
+  ) {
     excited.push('av-node', 'bundle-of-his');
   }
-  // StatPearls ECG: QRS is ventricular depolarization.
-  if (tInBeat >= timing.qOnset && tInBeat < timing.jPoint) {
+  // assumption: the escape rhythm of complete AV block with a narrow QRS starts in the AV junction
+  // (StatPearls, Third-Degree AV Block); the model lights the His bundle with the QRS.
+  if (dissociated && inQrs) excited.push('bundle-of-his');
+  // StatPearls ECG: QRS is ventricular depolarization. A paced ventricle is excited from the lead
+  // through the muscle, not through the bundle branches (assumption: the model shows no lead).
+  if (inQrs && params.ventricularPacing === 0) {
     excited.push('right-bundle-branch', 'left-bundle-branch', 'purkinje-fibers');
   }
 

@@ -89,6 +89,18 @@ export interface HeartParams {
    * Spec: docs/plans/2026-10-13-heart-clock-after-treatment.md.
    */
   atrialPacing: number;
+  /**
+   * P waves on their own clock, beats per minute: above 0 the P waves run at this rate on the
+   * clock's absolute time, unrelated to the beats, and a beat is a QRS without a P wave of its own
+   * (complete AV block). 0 keeps the P wave in the beat. Spec: docs/plans/2026-10-13-heart-clock-av-block.md.
+   */
+  atrialRate: number;
+  /**
+   * Ventricular pacing: 1 starts every QRS with a pacemaker stimulus that the ventricles capture,
+   * drawn as a spike at the QRS onset (ecg-canvas.ts); the preset gives the wide QRS. 0 is
+   * conduction through the AV node. Spec: docs/plans/2026-10-13-heart-clock-av-block.md.
+   */
+  ventricularPacing: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -128,6 +140,8 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   flutterConduction: 0,
   flutterAmplitude: 0,
   atrialPacing: 0,
+  atrialRate: 0,
+  ventricularPacing: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -163,6 +177,8 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   flutterConduction: [0, 4],
   flutterAmplitude: [0, 0.3],
   atrialPacing: [0, 1],
+  atrialRate: [0, 150],
+  ventricularPacing: [0, 1],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
@@ -239,6 +255,48 @@ export function resolveParams(
   ) {
     throw new RangeError(
       'atrialPacing needs a positive pAmplitude and fWaveAmplitude, flutterConduction, rrIrregularity and pauseEvery at 0',
+    );
+  }
+  // assumption: the lowest P wave rate; no slider offers this parameter, presets set it.
+  if (!Number.isInteger(params.atrialRate) || (params.atrialRate > 0 && params.atrialRate < 40)) {
+    throw new RangeError(
+      `atrialRate must be 0 or an integer from 40 to 150, got ${params.atrialRate}`,
+    );
+  }
+  // P waves on their own clock are sinus P waves that do not reach the ventricles; the rhythms
+  // that replace or move them, and pacing, are other modes. That the P rate is above the QRS rate
+  // is checked in `checkParams` (clock.ts), which the heart rate limits go through.
+  if (
+    params.atrialRate > 0 &&
+    (params.pAmplitude <= 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.atrialContribution > 0)
+  ) {
+    // atrialContribution: the hemodynamics would draw an atrial kick locked to every QRS.
+    throw new RangeError(
+      'atrialRate needs a positive pAmplitude and fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialPacing, ventricularPacing and atrialContribution at 0',
+    );
+  }
+  if (!Number.isInteger(params.ventricularPacing)) {
+    throw new RangeError(`ventricularPacing must be 0 or 1, got ${params.ventricularPacing}`);
+  }
+  // A paced ventricle follows the pacemaker's timing: a regular rhythm without f or F waves, pauses
+  // or pre-excitation.
+  if (
+    params.ventricularPacing === 1 &&
+    (params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.deltaWave > 0)
+  ) {
+    throw new RangeError(
+      'ventricularPacing needs fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery and deltaWave at 0',
     );
   }
   if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {

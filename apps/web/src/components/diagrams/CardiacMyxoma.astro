@@ -1,0 +1,368 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowIds = { venous: `${uid}-mx-arrow-v`, arterial: `${uid}-mx-arrow-a` };
+
+// A four-chamber view while the ventricles fill: the right atrium and ventricle on the left of
+// the picture (venous blood, blue), the left ones on the right (arterial blood, red). The chambers
+// are the same in both states. With a myxoma a lobular tumour hangs on a stalk from the
+// interatrial septum in the left atrium and drops into the open mitral valve, so blood from the
+// atrium cannot pass freely. No size, no second tumour, nothing growing into the wall.
+type Side = 'venous' | 'arterial';
+const colour = (side: Side) => `var(--diagram-${side})`;
+const fillColour = (side: Side) => `var(--diagram-${side}-fill)`;
+const wall = 9;
+// The septum runs down the middle; the valve plane lies between the atria and the ventricles.
+const septumRight = 150;
+const septumLeft = septumRight + 2 * wall;
+const atriumTop = 44;
+const atriumBottom = 128;
+const ventricleTop = atriumBottom + 2 * wall;
+const corner = 22;
+const ra = { x: 74 };
+const la = { x: 244 };
+const rv = { x: 72, bulge: 62, apex: 288 };
+const lv = { x: 246, bulge: 256, apex: 296 };
+const rvPath = `M${septumRight},${ventricleTop} L${rv.x},${ventricleTop} C${rv.bulge},${ventricleTop + 70} ${rv.x + 30},${rv.apex - 30} ${septumRight},${rv.apex} Z`;
+const lvPath = `M${septumLeft},${ventricleTop} L${lv.x},${ventricleTop} C${lv.bulge},${ventricleTop + 76} ${lv.x - 26},${lv.apex - 26} ${septumLeft},${lv.apex} Z`;
+const apexLine = `M${septumRight},${rv.apex} L${septumLeft},${lv.apex}`;
+// Openings from each atrium into its ventricle.
+const tricuspid = { from: rv.x + 14, to: septumRight - 18 };
+const mitral = { from: septumLeft + 18, to: lv.x - 16 };
+const inflow = {
+  venous: (tricuspid.from + tricuspid.to) / 2,
+  arterial: (mitral.from + mitral.to) / 2,
+};
+// The filling arrows start high in the atria, below the atrial labels.
+const inflowTop = 82;
+// Open mitral leaflets hang from the edges of the opening into the left ventricle.
+const leaflets = [
+  `M${mitral.from + 2},${ventricleTop - 4} Q${mitral.from + 4},${ventricleTop + 20} ${mitral.from + 8},${ventricleTop + 42}`,
+  `M${mitral.to - 2},${ventricleTop - 4} Q${mitral.to - 4},${ventricleTop + 20} ${mitral.to - 8},${ventricleTop + 42}`,
+];
+// The myxoma: a stalk from the left-atrial face of the interatrial septum and a rounded, lobular
+// tumour that hangs down into the mitral opening. It swings on the stalk around the attachment.
+const attach = { x: septumLeft, y: 96 };
+const stalk = `M${attach.x},${attach.y} C182,100 196,108 203,124`;
+const tumour =
+  'M200,124 C206,116 219,120 220,129 C229,131 229,144 223,148 C225,158 213,163 206,157 C198,161 187,153 191,145 C185,137 191,125 200,124 Z';
+// With the tumour in the opening the arrow from the atrium stops at its top.
+const blockedTo = 112;
+// Moving blood: two particles per side, the second trailing the first.
+const delays = [0, 0.8];
+
+// Labels in the right column are split into two lines at the middle word so they fit the drawing.
+const twoLines = (text: string) => {
+  const words = text.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+};
+const myxomaLines = twoLines(t['diagram.label.myxoma-on-stalk']);
+const mitralLines = twoLines(t['diagram.label.mitral-valve']);
+---
+
+<svg viewBox="0 0 500 320" role="img" aria-label={t['diagram.cardiac-myxoma.title']} lang={locale}>
+  <defs>
+    {(['venous', 'arterial'] as const).map((side) => (
+      <marker
+        id={arrowIds[side]}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="4.5"
+        markerHeight="4.5"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={colour(side)} />
+      </marker>
+    ))}
+  </defs>
+
+  <!-- Heart muscle: the cavities stroked wide, a block for the septum, a line at the apex -->
+  <g fill="var(--diagram-muscle)" stroke="var(--diagram-muscle)" stroke-linejoin="round">
+    <rect
+      x={ra.x}
+      y={atriumTop}
+      width={septumRight - ra.x}
+      height={atriumBottom - atriumTop}
+      rx={corner}
+      stroke-width={2 * wall}
+    ></rect>
+    <rect
+      x={septumLeft}
+      y={atriumTop}
+      width={la.x - septumLeft}
+      height={atriumBottom - atriumTop}
+      rx={corner}
+      stroke-width={2 * wall}
+    ></rect>
+    <path d={rvPath} stroke-width={2 * wall}></path>
+    <path d={lvPath} stroke-width={2 * wall}></path>
+    <path d={apexLine} stroke-width={2 * wall} stroke-linecap="round"></path>
+    <rect
+      x={septumRight}
+      y={atriumTop + corner / 2}
+      width={septumLeft - septumRight}
+      height={rv.apex - atriumTop - corner / 2}
+      stroke="none"
+    ></rect>
+  </g>
+
+  <!-- Cavities -->
+  <rect
+    x={ra.x}
+    y={atriumTop}
+    width={septumRight - ra.x}
+    height={atriumBottom - atriumTop}
+    rx={corner}
+    fill={fillColour('venous')}
+    stroke={colour('venous')}
+    stroke-width="1.5"
+  ></rect>
+  <rect
+    x={septumLeft}
+    y={atriumTop}
+    width={la.x - septumLeft}
+    height={atriumBottom - atriumTop}
+    rx={corner}
+    fill={fillColour('arterial')}
+    stroke={colour('arterial')}
+    stroke-width="1.5"
+  ></rect>
+  <path d={rvPath} fill={fillColour('venous')} stroke={colour('venous')} stroke-width="1.5"></path>
+  <path
+    d={lvPath}
+    fill={fillColour('arterial')}
+    stroke={colour('arterial')}
+    stroke-width="1.5"
+  ></path>
+  <rect
+    x={tricuspid.from}
+    y={atriumBottom - 6}
+    width={tricuspid.to - tricuspid.from}
+    height={ventricleTop - atriumBottom + 12}
+    fill={fillColour('venous')}
+  ></rect>
+  <rect
+    x={mitral.from}
+    y={atriumBottom - 6}
+    width={mitral.to - mitral.from}
+    height={ventricleTop - atriumBottom + 12}
+    fill={fillColour('arterial')}
+  ></rect>
+
+  <!-- Filling arrows, visible with and without motion. Into the left ventricle the arrow runs the
+       whole way normally and stops at the tumour when the myxoma lies in the valve opening. -->
+  <g fill="none" stroke-width="4" stroke-linecap="round">
+    <path
+      d={`M${inflow.venous},${inflowTop} L${inflow.venous},222`}
+      stroke={colour('venous')}
+      marker-end={`url(#${arrowIds.venous})`}
+    ></path>
+    <path
+      class="normal-only"
+      d={`M${inflow.arterial},${inflowTop} L${inflow.arterial},230`}
+      stroke={colour('arterial')}
+      marker-end={`url(#${arrowIds.arterial})`}
+    ></path>
+    <path
+      class="disease-only"
+      d={`M${inflow.arterial},${inflowTop} L${inflow.arterial},${blockedTo}`}
+      stroke={colour('arterial')}
+      marker-end={`url(#${arrowIds.arterial})`}
+    ></path>
+  </g>
+
+  <!-- Mitral leaflets, open while the ventricle fills -->
+  <g fill="none" stroke="var(--color-text)" stroke-width="3" stroke-linecap="round">
+    {leaflets.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Moving blood from the atria into the ventricles: through the open mitral valve normally,
+       stopping at the tumour with a myxoma -->
+  <g class="flow">
+    {delays.map((delay) => (
+      <>
+        <circle
+          class="mx-fill"
+          cx={inflow.venous}
+          cy={inflowTop}
+          r="5"
+          fill={colour('venous')}
+          style={`animation-delay: ${delay}s`}
+        />
+        <circle
+          class="mx-fill normal-only"
+          cx={inflow.arterial}
+          cy={inflowTop}
+          r="5"
+          fill={colour('arterial')}
+          style={`animation-delay: ${delay}s`}
+        />
+        <circle
+          class="mx-fill-blocked disease-only"
+          cx={inflow.arterial}
+          cy={inflowTop}
+          r="5"
+          fill={colour('arterial')}
+          style={`animation-delay: ${delay}s`}
+        />
+      </>
+    ))}
+  </g>
+
+  <!-- The myxoma on its stalk; it swings around the attachment on the septum -->
+  <g class="disease-only mx-swing" style={`transform-origin: ${attach.x}px ${attach.y}px`}>
+    <path
+      d={stalk}
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="3"
+      stroke-linecap="round"
+    ></path>
+    <path
+      d={tumour}
+      fill="var(--diagram-plaque)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+  </g>
+  <circle
+    class="disease-only"
+    cx={attach.x}
+    cy={attach.y}
+    r="3.5"
+    fill="var(--color-text)"
+  ></circle>
+
+  <!-- Chamber labels; a halo in the chamber colour keeps them readable over the arrows -->
+  <text class="mx-label-v" x="136" y="72" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="mx-label-a" x="176" y="68">
+    {t['diagram.label.la']}
+  </text>
+  <text class="mx-label-v" x="140" y="252" text-anchor="end">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="mx-label-a" x="176" y="262">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Interatrial septum: label above the heart with a leader line down to the septum -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1={septumRight + wall} y1="30" x2={septumRight + wall} y2="76"></line>
+    <line x1="300" y1="170" x2={mitral.to - 6} y2="170"></line>
+    <line class="disease-only" x1="300" y1="100" x2="222" y2="134"></line>
+  </g>
+  <text x={septumRight + wall} y="22" text-anchor="middle">
+    {t['diagram.label.interatrial-septum']}
+  </text>
+
+  <!-- Labels in the right column with leader lines into the drawing -->
+  <text x="306" y="168">
+    <tspan x="306">{mitralLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {mitralLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="306" y="98">
+    <tspan x="306">{myxomaLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {myxomaLines[1]}
+    </tspan>
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .mx-label-v,
+  .diagram .mx-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .mx-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .mx-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .mx-fill,
+  .diagram .mx-fill-blocked {
+    opacity: 0;
+    animation: mx-fill 1.6s linear infinite;
+  }
+
+  .diagram .mx-fill-blocked {
+    animation-name: mx-fill-blocked;
+  }
+
+  /* The tumour swings on its stalk around the attachment on the septum, in and out of the valve.
+     Without motion it stays drawn where it lies in the valve opening. */
+  .diagram .mx-swing {
+    transform-box: view-box;
+    animation: mx-swing 3.2s ease-in-out infinite;
+  }
+
+  /* While the ventricles fill, blood runs from each atrium through the opening into its ventricle. */
+  @keyframes mx-fill {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    70% {
+      opacity: 1;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 130px);
+    }
+  }
+
+  /* With the tumour in the opening the blood from the left atrium stops at it. */
+  @keyframes mx-fill-blocked {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    40% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 26px);
+    }
+  }
+
+  @keyframes mx-swing {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+
+    50% {
+      transform: rotate(-14deg);
+    }
+  }
+</style>

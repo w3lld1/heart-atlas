@@ -1,0 +1,56 @@
+questions:
+  - level: patient
+    prompt: Which statement about sarcoidosis is true?
+    options:
+      - text: It is a contagious infection
+      - text: It is not a contagious disease
+        correct: true
+      - text: It is a form of tuberculosis
+      - text: It is a type of tumour
+    explanation: Sarcoidosis is not contagious, and it is neither a tumour nor tuberculosis.
+    cite: [1]
+  - level: patient
+    prompt: Which organs does sarcoidosis most often affect?
+    options:
+      - text: The lungs and lymph nodes
+        correct: true
+      - text: The kidneys and bladder
+      - text: Only the heart
+    explanation: Sarcoidosis most often affects the lungs and lymph nodes, but it can affect any organ, including the heart.
+    cite: [7]
+  - level: patient
+    prompt: In which three forms does cardiac sarcoidosis usually show itself?
+    options:
+      - text: Raised cholesterol, diabetes and excess body weight
+      - text: AV block, ventricular rhythm disturbances, a weak left ventricle
+        correct: true
+      - text: Congenital defects of the heart valves and great vessels
+    explanation: Usually the disease shows itself as disturbed conduction of the impulse (AV block), ventricular rhythm disturbances or weakened function of the left ventricle.
+    cite: [2]
+  - level: patient
+    prompt: Which heart tests does the Russian guideline advise for everyone with newly diagnosed sarcoidosis?
+    options:
+      - text: None, if there are no heart complaints
+      - text: Only a urine test
+      - text: An ECG and echocardiography
+        correct: true
+    explanation: For everyone with newly diagnosed sarcoidosis, whichever organs are affected, the Russian Ministry of Health guideline advises an ECG and echocardiography.
+    cite: [1]
+  - level: student
+    prompt: What kind of granulomas form in sarcoidosis?
+    options:
+      - text: Non-caseating
+        correct: true
+      - text: Caseating
+      - text: No granulomas form in sarcoidosis
+    explanation: Sarcoidosis is a systemic inflammatory disease of unknown aetiology characterised by the formation of non-caseating granulomas and multisystem involvement.
+    cite: [1]
+  - level: student
+    prompt: In which group of causes of bradyarrhythmias does the Russian guideline class sarcoidosis?
+    options:
+      - text: Congenital anomalies of the conduction system
+      - text: Infiltrative processes
+        correct: true
+      - text: Adverse effects of medicines
+    explanation: In its list of causes of bradyarrhythmias, the Russian Ministry of Health guideline classes sarcoidosis among infiltrative processes, together with amyloidosis and haemochromatosis.
+    cite: [3]

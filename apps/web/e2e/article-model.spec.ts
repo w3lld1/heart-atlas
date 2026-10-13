@@ -26,6 +26,7 @@ test.describe('3D model in an article without signs on the model', () => {
     'av-block': ['av-node', 'bundle-of-his', 'right-bundle-branch', 'left-bundle-branch'],
     'brugada-syndrome': ['right-ventricle'],
     'cardiac-amyloidosis': ['left-ventricle', 'right-ventricle'],
+    'cardiac-myxoma': ['left-atrium', 'mitral-valve'],
     'cardiac-sarcoidosis': ['interventricular-septum', 'av-node', 'bundle-of-his'],
     'coarctation-of-the-aorta': ['aorta'],
     'ebstein-anomaly': ['tricuspid-valve', 'right-atrium', 'right-ventricle'],
