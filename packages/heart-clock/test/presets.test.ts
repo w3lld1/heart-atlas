@@ -16,6 +16,7 @@ import {
   type PresetId,
 } from '../src/presets.ts';
 import { flutterWaves } from '../src/ecg.ts';
+import { pDurationAt } from '../src/timing.ts';
 import { soundEvents } from '../src/sounds.ts';
 
 // Presets that do not fit every heart rate: the wide QRS of atrial septal defect does not fit the
@@ -29,6 +30,8 @@ import { soundEvents } from '../src/sounds.ts';
 const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'atrial-septal-defect': [40, 169],
   'av-block-first-degree': [40, 96],
+  'av-block-third-degree': [35, 50],
+  'av-block-third-degree-paced': [60, 100],
   'supraventricular-tachycardia': [120, 180],
   'long-qt-syndrome': [40, 137],
   'ventricular-tachycardia': [101, 169],
@@ -53,6 +56,36 @@ describe('presetTreated', () => {
     const params = presetParams('sick-sinus-syndrome-paced');
     expect(params).toMatchObject({ atrialPacing: 1, pauseEvery: 0, heartRate: 60 });
     expect(presetParams('sick-sinus-syndrome').atrialPacing).toBe(0);
+  });
+
+  it('paces the ventricles after complete AV block, following the P waves', () => {
+    const block = presetParams('av-block-third-degree');
+    expect(block).toMatchObject({ atrialRate: 75, heartRate: 40, atrialContribution: 0 });
+    const paced = presetParams('av-block-third-degree-paced');
+    expect(paced).toMatchObject({ ventricularPacing: 1, atrialRate: 0, heartRate: 75 });
+    expect(paced.qrsDuration).toBeGreaterThanOrEqual(120);
+    expect(paced.tAmplitude).toBeLessThan(0);
+    expect(presetTreated['av-block-third-degree']).toBe('av-block-third-degree-paced');
+  });
+
+  it('lets the PR of complete AV block wander at the starting rate, with P waves on QRS or T', () => {
+    const clock = createHeartClock(presetParams('av-block-third-degree'));
+    const period = 60000 / clock.params.atrialRate;
+    const prs = new Set<number>();
+    let hidden = 0;
+    // A 9 s strip: each beat's PR is the time from the latest P onset to its QRS.
+    for (const beat of clock.beatsBetween(1000, 10_000)) {
+      const qrs = beat.start + beat.timing.qOnset;
+      prs.add(Math.round(qrs - Math.floor(qrs / period) * period));
+    }
+    for (let onset = Math.ceil(1000 / period) * period; onset < 10_000; onset += period) {
+      const peak = onset + pDurationAt(period, clock.params) / 2;
+      const beat = clock.beatAt(peak);
+      const inBeat = peak - beat.start;
+      if (inBeat >= beat.timing.qOnset && inBeat <= beat.timing.tEnd) hidden += 1;
+    }
+    expect(prs.size).toBeGreaterThanOrEqual(3);
+    expect(hidden).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -422,12 +455,16 @@ describe('preset heart rate', () => {
 
   it('sets the rate only when switching to or from a preset that has its own', () => {
     expect(presetIds.filter(setsHeartRate)).toEqual([
+      'av-block-third-degree',
+      'av-block-third-degree-paced',
       'supraventricular-tachycardia',
       'ventricular-tachycardia',
       'atrial-flutter',
       'sick-sinus-syndrome',
       'sick-sinus-syndrome-paced',
     ]);
+    expect(switchedHeartRate('av-block-third-degree', 'av-block-third-degree-paced', 40)).toBe(75);
+    expect(switchedHeartRate('normal', 'av-block-third-degree', 90)).toBe(40);
     expect(switchedHeartRate('sick-sinus-syndrome', 'sick-sinus-syndrome-paced', 35)).toBe(60);
     expect(switchedHeartRate('sick-sinus-syndrome-paced', 'normal', 60)).toBe(75);
     expect(presetRateFloors['ventricular-tachycardia']).toBe(101);

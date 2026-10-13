@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: In which chamber of the heart does a myxoma most often grow?
+    options:
+      - text: In the right ventricle
+      - text: In the left atrium
+        correct: true
+      - text: At the apex of the left ventricle
+    explanation: A myxoma most often grows in the left atrium.
+    cite: [4, 5, 6]
+  - level: patient
+    prompt: Why may a person with a left atrial myxoma feel short of breath or faint when standing?
+    options:
+      - text: When standing, the tumour presses on the lungs
+      - text: When standing, the tumour quickly grows larger every time
+      - text: Gravity pulls the tumour into the valve opening
+        correct: true
+    explanation: Gravity pulls the tumour into the opening of the mitral valve, the heart pumps out less blood and blood pressure drops for a while. Lying down usually moves the tumour away from the valve and relieves the symptoms.
+    cite: [5]
+  - level: patient
+    prompt: What is the most common complication of a myxoma?
+    options:
+      - text: Embolism (blocked arteries)
+        correct: true
+      - text: The myxoma turning into cancer of the lungs and liver
+      - text: A tear in the wall of the left atrium during sleep
+    explanation: The most common complication is embolism. What happens depends on which artery is blocked; for example, an embolus from a left atrial myxoma in an artery of the brain may cause a stroke.
+    cite: [5]
+  - level: patient
+    prompt: How is a cardiac myxoma treated?
+    options:
+      - text: It is only watched until it dissolves
+      - text: The heart area is irradiated
+      - text: It is removed surgically
+        correct: true
+    explanation: A myxoma is removed surgically, and the operation usually cures the person. After surgery, echocardiography is done from time to time to check that the myxoma has not come back.
+    cite: [4, 5]
+  - level: student
+    prompt: According to MSD, what share of all primary cardiac tumours are myxomas?
+    options:
+      - text: Less than one per cent
+      - text: 45 to 85%
+        correct: true
+      - text: Exactly 100%
+    explanation: According to MSD, myxoma accounts for 45 to 85% of all primary cardiac tumours, and its incidence in females is 2 to 3 times that in males.
+    cite: [4]
+  - level: student
+    prompt: What is the imaging modality of choice for tumour tissue characterisation?
+    options:
+      - text: Cardiac MRI
+        correct: true
+      - text: ECG
+      - text: Full blood count
+    explanation: Cardiac MRI is the imaging modality of choice for tumour tissue characterisation.
+    cite: [4]

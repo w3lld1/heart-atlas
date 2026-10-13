@@ -194,6 +194,38 @@ test.describe('disease presets', () => {
     await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
   });
 
+  test('show complete AV block and its pacemaker with their own rates', async ({ page }) => {
+    // docs/plans/2026-10-13-heart-clock-av-block.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    await conditions
+      .getByRole('radio', { name: en['heartClock.preset.av-block-third-degree'], exact: true })
+      .check();
+    await expect(slider).toHaveValue('40');
+    await expect(slider).toHaveAttribute('min', '35');
+    await expect(slider).toHaveAttribute('max', '50');
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-third-degree.summary'],
+    );
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-third-degree.ecg'].replace('{rate}', '40'),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+
+    await conditions
+      .getByRole('radio', { name: en['heartClock.preset.av-block-third-degree-paced'] })
+      .check();
+    await expect(slider).toHaveValue('75');
+    await expect(slider).toHaveAttribute('min', '60');
+    await expect(slider).toHaveAttribute('max', '100');
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.av-block-third-degree-paced.ecg'].replace('{rate}', '75'),
+    );
+  });
+
   test('limit the heart rate to what the preset fits', async ({ page }) => {
     await page.goto('en/heart-clock/');
     // Wait for hydration, so the slider value is React's and not reset by it.

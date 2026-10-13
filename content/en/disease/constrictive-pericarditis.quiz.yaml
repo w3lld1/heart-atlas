@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the pericardium in constrictive pericarditis?
+    options:
+      - text: It thins out and gradually disappears
+      - text: It becomes thick and stiff
+        correct: true
+      - text: It fills with air
+    explanation: The layers of the pericardium thicken and calcify, the pericardium becomes thick and stiff, and this stops the chambers of the heart from filling with blood normally.
+    cite: [1, 3]
+  - level: patient
+    prompt: What is the most common cause of constrictive pericarditis worldwide?
+    options:
+      - text: Tuberculous pericarditis
+        correct: true
+      - text: Broken ribs during childhood
+      - text: Food allergy in adulthood
+    explanation: In countries with well-resourced healthcare constriction most often follows pericarditis with no known cause or viral pericarditis, heart surgery or radiotherapy; worldwide, the most common cause is tuberculous pericarditis.
+    cite: [3]
+  - level: patient
+    prompt: What are the main signs of constrictive pericarditis caused by?
+    options:
+      - text: A sudden rise in blood sugar levels
+      - text: Inflammation of the knee joints
+      - text: Blood backing up in the veins
+        correct: true
+    explanation: The main signs come from blood backing up in the veins — swollen neck veins, an enlarged liver, fluid in the abdomen (ascites) and swollen legs.
+    cite: [3]
+  - level: patient
+    prompt: Which operation is the only way to relieve persistent constriction?
+    options:
+      - text: Aortic valve replacement
+      - text: Pericardiectomy
+        correct: true
+      - text: Coronary artery bypass surgery
+    explanation: If the constriction persists, a pericardiectomy is performed, an operation to remove the thickened pericardium. It is the only way to relieve persistent constriction.
+    cite: [1, 2]
+  - level: student
+    prompt: What is the Kussmaul sign on examination?
+    options:
+      - text: Neck veins collapsing at rest
+      - text: Venous pressure rising during inspiration
+        correct: true
+      - text: The pulse disappearing with every expiration
+    explanation: On examination the neck veins are distended and venous pressure rises during inspiration (Kussmaul sign), which is absent in tamponade.
+    cite: [3]
+  - level: student
+    prompt: How does mitral diastolic flow velocity change during inspiration in constrictive pericarditis?
+    options:
+      - text: It does not change with breathing at all
+      - text: It more than doubles
+      - text: It falls by more than 25%
+        correct: true
+    explanation: During inspiration, mitral diastolic flow velocity usually falls by more than 25% in constrictive pericarditis but by less than 15% in restrictive cardiomyopathy.
+    cite: [3]

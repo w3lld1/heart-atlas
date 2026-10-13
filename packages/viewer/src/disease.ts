@@ -106,6 +106,8 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'aortic-stenosis': 'aortic-stenosis',
   'atrial-septal-defect': 'atrial-septal-defect',
   'av-block-first-degree': null,
+  'av-block-third-degree': null,
+  'av-block-third-degree-paced': null,
   'supraventricular-tachycardia': null,
   'long-qt-syndrome': null,
   'ventricular-tachycardia': null,

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What usually happens to the cusps while a bicuspid valve develops?
+    options:
+      - text: Two of the three cusps fuse
+        correct: true
+      - text: An extra fourth cusp grows
+      - text: An infection destroys all the cusps
+    explanation: While the valve develops, two of its three cusps usually fuse, so instead of three cusps there are two — one larger and one smaller.
+    cite: [4]
+  - level: patient
+    prompt: Apart from the valve itself, what widens in many people with BAV?
+    options:
+      - text: The windpipe
+      - text: The stomach
+      - text: The aorta
+        correct: true
+    explanation: The valve may become narrowed or fail to close properly, and many people with BAV develop widening of the aorta.
+    cite: [1, 7]
+  - level: patient
+    prompt: Which test confirms the diagnosis of BAV?
+    options:
+      - text: A blood and urine test
+      - text: A heart ultrasound (echocardiography)
+        correct: true
+      - text: A blood pressure measurement on the arm
+    explanation: A doctor may suspect BAV on hearing a heart murmur or a clicking sound, and the diagnosis is confirmed by a heart ultrasound (echocardiography).
+    cite: [8]
+  - level: patient
+    prompt: What are close relatives of a person with BAV advised to do?
+    options:
+      - text: Have their blood group tested
+      - text: Have a urine test
+      - text: Have a heart ultrasound
+        correct: true
+    explanation: BAV can be inherited. Close relatives (parents, brothers and sisters, children) are advised to have a heart ultrasound, especially if the person with BAV has a widened aorta.
+    cite: [1, 4, 8]
+  - level: student
+    prompt: According to ACC/AHA, how often is BAV present in patients with coarctation of the aorta?
+    options:
+      - text: In about 50%
+        correct: true
+      - text: In no patients at all
+      - text: In about 1 in 1000
+    explanation: According to ACC/AHA, a coexisting BAV is present in about 50% of patients with coarctation of the aorta and in about 10% of patients with Loeys–Dietz syndrome.
+    cite: [1]
+  - level: student
+    prompt: Which part of the aorta is most commonly involved in BAV?
+    options:
+      - text: The abdominal aorta
+      - text: The ascending aorta
+        correct: true
+      - text: The inferior vena cava
+    explanation: The ascending aorta is most commonly involved; the reported prevalence of aortic dilation ranges from 20% to 84%, depending on the population studied and the definition used.
+    cite: [1]
