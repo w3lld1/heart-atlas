@@ -68,3 +68,22 @@ export function fWaves(t: number, params: HeartParams): number {
   const phase = (2 * Math.PI * params.fWaveFrequency * t) / 1000;
   return params.fWaveAmplitude * (0.6 * Math.sin(phase) + 0.4 * Math.sin(1.37 * phase + 1));
 }
+
+/** Share of an F wave taken by its slow fall; the rest is the quick rise. assumption. */
+const flutterFall = 0.8;
+
+/**
+ * Atrial flutter F waves at `t` ms from the start of a beat, mV: a sawtooth with a slow fall and a
+ * quick rise, `flutterConduction` waves per rhythm RR, so the phase meets itself at every beat.
+ * Spec: docs/plans/2026-10-13-heart-clock-rhythms.md, section 5.
+ */
+export function flutterWaves(t: number, timing: BeatTiming, params: HeartParams): number {
+  const n = params.flutterConduction;
+  if (n === 0) return 0;
+  const phase = (t * n) / timing.rr;
+  const x = phase - Math.floor(phase);
+  const amplitude = params.flutterAmplitude;
+  return x < flutterFall
+    ? amplitude * (0.5 - x / flutterFall)
+    : amplitude * (-0.5 + (x - flutterFall) / (1 - flutterFall));
+}

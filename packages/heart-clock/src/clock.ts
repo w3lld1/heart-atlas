@@ -1,4 +1,4 @@
-import { beatWaves, fWaves } from './ecg.ts';
+import { beatWaves, flutterWaves, fWaves } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
 import { beatTiming, phaseAt, type BeatTiming, type Phase } from './timing.ts';
@@ -53,7 +53,7 @@ export interface HeartClock {
 export const historyMs = 10_000;
 /** Beats kept after the one that contains the latest queried time. */
 const lookAheadBeats = 2;
-/** f waves of the previous beat fade into the new ones over this time, ms. */
+/** f and F waves of the previous beat fade into the new ones over this time, ms. */
 const fWaveBlendMs = 50;
 
 const minRr = 60000 / paramRanges.heartRate[1];
@@ -216,11 +216,12 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
   function ecgFrom(i: number, t: number): number {
     const beat = beats[i] as Beat;
     const previous = beats[i - 1];
-    let value = fWaves(t, beat.params);
+    const atrial = (b: Beat) => fWaves(t, b.params) + flutterWaves(t - b.start, b.timing, b.params);
+    let value = atrial(beat);
     if (previous && previous.params !== beat.params) {
-      // Fade the previous beat's f waves out, so a parameter change does not step the baseline.
+      // Fade the previous beat's f or F waves out, so a parameter change does not step the baseline.
       const w = smoothstep((t - beat.start) / fWaveBlendMs);
-      value = w * value + (1 - w) * fWaves(t, previous.params);
+      value = w * value + (1 - w) * atrial(previous);
     }
     for (const b of [previous, beat, beats[i + 1]]) {
       if (b) value += beatWaves(t - b.start, b.timing, b.params);

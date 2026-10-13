@@ -197,6 +197,9 @@ describe('preset heart rate', () => {
     // A preset with its own floor of 30 (a slow rhythm) gets the whole lower range.
     expect(rateLimitsFrom(defaultParams, 30)).toEqual([30, 180]);
     expect(rateLimitsFrom(defaultParams, 35)).toEqual([35, 180]);
+    // A ceiling (atrial flutter) limits the slider from above too.
+    expect(rateLimitsFrom(defaultParams, 40, 'Flutter', 100)).toEqual([40, 100]);
+    expect(() => rateLimitsFrom(defaultParams, 120, 'Flutter', 100)).toThrow(/Flutter/);
   });
 
   it('raises the lower limit to the preset floor and fails when nothing is left', () => {

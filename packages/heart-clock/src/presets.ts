@@ -136,6 +136,12 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   'ventricular-tachycardia': 101,
 });
 
+/**
+ * The highest heart rate, bpm, a preset allows, when the sign has an upper bound (atrial flutter:
+ * the F waves run at `flutterConduction` times the ventricular rate, inside the source's range).
+ */
+export const presetRateCeilings: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({});
+
 export function isPresetId(value: string): value is PresetId {
   return (presetIds as readonly string[]).includes(value);
 }
@@ -189,18 +195,31 @@ export function presetRateLimits(
   id: PresetId,
   params: Readonly<HeartParams> = presetParams(id),
 ): readonly [min: number, max: number] {
-  return rateLimitsFrom(params, presetRateFloors[id] ?? defaultRateLimits[0], `Preset ${id}`);
+  return rateLimitsFrom(
+    params,
+    presetRateFloors[id] ?? defaultRateLimits[0],
+    `Preset ${id}`,
+    presetRateCeilings[id],
+  );
 }
 
-/** `heartRateLimits` of `params` with `floor` as the lowest rate; `name` goes into the error. */
+/**
+ * `heartRateLimits` of `params` with `floor` as the lowest rate and `ceiling`, when given, as the
+ * highest; `name` goes into the error.
+ */
 export function rateLimitsFrom(
   params: Readonly<HeartParams>,
   floor: number,
   name = 'This parameter set',
+  ceiling = Infinity,
 ): readonly [min: number, max: number] {
   const [min, max] = heartRateLimits(params);
-  if (floor > max) throw new RangeError(`${name} does not fit any heart rate from ${floor}`);
-  return [Math.max(min, floor), max];
+  const low = Math.max(min, floor);
+  const high = Math.min(max, ceiling);
+  if (low > high) {
+    throw new RangeError(`${name} does not fit any heart rate from ${floor} to ${ceiling}`);
+  }
+  return [low, high];
 }
 
 /** Whether a preset sets its own heart rate. */

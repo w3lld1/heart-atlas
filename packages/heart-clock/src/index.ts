@@ -6,7 +6,7 @@ export {
   type HeartParams,
 } from './params.ts';
 export { beatTiming, phaseAt, phaseStarts, phases, type BeatTiming, type Phase } from './timing.ts';
-export { beatWaves, fWaves } from './ecg.ts';
+export { beatWaves, flutterWaves, fWaves } from './ecg.ts';
 export {
   checkParams,
   createHeartClock,
@@ -26,6 +26,7 @@ export {
   presetLead,
   presetLeads,
   presetParams,
+  presetRateCeilings,
   presetRateFloors,
   presetRateLimits,
   rateLimitsFrom,

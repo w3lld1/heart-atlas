@@ -49,4 +49,12 @@ const messages = Object.fromEntries(
       }}
     />
   </section>
+  <section data-test="flutter">
+    <HeartClockDemo
+      client:load
+      locale={locale}
+      messages={messages}
+      params={{ heartRate: 75, pAmplitude: 0, flutterConduction: 4, flutterAmplitude: 0.2 }}
+    />
+  </section>
 </BaseLayout>

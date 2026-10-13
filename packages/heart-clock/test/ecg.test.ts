@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { beatWaves, fWaves } from '../src/ecg.ts';
+import { createHeartClock } from '../src/clock.ts';
+import { beatWaves, flutterWaves, fWaves } from '../src/ecg.ts';
 import { defaultParams, resolveParams } from '../src/params.ts';
 import { leadBaselines, presetParams } from '../src/presets.ts';
 import { beatTiming } from '../src/timing.ts';
@@ -142,6 +143,53 @@ describe('QRS amplitudes and ST shape', () => {
       const value = beatWaves(x, t, params);
       expect(Math.abs(value - previous), `${x} ms`).toBeLessThan(0.1);
       previous = value;
+    }
+  });
+});
+
+describe('atrial flutter', () => {
+  const flutter = { heartRate: 75, pAmplitude: 0, flutterConduction: 4, flutterAmplitude: 0.2 };
+
+  it('puts exactly N sawtooth waves into every beat', () => {
+    const params = resolveParams(flutter);
+    const t = beatTiming(800, params);
+    const values = Array.from({ length: 800 }, (_, k) => flutterWaves(k, t, params));
+    // Count the troughs: where the slow fall turns into the quick rise.
+    let rises = 0;
+    for (let k = 2; k < values.length; k += 1) {
+      const [a = 0, b = 0, c = 0] = [values[k - 2], values[k - 1], values[k]];
+      if (c > b && b <= a) rises += 1;
+    }
+    expect(rises).toBe(4);
+    expect(Math.max(...values) - Math.min(...values)).toBeCloseTo(0.2, 2);
+    expect(flutterWaves(0, t, params)).toBeCloseTo(flutterWaves(800, t, params), 9);
+    expect(flutterWaves(123, t, defaultParams)).toBe(0);
+  });
+
+  it('keeps the conduction ratio when the heart rate changes', () => {
+    for (const heartRate of [60, 75, 100]) {
+      const clock = createHeartClock({ ...flutter, heartRate, flutterConduction: 2 });
+      const beat = clock.beatAt(3000);
+      // Two F waves per beat: the value repeats every half RR.
+      const half = beat.rr / 2;
+      const t = beat.start + 0.3 * half;
+      const params = beat.params;
+      expect(flutterWaves(t - beat.start, beat.timing, params)).toBeCloseTo(
+        flutterWaves(t - beat.start + half, beat.timing, params),
+        9,
+      );
+    }
+  });
+
+  it('rejects flutter with fibrillation, irregular RR or a missing ratio', () => {
+    for (const patch of [
+      { ...flutter, fWaveAmplitude: 0.05 },
+      { ...flutter, rrIrregularity: 0.1 },
+      { ...flutter, flutterConduction: 1 },
+      { ...flutter, flutterAmplitude: 0 },
+      { flutterAmplitude: 0.1 },
+    ]) {
+      expect(() => resolveParams(patch), JSON.stringify(patch)).toThrow(/^flutter/);
     }
   });
 });

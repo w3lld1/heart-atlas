@@ -6,7 +6,7 @@ import { axe } from './axe.ts';
 // on a page that only the HA_TEST_CONTENT=1 build has.
 test.skip(process.env['HA_TEST_CONTENT'] !== '1', 'needs the HA_TEST_CONTENT=1 build');
 
-test('shows sinus pauses, a V1 strip with a delta wave and a coved ST, without errors', async ({
+test('shows sinus pauses, a V1 strip with a delta wave and a coved ST, and flutter, without errors', async ({
   page,
 }) => {
   const errors: Error[] = [];
@@ -28,6 +28,11 @@ test('shows sinus pauses, a V1 strip with a delta wave and a coved ST, without e
   ).toBeVisible();
   await expect(
     v1.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'V1') }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('[data-test="flutter"]')
+      .getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') }),
   ).toBeVisible();
   expect((await axe(page).analyze()).violations).toEqual([]);
   expect(errors).toEqual([]);
