@@ -3,8 +3,8 @@
 import { withTreatment } from '../../../src/components/diagrams/index.ts';
 import DemoTreated from './DemoTreated.astro';
 
-export type TestDiagram = (typeof testDiagrams)[string];
+export type TestDiagram = typeof withTreatment & { art: typeof DemoTreated };
 
-export const testDiagrams = {
+export const testDiagrams: Record<string, TestDiagram> = {
   'demo-treated': { art: DemoTreated, ...withTreatment },
-} satisfies Record<string, { art: unknown } & typeof withTreatment>;
+};
