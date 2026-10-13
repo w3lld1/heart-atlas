@@ -566,5 +566,10 @@
   "diagram.label.lower-leg-arteries": "[RTL] Lower leg arteries",
   "diagram.label.collateral-vessels": "[RTL] Collateral vessels",
   "diagram.label.calf-pain-walking": "[RTL] Calf: pain on walking",
-  "diagram.peripheral-artery-disease.title": "[RTL] Diagram of the main artery of the leg from the femoral artery through the popliteal artery and the lower leg arteries to the foot: normally the lumen is open and blood reaches the foot freely; in lower extremity peripheral artery disease a plaque narrows the femoral–popliteal segment, less blood passes below the narrowing, thin collateral vessels run around it, and the calf is marked as the place of pain on walking"
+  "diagram.peripheral-artery-disease.title": "[RTL] Diagram of the main artery of the leg from the femoral artery through the popliteal artery and the lower leg arteries to the foot: normally the lumen is open and blood reaches the foot freely; in lower extremity peripheral artery disease a plaque narrows the femoral–popliteal segment, less blood passes below the narrowing, thin collateral vessels run around it, and the calf is marked as the place of pain on walking",
+  "diagram.label.small-lv": "[RTL] Small LV",
+  "diagram.label.valves-closed": "[RTL] Closed valves",
+  "diagram.label.narrow-aorta": "[RTL] Narrow aorta",
+  "diagram.label.mixed-blood": "[RTL] Mixed blood",
+  "diagram.hypoplastic-left-heart-syndrome.title": "[RTL] Diagram of the circulation, normally and in hypoplastic left heart syndrome: normally blood passes through the lungs and the body in turn; in the defect the mitral and aortic valves are closed, the left ventricle is small, the ascending aorta and the aortic arch are narrow, blood from the left atrium crosses an atrial communication into the right atrium and mixes there with venous blood, and the right ventricle pumps the mixed blood into the pulmonary artery and through a patent ductus arteriosus into the aorta and on to the body"
 }

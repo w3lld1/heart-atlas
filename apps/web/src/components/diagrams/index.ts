@@ -26,6 +26,7 @@ import HeartValves from './HeartValves.astro';
 import HolterMonitor from './HolterMonitor.astro';
 import Hypertension from './Hypertension.astro';
 import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
+import HypoplasticLeftHeartSyndrome from './HypoplasticLeftHeartSyndrome.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
 import LongQtSyndrome from './LongQtSyndrome.astro';
 import MarfanSyndrome from './MarfanSyndrome.astro';
@@ -79,6 +80,7 @@ export const diagrams = {
   'holter-monitor': HolterMonitor,
   hypertension: Hypertension,
   'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
+  'hypoplastic-left-heart-syndrome': HypoplasticLeftHeartSyndrome,
   'infective-endocarditis': InfectiveEndocarditis,
   'long-qt-syndrome': LongQtSyndrome,
   'marfan-syndrome': MarfanSyndrome,
