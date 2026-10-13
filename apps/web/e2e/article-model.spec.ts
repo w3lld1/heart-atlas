@@ -41,6 +41,8 @@ test.describe('3D model in an article without signs on the model', () => {
     'patent-ductus-arteriosus': ['aorta', 'pulmonary-trunk'],
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
     'wpw-syndrome': ['av-node'],
+    'marfan-syndrome': ['aorta', 'aortic-valve', 'mitral-valve'],
+    'pulmonary-valve-stenosis': ['pulmonary-valve', 'right-ventricle', 'pulmonary-trunk'],
     'brugada-syndrome': ['right-ventricle'],
     'restrictive-cardiomyopathy': [
       'left-ventricle',

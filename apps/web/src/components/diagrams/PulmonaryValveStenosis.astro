@@ -1,0 +1,342 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-pvs-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const openLines = twoLines(t['diagram.label.leaflets-open']);
+const domeLines = twoLines(t['diagram.label.domed-valve']);
+const trunkLines = twoLines(t['diagram.label.pa-trunk-dilated']);
+// The right ventricle below, the pulmonary trunk above, the valve between them at y = 150 with its
+// hinges on the walls at x = 73 and x = 157. Blood particles: start column (x), start row (y) and a
+// delay so the second row trails the first.
+const particles = [
+  { x: 92, y: 228, delay: 0 },
+  { x: 115, y: 228, delay: 0 },
+  { x: 138, y: 228, delay: 0 },
+  { x: 92, y: 248, delay: 0.2 },
+  { x: 115, y: 248, delay: 0.2 },
+  { x: 138, y: 248, delay: 0.2 },
+];
+// In stenosis the same particles start a little wider and converge on the narrow opening (x = 115).
+const jet = particles.map((p) => ({ ...p, offset: Math.sign(p.x - 115) * 27 }));
+// Typical valvular stenosis: the fused leaflets form a dome with a narrow central opening.
+const dome = ['M73,150 Q86,116 110,114', 'M157,150 Q144,116 120,114'];
+const cavity =
+  'M70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150';
+// Hypertrophy also makes the cavity smaller, so the disease state draws it narrower.
+const cavitySmall =
+  'M70,150 C68,163 70,185 70,200 C70,240 96,266 115,266 C134,266 160,240 160,200 C160,185 162,163 160,150';
+// The trunk is drawn wider beyond the valve only in the disease state, as the caption says.
+const trunkNormal = 'M70,150 L70,18 L160,18 L160,150';
+const trunkDilated = 'M70,150 C50,128 44,70 58,18 L172,18 C186,70 180,128 160,150';
+---
+
+<svg
+  viewBox="0 0 440 310"
+  role="img"
+  aria-label={t['diagram.pulmonary-valve-stenosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Right ventricle wall: thin normally, thickened in stenosis -->
+  <path
+    class="normal-only"
+    d="M70,150 C54,152 54,180 54,200 C54,252 88,280 115,280 C142,280 176,252 176,200 C176,180 176,152 160,150 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    class="disease-only"
+    d="M70,150 C36,152 36,178 36,200 C36,268 82,298 115,298 C148,298 194,268 194,200 C194,178 194,152 160,150 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Right ventricle cavity and pulmonary trunk -->
+  <g fill="var(--diagram-venous-fill)">
+    <path class="normal-only" d={`${cavity} Z`}></path>
+    <path class="disease-only" d={`${cavitySmall} Z`}></path>
+    <path class="normal-only" d={`${trunkNormal} Z`}></path>
+    <path class="disease-only" d={`${trunkDilated} Z`}></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2">
+    <path class="normal-only" d={cavity}></path>
+    <path class="disease-only" d={cavitySmall}></path>
+    <path class="normal-only" d="M70,150 L70,18 M160,150 L160,18"></path>
+    <path
+      class="disease-only"
+      d="M70,150 C50,128 44,70 58,18 M160,150 C180,128 186,70 172,18"
+    ></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g class="normal-only pvs-arrows" fill="none" stroke="var(--diagram-venous)" stroke-width="3">
+    <path d="M92,226 L92,32" marker-end={`url(#${arrowId})`}></path>
+    <path d="M115,226 L115,32" marker-end={`url(#${arrowId})`}></path>
+    <path d="M138,226 L138,32" marker-end={`url(#${arrowId})`}></path>
+  </g>
+  <g
+    class="disease-only pvs-arrows"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-linecap="round"
+  >
+    <!-- Blood converges on the narrow opening -->
+    <path d="M88,226 C88,190 113,170 114,150" stroke-width="3"></path>
+    <path d="M115,226 L115,150" stroke-width="3"></path>
+    <path d="M142,226 C142,190 117,170 116,150" stroke-width="3"></path>
+    <!-- Narrow jet beyond the valve; the speed lines mark that it moves faster -->
+    <path
+      d="M110,112 L120,112 L118,26 L112,26 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M115,108 L115,30" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+    <path
+      d="M101,50 L101,68 M101,80 L101,98 M129,50 L129,68 M129,80 L129,98"
+      stroke-width="2"
+    ></path>
+    <!-- Turbulent flow at the sides of the jet -->
+    <path
+      d="M84,92 C74,84 76,70 88,72 C96,74 94,84 88,84 M146,92 C156,84 154,70 142,72 C134,74 136,84 142,84"
+      stroke-width="2"
+    ></path>
+  </g>
+
+  <!-- Normal leaflets (side view), drawn open; the animation closes them between beats -->
+  <g class="normal-only">
+    <g transform="translate(73,150) rotate(-80)">
+      <g class="pvs-cusp">
+        <path class="pvs-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+      </g>
+    </g>
+    <g transform="translate(157,150) scale(-1,1) rotate(-80)">
+      <g class="pvs-cusp">
+        <path class="pvs-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+      </g>
+    </g>
+  </g>
+
+  <!-- Stenotic valve: fused leaflets bulge into the trunk as a dome with a narrow opening -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="5"
+    stroke-linecap="round"
+  >
+    {dome.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+  <circle cx="73" cy="150" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="157" cy="150" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Moving blood: a wide, even stream normally, a narrow fast jet in stenosis -->
+  <g class="flow">
+    <g class="normal-only">
+      {particles.map((p) => (
+        <circle
+          class="pvs-p pvs-p-normal"
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {jet.map((p) => (
+        <circle
+          class="pvs-p pvs-p-jet"
+          cx={115 + p.offset}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`--pvs-dx: ${-p.offset}px; animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines from the drawing to the label column -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="163" y1="50" x2="206" y2="50"></line>
+    <line class="disease-only" x1="185" y1="50" x2="206" y2="50"></line>
+    <line class="disease-only" x1="121" y1="62" x2="206" y2="96"></line>
+    <line class="normal-only" x1="153" y1="126" x2="206" y2="140"></line>
+    <line class="disease-only" x1="146" y1="128" x2="206" y2="150"></line>
+    <line class="disease-only" x1="191" y1="226" x2="206" y2="226"></line>
+  </g>
+
+  <!-- Labels -->
+  <text class="normal-only" x="212" y="55">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="disease-only" x="212" y="46">
+    <tspan x="212">{trunkLines[0]}</tspan>
+    <tspan x="212" dy="19">
+      {trunkLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="212" y="101">
+    {t['diagram.label.fast-jet']}
+  </text>
+  <text class="normal-only" x="212" y="136">
+    <tspan x="212">{openLines[0]}</tspan>
+    <tspan x="212" dy="19">
+      {openLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="212" y="146">
+    <tspan x="212">{domeLines[0]}</tspan>
+    <tspan x="212" dy="19">
+      {domeLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="212" y="231">
+    {t['diagram.label.rv-hypertrophy']}
+  </text>
+  <text x="115" y="252" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .pvs-leaf {
+    fill: var(--color-border);
+    stroke: var(--color-muted);
+    stroke-width: 2;
+  }
+
+  /* One beat: the valve opens, blood leaves the ventricle, the valve closes. */
+  .diagram .pvs-cusp {
+    animation: pvs-cusp 2.4s ease-in-out infinite;
+  }
+
+  /* Arrows fade while the valve is closed; without motion they stay solid. */
+  .diagram .pvs-arrows {
+    animation: pvs-arrows 2.4s ease-in-out infinite;
+  }
+
+  .diagram .pvs-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .pvs-p-normal {
+    animation: pvs-normal 2.4s linear infinite;
+  }
+
+  .diagram .pvs-p-jet {
+    animation: pvs-jet 2.4s linear infinite;
+  }
+
+  @keyframes pvs-cusp {
+    0%,
+    4%,
+    60%,
+    100% {
+      transform: rotate(67deg);
+    }
+
+    14%,
+    50% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes pvs-arrows {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Normal: a wide stream rises at an even pace. */
+  @keyframes pvs-normal {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    52% {
+      opacity: 1;
+    }
+
+    58%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  /* Stenosis: blood crowds into the narrow opening, then shoots up as a fast jet. */
+  @keyframes pvs-jet {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    36% {
+      opacity: 1;
+      transform: translate(var(--pvs-dx), -100px) scale(0.8, 1);
+    }
+
+    40% {
+      transform: translate(var(--pvs-dx), -125px) scale(0.6, 2.2);
+    }
+
+    47% {
+      opacity: 1;
+      transform: translate(var(--pvs-dx), -185px) scale(0.6, 2.2);
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--pvs-dx), -200px) scale(0.6, 2.2);
+    }
+  }
+</style>

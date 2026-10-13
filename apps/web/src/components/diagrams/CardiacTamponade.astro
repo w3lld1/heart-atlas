@@ -1,0 +1,425 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowIds = { venous: `${uid}-ct-arrow-v`, arterial: `${uid}-ct-arrow-a` };
+const pressArrowId = `${uid}-ct-arrow-press`;
+const sacId = `${uid}-ct-sac`;
+
+// A four-chamber view while the ventricles fill: the right atrium and ventricle on the left of
+// the picture (venous blood, blue), the left ones on the right (arterial blood, red). The heart
+// muscle is each cavity stroked wide, so the walls keep the same thickness in both states. With
+// tamponade the outer walls of the right chambers are pushed in and all cavities are smaller
+// because they fill less; the heart itself is not enlarged. Labels sit in the column on the right.
+type Side = 'venous' | 'arterial';
+const colour = (side: Side) => `var(--diagram-${side})`;
+const fillColour = (side: Side) => `var(--diagram-${side}-fill)`;
+const wall = 9;
+// The septum runs down the middle; the valve plane lies between the atria and the ventricles.
+const septumRight = 150;
+const septumLeft = septumRight + 2 * wall;
+const atriumBottom = 128;
+const ventricleTop = atriumBottom + 2 * wall;
+
+interface Chambers {
+  /** Outer edge of the right atrium cavity and its top. */
+  ra: { x: number; top: number };
+  /** Outer edge of the left atrium cavity and its top. */
+  la: { x: number; top: number };
+  /** Right ventricle: outer edge at the valve plane, its bulge and the apex end on the septum. */
+  rv: { x: number; bulge: number; apex: number };
+  /** Left ventricle, the same on the other side. */
+  lv: { x: number; bulge: number; apex: number };
+  /** Where the filling arrows end: deep in freely filling ventricles, short when they cannot. */
+  fillTo: { venous: number; arterial: number };
+  /** Animation of the moving blood: the whole way down, or stopping short. */
+  particle: 'ct-fill' | 'ct-fill-short';
+  className: string;
+}
+const states: Chambers[] = [
+  {
+    ra: { x: 74, top: 60 },
+    la: { x: 244, top: 60 },
+    rv: { x: 72, bulge: 62, apex: 288 },
+    lv: { x: 246, bulge: 256, apex: 296 },
+    fillTo: { venous: 222, arterial: 230 },
+    particle: 'ct-fill',
+    className: 'normal-only',
+  },
+  {
+    ra: { x: 98, top: 72 },
+    la: { x: 238, top: 64 },
+    rv: { x: 96, bulge: 100, apex: 280 },
+    lv: { x: 241, bulge: 250, apex: 292 },
+    fillTo: { venous: 182, arterial: 196 },
+    particle: 'ct-fill-short',
+    className: 'disease-only',
+  },
+];
+const corner = 22;
+// The filling arrows and the moving blood start low in the atria, below the atrial labels.
+const inflowTop = atriumBottom - 22;
+const geometry = states.map((s) => {
+  const rvPath = `M${septumRight},${ventricleTop} L${s.rv.x},${ventricleTop} C${s.rv.bulge},${ventricleTop + 70} ${s.rv.x + 30},${s.rv.apex - 30} ${septumRight},${s.rv.apex} Z`;
+  const lvPath = `M${septumLeft},${ventricleTop} L${s.lv.x},${ventricleTop} C${s.lv.bulge},${ventricleTop + 76} ${s.lv.x - 26},${s.lv.apex - 26} ${septumLeft},${s.lv.apex} Z`;
+  // Openings from each atrium into its ventricle: the middle part of the shorter of the two.
+  const tricuspid = { from: s.rv.x + 14, to: septumRight - 18 };
+  const mitral = { from: septumLeft + 18, to: s.lv.x - 16 };
+  return {
+    ...s,
+    rvPath,
+    lvPath,
+    tricuspid,
+    mitral,
+    apexLine: `M${septumRight},${s.rv.apex} L${septumLeft},${s.lv.apex}`,
+    inflow: {
+      venous: (tricuspid.from + tricuspid.to) / 2,
+      arterial: (mitral.from + mitral.to) / 2,
+    },
+  };
+});
+
+// The outer layer of the pericardium: one outline drawn at two scales around the heart's centre.
+// Normally it lies close to the heart; with tamponade fluid fills a wide layer under it.
+const centre = { x: 159, y: 180 };
+const sacPath =
+  'M159,44 C232,42 268,70 268,140 C268,222 222,300 166,312 C100,312 52,236 50,148 C48,72 88,44 159,44 Z';
+const around = (scale: number) =>
+  `translate(${centre.x} ${centre.y}) scale(${scale}) translate(${-centre.x} ${-centre.y})`;
+const sacNormal = 1.04;
+const sacFluid = 1.13;
+
+// Arrows in the fluid pressing on the heart from outside, mostly on the right chambers.
+const pressArrows = [
+  { x1: 62, y1: 66, x2: 86, y2: 88 },
+  { x1: 68, y1: 254, x2: 100, y2: 236 },
+  { x1: 100, y1: 300, x2: 118, y2: 282 },
+  { x1: 274, y1: 190, x2: 258, y2: 190 },
+];
+// Moving blood: two particles per side, the second trailing the first.
+const delays = [0, 0.8];
+---
+
+<svg
+  viewBox="0 0 500 372"
+  role="img"
+  aria-label={t['diagram.cardiac-tamponade.title']}
+  lang={locale}
+>
+  <defs>
+    {(['venous', 'arterial'] as const).map((side) => (
+      <marker
+        id={arrowIds[side]}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="4.5"
+        markerHeight="4.5"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={colour(side)} />
+      </marker>
+    ))}
+    <marker
+      id={pressArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)" />
+    </marker>
+    <path id={sacId} d={sacPath}></path>
+  </defs>
+
+  <!-- Outer layer of the pericardium and the cavity under it -->
+  <use
+    class="normal-only"
+    href={`#${sacId}`}
+    transform={around(sacNormal)}
+    fill="var(--diagram-venous-fill)"
+    fill-opacity="0.5"
+    stroke="var(--color-muted)"
+    stroke-width="3"
+    vector-effect="non-scaling-stroke"
+  ></use>
+  <use
+    class="disease-only"
+    href={`#${sacId}`}
+    transform={around(sacFluid)}
+    fill="var(--diagram-venous-fill)"
+    fill-opacity="0.5"
+    stroke="var(--color-muted)"
+    stroke-width="3"
+    vector-effect="non-scaling-stroke"
+  ></use>
+
+  {geometry.map((g) => (
+    <g class={g.className}>
+      {/* Heart muscle: the cavities stroked wide, a block for the septum, a line at the apex. */}
+      <g fill="var(--diagram-muscle)" stroke="var(--diagram-muscle)" stroke-linejoin="round">
+        <rect
+          x={g.ra.x}
+          y={g.ra.top}
+          width={septumRight - g.ra.x}
+          height={atriumBottom - g.ra.top}
+          rx={corner}
+          stroke-width={2 * wall}
+        />
+        <rect
+          x={septumLeft}
+          y={g.la.top}
+          width={g.la.x - septumLeft}
+          height={atriumBottom - g.la.top}
+          rx={corner}
+          stroke-width={2 * wall}
+        />
+        <path d={g.rvPath} stroke-width={2 * wall} />
+        <path d={g.lvPath} stroke-width={2 * wall} />
+        <path d={g.apexLine} stroke-width={2 * wall} stroke-linecap="round" />
+        <rect
+          x={septumRight}
+          y={Math.max(g.ra.top, g.la.top) + corner / 2}
+          width={septumLeft - septumRight}
+          height={Math.min(g.rv.apex, g.lv.apex) - Math.max(g.ra.top, g.la.top) - corner / 2}
+          stroke="none"
+        />
+      </g>
+
+      <!-- Cavities -->
+      <rect
+        x={g.ra.x}
+        y={g.ra.top}
+        width={septumRight - g.ra.x}
+        height={atriumBottom - g.ra.top}
+        rx={corner}
+        fill={fillColour('venous')}
+        stroke={colour('venous')}
+        stroke-width="1.5"
+      />
+      <rect
+        x={septumLeft}
+        y={g.la.top}
+        width={g.la.x - septumLeft}
+        height={atriumBottom - g.la.top}
+        rx={corner}
+        fill={fillColour('arterial')}
+        stroke={colour('arterial')}
+        stroke-width="1.5"
+      />
+      <path d={g.rvPath} fill={fillColour('venous')} stroke={colour('venous')} stroke-width="1.5" />
+      <path
+        d={g.lvPath}
+        fill={fillColour('arterial')}
+        stroke={colour('arterial')}
+        stroke-width="1.5"
+      />
+      <rect
+        x={g.tricuspid.from}
+        y={atriumBottom - 6}
+        width={g.tricuspid.to - g.tricuspid.from}
+        height={ventricleTop - atriumBottom + 12}
+        fill={fillColour('venous')}
+      />
+      <rect
+        x={g.mitral.from}
+        y={atriumBottom - 6}
+        width={g.mitral.to - g.mitral.from}
+        height={ventricleTop - atriumBottom + 12}
+        fill={fillColour('arterial')}
+      />
+
+      <!-- Filling arrows, visible with and without motion: long when the ventricles fill
+           freely, short when they cannot -->
+      <g fill="none" stroke-width="4" stroke-linecap="round">
+        <path
+          d={`M${g.inflow.venous},${inflowTop} L${g.inflow.venous},${g.fillTo.venous}`}
+          stroke={colour('venous')}
+          marker-end={`url(#${arrowIds.venous})`}
+        />
+        <path
+          d={`M${g.inflow.arterial},${inflowTop} L${g.inflow.arterial},${g.fillTo.arterial}`}
+          stroke={colour('arterial')}
+          marker-end={`url(#${arrowIds.arterial})`}
+        />
+      </g>
+
+      <!-- Moving blood from the atria into the ventricles -->
+      <g class="flow">
+        {delays.map((delay) => (
+          <>
+            <circle
+              class={g.particle}
+              cx={g.inflow.venous}
+              cy={inflowTop}
+              r="5"
+              fill={colour('venous')}
+              style={`animation-delay: ${delay}s`}
+            />
+            <circle
+              class={g.particle}
+              cx={g.inflow.arterial}
+              cy={inflowTop}
+              r="5"
+              fill={colour('arterial')}
+              style={`animation-delay: ${delay}s`}
+            />
+          </>
+        ))}
+      </g>
+    </g>
+  ))}
+
+  <!-- Pressure of the fluid on the heart -->
+  <g
+    class="disease-only ct-press"
+    stroke="var(--color-text)"
+    stroke-width="3"
+    stroke-linecap="round"
+    fill="none"
+  >
+    {pressArrows.map((a) => (
+      <line x1={a.x1} y1={a.y1} x2={a.x2} y2={a.y2} marker-end={`url(#${pressArrowId})`} />
+    ))}
+  </g>
+
+  <!-- Chamber labels; a halo in the chamber colour keeps them readable over the arrows -->
+  <!-- Labels of the right chambers grow to the left, those of the left chambers to the right -->
+  <text class="ct-label-v normal-only" x="136" y="88" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="ct-label-v disease-only" x="140" y="92" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="ct-label-a" x="178" y="88">
+    {t['diagram.label.la']}
+  </text>
+  <text class="ct-label-v normal-only" x="140" y="252" text-anchor="end">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="ct-label-v disease-only" x="144" y="232" text-anchor="end">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="ct-label-a normal-only" x="176" y="262">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="ct-label-a disease-only" x="176" y="240">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Labels in the right column with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="300" y1="60" x2="256" y2="72"></line>
+    <line class="disease-only" x1="300" y1="60" x2="272" y2="64"></line>
+    <line class="normal-only" x1="300" y1="140" x2="262" y2="140"></line>
+    <line class="disease-only" x1="300" y1="140" x2="270" y2="140"></line>
+    <line class="disease-only" x1="300" y1="226" x2="266" y2="200"></line>
+    <line class="disease-only" x1="34" y1="346" x2="121" y2="248"></line>
+    <line class="disease-only" x1="34" y1="346" x2="89" y2="110"></line>
+  </g>
+  <text x="306" y="65">
+    {t['diagram.label.pericardium']}
+  </text>
+  <text class="normal-only" x="306" y="145">
+    {t['diagram.label.pericardial-cavity']}
+  </text>
+  <text class="disease-only" x="306" y="145">
+    {t['diagram.label.pericardial-fluid']}
+  </text>
+  <text class="disease-only" x="306" y="242">
+    {t['diagram.label.high-pressure']}
+  </text>
+  <text class="disease-only" x="8" y="364">
+    {t['diagram.label.right-chambers-compressed']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .ct-label-v,
+  .diagram .ct-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .ct-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .ct-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .ct-fill,
+  .diagram .ct-fill-short {
+    opacity: 0;
+    animation: ct-fill 1.6s linear infinite;
+  }
+
+  .diagram .ct-fill-short {
+    animation-name: ct-fill-short;
+  }
+
+  /* The fluid presses in: the arrows nudge towards the heart; without motion they stay drawn. */
+  .diagram .ct-press {
+    animation: ct-press 1.6s ease-in-out infinite;
+  }
+
+  /* While the ventricles fill, blood runs from each atrium through the opening into its ventricle. */
+  @keyframes ct-fill {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    70% {
+      opacity: 1;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 110px);
+    }
+  }
+
+  /* Under pressure from outside the ventricles take in less: the blood stops short. */
+  @keyframes ct-fill-short {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    40% {
+      opacity: 1;
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 72px);
+    }
+  }
+
+  @keyframes ct-press {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.45;
+    }
+  }
+</style>

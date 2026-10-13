@@ -1,0 +1,264 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-mf-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+// `round` picks which line gets the extra word when the count is odd.
+function twoLines(label: string, round: (n: number) => number = Math.ceil): [string, string] {
+  const words = label.split(' ');
+  const split = round(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const rootDilatedLines = twoLines(t['diagram.label.aortic-root-dilated']);
+// The right column ends at the viewBox edge, so the longer half goes to the second line.
+const prolapseLines = twoLines(t['diagram.label.mitral-prolapse'], Math.floor);
+// Both states show systole: the left ventricle contracts, blood leaves through the open aortic
+// valve and the mitral valve should be closed. The heart is drawn in its own coordinates and
+// shifted right by 140; the aortic labels sit in the free column on the left, the mitral labels
+// in the column on the right.
+// Aorta: the annulus runs from x = 45 to x = 85 at y = 165, the ascending aorta above keeps that
+// width in both states. Normal: the root (sinus segment) bulges only slightly.
+const normalRoot = 'M45,165 C42,150 42,128 45,114 L45,22 L85,22 L85,114 C88,128 88,150 85,165 Z';
+const normalRootWalls = [
+  'M45,165 C42,150 42,128 45,114 L45,22',
+  'M85,165 C88,150 88,128 85,114 L85,22',
+];
+// Marfan syndrome: the root is widened like a pear from the sinuses and narrows back above them.
+const dilatedRoot =
+  'M45,165 C22,152 18,112 36,92 C42,85 45,80 45,72 L45,22 L85,22 L85,72 C85,80 88,85 94,92 C112,112 108,152 85,165 Z';
+const dilatedRootWalls = [
+  'M45,165 C22,152 18,112 36,92 C42,85 45,80 45,72 L45,22',
+  'M85,165 C108,152 112,112 94,92 C88,85 85,80 85,72 L85,22',
+];
+// Aortic cusps: open in systole, pressed towards the wall, the same in both states.
+const aorticCusps = ['M45,165 Q50,152 53,140', 'M85,165 Q80,152 77,140'];
+// Mitral leaflets hang from the annulus (x = 140 and 200, y = 165). Normal: they meet below the
+// annulus, in the ventricle. Prolapse: they billow back above the annulus into the atrium.
+const closedLeaflets = ['M140,165 Q155,176 169,182', 'M200,165 Q185,176 171,182'];
+const prolapseLeaflets = ['M140,165 C144,140 164,136 169,150', 'M200,165 C196,140 176,136 171,150'];
+// Blood leaving the ventricle into the aorta: start column, row and delay.
+const forward = [
+  { x: 55, y: 236, delay: 0 },
+  { x: 75, y: 236, delay: 0 },
+  { x: 65, y: 254, delay: 0.2 },
+];
+---
+
+<svg viewBox="0 0 520 320" role="img" aria-label={t['diagram.marfan-syndrome.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Phase of the cardiac cycle: the same in both states -->
+  <text x="8" y="22">
+    {t['diagram.state.systole']}
+  </text>
+
+  <g transform="translate(140 0)">
+    <!-- Left ventricle wall: the same in both states -->
+    <path
+      d="M30,160 L230,160 C246,205 224,286 140,306 C56,286 20,205 30,160 Z"
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></path>
+
+    <!-- Left atrium: the same in both states -->
+    <ellipse
+      cx="170"
+      cy="82"
+      rx="62"
+      ry="46"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+
+    <!-- Left ventricle cavity with the openings to the aorta and to the atrium -->
+    <path
+      d="M45,165 L140,165 L140,118 L200,118 L200,165 L215,165 C228,205 210,270 140,288 C70,270 35,205 45,165 Z"
+      fill="var(--diagram-arterial-fill)"
+    ></path>
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+      <path d="M45,165 C35,205 70,270 140,288 C210,270 228,205 215,165 L200,165"></path>
+      <path d="M85,165 L140,165"></path>
+      <!-- Sides of the opening between atrium and ventricle, up to where the atrium outline meets them -->
+      <path d="M140,122 L140,165 M200,122 L200,165"></path>
+    </g>
+
+    <!-- Aortic root and ascending aorta: normal size, or widened from the sinuses -->
+    <path class="normal-only" d={normalRoot} fill="var(--diagram-arterial-fill)"></path>
+    <path class="disease-only" d={dilatedRoot} fill="var(--diagram-arterial-fill)"></path>
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+      {normalRootWalls.map((d) => (
+        <path class="normal-only" d={d} />
+      ))}
+      {dilatedRootWalls.map((d) => (
+        <path class="disease-only" d={d} />
+      ))}
+    </g>
+
+    <!-- Flow arrow into the aorta, visible with and without motion -->
+    <path
+      class="mf-pulse"
+      d="M65,250 L65,34"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+
+    <!-- Mitral annulus: the same level in both states, so the prolapse reads against it -->
+    <line
+      x1="140"
+      y1="165"
+      x2="200"
+      y2="165"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+      stroke-dasharray="4 3"
+    ></line>
+
+    <!-- Valves: aortic cusps open; mitral leaflets closed, or billowing into the atrium -->
+    <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+      {aorticCusps.map((d) => (
+        <path d={d} stroke-width="4" />
+      ))}
+      {closedLeaflets.map((d) => (
+        <path class="normal-only" d={d} />
+      ))}
+      {prolapseLeaflets.map((d) => (
+        <path class="disease-only" d={d} />
+      ))}
+    </g>
+    <g fill="var(--color-muted)">
+      <circle cx="45" cy="165" r="3.5"></circle>
+      <circle cx="85" cy="165" r="3.5"></circle>
+      <circle cx="140" cy="165" r="3.5"></circle>
+      <circle cx="200" cy="165" r="3.5"></circle>
+    </g>
+
+    <!-- Moving blood: forward from the ventricle into the aorta -->
+    <g class="flow">
+      {forward.map((p) => (
+        <circle
+          class="mf-p"
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+
+    <!-- Chamber and vessel labels inside the drawing -->
+    <text x="65" y="17" text-anchor="middle">
+      {t['diagram.label.aorta']}
+    </text>
+    <text x="186" y="74" text-anchor="middle">
+      {t['diagram.label.la']}
+    </text>
+    <text x="150" y="246" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+  </g>
+
+  <!-- Leader lines from the label columns into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="128" y1="134" x2="181" y2="134"></line>
+    <line class="disease-only" x1="128" y1="130" x2="159" y2="130"></line>
+    <line x1="344" y1="168" x2="374" y2="172"></line>
+  </g>
+
+  <!-- Labels in the left column (aorta) -->
+  <text class="diagram-small normal-only" x="124" y="138" text-anchor="end">
+    {t['diagram.label.aortic-root']}
+  </text>
+  <text class="diagram-small disease-only" x="124" y="126" text-anchor="end">
+    <tspan x="124">{rootDilatedLines[0]}</tspan>
+    <tspan x="124" dy="15">
+      {rootDilatedLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Labels in the right column (mitral valve) -->
+  <text class="diagram-small" x="380" y="176">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="380" y="194">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small disease-only" x="380" y="194">
+    <tspan x="380">{prolapseLines[0]}</tspan>
+    <tspan x="380" dy="15">
+      {prolapseLines[1]}
+    </tspan>
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .mf-pulse {
+    animation: mf-pulse 2.4s ease-in-out infinite;
+  }
+
+  .diagram .mf-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: mf-forward 2.4s linear infinite;
+  }
+
+  /* The arrow fades between contractions; without motion it stays solid. */
+  @keyframes mf-pulse {
+    0%,
+    4%,
+    60%,
+    100% {
+      opacity: 0.3;
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Systole: blood leaves the ventricle up the aorta. */
+  @keyframes mf-forward {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    50% {
+      opacity: 1;
+    }
+
+    56%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+</style>

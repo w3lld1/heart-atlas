@@ -524,7 +524,6 @@
   "diagram.label.aneurysm-diameter": "3 cm or more",
   "diagram.label.aneurysm": "Aneurysm",
   "diagram.abdominal-aortic-aneurysm.title": "Diagram of the abdominal aorta with the renal and iliac arteries: normally the aorta below the renal arteries is on average 18–22 mm across; in an abdominal aortic aneurysm this segment usually widens all round to 3 cm or more, and a blood clot often lines its wall from inside",
-  "diagram.label.tricuspid-valve": "Tricuspid valve",
   "diagram.label.atria-about-300": "Atria: about 300 per minute",
   "diagram.label.every-second-impulse": "Every second impulse: about 150 per minute",
   "diagram.atrial-flutter.title": "Diagram of the atria and ventricles: normally the impulse from the sinus node spreads over the atria and passes through the AV node to the ventricles; in typical atrial flutter the impulse runs in a large circle in the right atrium around the ring of the tricuspid valve, counterclockwise, through the isthmus between the inferior vena cava and the valve, and usually every second impulse reaches the ventricles",
@@ -532,5 +531,17 @@
   "diagram.label.thick-valves": "Thickened valves",
   "diagram.label.thick-walls": "Thickened walls",
   "diagram.label.amyloid-deposits": "Amyloid deposits",
-  "diagram.cardiac-amyloidosis.title": "Diagram of the heart cut through all four chambers while the ventricles fill: normally the ventricular walls are of normal thickness and the valves and the septum between the atria are thin; in cardiac amyloidosis there are amyloid deposits in the walls; the walls of both ventricles, the valves and the septum between the atria are thickened, there is a little fluid in the pericardium and the left atrium is enlarged"
+  "diagram.cardiac-amyloidosis.title": "Diagram of the heart cut through all four chambers while the ventricles fill: normally the ventricular walls are of normal thickness and the valves and the septum between the atria are thin; in cardiac amyloidosis there are amyloid deposits in the walls; the walls of both ventricles, the valves and the septum between the atria are thickened, there is a little fluid in the pericardium and the left atrium is enlarged",
+  "diagram.label.aortic-root": "Aortic root",
+  "diagram.label.aortic-root-dilated": "Dilated aortic root",
+  "diagram.label.mitral-prolapse": "Leaflets bulge into the left atrium",
+  "diagram.marfan-syndrome.title": "Diagram of the left heart and the aortic root while the left ventricle contracts: normally the mitral valve leaflets close; in Marfan syndrome the aortic root is widened, starting from the sinuses, and the mitral valve leaflets bulge back into the left atrium",
+  "diagram.label.pericardial-fluid": "Fluid or blood",
+  "diagram.label.right-chambers-compressed": "RA and RV compressed",
+  "diagram.cardiac-tamponade.title": "Diagram of the heart cut through all four chambers inside the pericardium while the ventricles fill: normally a thin layer of fluid lies between the layers of the pericardium and the chambers fill freely; in cardiac tamponade a layer of fluid or blood surrounds the heart, which is not enlarged, and presses on it, the right atrium and right ventricle are compressed, and all chambers are smaller because they fill less",
+  "diagram.label.domed-valve": "Fused leaflets: a dome with a narrow opening",
+  "diagram.label.pa-trunk-dilated": "Dilated PA trunk",
+  "diagram.pulmonary-valve-stenosis.title": "Diagram of the right ventricle, the pulmonary valve and the pulmonary trunk: normally the valve leaflets are thin and open wide, and blood flows freely from the right ventricle into the pulmonary artery; in typical valvular stenosis the leaflets are fused into a dome with a narrow opening, blood passes through it as a fast turbulent jet, the right ventricular wall is thickened and the pulmonary trunk beyond the valve is dilated",
+  "diagram.label.mixed-blood": "Mixed blood",
+  "diagram.eisenmenger-syndrome.title": "Diagram of the ventricles, the pulmonary artery, the aorta and small lung arteries in cross-section: normally the septum between the ventricles is intact, there is no shunt, and the walls of the small lung arteries are thin; in Eisenmenger syndrome there is a large defect in the septum, the pressure in the pulmonary artery is high, the walls of the small lung arteries are thickened, blood crosses the defect from right to left, and mixed blood enters the aorta"
 }

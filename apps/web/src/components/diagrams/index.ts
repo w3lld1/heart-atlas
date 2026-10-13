@@ -10,6 +10,7 @@ import AvBlock from './AvBlock.astro';
 import BloodFlow from './BloodFlow.astro';
 import BrugadaSyndrome from './BrugadaSyndrome.astro';
 import CardiacAmyloidosis from './CardiacAmyloidosis.astro';
+import CardiacTamponade from './CardiacTamponade.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
@@ -17,6 +18,7 @@ import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
 import DilatedCardiomyopathy from './DilatedCardiomyopathy.astro';
 import Dyslipidemia from './Dyslipidemia.astro';
 import EbsteinAnomaly from './EbsteinAnomaly.astro';
+import EisenmengerSyndrome from './EisenmengerSyndrome.astro';
 import HeartChambers from './HeartChambers.astro';
 import HeartFailure from './HeartFailure.astro';
 import HeartValves from './HeartValves.astro';
@@ -25,6 +27,7 @@ import Hypertension from './Hypertension.astro';
 import HypertrophicCardiomyopathy from './HypertrophicCardiomyopathy.astro';
 import InfectiveEndocarditis from './InfectiveEndocarditis.astro';
 import LongQtSyndrome from './LongQtSyndrome.astro';
+import MarfanSyndrome from './MarfanSyndrome.astro';
 import MitralRegurgitation from './MitralRegurgitation.astro';
 import MitralStenosis from './MitralStenosis.astro';
 import Myocarditis from './Myocarditis.astro';
@@ -33,6 +36,7 @@ import PatentDuctusArteriosus from './PatentDuctusArteriosus.astro';
 import Pericarditis from './Pericarditis.astro';
 import PulmonaryEmbolism from './PulmonaryEmbolism.astro';
 import PulmonaryHypertension from './PulmonaryHypertension.astro';
+import PulmonaryValveStenosis from './PulmonaryValveStenosis.astro';
 import RestrictiveCardiomyopathy from './RestrictiveCardiomyopathy.astro';
 import SickSinusSyndrome from './SickSinusSyndrome.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
@@ -57,6 +61,7 @@ export const diagrams = {
   'blood-flow': BloodFlow,
   'brugada-syndrome': BrugadaSyndrome,
   'cardiac-amyloidosis': CardiacAmyloidosis,
+  'cardiac-tamponade': CardiacTamponade,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
   'coronary-arteries': CoronaryArteries,
@@ -64,6 +69,7 @@ export const diagrams = {
   'dilated-cardiomyopathy': DilatedCardiomyopathy,
   dyslipidemia: Dyslipidemia,
   'ebstein-anomaly': EbsteinAnomaly,
+  'eisenmenger-syndrome': EisenmengerSyndrome,
   'heart-chambers': HeartChambers,
   'heart-failure': HeartFailure,
   'heart-valves': HeartValves,
@@ -72,6 +78,7 @@ export const diagrams = {
   'hypertrophic-cardiomyopathy': HypertrophicCardiomyopathy,
   'infective-endocarditis': InfectiveEndocarditis,
   'long-qt-syndrome': LongQtSyndrome,
+  'marfan-syndrome': MarfanSyndrome,
   'mitral-regurgitation': MitralRegurgitation,
   'mitral-stenosis': MitralStenosis,
   myocarditis: Myocarditis,
@@ -80,6 +87,7 @@ export const diagrams = {
   pericarditis: Pericarditis,
   'pulmonary-embolism': PulmonaryEmbolism,
   'pulmonary-hypertension': PulmonaryHypertension,
+  'pulmonary-valve-stenosis': PulmonaryValveStenosis,
   'restrictive-cardiomyopathy': RestrictiveCardiomyopathy,
   'sick-sinus-syndrome': SickSinusSyndrome,
   'supraventricular-tachycardia': SupraventricularTachycardia,

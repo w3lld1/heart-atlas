@@ -1,0 +1,254 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-es-arrow-v`;
+const arrowA = `${uid}-es-arrow-a`;
+// Labels too long for one line in their column are split in two at a word break.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const pressureLines = twoLines(t['diagram.label.high-pressure']);
+const smallArteriesLines = twoLines(t['diagram.label.small-lung-arteries']);
+// The ventricles with the septum between them, the pulmonary artery leaving the right ventricle
+// (viewer's left) for the lungs and the aorta leaving the left ventricle. A zoom panel on the left
+// shows small lung arteries in cross-section.
+// Normal: the septum is intact and there is no shunt.
+// Eisenmenger syndrome: a large ventricular septal defect with high pressure in the pulmonary
+// artery and blood crossing it from right to left, so that blood poor in oxygen reaches the aorta
+// (Минздрав 806_1, ESC/ERS 2022 Table 21), and thickened walls of the small lung arteries
+// (Минздрав 806_1, 159_2). The
+// right ventricle keeps its normal size: ESC/ERS 2022 7.5.1 says the right-to-left shunt unloads
+// it, and right heart failure is a late stage (Минздрав 806_1). No closed defect: closure is
+// contraindicated. The left-to-right stage before the syndrome is named in the caption only.
+const path = {
+  pulmonaryArtery: 'M225,166 V75 Q225,62 212,62 H83 Q70,62 70,75 V112',
+  aortaNormal: 'M370,166 V34',
+  // Eisenmenger: arterial blood from the left ventricle and venous blood that came through the
+  // defect leave side by side through the aorta.
+  aortaArterial: 'M376,166 V34',
+  aortaVenous: 'M364,166 V34',
+  shunt: 'M246,222 H336',
+};
+// Small lung arteries in cross-section inside the zoom panel.
+const vessels = [
+  { cx: 42, cy: 158 },
+  { cx: 98, cy: 174 },
+  { cx: 42, cy: 216 },
+  { cx: 98, cy: 232 },
+];
+// In disease the wall is thicker, so the lumen is smaller.
+const diseaseLumen = [8, 7, 5, 8];
+---
+
+<svg
+  viewBox="0 0 460 345"
+  role="img"
+  aria-label={t['diagram.eisenmenger-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Ventricles: the outer wall and the septum are heart muscle -->
+  <path
+    d="M160,150 L440,150 C452,215 406,290 300,310 C194,290 148,215 160,150 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    d="M178,165 L289,165 L289,282 C232,274 184,238 178,165 Z"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></path>
+  <path
+    d="M311,165 L422,165 C416,238 368,274 311,282 Z"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Eisenmenger syndrome: a large defect in the septum joins the two ventricles -->
+  <g class="disease-only">
+    <rect x="287" y="200" width="26" height="44" fill="var(--diagram-venous-fill)"></rect>
+    <path
+      d="M287,200 H313 M287,244 H313"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></path>
+  </g>
+
+  <!-- Great arteries as tubes: the wall first, then the lumen -->
+  <g fill="none">
+    <path d={path.pulmonaryArtery} stroke="var(--diagram-venous)" stroke-width="26"></path>
+    <path d={path.pulmonaryArtery} stroke="var(--diagram-venous-fill)" stroke-width="18"></path>
+    <path d={path.aortaNormal} stroke="var(--diagram-arterial)" stroke-width="34"></path>
+    <path d={path.aortaNormal} stroke="var(--diagram-arterial-fill)" stroke-width="26"></path>
+  </g>
+
+  <!-- Zoom panel: small lung arteries in cross-section -->
+  <rect
+    x="10"
+    y="118"
+    width="120"
+    height="172"
+    rx="12"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></rect>
+  <g class="normal-only">
+    {vessels.map(({ cx, cy }) => (
+      <>
+        <circle cx={cx} cy={cy} r="20" fill="var(--diagram-muscle)" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r="16"
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+      </>
+    ))}
+  </g>
+  <g class="disease-only">
+    {vessels.map(({ cx, cy }, i) => (
+      <>
+        <circle cx={cx} cy={cy} r="22" fill="var(--diagram-muscle)" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={diseaseLumen[i]}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+      </>
+    ))}
+  </g>
+
+  <!-- Flow arrows, readable without motion -->
+  <g fill="none" stroke-width="3">
+    <path
+      d={path.pulmonaryArtery}
+      stroke="var(--diagram-venous)"
+      marker-end={`url(#${arrowV})`}
+    ></path>
+    <path
+      class="normal-only"
+      d={path.aortaNormal}
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <g class="disease-only">
+      <path d={path.shunt} stroke="var(--diagram-venous)" marker-end={`url(#${arrowV})`}></path>
+      <path
+        d={path.aortaArterial}
+        stroke="var(--diagram-arterial)"
+        marker-end={`url(#${arrowA})`}
+      ></path>
+      <path
+        d={path.aortaVenous}
+        stroke="var(--diagram-venous)"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+    </g>
+  </g>
+
+  <!-- Moving blood: gaps running along the arrows -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="2">
+    <path class="dash-flow" d={path.pulmonaryArtery}></path>
+    <path class="dash-flow normal-only" d={path.aortaNormal}></path>
+    <g class="disease-only">
+      <path class="dash-flow" d={path.shunt}></path>
+      <path class="dash-flow" d={path.aortaArterial}></path>
+      <path class="dash-flow" d={path.aortaVenous}></path>
+    </g>
+  </g>
+
+  <!-- Septum (normal) or defect (Eisenmenger), labelled below the heart -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line class="normal-only" x1="300" y1="200" x2="300" y2="318"></line>
+    <line class="disease-only" x1="300" y1="246" x2="300" y2="318"></line>
+  </g>
+  <text class="normal-only" x="300" y="336" text-anchor="middle">
+    {t['diagram.label.septum']}
+  </text>
+  <text class="disease-only" x="300" y="336" text-anchor="middle">
+    {t['diagram.label.defect']}
+  </text>
+
+  <!-- Chamber and vessel labels -->
+  <text x="238" y="209" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="366" y="209" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small" x="148" y="40" text-anchor="middle">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text x="350" y="40" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="148" y="92" text-anchor="middle">
+      <tspan x="148">{pressureLines[0]}</tspan>
+      <tspan x="148" dy="14">
+        {pressureLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="348" y="110" text-anchor="end">
+      {t['diagram.label.mixed-blood']}
+    </text>
+  </g>
+
+  <!-- Zoom panel labels -->
+  <text class="diagram-small normal-only" x="70" y="276" text-anchor="middle">
+    {t['diagram.label.thin-wall']}
+  </text>
+  <text class="diagram-small disease-only" x="70" y="276" text-anchor="middle">
+    {t['diagram.label.thick-wall']}
+  </text>
+  <text class="diagram-small" x="70" y="308" text-anchor="middle">
+    <tspan x="70">{smallArteriesLines[0]}</tspan>
+    <tspan x="70" dy="14">
+      {smallArteriesLines[1]}
+    </tspan>
+  </text>
+</svg>
