@@ -1,0 +1,461 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowIds = { venous: `${uid}-cp-arrow-v`, arterial: `${uid}-cp-arrow-a` };
+const sacId = `${uid}-cp-sac`;
+
+// Long labels do not fit the column on one line: split them in two before a bracket, or else at a
+// word boundary.
+function twoLines(label: string): [string, string] {
+  const bracket = label.indexOf(' (');
+  if (bracket > 0) return [label.slice(0, bracket), label.slice(bracket + 1)];
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const thickLines = twoLines(t['diagram.label.thick-stiff-pericardium']);
+const calciumLines = twoLines(t['diagram.label.calcification-not-always']);
+const atriaLines = twoLines(t['diagram.label.atria-enlarged']);
+const ventricleLines = twoLines(t['diagram.label.ventricles-normal-size']);
+const fillingLines = twoLines(t['diagram.label.filling-limited']);
+
+// The same four-chamber view as the tamponade diagram, while the ventricles fill: the right atrium
+// and ventricle on the left of the picture (venous blood, blue), the left ones on the right
+// (arterial blood, red). The heart muscle is each cavity stroked wide, so the walls keep the same
+// thickness in both states. With constriction the ventricles keep their size, the atria are
+// larger, the pericardium is a thick stiff layer with some calcium, and the ventricles take in
+// less blood. There is no large effusion. Labels sit in the column on the right.
+type Side = 'venous' | 'arterial';
+const colour = (side: Side) => `var(--diagram-${side})`;
+const fillColour = (side: Side) => `var(--diagram-${side}-fill)`;
+const wall = 9;
+// The septum runs down the middle; the valve plane lies between the atria and the ventricles.
+const septumRight = 150;
+const septumLeft = septumRight + 2 * wall;
+const atriumBottom = 128;
+const ventricleTop = atriumBottom + 2 * wall;
+
+interface Chambers {
+  /** Outer edge of the right atrium cavity and its top. */
+  ra: { x: number; top: number };
+  /** Outer edge of the left atrium cavity and its top. */
+  la: { x: number; top: number };
+  /** Right ventricle: outer edge at the valve plane, its bulge and the apex end on the septum. */
+  rv: { x: number; bulge: number; apex: number };
+  /** Left ventricle, the same on the other side. */
+  lv: { x: number; bulge: number; apex: number };
+  /** Where the filling arrows end: deep in freely filling ventricles, short when they cannot. */
+  fillTo: { venous: number; arterial: number };
+  /** Animation of the moving blood: the whole way down, or stopping short. */
+  particle: 'cp-fill' | 'cp-fill-short';
+  className: string;
+}
+// The ventricles are the same in both states; only the atria and the filling change.
+const rv = { x: 72, bulge: 62, apex: 288 };
+const lv = { x: 246, bulge: 256, apex: 296 };
+const normal: Chambers = {
+  ra: { x: 74, top: 60 },
+  la: { x: 244, top: 60 },
+  rv,
+  lv,
+  fillTo: { venous: 222, arterial: 230 },
+  particle: 'cp-fill',
+  className: 'normal-only',
+};
+const constricted: Chambers = {
+  ra: { x: 64, top: 52 },
+  la: { x: 254, top: 52 },
+  rv,
+  lv,
+  fillTo: { venous: 186, arterial: 192 },
+  particle: 'cp-fill-short',
+  className: 'disease-only',
+};
+const corner = 22;
+// The filling arrows and the moving blood start low in the atria, below the atrial labels.
+const inflowTop = atriumBottom - 22;
+function shape(s: Chambers) {
+  const rvPath = `M${septumRight},${ventricleTop} L${s.rv.x},${ventricleTop} C${s.rv.bulge},${ventricleTop + 70} ${s.rv.x + 30},${s.rv.apex - 30} ${septumRight},${s.rv.apex} Z`;
+  const lvPath = `M${septumLeft},${ventricleTop} L${s.lv.x},${ventricleTop} C${s.lv.bulge},${ventricleTop + 76} ${s.lv.x - 26},${s.lv.apex - 26} ${septumLeft},${s.lv.apex} Z`;
+  // Openings from each atrium into its ventricle: the middle part of the ventricle's top.
+  const tricuspid = { from: s.rv.x + 14, to: septumRight - 18 };
+  const mitral = { from: septumLeft + 18, to: s.lv.x - 16 };
+  return {
+    ...s,
+    rvPath,
+    lvPath,
+    tricuspid,
+    mitral,
+    apexLine: `M${septumRight},${s.rv.apex} L${septumLeft},${s.lv.apex}`,
+    inflow: {
+      venous: (tricuspid.from + tricuspid.to) / 2,
+      arterial: (mitral.from + mitral.to) / 2,
+    },
+  };
+}
+const geometry = [normal, constricted].map(shape);
+
+// The outer layer of the pericardium. Normally it is a thin layer over a narrow cavity, drawn as
+// the tamponade diagram does. With constriction it is a thick stiff layer lying right on the heart
+// muscle: the heart's own outline stroked wider, so there is no fluid layer and its outer edge stays
+// inside the normal sac.
+const centre = { x: 159, y: 172 };
+const sacPath =
+  'M159,40 C236,38 272,66 272,140 C272,222 222,300 166,312 C100,312 48,236 46,148 C44,70 84,40 159,40 Z';
+const around = (scale: number) =>
+  `translate(${centre.x} ${centre.y}) scale(${scale}) translate(${-centre.x} ${-centre.y})`;
+const sacNormal = 1.04;
+const band = 10;
+const disease = shape(constricted);
+
+// Calcium deposits in the thick layer: a few patches, not a whole shell.
+const calcium = [
+  { cx: 50, cy: 96, rx: 6, ry: 3.5, rotate: 90 },
+  { cx: 68, cy: 222, rx: 6, ry: 3.5, rotate: 70 },
+  { cx: 158, cy: 306, rx: 6, ry: 3.5, rotate: 0 },
+  { cx: 257, cy: 206, rx: 6, ry: 3.5, rotate: -70 },
+];
+// Moving blood: two particles per side, the second trailing the first.
+const delays = [0, 0.8];
+---
+
+<svg
+  viewBox="0 0 500 372"
+  role="img"
+  aria-label={t['diagram.constrictive-pericarditis.title']}
+  lang={locale}
+>
+  <defs>
+    {(['venous', 'arterial'] as const).map((side) => (
+      <marker
+        id={arrowIds[side]}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="4.5"
+        markerHeight="4.5"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,0 L10,5 L0,10 z" fill={colour(side)} />
+      </marker>
+    ))}
+    <path id={sacId} d={sacPath}></path>
+  </defs>
+
+  <!-- Normal: a thin outer layer of the pericardium and the narrow cavity under it -->
+  <use
+    class="normal-only"
+    href={`#${sacId}`}
+    transform={around(sacNormal)}
+    fill="var(--diagram-venous-fill)"
+    fill-opacity="0.5"
+    stroke="var(--color-muted)"
+    stroke-width="3"
+    vector-effect="non-scaling-stroke"
+  ></use>
+  <!-- Constriction: a thick, stiff pericardium close round the heart -->
+  <g class="disease-only">
+    <g
+      fill="var(--color-muted)"
+      stroke="var(--color-muted)"
+      stroke-width={2 * (wall + band)}
+      stroke-linejoin="round"
+    >
+      <rect
+        x={disease.ra.x}
+        y={disease.ra.top}
+        width={septumRight - disease.ra.x}
+        height={atriumBottom - disease.ra.top}
+        rx={corner}
+      />
+      <rect
+        x={septumLeft}
+        y={disease.la.top}
+        width={disease.la.x - septumLeft}
+        height={atriumBottom - disease.la.top}
+        rx={corner}
+      />
+      <path d={disease.rvPath} />
+      <path d={disease.lvPath} />
+      <path d={disease.apexLine} stroke-linecap="round" />
+    </g>
+    {calcium.map((c) => (
+      <ellipse
+        cx={c.cx}
+        cy={c.cy}
+        rx={c.rx}
+        ry={c.ry}
+        transform={`rotate(${c.rotate} ${c.cx} ${c.cy})`}
+        fill="var(--diagram-plaque)"
+        stroke="var(--color-text)"
+        stroke-width="1.5"
+      />
+    ))}
+  </g>
+
+  {geometry.map((g) => (
+    <g class={g.className}>
+      {/* Heart muscle: the cavities stroked wide, a block for the septum, a line at the apex. */}
+      <g fill="var(--diagram-muscle)" stroke="var(--diagram-muscle)" stroke-linejoin="round">
+        <rect
+          x={g.ra.x}
+          y={g.ra.top}
+          width={septumRight - g.ra.x}
+          height={atriumBottom - g.ra.top}
+          rx={corner}
+          stroke-width={2 * wall}
+        />
+        <rect
+          x={septumLeft}
+          y={g.la.top}
+          width={g.la.x - septumLeft}
+          height={atriumBottom - g.la.top}
+          rx={corner}
+          stroke-width={2 * wall}
+        />
+        <path d={g.rvPath} stroke-width={2 * wall} />
+        <path d={g.lvPath} stroke-width={2 * wall} />
+        <path d={g.apexLine} stroke-width={2 * wall} stroke-linecap="round" />
+        <rect
+          x={septumRight}
+          y={Math.max(g.ra.top, g.la.top) + corner / 2}
+          width={septumLeft - septumRight}
+          height={Math.min(g.rv.apex, g.lv.apex) - Math.max(g.ra.top, g.la.top) - corner / 2}
+          stroke="none"
+        />
+      </g>
+
+      <!-- Cavities -->
+      <rect
+        x={g.ra.x}
+        y={g.ra.top}
+        width={septumRight - g.ra.x}
+        height={atriumBottom - g.ra.top}
+        rx={corner}
+        fill={fillColour('venous')}
+        stroke={colour('venous')}
+        stroke-width="1.5"
+      />
+      <rect
+        x={septumLeft}
+        y={g.la.top}
+        width={g.la.x - septumLeft}
+        height={atriumBottom - g.la.top}
+        rx={corner}
+        fill={fillColour('arterial')}
+        stroke={colour('arterial')}
+        stroke-width="1.5"
+      />
+      <path d={g.rvPath} fill={fillColour('venous')} stroke={colour('venous')} stroke-width="1.5" />
+      <path
+        d={g.lvPath}
+        fill={fillColour('arterial')}
+        stroke={colour('arterial')}
+        stroke-width="1.5"
+      />
+      <rect
+        x={g.tricuspid.from}
+        y={atriumBottom - 6}
+        width={g.tricuspid.to - g.tricuspid.from}
+        height={ventricleTop - atriumBottom + 12}
+        fill={fillColour('venous')}
+      />
+      <rect
+        x={g.mitral.from}
+        y={atriumBottom - 6}
+        width={g.mitral.to - g.mitral.from}
+        height={ventricleTop - atriumBottom + 12}
+        fill={fillColour('arterial')}
+      />
+
+      <!-- Filling arrows, visible with and without motion: long when the ventricles fill
+           freely, short when the stiff pericardium stops them -->
+      <g fill="none" stroke-width="4" stroke-linecap="round">
+        <path
+          d={`M${g.inflow.venous},${inflowTop} L${g.inflow.venous},${g.fillTo.venous}`}
+          stroke={colour('venous')}
+          marker-end={`url(#${arrowIds.venous})`}
+        />
+        <path
+          d={`M${g.inflow.arterial},${inflowTop} L${g.inflow.arterial},${g.fillTo.arterial}`}
+          stroke={colour('arterial')}
+          marker-end={`url(#${arrowIds.arterial})`}
+        />
+      </g>
+
+      <!-- Moving blood from the atria into the ventricles -->
+      <g class="flow">
+        {delays.map((delay) => (
+          <>
+            <circle
+              class={g.particle}
+              cx={g.inflow.venous}
+              cy={inflowTop}
+              r="5"
+              fill={colour('venous')}
+              style={`animation-delay: ${delay}s`}
+            />
+            <circle
+              class={g.particle}
+              cx={g.inflow.arterial}
+              cy={inflowTop}
+              r="5"
+              fill={colour('arterial')}
+              style={`animation-delay: ${delay}s`}
+            />
+          </>
+        ))}
+      </g>
+    </g>
+  ))}
+
+  <!-- Chamber labels; a halo in the chamber colour keeps them readable over the arrows -->
+  <!-- Labels of the right chambers grow to the left, those of the left chambers to the right -->
+  <text class="cp-label-v normal-only" x="136" y="88" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="cp-label-v disease-only" x="136" y="80" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="cp-label-a normal-only" x="178" y="88">
+    {t['diagram.label.la']}
+  </text>
+  <text class="cp-label-a disease-only" x="178" y="80">
+    {t['diagram.label.la']}
+  </text>
+  <text class="cp-label-v" x="140" y="252" text-anchor="end">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="cp-label-a" x="176" y="262">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Normal: labels in the right column with leader lines into the drawing -->
+  <g class="normal-only" stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="300" y1="60" x2="256" y2="72"></line>
+    <line x1="300" y1="140" x2="266" y2="140"></line>
+  </g>
+  <text class="normal-only" x="306" y="65">
+    {t['diagram.label.pericardium']}
+  </text>
+  <text class="normal-only" x="306" y="145">
+    {t['diagram.label.pericardial-cavity']}
+  </text>
+
+  <!-- Constriction: labels in the right column with leader lines into the drawing -->
+  <g class="disease-only" stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="300" y1="40" x2="272" y2="80"></line>
+    <line x1="300" y1="108" x2="240" y2="100"></line>
+    <line x1="300" y1="176" x2="262" y2="200"></line>
+    <line x1="300" y1="244" x2="212" y2="196"></line>
+    <line x1="300" y1="312" x2="225" y2="222"></line>
+  </g>
+  <text class="disease-only" x="306" y="36">
+    <tspan x="306">{thickLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {thickLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="306" y="172">
+    <tspan x="306">{calciumLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {calciumLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="306" y="104">
+    <tspan x="306">{atriaLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {atriaLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="306" y="308">
+    <tspan x="306">{ventricleLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {ventricleLines[1]}
+    </tspan>
+  </text>
+  <text class="disease-only" x="306" y="240">
+    <tspan x="306">{fillingLines[0]}</tspan>
+    <tspan x="306" dy="18">
+      {fillingLines[1]}
+    </tspan>
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .cp-label-v,
+  .diagram .cp-label-a {
+    paint-order: stroke;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .diagram .cp-label-v {
+    stroke: var(--diagram-venous-fill);
+  }
+
+  .diagram .cp-label-a {
+    stroke: var(--diagram-arterial-fill);
+  }
+
+  .diagram .cp-fill,
+  .diagram .cp-fill-short {
+    opacity: 0;
+    animation: cp-fill 1.6s linear infinite;
+  }
+
+  .diagram .cp-fill-short {
+    animation-name: cp-fill-short;
+  }
+
+  /* While the ventricles fill, blood runs from each atrium through the opening into its ventricle. */
+  @keyframes cp-fill {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    70% {
+      opacity: 1;
+    }
+
+    85%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 110px);
+    }
+  }
+
+  /* The stiff pericardium stops the filling early: the blood runs in fast, then stops short. */
+  @keyframes cp-fill-short {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    30%,
+    45% {
+      opacity: 1;
+      transform: translate(0, 72px);
+    }
+
+    55%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 72px);
+    }
+  }
+</style>

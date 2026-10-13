@@ -43,6 +43,7 @@ test.describe('3D model in an article without signs on the model', () => {
     'wpw-syndrome': ['av-node'],
     'marfan-syndrome': ['aorta', 'aortic-valve', 'mitral-valve'],
     'pulmonary-valve-stenosis': ['pulmonary-valve', 'right-ventricle', 'pulmonary-trunk'],
+    'cardiac-myxoma': ['left-atrium', 'mitral-valve'],
     'brugada-syndrome': ['right-ventricle'],
     'restrictive-cardiomyopathy': [
       'left-ventricle',

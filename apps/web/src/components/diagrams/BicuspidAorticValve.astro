@@ -1,0 +1,148 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-bav-clip`;
+// The closed aortic valve seen from the aorta (en face). Both states show the same closed valve:
+// the article says a bicuspid valve may work normally, so it is drawn neither narrowed nor
+// calcified, and no opening is drawn in either state.
+const cx = 170;
+const cy = 165;
+const r = 95;
+const pt = (deg: number, radius = r) => {
+  const a = (deg * Math.PI) / 180;
+  return { x: +(cx + radius * Math.cos(a)).toFixed(1), y: +(cy + radius * Math.sin(a)).toFixed(1) };
+};
+// Commissures where neighbouring cusps meet at the wall. Normal: three, 120° apart. The bicuspid
+// valve keeps the two upper ones; the lower one is where two cusps have fused.
+const upperLeft = pt(210);
+const upperRight = pt(-30);
+const bottom = pt(90);
+// Normal: three cusps whose free edges meet in the centre (the closure lines form a "Y").
+// A clockwise arc along the wall to the next commissure (120°, the short way round).
+const arc = (to: { x: number; y: number }) => `A${r},${r} 0 0 1 ${to.x},${to.y}`;
+const normalCusps = [
+  `M${cx},${cy} L${upperLeft.x},${upperLeft.y} ${arc(upperRight)} Z`,
+  `M${cx},${cy} L${upperRight.x},${upperRight.y} ${arc(bottom)} Z`,
+  `M${cx},${cy} L${bottom.x},${bottom.y} ${arc(upperLeft)} Z`,
+];
+const closureLines = [upperLeft, upperRight, bottom].map((c) => `M${cx},${cy} L${c.x},${c.y}`);
+// Bicuspid: one closure line between the two remaining commissures, bowed below the upper
+// commissures, so the upper cusp is smaller and the lower, fused cusp is larger.
+const closureCurve = `Q${cx},${cy + 0.3 * r} ${upperRight.x},${upperRight.y}`;
+const closureMidY = +(cy - 0.1 * r).toFixed(1);
+const smallerCusp = `M${upperLeft.x},${upperLeft.y} ${arc(upperRight)} Q${cx},${cy + 0.3 * r} ${upperLeft.x},${upperLeft.y} Z`;
+const largerCusp = `M${upperLeft.x},${upperLeft.y} ${closureCurve} A${r},${r} 0 1 1 ${upperLeft.x},${upperLeft.y} Z`;
+// The fusion line on the larger cusp runs from its free edge to the wall, where the third
+// commissure of a normal valve would be.
+const fusionLine = `M${cx},${closureMidY + 4} L${cx},${bottom.y - 4}`;
+---
+
+<svg
+  viewBox="0 0 460 300"
+  role="img"
+  aria-label={t['diagram.bicuspid-aortic-valve.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <circle cx={cx} cy={cy} r={r}></circle>
+    </clipPath>
+  </defs>
+
+  <!-- What the drawing shows: the aortic valve, seen from above (from the aorta) -->
+  <text x="8" y="22">
+    {t['diagram.label.aortic-valve']}
+  </text>
+  <text class="diagram-small" x="8" y="40">
+    {t['diagram.label.valve-top-view']}
+  </text>
+
+  <!-- Aortic wall round the valve: the same in both states -->
+  <circle
+    cx={cx}
+    cy={cy}
+    r={r + 4}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="4"
+  ></circle>
+
+  <!-- Normal: three cusps meeting in the centre -->
+  <g class="normal-only" fill="var(--color-border)" stroke="var(--color-muted)" stroke-width="2">
+    {normalCusps.map((d) => (
+      <path d={d} stroke-linejoin="round" />
+    ))}
+  </g>
+  <g class="normal-only bav-pulse" clip-path={`url(#${clipId})`}>
+    {closureLines.map((d) => (
+      <path d={d} fill="none" stroke="var(--color-text)" stroke-width="3" />
+    ))}
+  </g>
+
+  <!-- Bicuspid: a smaller cusp and a larger cusp formed by two fused cusps -->
+  <g class="disease-only" fill="var(--color-border)" stroke="var(--color-muted)" stroke-width="2">
+    <path d={smallerCusp} stroke-linejoin="round"></path>
+    <path d={largerCusp} stroke-linejoin="round"></path>
+  </g>
+  <g class="disease-only" fill="none" stroke="var(--color-text)" stroke-linecap="round">
+    <path d={`M${upperLeft.x},${upperLeft.y} ${closureCurve}`} stroke-width="3"></path>
+    <!-- Fusion line: drawn as a dashed line so it reads differently from where the cusps meet -->
+    <path class="bav-pulse" d={fusionLine} stroke-width="3" stroke-dasharray="7 5"></path>
+  </g>
+
+  <!-- Commissures on the wall -->
+  <g fill="var(--color-muted)">
+    <circle cx={upperLeft.x} cy={upperLeft.y} r="4"></circle>
+    <circle cx={upperRight.x} cy={upperRight.y} r="4"></circle>
+    <circle class="normal-only" cx={bottom.x} cy={bottom.y} r="4"></circle>
+  </g>
+
+  <!-- Leader lines from the label column into the drawing; "three cusps" points to where they meet -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="294" y1="186" x2="176" y2="167"></line>
+    <line class="disease-only" x1="294" y1="96" x2="214" y2="104"></line>
+    <line class="disease-only" x1="294" y1="170" x2="226" y2="196"></line>
+    <line class="disease-only" x1="294" y1="232" x2="174" y2="232"></line>
+  </g>
+
+  <!-- Labels in the right column -->
+  <text class="diagram-small normal-only" x="300" y="190">
+    {t['diagram.label.three-cusps']}
+  </text>
+  <text class="diagram-small disease-only" x="300" y="100">
+    {t['diagram.label.smaller-cusp']}
+  </text>
+  <text class="diagram-small disease-only" x="300" y="174">
+    {t['diagram.label.larger-cusp']}
+  </text>
+  <text class="diagram-small disease-only" x="300" y="236">
+    {t['diagram.label.fusion-line']}
+  </text>
+</svg>
+
+<style is:global>
+  /* Draws the eye to where the cusps meet (normal) or to the fusion line (bicuspid); without
+     motion the lines stay solid. */
+  .diagram .bav-pulse {
+    animation: bav-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes bav-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.35;
+    }
+  }
+</style>

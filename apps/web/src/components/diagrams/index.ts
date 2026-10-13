@@ -6,13 +6,17 @@ import ArrhythmogenicRightVentricularCardiomyopathy from './ArrhythmogenicRightV
 import AtrialFibrillation from './AtrialFibrillation.astro';
 import AtrialFlutter from './AtrialFlutter.astro';
 import AtrialSeptalDefect from './AtrialSeptalDefect.astro';
+import AtrioventricularSeptalDefect from './AtrioventricularSeptalDefect.astro';
 import AvBlock from './AvBlock.astro';
+import BicuspidAorticValve from './BicuspidAorticValve.astro';
 import BloodFlow from './BloodFlow.astro';
 import BrugadaSyndrome from './BrugadaSyndrome.astro';
 import CardiacAmyloidosis from './CardiacAmyloidosis.astro';
+import CardiacMyxoma from './CardiacMyxoma.astro';
 import CardiacTamponade from './CardiacTamponade.astro';
 import CoarctationOfTheAorta from './CoarctationOfTheAorta.astro';
 import ConductionSystem from './ConductionSystem.astro';
+import ConstrictivePericarditis from './ConstrictivePericarditis.astro';
 import CoronaryArteries from './CoronaryArteries.astro';
 import CoronaryHeartDisease from './CoronaryHeartDisease.astro';
 import DeepVeinThrombosis from './DeepVeinThrombosis.astro';
@@ -59,13 +63,17 @@ export const diagrams = {
   'atrial-fibrillation': AtrialFibrillation,
   'atrial-flutter': AtrialFlutter,
   'atrial-septal-defect': AtrialSeptalDefect,
+  'atrioventricular-septal-defect': AtrioventricularSeptalDefect,
   'av-block': AvBlock,
+  'bicuspid-aortic-valve': BicuspidAorticValve,
   'blood-flow': BloodFlow,
   'brugada-syndrome': BrugadaSyndrome,
   'cardiac-amyloidosis': CardiacAmyloidosis,
+  'cardiac-myxoma': CardiacMyxoma,
   'cardiac-tamponade': CardiacTamponade,
   'coarctation-of-the-aorta': CoarctationOfTheAorta,
   'conduction-system': ConductionSystem,
+  'constrictive-pericarditis': ConstrictivePericarditis,
   'coronary-arteries': CoronaryArteries,
   'coronary-heart-disease': CoronaryHeartDisease,
   'deep-vein-thrombosis': DeepVeinThrombosis,

@@ -1,0 +1,339 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-arrow-v`;
+const arrowA = `${uid}-arrow-a`;
+// Particles: start position, travel and a negative delay so the flow is already running.
+const venous = [0, -0.7, -1.4, -2.1];
+const arterial = [-0.35, -1.05, -1.75, -2.45];
+const shunt = [0, -1, -2];
+---
+
+<!--
+  Four-chamber view drawn like the atrial and ventricular septal defect diagrams. Sources: Минздрав
+  709_2 (1.1, 1.2, 1.5) and MSD (Atrioventricular Septal Defect). Disease is the complete form: one
+  central defect directly above (primum ASD) and below (inlet VSD) a common AV valve at one level,
+  left-to-right shunt at the atrial and ventricular levels, all four chambers enlarged (MSD). Not
+  drawn on purpose: right-to-left shunt (late Eisenmenger outcome), the number of leaflets,
+  ventricular hypoplasia (unbalanced form) and any numbers.
+-->
+<svg
+  viewBox="0 0 360 330"
+  role="img"
+  aria-label={t['diagram.atrioventricular-septal-defect.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Heart wall -->
+  <path
+    d="M60,55 Q180,5 300,55 Q345,140 285,232 Q225,292 180,296 Q135,292 75,232 Q15,140 60,55 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Chambers: venous blood on the right side of the heart (viewer's left), arterial on the left -->
+  <g class="normal-only">
+    <ellipse
+      cx="115"
+      cy="95"
+      rx="58"
+      ry="45"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="245"
+      cy="95"
+      rx="58"
+      ry="45"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="120"
+      cy="205"
+      rx="50"
+      ry="58"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="248"
+      cy="205"
+      rx="52"
+      ry="60"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+  <!-- MSD: the shunt and the valve regurgitation enlarge all four chambers. -->
+  <g class="disease-only">
+    <ellipse
+      cx="111"
+      cy="93"
+      rx="62"
+      ry="48"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="249"
+      cy="93"
+      rx="62"
+      ry="48"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="114"
+      cy="208"
+      rx="56"
+      ry="62"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      cx="248"
+      cy="208"
+      rx="57"
+      ry="63"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+  </g>
+
+  <!-- Normal: two separate AV valves, open while the ventricles fill -->
+  <g class="normal-only">
+    <g fill="none" stroke="var(--color-muted)" stroke-width="3" stroke-linecap="round">
+      <path d="M92,143 L104,166 M138,143 L126,166"></path>
+      <path d="M222,143 L234,166 M268,143 L256,166"></path>
+    </g>
+    <path
+      d="M92,146 L44,146 L44,302"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+    <text x="8" y="322">
+      {t['diagram.label.tricuspid']}
+    </text>
+    <path
+      d="M268,146 L316,146 L316,302"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+    <text x="352" y="322" text-anchor="end">
+      {t['diagram.label.mitral']}
+    </text>
+  </g>
+
+  <!-- Complete form: one central defect above and below the valve plane -->
+  <g class="disease-only">
+    <rect
+      x="166"
+      y="104"
+      width="28"
+      height="84"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+    <line x1="180" y1="44" x2="180" y2="100" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="180" y="36" text-anchor="middle">
+      {t['diagram.label.defect']}
+    </text>
+  </g>
+
+  <!-- Complete form: one common AV valve at one level; its bridging leaflet crosses the centre
+       with no septum to attach to, so there is a single orifice. -->
+  <g class="disease-only">
+    <g fill="none" stroke="var(--color-muted)" stroke-width="3" stroke-linecap="round">
+      <path d="M78,143 L92,166"></path>
+      <path d="M282,143 L268,166"></path>
+      <path d="M130,146 Q180,158 230,146"></path>
+    </g>
+    <!-- The leader ends on the bridging leaflet: the label names the one shared valve. -->
+    <line x1="180" y1="153" x2="180" y2="302" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <circle cx="180" cy="152" r="3" fill="var(--color-text)"></circle>
+    <text x="180" y="322" text-anchor="middle">
+      {t['diagram.label.common-av-valve']}
+    </text>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    d="M115,62 L115,222"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowV})`}
+  ></path>
+  <path
+    d="M245,62 L245,222"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowA})`}
+  ></path>
+  <!-- Left-to-right shunt at the atrial and at the ventricular level -->
+  <g class="disease-only">
+    <path
+      d="M222,116 L140,116"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      fill="none"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <path
+      d="M222,180 L140,180"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      fill="none"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    {venous.map((delay) => (
+      <circle
+        class="avsd-down"
+        cx="115"
+        cy="62"
+        r="5"
+        fill="var(--diagram-venous)"
+        style={`animation-delay: ${delay}s`}
+      ></circle>
+    ))}
+    {arterial.map((delay) => (
+      <circle
+        class="avsd-down"
+        cx="245"
+        cy="62"
+        r="5"
+        fill="var(--diagram-arterial)"
+        style={`animation-delay: ${delay}s`}
+      ></circle>
+    ))}
+    <g class="disease-only">
+      {shunt.map((delay) => (
+        <circle
+          class="avsd-shunt"
+          cx="225"
+          cy="116"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        ></circle>
+      ))}
+      {shunt.map((delay) => (
+        <circle
+          class="avsd-shunt"
+          cx="225"
+          cy="180"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay - 0.5}s`}
+        ></circle>
+      ))}
+    </g>
+  </g>
+
+  <text x="82" y="100" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="278" y="100" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+  <text x="86" y="216" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="278" y="216" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .avsd-down {
+    animation: avsd-down 2.8s linear infinite;
+  }
+
+  .diagram .avsd-shunt {
+    animation: avsd-shunt 2.4s linear infinite;
+  }
+
+  @keyframes avsd-down {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 155px);
+    }
+  }
+
+  @keyframes avsd-shunt {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    15%,
+    80% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-100px, 0);
+    }
+  }
+</style>

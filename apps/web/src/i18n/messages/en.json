@@ -566,5 +566,20 @@
   "diagram.label.lower-leg-arteries": "Lower leg arteries",
   "diagram.label.collateral-vessels": "Collateral vessels",
   "diagram.label.calf-pain-walking": "Calf: pain on walking",
-  "diagram.peripheral-artery-disease.title": "Diagram of the main artery of the leg from the femoral artery through the popliteal artery and the lower leg arteries to the foot: normally the lumen is open and blood reaches the foot freely; in lower extremity peripheral artery disease a plaque narrows the femoral–popliteal segment, less blood passes below the narrowing, thin collateral vessels run around it, and the calf is marked as the place of pain on walking"
+  "diagram.peripheral-artery-disease.title": "Diagram of the main artery of the leg from the femoral artery through the popliteal artery and the lower leg arteries to the foot: normally the lumen is open and blood reaches the foot freely; in lower extremity peripheral artery disease a plaque narrows the femoral–popliteal segment, less blood passes below the narrowing, thin collateral vessels run around it, and the calf is marked as the place of pain on walking",
+  "diagram.label.interatrial-septum": "Interatrial septum",
+  "diagram.label.myxoma-on-stalk": "Myxoma on a stalk",
+  "diagram.cardiac-myxoma.title": "Diagram of the heart cut through all four chambers while the ventricles fill: normally the mitral valve is open and blood flows freely from the left atrium into the left ventricle; with a myxoma a rounded lobular tumour hangs in the left atrium on a stalk attached to the interatrial septum, swings with the blood flow, drops into the opening of the mitral valve and obstructs blood flow into the left ventricle",
+  "diagram.label.thick-stiff-pericardium": "Thick, stiff pericardium",
+  "diagram.label.calcification-not-always": "Calcification (not always)",
+  "diagram.label.ventricles-normal-size": "Ventricles of normal size",
+  "diagram.label.filling-limited": "Filling restricted",
+  "diagram.constrictive-pericarditis.title": "Diagram of the heart cut through all four chambers inside the pericardium while the ventricles fill: normally the pericardium is thin with a narrow cavity under it and the chambers fill freely; in constrictive pericarditis the pericardium is thick and stiff with patches of calcium and no wide layer of fluid under it, the atria are enlarged, and the ventricles are of normal size but fill less",
+  "diagram.label.common-av-valve": "Common AV valve",
+  "diagram.atrioventricular-septal-defect.title": "Diagram of the four heart chambers normally and in the complete form of atrioventricular septal defect: normally the right and left halves of the heart are separate and blood flows from the atria into the ventricles through two separate valves, the tricuspid and the mitral; in the complete form there is one large defect in the centre of the heart directly above and below a common valve through which both atria connect with the ventricles, blood shunts from left to right at the atrial and the ventricular level, and all four chambers are enlarged",
+  "diagram.label.three-cusps": "Three cusps",
+  "diagram.label.smaller-cusp": "Smaller cusp",
+  "diagram.label.larger-cusp": "Larger cusp",
+  "diagram.label.fusion-line": "Fusion line",
+  "diagram.bicuspid-aortic-valve.title": "Diagram of the closed aortic valve seen from the aorta: normally the valve has three cusps that meet in the centre; a bicuspid aortic valve has two cusps, a smaller one and a larger one formed by two fused cusps, which carries a fusion line; the valve is not drawn narrowed"
 }
