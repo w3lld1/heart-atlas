@@ -274,10 +274,12 @@ export function resolveParams(
       params.rrIrregularity > 0 ||
       params.pauseEvery > 0 ||
       params.atrialPacing > 0 ||
-      params.ventricularPacing > 0)
+      params.ventricularPacing > 0 ||
+      params.atrialContribution > 0)
   ) {
+    // atrialContribution: the hemodynamics would draw an atrial kick locked to every QRS.
     throw new RangeError(
-      'atrialRate needs a positive pAmplitude and fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialPacing and ventricularPacing at 0',
+      'atrialRate needs a positive pAmplitude and fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialPacing, ventricularPacing and atrialContribution at 0',
     );
   }
   if (!Number.isInteger(params.ventricularPacing)) {

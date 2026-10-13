@@ -56,8 +56,8 @@ describe('phaseAt', () => {
     const timing = beatTiming(800, defaultParams);
     const starts = phaseStarts(timing);
     phases.forEach((phase, i) => {
-      expect(phaseAt(starts[i] ?? 0, timing)).toBe(phase);
-      expect(phaseAt((starts[i + 1] ?? timing.rr) - 0.01, timing)).toBe(phase);
+      expect(phaseAt(starts[i] ?? 0, timing, defaultParams)).toBe(phase);
+      expect(phaseAt((starts[i + 1] ?? timing.rr) - 0.01, timing, defaultParams)).toBe(phase);
     });
   });
 });

@@ -63,7 +63,9 @@ describe('resolveParams', () => {
   });
 
   it('takes P waves on their own clock as 0 or 40–150 per minute, only with sinus P waves', () => {
-    expect(resolveParams({ atrialRate: 75, heartRate: 40 }).atrialRate).toBe(75);
+    expect(resolveParams({ atrialRate: 75, heartRate: 40, atrialContribution: 0 }).atrialRate).toBe(
+      75,
+    );
     for (const atrialRate of [1, 39, 75.5]) {
       expect(() => resolveParams({ atrialRate }), String(atrialRate)).toThrow(
         /^atrialRate must be 0 or an integer from 40 to 150/,
@@ -78,10 +80,10 @@ describe('resolveParams', () => {
       { pauseEvery: 3, pauseDuration: 2000 },
       { atrialPacing: 1 },
       { ventricularPacing: 1 },
+      { atrialContribution: 0.2 },
     ]) {
-      expect(() => resolveParams({ ...patch, atrialRate: 75 }), JSON.stringify(patch)).toThrow(
-        /^atrialRate needs/,
-      );
+      const blocked = { atrialRate: 75, atrialContribution: 0, ...patch };
+      expect(() => resolveParams(blocked), JSON.stringify(patch)).toThrow(/^atrialRate needs/);
     }
   });
 

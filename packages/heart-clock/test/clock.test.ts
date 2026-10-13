@@ -201,19 +201,18 @@ describe('P waves on their own clock', () => {
 
   it('draws a P wave every 800 ms of clock time, apart from the beats, and beats without one', () => {
     const clock = createHeartClock(block);
-    const peaks: number[] = [];
-    // Each P wave peaks at half its duration; between QRS complexes the trace is the P train.
-    for (let k = 0; k < 8; k += 1) {
-      const peak = k * 800 + pDurationAt(800, clock.params) / 2;
-      peaks.push(peak);
-      const beat = clock.beatAt(peak);
-      const inBeat = peak - beat.start;
-      if (inBeat > beat.timing.tEnd && inBeat < beat.rr - 50) {
-        expect(clock.ecgAt(peak)).toBeCloseTo(0.15, 3);
-      }
+    const peak = (k: number) => k * 800 + pDurationAt(800, clock.params) / 2;
+    // QRS complexes every 1500 ms; these P waves fall between a T wave and the next QRS, where the
+    // trace is the P wave alone.
+    for (const k of [1, 3, 5, 7]) {
+      const beat = clock.beatAt(peak(k));
+      const inBeat = peak(k) - beat.start;
+      expect(inBeat).toBeGreaterThan(beat.timing.tEnd);
+      expect(inBeat).toBeLessThan(beat.timing.qOnset + beat.rr - 100);
+      expect(clock.ecgAt(peak(k))).toBeCloseTo(0.15, 3);
     }
-    expect(dissociatedP(peaks[3] ?? 0, clock.params)).toBeCloseTo(0.15, 6);
-    expect(dissociatedP(peaks[3] ?? 0, { ...clock.params, atrialRate: 0 })).toBe(0);
+    expect(dissociatedP(peak(3), clock.params)).toBeCloseTo(0.15, 6);
+    expect(dissociatedP(peak(3), { ...clock.params, atrialRate: 0 })).toBe(0);
     // A beat alone has no P wave: at its own P peak only the far tails of other waves are left.
     const beat = clock.beatAt(0);
     expect(Math.abs(beatWaves(beat.timing.pDuration / 2, beat.timing, beat.params))).toBeLessThan(
@@ -226,11 +225,10 @@ describe('P waves on their own clock', () => {
     clock.ecgAt(1000);
     const t = 60_000 + pDurationAt(800, clock.params) / 2;
     const beat = clock.beatAt(t);
-    const inBeat = t - beat.start;
-    const value = clock.ecgAt(t);
-    if (inBeat > beat.timing.tEnd || inBeat < beat.timing.qOnset - 50) {
-      expect(value).toBeGreaterThan(0.1);
-    }
+    // After the jump the beats start afresh at the queried time, so this P wave peaks before the
+    // QRS of its beat.
+    expect(t - beat.start).toBeLessThan(beat.timing.qOnset - 50);
+    expect(clock.ecgAt(t)).toBeCloseTo(0.15, 2);
     expect(dissociatedPOnset(t, clock.params)).toBe(60_000);
   });
 
@@ -240,18 +238,27 @@ describe('P waves on their own clock', () => {
     expect(clock.sample(beat.start + 1).phase).toBe('filling');
     expect(clock.sample(beat.start + beat.timing.rPeak + 1).phase).toBe('isovolumic-contraction');
     expect(phaseAt(1, beat.timing, beat.params)).toBe('filling');
-    expect(phaseAt(1, beat.timing)).toBe('atrial-systole');
+    expect(phaseAt(1, beat.timing, defaultParams)).toBe('atrial-systole');
   });
 
-  it('changes preset in the middle of a strip without a step', () => {
-    for (const [from, to] of [
-      [block, { atrialRate: 0, heartRate: 75, atrialContribution: 0.2 }],
-      [{ heartRate: 75 }, block],
+  it('fades P waves in and out when the preset changes in the middle of a P wave', () => {
+    // At 37 bpm the third beat starts 3243 ms in, 43 ms into the P wave at 3200; at 74 bpm the
+    // fourth starts 2432 ms in, 32 ms into the P wave at 2400. Without the fade the trace would
+    // jump by most of a P wave there.
+    const slowBlock = { ...block, heartRate: 37 };
+    const sinus = { atrialRate: 0, heartRate: 74, atrialContribution: 0.2 };
+    for (const [from, to, at] of [
+      [slowBlock, sinus, 3243],
+      [sinus, slowBlock, 2432],
     ] as const) {
       const clock = createHeartClock(from);
-      clock.ecgAt(2000);
-      clock.setParams(to, 2000);
-      const values = clock.ecgBetween(1500, 6000, 4501);
+      clock.ecgAt(at);
+      clock.setParams(to, at);
+      const next = clock.beatAt(at + 1).start;
+      const blocked = from === slowBlock ? clock.beatAt(at).params : clock.params;
+      expect(next - at).toBeLessThan(1);
+      expect(dissociatedP(next, blocked)).toBeGreaterThan(0.1);
+      const values = clock.ecgBetween(at - 500, at + 3000, 3501);
       let largest = 0;
       for (let i = 1; i < values.length; i += 1) {
         largest = Math.max(largest, Math.abs((values[i] ?? 0) - (values[i - 1] ?? 0)));
