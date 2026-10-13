@@ -84,8 +84,13 @@ function startLv(beat: Beat): number {
   return edp * (1 - 2.5 * atrialContribution);
 }
 
-/** LA pressure at the start of a beat: a little above LV, since the mitral valve is open. */
+/**
+ * LA pressure at the start of a beat: a little above LV, since the mitral valve is open. A beat
+ * whose QRS starts at once (a ventricular premature beat) has no time before the QRS, so LA
+ * starts where it meets LV at the end of diastole.
+ */
 function startLa(beat: Beat): number {
+  if (beat.timing.qOnset === 0) return beat.params.lvEndDiastolic;
   return startLv(beat) + 0.1 * beat.params.lvEndDiastolic;
 }
 

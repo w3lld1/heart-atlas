@@ -1,7 +1,7 @@
 import { beatWaves, dissociatedP, flutterWaves, fWaves, pWave } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
-import { beatTiming, phaseAt, type BeatTiming, type Phase } from './timing.ts';
+import { beatTiming, phaseAt, prAt, type BeatTiming, type Phase } from './timing.ts';
 
 export interface Beat {
   /** 0 for the first beat of the clock. */
@@ -12,9 +12,14 @@ export interface Beat {
   rr: number;
   /**
    * Pause at the end of this beat, ms; 0 for most beats. A sinus pause is silent; with `blockedP`
-   * it is one rhythm RR that starts with a P wave without a QRS.
+   * it is one rhythm RR that starts with a P wave without a QRS; after a ventricular premature beat
+   * it lasts until the next sinus beat.
    */
   pause: number;
+  /** 0 for a sinus beat, 1 for an atrial and 2 for a ventricular premature beat. */
+  premature: 0 | 1 | 2;
+  /** Whether this beat is cut short because the next one is premature. */
+  beforePremature: boolean;
   timing: BeatTiming;
   /** Parameters this beat was built with; `setParams` affects only later beats. */
   params: Readonly<HeartParams>;
@@ -25,7 +30,10 @@ export interface ClockSample {
   /** Time since the start of the beat, ms. */
   tInBeat: number;
   phase: Phase;
-  /** Whether `t` is in the pause at the end of the beat (a sinus pause or a blocked P wave). */
+  /**
+   * Whether `t` is in the pause at the end of the beat: a sinus pause, a blocked P wave, or the
+   * wait for the next sinus beat after a ventricular premature beat.
+   */
   pause: boolean;
   /** ECG, mV. */
   ecg: number;
@@ -101,6 +109,50 @@ function prExtraFor(params: HeartParams, index: number): number {
 }
 
 /**
+ * Shape of a ventricular premature beat: no P wave, one wide R wave, a T wave the other way.
+ * assumption: QRS 140 ms (sources: at least 120 ms), T -0.3 mV, no atrial share of filling.
+ * Spec: docs/plans/2026-10-13-heart-clock-premature-beats.md.
+ */
+const ventricularPrematureShape = {
+  pAmplitude: 0,
+  qrsDuration: 140,
+  qAmplitude: 0,
+  sAmplitude: 0,
+  tAmplitude: -0.3,
+  stShift: 0,
+  stSlope: 0,
+  atrialContribution: 0,
+  prematureEvery: 0,
+  prematureOrigin: 0,
+} as const satisfies Partial<HeartParams>;
+
+const ventricularPrematureCache = new WeakMap<HeartParams, Readonly<HeartParams>>();
+
+/** Parameters of a ventricular premature beat in a rhythm with these parameters. */
+export function ventricularPrematureParams(params: Readonly<HeartParams>): Readonly<HeartParams> {
+  let result = ventricularPrematureCache.get(params);
+  if (!result) {
+    result = resolveParams(ventricularPrematureShape, params);
+    ventricularPrematureCache.set(params, result);
+  }
+  return result;
+}
+
+/**
+ * Timing of the beat before a premature beat: it lasts `coupling` of the rhythm RR, so its phases
+ * come from that shorter RR (they do not fit the rhythm's), but it keeps the rhythm's PR.
+ */
+function beforePrematureTiming(rr: number, params: HeartParams): BeatTiming {
+  const cut = params.prematureCoupling * rr;
+  return beatTiming(cut, params, prAt(rr, params) - prAt(cut, params));
+}
+
+/** Timing of a ventricular premature beat: its QRS starts with the beat. */
+function ventricularPrematureTiming(rr: number, params: HeartParams): BeatTiming {
+  return beatTiming(rr, params, -prAt(rr, params));
+}
+
+/**
  * Checks that every RR the parameters can produce fits the cardiac cycle, so an invalid
  * combination fails when it is set, not in the middle of playback. The filling margin is not
  * monotonic in RR, so the range is sampled densely.
@@ -121,8 +173,14 @@ export function checkParams(params: HeartParams): void {
   // moment by the same amount, so only the end of the beat can stop fitting: the longest PR is the
   // one to check.
   const longest = params.pauseEvery > 0 ? (params.pauseEvery - 1) * params.prStep : 0;
+  const premature = params.prematureEvery > 0 ? ventricularPrematureParams(params) : undefined;
   for (let i = 0; i <= steps; i += 1) {
-    beatTiming(low + ((high - low) * i) / (steps || 1), params, longest);
+    const rr = low + ((high - low) * i) / (steps || 1);
+    beatTiming(rr, params, longest);
+    if (premature) {
+      beforePrematureTiming(rr, params);
+      if (params.prematureOrigin === 2) ventricularPrematureTiming(rr, premature);
+    }
   }
 }
 
@@ -156,6 +214,17 @@ export function heartRateLimits(params: HeartParams): readonly [min: number, max
   return best;
 }
 
+/**
+ * What the monitor shows at a sample: the phase, or a sinus pause. A pause with a blocked P wave,
+ * or after a ventricular premature beat, keeps the sinus node going, so it shows as filling.
+ */
+export function monitorPhase(sample: ClockSample): Phase | 'pause' {
+  const { beat } = sample;
+  return sample.pause && beat.params.blockedP === 0 && beat.premature !== 2
+    ? 'pause'
+    : sample.phase;
+}
+
 function smoothstep(x: number): number {
   const c = Math.min(1, Math.max(0, x));
   return c * c * (3 - 2 * c);
@@ -166,16 +235,49 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
   checkParams(params);
   const beats: Beat[] = [];
 
-  function makeBeat(index: number, start: number): Beat {
-    const rhythmRr = rrFor(params, index);
-    const pause = pauseFor(params, index, rhythmRr);
+  /**
+   * Beat `index` starting at `start`. A premature beat follows a beat marked `beforePremature`
+   * and is built from that beat's parameters, which passed `checkParams` together with it, so a
+   * parameter change between them cannot leave one without the other or make a beat that does
+   * not fit.
+   */
+  function makeBeat(index: number, start: number, previous?: Beat): Beat {
+    const before = previous?.beforePremature ? previous : undefined;
+    const beatParams = before ? before.params : params;
+    const origin = before ? beatParams.prematureOrigin : 0;
+    const rhythmRr = rrFor(beatParams, index);
+    if (origin === 2) {
+      // Full compensatory pause: the next sinus beat comes two rhythm RRs after the start of the
+      // beat before this one (assumption: the sources do not define it in RRs).
+      const prematureParams = ventricularPrematureParams(beatParams);
+      const pause = (1 - beatParams.prematureCoupling) * rhythmRr;
+      return {
+        index,
+        start,
+        rr: rhythmRr + pause,
+        pause,
+        premature: 2,
+        beforePremature: false,
+        timing: ventricularPrematureTiming(rhythmRr, prematureParams),
+        params: prematureParams,
+      };
+    }
+    const every = beatParams.prematureEvery;
+    const beforePremature = every > 0 && index % every === every - 2;
+    const pause = pauseFor(beatParams, index, rhythmRr);
+    const timing = beforePremature
+      ? beforePrematureTiming(rhythmRr, beatParams)
+      : beatTiming(rhythmRr, beatParams, prExtraFor(beatParams, index));
     return {
       index,
       start,
-      rr: rhythmRr + pause,
+      rr: timing.rr + pause,
       pause,
-      timing: beatTiming(rhythmRr, params, prExtraFor(params, index)),
-      params,
+      // An atrial premature beat resets the sinus node: the next beat comes one rhythm RR after it.
+      premature: origin === 1 ? 1 : 0,
+      beforePremature,
+      timing,
+      params: beatParams,
     };
   }
 
@@ -201,7 +303,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
     let ahead = 0;
     for (let i = beats.length - 1; i >= 0 && (beats[i] as Beat).start > t; i -= 1) ahead += 1;
     while (ahead < lookAheadBeats) {
-      last = makeBeat(last.index + 1, last.start + last.rr);
+      last = makeBeat(last.index + 1, last.start + last.rr, last);
       beats.push(last);
       if (last.start > t) ahead += 1;
     }

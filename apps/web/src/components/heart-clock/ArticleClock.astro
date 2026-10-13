@@ -16,17 +16,25 @@ interface Props {
   locale: string;
   /** The article's preset; the reader can switch between it, normal and its `presetTreated`. */
   preset?: Exclude<PresetId, 'normal'>;
+  /** More presets for the switch after `preset`, each with its state after treatment (frontmatter `morePresets`). */
+  morePresets?: readonly Exclude<PresetId, 'normal'>[];
   /** The disease whose signs the 3D model shows. */
   disease?: DiseaseId;
   /** A patient model of the article's congenital defect: docs/plans/2026-10-12-congenital-models.md. */
   congenital?: CongenitalModelId;
 }
 
-const { locale, preset, disease, congenital } = Astro.props;
+const { locale, preset, morePresets = [], disease, congenital } = Astro.props;
 // Normal, the disease and, when its treatment changes the ECG, the state after treatment
-// (docs/plans/2026-10-13-heart-clock-after-treatment.md).
-const treated = preset && presetTreated[preset];
-const choices: PresetId[] = preset ? ['normal', preset, ...(treated ? [treated] : [])] : [];
+// (docs/plans/2026-10-13-heart-clock-after-treatment.md), then the article's other presets, each with its own.
+const withTreated = (id: Exclude<PresetId, 'normal'>): PresetId[] => {
+  const treated = presetTreated[id];
+  return treated ? [id, treated] : [id];
+};
+// The schema rejects repeats; the Set keeps the switch right for a direct use of the component.
+const choices: PresetId[] = preset
+  ? [...new Set<PresetId>(['normal', ...[preset, ...morePresets].flatMap(withTreated)])]
+  : [];
 const t = getMessages(locale);
 const messages = Object.fromEntries(
   heartClockMessageKeys.map((key) => [key, t[key]]),

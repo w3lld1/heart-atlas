@@ -1,3 +1,4 @@
+import reactRenderer from '@astrojs/react/server.js';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import Cite from '../src/components/Cite.astro';
@@ -15,6 +16,7 @@ import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Structure from '../src/components/Structure.astro';
 import Student from '../src/components/Student.astro';
+import ArticleClock from '../src/components/heart-clock/ArticleClock.astro';
 import CongenitalModel from '../src/components/viewer/CongenitalModel.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
 
@@ -257,5 +259,32 @@ describe('CongenitalModel', () => {
         props: { locale: 'en', model: 'no-such-model' },
       }),
     ).rejects.toThrow('unknown model "no-such-model"');
+  });
+});
+
+describe('ArticleClock', () => {
+  it('offers normal, the preset, then the more presets, each with its state after treatment', async () => {
+    // The heart clock is a React island, so this container needs the React renderer.
+    const withReact = await AstroContainer.create();
+    withReact.addServerRenderer({ renderer: reactRenderer });
+    withReact.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' });
+    const html = await withReact.renderToString(ArticleClock, {
+      props: {
+        locale: 'en',
+        preset: 'av-block-second-degree-mobitz-1',
+        morePresets: ['av-block-second-degree-mobitz-2', 'av-block-third-degree'],
+      },
+    });
+    // The island renders on the server too, with a radio button per preset.
+    const presets = [
+      ...html.matchAll(/type="radio" name="[^"]*-preset"[^>]*?value="([^"]+)"/g),
+    ].map((m) => m[1]);
+    expect(presets).toEqual([
+      'normal',
+      'av-block-second-degree-mobitz-1',
+      'av-block-second-degree-mobitz-2',
+      'av-block-third-degree',
+      'av-block-third-degree-paced',
+    ]);
   });
 });

@@ -50,7 +50,12 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const rest = qrs - delta;
   const sCentre = qOnset + delta + (delta > 0 ? 0.75 : 0.8) * rest;
   const q = delta > 0 ? 0 : wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs);
-  const r = wave(t, timing.rPeak, rAmplitude, 0.1 * rest, 0.1 * rest);
+  // A QRS without Q and S waves (a ventricle excited through the muscle: pacing, a ventricular
+  // premature beat) is one R wave across the whole complex: σ is chosen so that about 0.9 of it
+  // stays above 0.05 mV whatever the R amplitude of the lead.
+  const rSigma =
+    qAmplitude === 0 && sAmplitude === 0 && delta === 0 ? wideRSigma(rAmplitude, rest) : 0.1 * rest;
+  const r = wave(t, timing.rPeak, rAmplitude, rSigma, rSigma);
   // The slow rise goes on at the same slope until the steep R upstroke overtakes it, so the two
   // join without a step and R keeps its amplitude.
   const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;
@@ -65,6 +70,15 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
     wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
     st
   );
+}
+
+const visibleMv = 0.05;
+
+/** σ of an R wave that stays above 0.05 mV over 0.9 of a QRS of `qrs` ms, and not below 0.1 of it. */
+function wideRSigma(rAmplitude: number, qrs: number): number {
+  const a = Math.abs(rAmplitude);
+  if (a <= visibleMv) return 0.1 * qrs;
+  return Math.max(0.1 * qrs, (0.9 * qrs) / (2 * Math.sqrt(2 * Math.log(a / visibleMv))));
 }
 
 /**

@@ -87,6 +87,36 @@ describe('article schema', () => {
     ).toBe(false);
   });
 
+  it('accepts more presets after the main one', () => {
+    const preset = 'av-block-first-degree';
+    const more = ['av-block-second-degree-mobitz-1', 'av-block-second-degree-mobitz-2'];
+    expect(articleSchema.parse({ ...valid(), preset, morePresets: more }).morePresets).toEqual(
+      more,
+    );
+    expect(articleSchema.parse(valid()).morePresets).toEqual([]);
+    const messages = (frontmatter: object) =>
+      articleSchema
+        .safeParse({ ...valid(), ...frontmatter })
+        .error?.issues.map((issue) => issue.message) ?? [];
+    expect(messages({ morePresets: more })).toContain('morePresets needs preset');
+    expect(messages({ preset, morePresets: [preset] })).toContainEqual(
+      expect.stringContaining('already on the page'),
+    );
+    expect(messages({ preset, morePresets: [more[0], more[0]] })).toContainEqual(
+      expect.stringContaining('already on the page'),
+    );
+    // The switch draws every preset in the lead of the main one.
+    expect(messages({ preset: 'wpw-syndrome', morePresets: ['brugada-syndrome'] })).toContainEqual(
+      expect.stringContaining('is drawn in lead V1, not II'),
+    );
+    // The same exclusions as `preset`.
+    for (const id of ['normal', 'sick-sinus-syndrome-paced', 'af']) {
+      expect(articleSchema.safeParse({ ...valid(), preset, morePresets: [id] }).success).toBe(
+        false,
+      );
+    }
+  });
+
   it('rejects unknown frontmatter keys', () => {
     expect(articleSchema.safeParse({ ...valid(), source: [] }).success).toBe(false);
   });

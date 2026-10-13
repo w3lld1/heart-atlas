@@ -154,11 +154,11 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
   },
   "av-block-third-degree-paced": {
     "curves": [
-      "60:29b4d412",
-      "60:29b4d412",
-      "75:b7d9c528",
-      "100:78a8dd5d",
-      "100:78a8dd5d",
+      "60:e8ffe44c",
+      "60:e8ffe44c",
+      "75:ba95dd79",
+      "100:2395f49a",
+      "100:2395f49a",
     ],
     "limits": [
       40,

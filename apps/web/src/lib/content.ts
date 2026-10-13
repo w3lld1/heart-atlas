@@ -1,4 +1,4 @@
-import { presetIds, presetTreated } from '@heart-atlas/heart-clock';
+import { presetIds, presetLead, presetTreated } from '@heart-atlas/heart-clock';
 import { z } from 'astro/zod';
 import { parse } from 'yaml';
 
@@ -107,6 +107,12 @@ export function createSourceSchema(trusted: TrustedSources) {
     });
 }
 
+// A heart clock preset an article may show. `normal` alone would show nothing new, and a state
+// after treatment comes only with its disease (`presetTreated`).
+const articlePreset = z
+  .enum(presetIds)
+  .exclude(['normal', ...new Set(Object.values(presetTreated))]);
+
 export const reviewSchema = z.strictObject({
   reviewer: z.string().min(1),
   date: dateSchema,
@@ -126,14 +132,40 @@ export function createArticleSchema(trusted: TrustedSources) {
       // Optional until the project has physician reviewers. While null, pages show ReviewNotice.
       review: reviewSchema.nullable().default(null),
       // Heart clock preset shown on the page with a normal / disease switch. `normal` alone would
-      // show nothing new, so it is not accepted. Spec: docs/plans/2026-10-11-stage-3-presets.md.
-      // An "after treatment" preset comes only with its disease (`presetTreated`).
-      preset: z
-        .enum(presetIds)
-        .exclude(['normal', ...new Set(Object.values(presetTreated))])
-        .optional(),
+      // show nothing new. Spec: docs/plans/2026-10-11-stage-3-presets.md.
+      preset: articlePreset.optional(),
+      // More presets for the same switch, after `preset` and its state after treatment, for an
+      // article that covers several kinds of one disease (Mobitz I and II in AV block). Each comes
+      // with its own state after treatment.
+      morePresets: z.array(articlePreset).default([]),
     })
     .superRefine((article, ctx) => {
+      if (article.morePresets.length > 0 && !article.preset) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['morePresets'],
+          message: 'morePresets needs preset',
+        });
+      }
+      const presets = new Set<string>(article.preset ? [article.preset] : []);
+      for (const [index, id] of article.morePresets.entries()) {
+        if (presets.has(id)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['morePresets', index],
+            message: `Preset "${id}" is already on the page`,
+          });
+        }
+        presets.add(id);
+        // The switch draws every preset in the lead of the main one.
+        if (article.preset && presetLead(id) !== presetLead(article.preset)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['morePresets', index],
+            message: `Preset "${id}" is drawn in lead ${presetLead(id)}, not ${presetLead(article.preset)} like preset`,
+          });
+        }
+      }
       const seen = new Set([article.title.toLocaleLowerCase()]);
       for (const [index, alias] of article.aliases.entries()) {
         const key = alias.toLocaleLowerCase();

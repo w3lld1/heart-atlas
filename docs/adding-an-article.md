@@ -65,6 +65,7 @@ Unknown fields are rejected.
 | `sources_checked` | yes      | Date you last checked the sources (`YYYY-MM-DD`), not in the future. Tests warn when it is older than two years.                                                                             |
 | `review`          | no       | `null` (default) or `{ reviewer, date }` once a physician has reviewed the article.                                                                                                           |
 | `preset`          | no       | A heart clock preset id other than `normal` (see `presetIds` in `packages/heart-clock/src/presets.ts`). The page then shows the ECG monitor with a normal / disease switch. See [Adding a disease preset](adding-a-disease-preset.md). |
+| `morePresets`     | no       | More preset ids for the same switch, after `preset` and its state after treatment, for an article about several kinds of one disease (for example `[av-block-second-degree-mobitz-1, av-block-second-degree-mobitz-2]`). Each brings its own state after treatment. Needs `preset`; the same ids are allowed as for `preset`, without repeats, drawn in the same lead as `preset`. |
 
 ### Sources
 
