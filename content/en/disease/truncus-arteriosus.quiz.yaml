@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is truncus arteriosus?
+    options:
+      - text: A narrowing of the aortic valve
+      - text: One vessel leaves the heart instead of two
+        correct: true
+      - text: A hole in the wall between the right and left atria
+    explanation: Truncus arteriosus is a congenital heart defect in which a single large vessel leaves the heart instead of two separate ones, the aorta and the pulmonary artery.
+    cite: [1, 4]
+  - level: patient
+    prompt: What happens to the lungs of a baby with this defect right after birth?
+    options:
+      - text: The lungs get too little blood
+      - text: Blood stops reaching the lungs at all
+      - text: The lungs are flooded with blood
+        correct: true
+    explanation: Right after birth the pressure in the pulmonary arteries becomes the same as in the trunk, and the lungs are flooded with blood.
+    cite: [1]
+  - level: patient
+    prompt: What is the main test for the diagnosis?
+    options:
+      - text: Heart ultrasound (echocardiography)
+        correct: true
+      - text: A urine test for sugar
+      - text: Measuring height, weight and head circumference
+    explanation: 'The main test is a heart ultrasound (echocardiography) with Doppler: it shows the single vessel leaving the heart, the type of defect, how the truncal valve works and the direction of the blood shunt.'
+    cite: [1, 3]
+  - level: patient
+    prompt: Why does the conduit placed during the operation have to be replaced in childhood?
+    options:
+      - text: It dissolves in the first days after the operation
+      - text: It grows faster than the child and becomes too big
+      - text: It does not grow with the child
+        correct: true
+    explanation: 'A conduit does not grow with the child: over time it becomes too small and has to be replaced during childhood.'
+    cite: [3, 4]
+  - level: student
+    prompt: How does Van Praagh type B differ from type A?
+    options:
+      - text: There is no ventricular septal defect
+        correct: true
+      - text: The trunk has two separate valves, aortic and pulmonary
+      - text: The aorta and pulmonary artery leave the heart separately
+    explanation: The Van Praagh classification distinguishes type A (with a VSD) and the very rare type B (without a VSD).
+    cite: [3]
+  - level: student
+    prompt: What is the former Collett–Edwards type IV now classed as?
+    options:
+      - text: An isolated atrial septal defect
+      - text: Tetralogy of Fallot with pulmonary atresia
+        correct: true
+      - text: A patent foramen ovale with no other defects
+    explanation: The former type IV is now classed as tetralogy of Fallot with pulmonary atresia.
+    cite: [3]
