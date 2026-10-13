@@ -176,6 +176,16 @@ The live heart clock monitor inside an article. `preset` is the preset to start 
 
 An unknown preset id fails the build. A disease article with `preset` in its frontmatter already shows the monitor after the text, so it does not need `<EcgMonitor>` as well.
 
+### `<HeartSounds>`
+
+The heart sounds player: normal S1 and S2 next to the murmur of a valve disease, synthesised in step with the heart clock (docs/plans/2026-10-13-heart-sounds.md). `sound` is one of `aortic-stenosis`, `aortic-regurgitation`, `mitral-stenosis`, `mitral-regurgitation`, `mitral-valve-prolapse` (or `normal`). The player lists its own sources under each sound, so it needs no `<Cite>`; children are an optional caption.
+
+```mdx
+<HeartSounds sound="aortic-stenosis" />
+```
+
+An unknown sound fails the build. Adding a new sound means adding it to `heart-sounds/auscultation.ts` with sources, which is app work, not article work.
+
 ## Translations
 
 Translate an article by adding a file with the same `<type>/<slug>.mdx` under another locale. Give each translation its own `aliases` in that language. Until a translation exists, the page in that locale shows the article from the fallback language with a notice. See [Adding a language](adding-a-language.md).

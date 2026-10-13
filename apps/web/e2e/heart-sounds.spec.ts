@@ -81,3 +81,15 @@ test('keeps the cursor still with reduced motion', async ({ page }) => {
   await expect(page.getByRole('button', { name: en['heartSounds.stop'] })).toBeVisible();
   await expect(page.locator('svg[data-sound] line').last()).toHaveAttribute('visibility', 'hidden');
 });
+
+test('the aortic stenosis article compares its murmur with the normal heart', async ({ page }) => {
+  test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
+  await page.goto('en/disease/aortic-stenosis/');
+  await hydrated(page);
+  const choices = page.getByRole('group', { name: en['heartSounds.choose'] });
+  await expect(choices.getByRole('radio')).toHaveCount(2);
+  await expect(
+    choices.getByRole('radio', { name: en['heartSounds.sound.aortic-stenosis'] }),
+  ).toBeChecked();
+  await expect(page.locator('svg[data-sound="aortic-stenosis"] polygon')).toHaveCount(1);
+});
