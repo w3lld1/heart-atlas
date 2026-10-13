@@ -1,0 +1,239 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-ali-arrow`;
+const footClip = `${uid}-ali-foot`;
+// One leg seen from the front, foot pointing right: the thigh from the top to the knee (y ≈ 215),
+// the lower leg from the knee to the ankle (y ≈ 380), the foot along the bottom.
+const leg =
+  'M115,10 L225,10 C222,90 212,170 205,215 C215,250 214,300 198,345 L192,380 C200,392 240,395 280,402 C294,405 294,428 280,430 L160,430 C140,430 136,400 145,380 L140,345 C125,300 125,250 133,215 C126,170 118,90 115,10 Z';
+// The main artery runs down the thigh and just below the knee branches into two arteries of the
+// lower leg: the back one runs on into the sole, the front one onto the top of the foot. The curves
+// are nested so the branches do not cross. Vessels are wide strokes: the wall, then the lumen.
+const trunk = 'M170,0 V238';
+const branches = [
+  'M170,236 C160,244 158,254 158,270 V372 Q158,420 196,420 H256',
+  'M170,236 C180,244 184,254 184,270 V372 Q184,406 214,406 H252',
+];
+// Routes of the moving blood: in the normal state down the trunk and on along each branch; in
+// disease only down the trunk, ending at the embolus.
+const normalRoutes = [
+  'M170,4 V236 C160,244 158,254 158,270 V372 Q158,420 196,420 H252',
+  'M170,4 V236 C180,244 184,254 184,270 V372 Q184,406 214,406 H248',
+];
+const diseaseRoute = 'M170,4 V218';
+// The embolus: a clot carried in with the blood and stuck where the artery branches, filling the
+// end of the trunk and the mouths of both branches.
+const embolus =
+  'M164,222 C164,215 176,215 176,222 L177,236 C181,240 184,246 182,252 C178,252 174,246 170,244 C166,246 162,252 158,252 C156,246 159,240 163,236 Z';
+// Pulse point on the top of the foot.
+const pulse = { x: 234, y: 406 };
+// Negative delays so the flow is already running when the page opens.
+const normalRun = [0, -1.5];
+const diseaseRun = [0, -1];
+---
+
+<svg
+  viewBox="0 0 440 470"
+  role="img"
+  aria-label={t['diagram.acute-limb-ischemia.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <clipPath id={footClip}>
+      <rect x="0" y="372" width="440" height="70"></rect>
+    </clipPath>
+  </defs>
+
+  <!-- The leg. The outline keeps it visible on the page background in both themes. -->
+  <path d={leg} fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5"></path>
+
+  <!-- In disease the foot below the blocked artery is pale -->
+  <path class="disease-only ali-pale" d={leg} clip-path={`url(#${footClip})`}></path>
+
+  <!-- Artery walls, then the lumens on top of them -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linejoin="round">
+    <path d={trunk} stroke-width="20"></path>
+    {branches.map((d) => (
+      <path d={d} stroke-width="12" />
+    ))}
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linejoin="round">
+    <path d={trunk} stroke-width="14"></path>
+    {branches.map((d) => (
+      <path d={d} stroke-width="6" />
+    ))}
+  </g>
+
+  <!-- The embolus at the branching. The outline keeps its edge visible against the wall. -->
+  <path
+    class="disease-only"
+    d={embolus}
+    fill="var(--diagram-arterial)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></path>
+
+  <!-- Flow arrows, visible with and without motion; in disease none below the embolus -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round" stroke-width="3">
+    <g class="normal-only">
+      <path d="M170,14 V200" marker-end={`url(#${arrow})`}></path>
+      <path d="M158,280 V350" marker-end={`url(#${arrow})`}></path>
+      <path d="M184,280 V350" marker-end={`url(#${arrow})`}></path>
+    </g>
+    <g class="disease-only">
+      <path d="M170,14 V200" marker-end={`url(#${arrow})`}></path>
+    </g>
+  </g>
+
+  <!-- Moving blood: in disease it stops at the embolus -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    <g class="normal-only">
+      {normalRoutes.map((route) =>
+        normalRun.map((delay) => (
+          <circle
+            class="ali-run"
+            r="3"
+            style={`offset-path: path('${route}'); animation-duration: 3s; animation-delay: ${delay}s`}
+          />
+        )),
+      )}
+    </g>
+    <g class="disease-only">
+      {diseaseRun.map((delay) => (
+        <circle
+          class="ali-run"
+          r="4"
+          style={`offset-path: path('${diseaseRoute}'); animation-duration: 2s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Pulse point on the foot: filled when the pulse is felt, an empty ring when it is gone -->
+  <circle
+    class="normal-only"
+    cx={pulse.x}
+    cy={pulse.y}
+    r="5"
+    fill="var(--color-text)"
+    stroke="var(--diagram-arterial-fill)"
+    stroke-width="1.5"
+  ></circle>
+  <circle
+    class="disease-only"
+    cx={pulse.x}
+    cy={pulse.y}
+    r="5"
+    fill="var(--color-bg)"
+    stroke="var(--color-text)"
+    stroke-width="2"
+  ></circle>
+
+  <!-- Vessel labels in the right column with leader lines into the drawing -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="182" y1="88" x2="236" y2="88"></line>
+    <line x1="192" y1="310" x2="236" y2="310"></line>
+    <line x1={pulse.x} y1={pulse.y - 7} x2={pulse.x} y2="372"></line>
+  </g>
+  <text class="diagram-small" x="240" y="92">
+    {t['diagram.label.femoral-artery']}
+  </text>
+  <text class="diagram-small" x="240" y="314">
+    {t['diagram.label.lower-leg-arteries']}
+  </text>
+  <text class="diagram-small normal-only" x="240" y="368">
+    {t['diagram.label.pulse-normal']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="176" y1="232" x2="236" y2="232"></line>
+      <line x1="120" y1="310" x2="150" y2="310"></line>
+      <line x1="200" y1="428" x2="200" y2="446"></line>
+    </g>
+    <text x="240" y="237">
+      {t['diagram.label.embolus']}
+    </text>
+    <text class="diagram-small" x="240" y="254">
+      {t['diagram.label.at-artery-branching']}
+    </text>
+    <text class="diagram-small" x="240" y="368">
+      {t['diagram.label.pulse-absent']}
+    </text>
+    <text class="diagram-small" x="116" y="314" text-anchor="end">
+      {t['diagram.label.no-blood-flow']}
+    </text>
+    <text class="diagram-small" x="200" y="462" text-anchor="middle">
+      {t['diagram.label.pale-cold-foot']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .ali-run {
+    offset-rotate: 0deg;
+    animation-name: ali-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* A light veil over the foot: the page background in the light theme, the light muted colour in
+     the dark one, where the background would darken the foot instead. */
+  .diagram .ali-pale {
+    fill: var(--color-bg);
+    fill-opacity: 0.6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .diagram .ali-pale {
+      fill: var(--color-muted);
+      fill-opacity: 0.45;
+    }
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .ali-run {
+      display: none;
+    }
+  }
+
+  /* Blood runs down the artery: to the foot in the normal state, to the embolus in disease. */
+  @keyframes ali-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
