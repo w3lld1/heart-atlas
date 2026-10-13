@@ -1,0 +1,275 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-mi-arrow`;
+const zoneClipId = `${uid}-mi-zone`;
+const hatchId = `${uid}-mi-hatch`;
+
+// A long-axis cut of the left ventricle: the base (towards the atria) on the left, the apex on the
+// right, the anterior wall at the top and the inferior wall at the bottom. The wall is the outer
+// outline minus the cavity, so it stays open at the base.
+const outer = 'M60,40 L280,40 C360,40 410,80 410,120 C410,160 360,200 280,200 L60,200 Z';
+const cavity = 'M60,72 L280,72 C340,72 378,96 378,120 C378,144 340,168 280,168 L60,168 Z';
+// The artery that runs along the outside of the inferior wall towards the apex.
+const artery = 'M14,218 H280 C368,218 428,166 428,118';
+// The clot on a plaque closes the artery at x = 190; beyond it the artery holds no moving blood.
+const clotX = 190;
+const arteryBeyondClot = `M${clotX + 16},218 H280 C368,218 428,166 428,118`;
+// Paths of the blood, shared by the moving particles.
+const routeFull = 'M14,218 H280 C368,218 428,166 428,126';
+const routeBlocked = `M14,218 H${clotX - 16}`;
+// Small vessels from the artery into the inferior wall, all beyond the clot.
+const branches = ['M240,210 V180', 'M320,209 V178', 'M378,190 L360,166'];
+// Negative delays so the flow is already running when the page opens.
+const normalDelays = [0, -1.1, -2.2];
+const diseaseDelays = [0, -0.8];
+// The leader from the inferior-wall labels down into the wall, clear of the small vessels.
+const leaderX = 280;
+---
+
+<svg
+  viewBox="0 0 460 290"
+  role="img"
+  aria-label={t['diagram.myocardial-infarction.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <!-- The infarct zone: the part of the wall beyond the clot, from the outer to the inner
+         surface, in the lower (inferior) half of the ventricle. -->
+    <clipPath id={zoneClipId}>
+      <rect x={clotX + 20} y="146" width="260" height="60"></rect>
+    </clipPath>
+    <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0,8 L8,0" stroke="var(--color-muted)" stroke-width="1.5"></path>
+    </pattern>
+  </defs>
+
+  <!-- Left ventricle: cavity, then the wall around it. The outline keeps the wall visible on the
+       page background in both themes. -->
+  <path d={cavity} fill="var(--diagram-arterial-fill)"></path>
+  <path
+    d={`${outer} ${cavity}`}
+    fill="var(--diagram-muscle)"
+    fill-rule="evenodd"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Infarct zone: the muscle beyond the blocked artery has died through the whole wall
+       thickness. -->
+  <g class="disease-only" clip-path={`url(#${zoneClipId})`}>
+    <path d={`${outer} ${cavity}`} fill="var(--color-bg)" fill-rule="evenodd"></path>
+    <path d={`${outer} ${cavity}`} fill={`url(#${hatchId})`} fill-rule="evenodd"></path>
+    <path
+      d={`${outer} ${cavity}`}
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="4 3"
+    ></path>
+  </g>
+  <!-- Edges of the zone towards the living muscle: at the base side and near the apex -->
+  <g
+    class="disease-only"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="4 3"
+    fill="none"
+  >
+    <path d={`M${clotX + 20},168 V200`}></path>
+    <path d="M362.5,146 H402.9"></path>
+  </g>
+
+  <!-- Small vessels into the wall: they carry blood in the normal state and stand empty beyond
+       the clot. -->
+  <g fill="none" stroke-width="3" stroke-linecap="round">
+    {branches.map((d) => (
+      <path class="normal-only" d={d} stroke="var(--diagram-arterial)" />
+    ))}
+    {branches.map((d) => (
+      <path class="disease-only" d={d} stroke="var(--color-muted)" stroke-dasharray="3 3" />
+    ))}
+  </g>
+
+  <!-- Artery: the wall, then the lumen -->
+  <path d={artery} fill="none" stroke="var(--diagram-arterial)" stroke-width="22"></path>
+  <path d={artery} fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="16"></path>
+  <!-- Beyond the clot the artery holds no moving blood -->
+  <path
+    class="disease-only"
+    d={arteryBeyondClot}
+    fill="none"
+    stroke="var(--color-bg)"
+    stroke-width="16"
+  ></path>
+
+  <!-- A plaque in the artery wall with a clot on it that closes the lumen completely -->
+  <g class="disease-only">
+    <path
+      d={`M${clotX - 18},210 C${clotX - 10},219 ${clotX + 10},219 ${clotX + 18},210 Z`}
+      fill="var(--diagram-plaque)"
+    ></path>
+    <path
+      d={`M${clotX - 18},226 C${clotX - 10},217 ${clotX + 10},217 ${clotX + 18},226 Z`}
+      fill="var(--diagram-plaque)"
+    ></path>
+    <ellipse cx={clotX} cy="218" rx="8" ry="6" fill="var(--diagram-arterial)"></ellipse>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    <path class="normal-only" d="M24,218 H270" marker-end={`url(#${arrowId})`}></path>
+    <path class="disease-only" d={`M24,218 H${clotX - 26}`} marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    <g class="normal-only">
+      {normalDelays.map((delay) => (
+        <circle
+          class="mi-run"
+          r="4"
+          style={`offset-path: path('${routeFull}'); animation-duration: 3.3s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseDelays.map((delay) => (
+        <circle
+          class="mi-stop"
+          r="4"
+          style={`offset-path: path('${routeBlocked}'); animation-duration: 1.6s; animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Wall labels. The anterior one sits just above its wall; the inferior wall has the artery
+       under it, so its labels stay in the cavity with a leader line down into the wall. -->
+  <text x="235" y="30" text-anchor="middle">
+    {t['diagram.label.anterior-wall']}
+  </text>
+  <text x="110" y="126" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <line
+    x1={leaderX}
+    y1="144"
+    x2={leaderX}
+    y2="186"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></line>
+  <text class="normal-only" x={leaderX} y="136" text-anchor="middle">
+    {t['diagram.label.inferior-wall']}
+  </text>
+  <g class="disease-only">
+    <text x={leaderX} y="118" text-anchor="middle">
+      {t['diagram.label.infarct-zone']}
+    </text>
+    <text class="diagram-small" x={leaderX} y="136" text-anchor="middle">
+      {t['diagram.label.whole-wall-thickness']}
+    </text>
+  </g>
+
+  <!-- Labels under the artery -->
+  <text x="8" y="252">
+    {t['diagram.label.rca']}
+  </text>
+  <g class="disease-only">
+    <line
+      x1={clotX}
+      y1="230"
+      x2={clotX}
+      y2="260"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text x={clotX} y="278" text-anchor="middle">
+      {t['diagram.label.clot-on-plaque']}
+    </text>
+    <text x="350" y="252" text-anchor="middle">
+      {t['diagram.label.no-blood-flow']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .mi-run,
+  .diagram .mi-stop {
+    offset-rotate: 0deg;
+    animation-name: mi-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .diagram .mi-stop {
+    animation-name: mi-stop;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .mi-run,
+    .diagram .mi-stop {
+      display: none;
+    }
+  }
+
+  @keyframes mi-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+
+  /* Blood reaches the clot, stays there for a moment and fades: it cannot pass. */
+  @keyframes mi-stop {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    70% {
+      offset-distance: 100%;
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
