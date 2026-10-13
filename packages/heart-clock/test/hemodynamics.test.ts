@@ -186,3 +186,13 @@ describe('hemodynamicsAt', () => {
     );
   });
 });
+
+describe('hemodynamicsAt in second-degree AV block', () => {
+  it('holds the ventricle in the pause of a blocked P wave', () => {
+    const clock = createHeartClock({ heartRate: 60, blockedP: 1, pauseEvery: 2 });
+    expectContinuous(clock, 0, 7000);
+    const pause = series(clock, 2000, 2999, 50);
+    const first = pause[0]?.h as Hemodynamics;
+    for (const { t, h } of pause) expect(h.volume, `${t} ms`).toBeCloseTo(first.volume, 6);
+  });
+});

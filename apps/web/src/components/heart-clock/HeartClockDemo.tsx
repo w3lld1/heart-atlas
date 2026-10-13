@@ -158,7 +158,8 @@ export default function HeartClockDemo({
   const [heartRate, setHeartRate] = useState(clock.params.heartRate);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
-  // A sinus pause shows as its own phase, though the model keeps the ventricles filling in it.
+  // A sinus pause shows as its own phase, though the model keeps the ventricles filling in it. In the
+  // pause of second-degree AV block (`blockedP`) the sinus node works, so the phase is filling.
   const [phase, setPhase] = useState<Phase | 'pause'>('atrial-systole');
   const [width, setWidth] = useState(0);
   const [dpr, setDpr] = useState(1);
@@ -275,7 +276,7 @@ export default function HeartClockDemo({
       drawEcg(context, width, nowRef.current, clock, colors);
       drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
       const sample = clock.sample(nowRef.current);
-      setPhase(sample.pause ? 'pause' : sample.phase);
+      setPhase(sample.pause && sample.beat.params.blockedP === 0 ? 'pause' : sample.phase);
     }
 
     let frame = 0;

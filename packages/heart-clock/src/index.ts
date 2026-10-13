@@ -15,7 +15,7 @@ export {
   type BeatTiming,
   type Phase,
 } from './timing.ts';
-export { beatWaves, dissociatedP, dissociatedPOnset, flutterWaves, fWaves } from './ecg.ts';
+export { beatWaves, dissociatedP, dissociatedPOnset, flutterWaves, fWaves, pWave } from './ecg.ts';
 export {
   checkParams,
   createHeartClock,

@@ -127,3 +127,52 @@ describe('resolveParams', () => {
     }
   });
 });
+
+describe('blockedP and prStep', () => {
+  const mobitz1 = { blockedP: 1, pauseEvery: 3, prInterval: 180, prStep: 80 } as const;
+
+  it('accepts second-degree AV block without a pause length', () => {
+    expect(resolveParams(mobitz1)).toMatchObject({ ...mobitz1, pauseDuration: 0 });
+    expect(resolveParams({ blockedP: 1, pauseEvery: 2 }).prStep).toBe(0);
+  });
+
+  it('rejects values that are not whole', () => {
+    expect(() => resolveParams({ blockedP: 0.5, pauseEvery: 2 })).toThrow(
+      /^blockedP must be 0 or 1/,
+    );
+    expect(() => resolveParams({ ...mobitz1, prStep: 40.5 })).toThrow(/^prStep must be an integer/);
+    expect(() => resolveParams({ ...mobitz1, prStep: 101 })).toThrow(/^prStep must be a number/);
+  });
+
+  it('rejects modes that a blocked P wave cannot go with', () => {
+    for (const patch of [
+      { pauseEvery: 0 },
+      { pauseDuration: 2000 },
+      { pAmplitude: 0 },
+      { fWaveAmplitude: 0.1 },
+      { rrIrregularity: 0.1 },
+    ]) {
+      expect(() => resolveParams({ ...mobitz1, ...patch }), JSON.stringify(patch)).toThrow(
+        /^blockedP needs/,
+      );
+    }
+    // These modes refuse pauses on their own, before blockedP is checked.
+    for (const patch of [
+      { flutterConduction: 2, flutterAmplitude: 0.2 },
+      { atrialPacing: 1 },
+      { atrialRate: 75, atrialContribution: 0 },
+      { ventricularPacing: 1 },
+    ]) {
+      expect(() => resolveParams({ ...mobitz1, ...patch }), JSON.stringify(patch)).toThrow(
+        RangeError,
+      );
+    }
+  });
+
+  it('rejects prStep without blockedP', () => {
+    expect(() => resolveParams({ prStep: 40 })).toThrow(/^prStep needs blockedP/);
+    expect(() => resolveParams({ prStep: 40, pauseEvery: 3, pauseDuration: 2000 })).toThrow(
+      /^prStep needs blockedP/,
+    );
+  });
+});

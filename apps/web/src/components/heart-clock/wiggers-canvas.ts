@@ -60,8 +60,8 @@ export function drawWiggers(
 ): void {
   context.clearRect(0, 0, width, wiggersHeight);
   const beat = clock.beatAt(now);
-  // The axis spans the rhythm RR, not a sinus pause after it: on an 8 s beat systole would be a
-  // sliver. In a pause the cursor waits at the right edge.
+  // The axis spans the rhythm RR, not a pause after it: on an 8 s beat systole would be a sliver.
+  // In a pause the cursor waits at the right edge; a blocked P wave (`blockedP`) shows on the strip.
   const rr = beat.timing.rr;
   const plotWidth = width - axisWidth - 4;
   const count = Math.max(2, Math.floor(plotWidth));

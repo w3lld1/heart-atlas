@@ -21,10 +21,17 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
   const inQrs = tInBeat >= timing.qOnset && tInBeat < timing.jPoint;
   // StatPearls ECG: P is atrial depolarization; an inverted or absent P is not sinus rhythm. A
   // paced P starts at the pacemaker lead, not at the sinus node. P waves on their own clock
-  // (complete AV block) light the node when they come, not at the start of the beat.
+  // (complete AV block) light the node when they come, not at the start of the beat; so does the
+  // P wave that is not conducted in second-degree AV block (`blockedP`). assumption: the model
+  // does not light the AV node for it, so it does not show where the impulse stops.
+  const blocked =
+    params.blockedP === 1 &&
+    beat.pause > 0 &&
+    tInBeat >= timing.rr &&
+    tInBeat - timing.rr < timing.pDuration;
   const inP = dissociated
     ? t - dissociatedPOnset(t, params) < pDurationAt(60000 / params.atrialRate, params)
-    : tInBeat < timing.pDuration;
+    : tInBeat < timing.pDuration || blocked;
   if (inP && params.pAmplitude > 0 && params.atrialPacing === 0) excited.push('sa-node');
   // StatPearls ECG: the PR interval includes the AV node delay. His bundle with it: assumption. In
   // complete AV block no atrial impulse passes; with ventricular pacing the pacemaker counts the
