@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createHeartClock, historyMs } from '../src/clock.ts';
 import { beatTiming } from '../src/timing.ts';
 import { defaultParams } from '../src/params.ts';
+import { soundEvents } from '../src/sounds.ts';
 
 describe('createHeartClock', () => {
   it('lays regular beats back to back from t = 0', () => {
@@ -131,5 +132,58 @@ describe('createHeartClock', () => {
     expect(Date.now() - started).toBeLessThan(50);
     expect(sample.beat.start).toBe(3_600_000);
     expect(clock.ecgAt(3_600_500)).toBeTypeOf('number');
+  });
+});
+
+describe('sinus pauses', () => {
+  const paused = { heartRate: 60, pauseEvery: 3, pauseDuration: 2500 } as const;
+
+  it('adds the pause after every third beat and keeps the rhythm timing', () => {
+    const clock = createHeartClock(paused);
+    const beats = clock.beatsBetween(0, 9000);
+    expect(beats.map((b) => b.start)).toEqual([0, 1000, 2000, 5500, 6500, 7500]);
+    expect(beats.map((b) => b.pause)).toEqual([0, 0, 2500, 0, 0, 2500]);
+    expect(beats[2]?.rr).toBe(3500);
+    expect(beats[2]?.timing).toEqual(beats[1]?.timing);
+  });
+
+  it('draws a flat line in the pause and plays no sounds in it', () => {
+    const clock = createHeartClock(paused);
+    // The T wave of the third beat ends well before its rhythm RR of 1000 ms.
+    for (let t = 3100; t < 5400; t += 50) {
+      expect(clock.ecgAt(t)).toBeCloseTo(0, 3);
+      expect(clock.sample(t)).toMatchObject({ pause: true, phase: 'filling' });
+    }
+    expect(clock.sample(2500).pause).toBe(false);
+    const sounds = clock.beatsBetween(0, 9000).flatMap(soundEvents);
+    expect(sounds.filter((e) => e.time > 3000 && e.time < 5500)).toEqual([]);
+  });
+
+  it('applies setParams after the pause and keeps the pause that has started', () => {
+    const clock = createHeartClock(paused);
+    clock.beatAt(4000);
+    clock.setParams({ pauseEvery: 0, pauseDuration: 0 }, 4000);
+    const beats = clock.beatsBetween(2000, 8000);
+    expect(beats.map((b) => b.start)).toEqual([2000, 5500, 6500, 7500]);
+    expect(beats.map((b) => b.pause)).toEqual([2500, 0, 0, 0]);
+  });
+
+  it('changes nothing with pauses off', () => {
+    const plain = createHeartClock({ heartRate: 60 }).beatsBetween(0, 5000);
+    expect(plain.every((b) => b.pause === 0 && b.rr === b.timing.rr)).toBe(true);
+  });
+});
+
+describe('slow rhythms', () => {
+  it('runs at 30 bpm and keeps an irregular rhythm no slower than 40 bpm or its mean', () => {
+    const slow = createHeartClock({ heartRate: 30 }).beatsBetween(0, 6000);
+    expect(slow.map((b) => b.start)).toEqual([0, 2000, 4000, 6000]);
+    const irregular = createHeartClock({ heartRate: 45, rrIrregularity: 0.3, seed: 7 });
+    const rrs = irregular.beatsBetween(0, 9000).map((b) => b.rr);
+    expect(Math.max(...rrs)).toBeLessThanOrEqual(1500);
+    const slowIrregular = createHeartClock({ heartRate: 35, rrIrregularity: 0.3, seed: 7 });
+    expect(Math.max(...slowIrregular.beatsBetween(0, 9000).map((b) => b.rr))).toBeLessThanOrEqual(
+      60000 / 35 + 1e-9,
+    );
   });
 });

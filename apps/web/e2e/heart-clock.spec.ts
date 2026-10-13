@@ -1,7 +1,7 @@
 import {
   defaultParams,
+  defaultRateLimits,
   heartRateLimits,
-  paramRanges,
   presetParams,
   presetRateLimits,
 } from '@heart-atlas/heart-clock';
@@ -217,7 +217,7 @@ test.describe('disease presets', () => {
     // Other presets keep the reader's rate; leaving SVT goes back to the default rate.
     await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
-    await expect(slider).toHaveAttribute('min', String(paramRanges.heartRate[0]));
+    await expect(slider).toHaveAttribute('min', String(defaultRateLimits[0]));
     await slider.fill('90');
     await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
     await expect(slider).toHaveValue('90');

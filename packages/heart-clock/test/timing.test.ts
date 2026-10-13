@@ -28,8 +28,17 @@ describe('beatTiming', () => {
     expect(t.tEnd).toBeLessThan(t.rr);
   });
 
-  it('rejects heart rates outside 40–180', () => {
-    expect(() => beatTiming(60000 / 39, defaultParams)).toThrow(RangeError);
+  it('stops PR from growing below 40 bpm and keeps QT growing', () => {
+    const at40 = beatTiming(1500, defaultParams);
+    const at30 = beatTiming(2000, defaultParams);
+    expect(at30.qOnset).toBeCloseTo(at40.qOnset, 9);
+    expect(at30.qOnset).toBeLessThan(200);
+    expect(at30.tEnd - at30.qOnset).toBeGreaterThan(at40.tEnd - at40.qOnset);
+  });
+
+  it('rejects heart rates outside 30–180', () => {
+    expect(() => beatTiming(60000 / 30, defaultParams)).not.toThrow();
+    expect(() => beatTiming(60000 / 29, defaultParams)).toThrow(RangeError);
     expect(() => beatTiming(60000 / 181, defaultParams)).toThrow(RangeError);
     expect(() => beatTiming(Number.NaN, defaultParams)).toThrow(RangeError);
   });

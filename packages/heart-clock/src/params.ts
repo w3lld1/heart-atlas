@@ -53,6 +53,13 @@ export interface HeartParams {
    * heart rates P2 may fall after the mitral valve opens; the model does not prevent that.
    */
   s2Split: number;
+  /**
+   * Sinus pauses: after every `pauseEvery`-th beat the sinus node stays silent for
+   * `pauseDuration` ms, with no P wave and no QRS. 0 turns pauses off; otherwise 2–20.
+   */
+  pauseEvery: number;
+  /** Length of a sinus pause, ms. 0 exactly when `pauseEvery` is 0. */
+  pauseDuration: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -81,11 +88,15 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   atrialContribution: 0.2,
   aorticValveGradient: 0,
   s2Split: 0,
+  pauseEvery: 0,
+  pauseDuration: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
 export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, number]>> = {
-  heartRate: [40, 180],
+  // assumption: below 40 bpm the phase timing extrapolates the Weissler regressions (timing.ts).
+  // Only presets with their own rate floor offer rates below 40 (`defaultRateLimits`).
+  heartRate: [30, 180],
   rrIrregularity: [0, 0.3],
   seed: [0, 0xffffffff],
   prInterval: [80, 300],
@@ -104,7 +115,15 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   atrialContribution: [0, 0.4],
   aorticValveGradient: [0, 100],
   s2Split: [0, 100],
+  pauseEvery: [0, 20],
+  pauseDuration: [0, 6000],
 };
+
+/** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */
+export const defaultRateLimits: readonly [min: number, max: number] = [
+  40,
+  paramRanges.heartRate[1],
+];
 
 /** Merges a patch over `base` and checks every value; throws RangeError naming the parameter. */
 export function resolveParams(
@@ -127,6 +146,14 @@ export function resolveParams(
   }
   if (!Number.isInteger(params.seed)) {
     throw new RangeError(`seed must be an integer, got ${params.seed}`);
+  }
+  if (!Number.isInteger(params.pauseEvery) || params.pauseEvery === 1) {
+    throw new RangeError(
+      `pauseEvery must be 0 or an integer from 2 to 20, got ${params.pauseEvery}`,
+    );
+  }
+  if ((params.pauseEvery === 0) !== (params.pauseDuration === 0)) {
+    throw new RangeError('pauseEvery and pauseDuration must both be 0 or both be above 0');
   }
   // The aortic valve opens when LV pressure passes aortic diastolic pressure, and the mitral
   // valve only when LV pressure falls below it again.

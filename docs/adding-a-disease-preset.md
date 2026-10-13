@@ -39,8 +39,8 @@ The parameters, their units and ranges are in `HeartParams`, `defaultParams` and
 
 When the heart rate is the sign, as in supraventricular tachycardia (120–250 bpm), the preset sets it:
 
-1. Put `heartRate` in the preset, with a source or `assumption:` comment like any other number. It must fit `paramRanges.heartRate` (40–180).
-2. Add the lowest rate the sign allows to `presetRateFloors`, with its source. `presetRateLimits(id)` then gives `heartRateLimits` raised to that floor, and the slider, the embed builder and the embed's `?rate=` clamp all use it.
+1. Put `heartRate` in the preset, with a source or `assumption:` comment like any other number. It must fit `paramRanges.heartRate` (30–180); below 40 the preset also needs its own floor in `presetRateFloors`.
+2. Add the lowest rate the sign allows to `presetRateFloors`, with its source. `presetRateLimits(id)` then gives `heartRateLimits` limited to that floor instead of the default 40 (a floor can go down to 30 for a slow rhythm), and the slider, the embed builder and the embed's `?rate=` clamp all use it.
 
 `HeartClockDemo` applies `switchedHeartRate`: switching to such a preset sets its rate, switching away from it goes back to the next preset's rate (75 for every other preset), and switching between other presets keeps the reader's rate. An article, the heart clock page or an embed with `?preset=<id>` and no `?rate=` start at the preset's rate. Give the preset its range in `narrowedLimits` in `presets.test.ts`.
 
@@ -58,7 +58,7 @@ When the heart rate is the sign, as in supraventricular tachycardia (120–250 b
 [`packages/heart-clock/test/presets.test.ts`](../packages/heart-clock/test/presets.test.ts) already checks every id in `presetIds`:
 
 - `presets` has an entry for every id;
-- the preset passes `checkParams` at every heart rate in its `presetRateLimits`, that range holds the preset's starting rate, and it is the full `paramRanges.heartRate`. Presets with a narrower range are listed in `narrowedLimits` in `presets.test.ts`, each with a reason. A preset that raises PR, QRS or QTc narrows the upper heart rate limit (first-degree AV block: 96, long QT syndrome: 137). If your preset narrows the range too, the test fails; add it to `narrowedLimits` with a comment explaining why.
+- the preset passes `checkParams` at every heart rate in its `presetRateLimits`, that range holds the preset's starting rate, and it is `defaultRateLimits` (40–180). Presets with another range are listed in `narrowedLimits` in `presets.test.ts`, each with a reason. A preset that raises PR, QRS or QTc narrows the upper heart rate limit (first-degree AV block: 96, long QT syndrome: 137). If your preset narrows the range too, the test fails; add it to `narrowedLimits` with a comment explaining why.
 
 Add a test for the sign the preset is meant to show, like the existing ones for ST elevation in `stemi` and the split S2 in `atrial-septal-defect`.
 

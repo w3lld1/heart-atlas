@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { paramRanges, presetIds, presetRateLimits } from '@heart-atlas/heart-clock';
+import { defaultRateLimits, presetIds, presetRateLimits } from '@heart-atlas/heart-clock';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
@@ -40,7 +40,7 @@ const articleGroups = articleTypes
       .sort((a, b) => a.title.localeCompare(b.title, locale)),
   }))
   .filter((group) => group.modules.length > 0);
-const [minRate, maxRate] = paramRanges.heartRate;
+const [minRate, maxRate] = defaultRateLimits;
 ---
 
 <BaseLayout locale={locale} title={t['embed.title']} description={t['embed.intro']}>

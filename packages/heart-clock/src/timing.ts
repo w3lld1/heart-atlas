@@ -2,7 +2,7 @@ import { paramRanges, type HeartParams } from './params.ts';
 
 /** Moments inside one beat, ms from the onset of the P wave. */
 export interface BeatTiming {
-  /** RR interval of this beat, ms. */
+  /** RR interval of the rhythm, ms: the beat without a sinus pause (`Beat.pause`). */
   rr: number;
   pDuration: number;
   qOnset: number;
@@ -44,7 +44,9 @@ export function beatTiming(rr: number, params: HeartParams): BeatTiming {
   const scale = Math.sqrt(rr / 1000);
   const qs2 = 546 - 2.1 * heartRate;
   const lvet = 413 - 1.7 * heartRate;
-  const pr = params.prInterval * scale;
+  // assumption: PR stops growing below 40 bpm (RR 1500 ms); otherwise a normal PR of 160 ms would
+  // reach 226 ms at 30 bpm and look like first-degree AV block. No source gives PR below 40 bpm.
+  const pr = params.prInterval * Math.sqrt(Math.min(rr, 1500) / 1000);
   const qOnset = pr;
   const timing: BeatTiming = {
     rr,

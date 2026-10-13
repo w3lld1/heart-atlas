@@ -31,6 +31,7 @@ export const heartClockMessageKeys = [
   'heartClock.phase.ejection',
   'heartClock.phase.isovolumic-relaxation',
   'heartClock.phase.filling',
+  'heartClock.phase.pause',
   'heartClock.ecgLabel',
   'heartClock.soundOn',
   'heartClock.soundOff',
@@ -145,7 +146,8 @@ export default function HeartClockDemo({
   const [heartRate, setHeartRate] = useState(clock.params.heartRate);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
-  const [phase, setPhase] = useState<Phase>('atrial-systole');
+  // A sinus pause shows as its own phase, though the model keeps the ventricles filling in it.
+  const [phase, setPhase] = useState<Phase | 'pause'>('atrial-systole');
   const [width, setWidth] = useState(0);
   const [dpr, setDpr] = useState(1);
   const [soundOn, setSoundOn] = useState(false);
@@ -260,7 +262,8 @@ export default function HeartClockDemo({
       if (!context || !wiggersContext) return;
       drawEcg(context, width, nowRef.current, clock, colors);
       drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
-      setPhase(clock.sample(nowRef.current).phase);
+      const sample = clock.sample(nowRef.current);
+      setPhase(sample.pause ? 'pause' : sample.phase);
     }
 
     let frame = 0;

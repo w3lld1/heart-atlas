@@ -1,5 +1,5 @@
 import { heartRateLimits } from './clock.ts';
-import { resolveParams, type HeartParams } from './params.ts';
+import { defaultRateLimits, resolveParams, type HeartParams } from './params.ts';
 
 /**
  * Disease presets: parameter sets that show the textbook signs of each disease of the MVP.
@@ -124,7 +124,9 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
 
 /**
  * The lowest heart rate, bpm, a preset allows, for presets whose rate is itself the sign. With
- * `heartRate` in the preset, switching to it starts at that rate (see `switchedHeartRate`).
+ * `heartRate` in the preset, switching to it starts at that rate (see `switchedHeartRate`). A
+ * preset without a floor here starts at `defaultRateLimits[0]` (40); only a floor here can go
+ * below that, down to `paramRanges.heartRate[0]`.
  */
 export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({
   // Reentrant SVT is 120–250 bpm (MSD Manuals, Reentrant (Paroxysmal) SVT, 2024).
@@ -148,7 +150,7 @@ export function presetParams(id: PresetId): Readonly<HeartParams> {
 
 /**
  * Heart rates, bpm, a heart rate control offers for a preset: `heartRateLimits` of its parameters,
- * raised to the preset's floor. `params` are the preset's own by default; pass them when a caller
+ * raised to the preset's floor (40 unless `presetRateFloors` says otherwise). `params` are the preset's own by default; pass them when a caller
  * changed some. Throws RangeError when the floor is above every rate the parameters fit.
  */
 export function presetRateLimits(
@@ -156,7 +158,7 @@ export function presetRateLimits(
   params: Readonly<HeartParams> = presetParams(id),
 ): readonly [min: number, max: number] {
   const [min, max] = heartRateLimits(params);
-  const floor = presetRateFloors[id] ?? min;
+  const floor = presetRateFloors[id] ?? defaultRateLimits[0];
   if (floor > max) throw new RangeError(`Preset ${id} does not fit any heart rate from ${floor}`);
   return [Math.max(min, floor), max];
 }

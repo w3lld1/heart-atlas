@@ -25,6 +25,25 @@ function expectContinuous(clock: HeartClock, from: number, to: number) {
 }
 
 describe('hemodynamicsAt', () => {
+  it('holds the ventricle and atrium in a sinus pause while the aorta keeps running off', () => {
+    const clock = createHeartClock({ heartRate: 60, pauseEvery: 3, pauseDuration: 2500 });
+    expectContinuous(clock, 0, 7000);
+    const pause = series(clock, 3000, 5499, 50);
+    const first = pause[0]?.h as Hemodynamics;
+    for (const { t, h } of pause) {
+      for (const key of ['lv', 'la', 'volume'] as const) {
+        expect(h[key], `${key} at ${t} ms`).toBeCloseTo(first[key], 6);
+      }
+    }
+    for (let i = 1; i < pause.length; i += 1) {
+      expect(pause[i]?.h.aorta).toBeLessThan(pause[i - 1]?.h.aorta ?? 0);
+    }
+    // A pause lets the aorta fall lower than a regular beat does before the next ejection.
+    const regular = clock.hemodynamicsAt(1000 + clock.beatAt(1000).timing.ejectionStart - 1).aorta;
+    const afterPause = clock.hemodynamicsAt(5500 + clock.beatAt(5500).timing.ejectionStart - 1);
+    expect(afterPause.aorta).toBeLessThan(regular);
+  });
+
   it('is continuous across phases and beats', () => {
     expectContinuous(createHeartClock({ heartRate: 75 }), 0, 4000);
     expectContinuous(createHeartClock({ heartRate: 150, rrIrregularity: 0.2, seed: 5 }), 0, 3000);

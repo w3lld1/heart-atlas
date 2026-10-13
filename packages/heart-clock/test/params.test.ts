@@ -16,7 +16,7 @@ describe('resolveParams', () => {
   });
 
   it.each([
-    ['heartRate', 39],
+    ['heartRate', 29],
     ['heartRate', 181],
     ['rrIrregularity', 0.5],
     ['qtc', Number.NaN],
@@ -24,8 +24,25 @@ describe('resolveParams', () => {
     ['aorticValveGradient', -1],
     ['aorticValveGradient', 101],
     ['s2Split', 101],
+    ['pauseEvery', 21],
+    ['pauseDuration', 6001],
   ] as const)('rejects %s = %s and names the parameter', (key, value) => {
     expect(() => resolveParams({ [key]: value })).toThrow(new RegExp(`^${key} must be`));
+  });
+
+  it('takes pauses only as a whole count from 2 with a length, or not at all', () => {
+    expect(resolveParams({ pauseEvery: 3, pauseDuration: 2500 })).toMatchObject({
+      pauseEvery: 3,
+      pauseDuration: 2500,
+    });
+    for (const patch of [
+      { pauseEvery: 1, pauseDuration: 2000 },
+      { pauseEvery: 2.5, pauseDuration: 2000 },
+      { pauseEvery: 3 },
+      { pauseDuration: 2000 },
+    ]) {
+      expect(() => resolveParams(patch), JSON.stringify(patch)).toThrow(/^pause/);
+    }
   });
 
   it('allows a valve gradient right up to the aortic peak limit', () => {

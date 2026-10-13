@@ -8,7 +8,10 @@ export interface Beat {
   index: number;
   /** Absolute clock time of the P wave onset, ms. */
   start: number;
+  /** Time to the next beat, ms: `timing.rr` plus `pause`. */
   rr: number;
+  /** Sinus pause at the end of this beat, ms; 0 for most beats. */
+  pause: number;
   timing: BeatTiming;
   /** Parameters this beat was built with; `setParams` affects only later beats. */
   params: Readonly<HeartParams>;
@@ -19,6 +22,8 @@ export interface ClockSample {
   /** Time since the start of the beat, ms. */
   tInBeat: number;
   phase: Phase;
+  /** Whether `t` is in the sinus pause at the end of the beat. */
+  pause: boolean;
   /** ECG, mV. */
   ecg: number;
 }
@@ -52,7 +57,8 @@ const lookAheadBeats = 2;
 const fWaveBlendMs = 50;
 
 const minRr = 60000 / paramRanges.heartRate[1];
-const maxRr = 60000 / paramRanges.heartRate[0];
+/** Irregular rhythms are never slower than 40 bpm, or than their mean when that is below 40. */
+const slowestRate = 40;
 
 /** Uniform number in [0, 1) from a seed and a beat index; the same inputs give the same number. */
 function unitRandom(seed: number, index: number): number {
@@ -63,14 +69,21 @@ function unitRandom(seed: number, index: number): number {
   return (x >>> 0) / 2 ** 32;
 }
 
-function clampRr(rr: number): number {
+function clampRr(rr: number, params: HeartParams): number {
+  const maxRr = 60000 / Math.min(slowestRate, params.heartRate);
   return Math.min(maxRr, Math.max(minRr, rr));
 }
 
 function rrFor(params: HeartParams, index: number): number {
   const mean = 60000 / params.heartRate;
   const spread = params.rrIrregularity * (2 * unitRandom(params.seed, index) - 1);
-  return clampRr(mean * (1 + spread));
+  return clampRr(mean * (1 + spread), params);
+}
+
+/** Sinus pause after beat `index`, ms: after every `pauseEvery`-th beat (assumption: regular). */
+function pauseFor(params: HeartParams, index: number): number {
+  const every = params.pauseEvery;
+  return every > 0 && index % every === every - 1 ? params.pauseDuration : 0;
 }
 
 /**
@@ -80,8 +93,8 @@ function rrFor(params: HeartParams, index: number): number {
  */
 export function checkParams(params: HeartParams): void {
   const mean = 60000 / params.heartRate;
-  const low = clampRr(mean * (1 - params.rrIrregularity));
-  const high = clampRr(mean * (1 + params.rrIrregularity));
+  const low = clampRr(mean * (1 - params.rrIrregularity), params);
+  const high = clampRr(mean * (1 + params.rrIrregularity), params);
   const steps = low === high ? 0 : 256;
   for (let i = 0; i <= steps; i += 1) beatTiming(low + ((high - low) * i) / (steps || 1), params);
 }
@@ -127,8 +140,16 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
   const beats: Beat[] = [];
 
   function makeBeat(index: number, start: number): Beat {
-    const rr = rrFor(params, index);
-    return { index, start, rr, timing: beatTiming(rr, params), params };
+    const rhythmRr = rrFor(params, index);
+    const pause = pauseFor(params, index);
+    return {
+      index,
+      start,
+      rr: rhythmRr + pause,
+      pause,
+      timing: beatTiming(rhythmRr, params),
+      params,
+    };
   }
 
   function checkTime(t: number): void {
@@ -240,7 +261,13 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       const i = locate(t);
       const beat = beats[i] as Beat;
       const tInBeat = t - beat.start;
-      return { beat, tInBeat, phase: phaseAt(tInBeat, beat.timing), ecg: ecgFrom(i, t) };
+      return {
+        beat,
+        tInBeat,
+        phase: phaseAt(tInBeat, beat.timing),
+        pause: tInBeat >= beat.timing.rr,
+        ecg: ecgFrom(i, t),
+      };
     },
     ecgAt,
     hemodynamicsAt(t) {

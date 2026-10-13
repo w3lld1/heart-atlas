@@ -1,0 +1,221 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`existing presets > keep their curves and heart rate limits 1`] = `
+{
+  "aortic-stenosis": {
+    "curves": [
+      "40:eed34fbb",
+      "40:eed34fbb",
+      "47:12340f6a",
+      "60:a18e3899",
+      "75:9c84ee73",
+      "100:6922799b",
+      "137:2b31491f",
+      "170:8116b688",
+      "180:2ec2c429",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "atrial-fibrillation": {
+    "curves": [
+      "40:8027388c",
+      "40:8027388c",
+      "47:8a3fbb7",
+      "60:cc3c4b68",
+      "75:42de8410",
+      "100:78473014",
+      "137:e7bcb486",
+      "170:30cdeb55",
+      "180:e9efed72",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "atrial-septal-defect": {
+    "curves": [
+      "40:19c0c766",
+      "40:19c0c766",
+      "47:798a1e65",
+      "60:3ad764e",
+      "75:b58a304d",
+      "100:c474275e",
+      "137:45dad5b1",
+      "169:919e72db",
+    ],
+    "limits": [
+      40,
+      169,
+    ],
+    "presetLimits": [
+      40,
+      169,
+    ],
+  },
+  "av-block-first-degree": {
+    "curves": [
+      "40:43f90a00",
+      "40:43f90a00",
+      "47:f1d759a2",
+      "60:40ad9f97",
+      "75:6d711d9e",
+      "96:b2bd30c4",
+    ],
+    "limits": [
+      40,
+      96,
+    ],
+    "presetLimits": [
+      40,
+      96,
+    ],
+  },
+  "heart-failure": {
+    "curves": [
+      "40:2fd1830e",
+      "40:2fd1830e",
+      "47:7b860c37",
+      "60:1172b972",
+      "75:6ce5c5c3",
+      "100:8f17a281",
+      "137:739dd54f",
+      "170:c294d88a",
+      "180:46c5205b",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "hypertension": {
+    "curves": [
+      "40:c2767927",
+      "40:c2767927",
+      "47:88943738",
+      "60:9ed97d99",
+      "75:3b85c09d",
+      "100:cd8b6284",
+      "137:b42fbf3b",
+      "170:e1d7a608",
+      "180:87677ff1",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "long-qt-syndrome": {
+    "curves": [
+      "40:1258cca5",
+      "40:1258cca5",
+      "47:9f9bb663",
+      "60:f74dee3a",
+      "75:162b99dd",
+      "100:eb5b928b",
+      "137:f6a14bda",
+      "137:f6a14bda",
+    ],
+    "limits": [
+      40,
+      137,
+    ],
+    "presetLimits": [
+      40,
+      137,
+    ],
+  },
+  "normal": {
+    "curves": [
+      "40:848596ca",
+      "40:848596ca",
+      "47:1cc480fd",
+      "60:58b8387",
+      "75:414259b",
+      "100:425a028d",
+      "137:4c2ebca7",
+      "170:d403a310",
+      "180:6b6e6b1a",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "stemi": {
+    "curves": [
+      "40:e1a837a3",
+      "40:e1a837a3",
+      "47:da678ae1",
+      "60:4eafb450",
+      "75:ca5a69c6",
+      "100:8f11a7b4",
+      "137:2530e606",
+      "170:7b6dedc1",
+      "180:571ad285",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "supraventricular-tachycardia": {
+    "curves": [
+      "120:eccca7e3",
+      "137:705b05fc",
+      "170:3b8de8c8",
+      "180:b9211875",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      120,
+      180,
+    ],
+  },
+  "ventricular-tachycardia": {
+    "curves": [
+      "101:7e7cd56b",
+      "137:c2e7f5b3",
+      "169:aca643fe",
+    ],
+    "limits": [
+      40,
+      169,
+    ],
+    "presetLimits": [
+      101,
+      169,
+    ],
+  },
+}
+`;

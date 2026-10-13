@@ -108,6 +108,7 @@
   "heartClock.phase.ejection": "Ejection",
   "heartClock.phase.isovolumic-relaxation": "Isovolumic relaxation",
   "heartClock.phase.filling": "Ventricular filling",
+  "heartClock.phase.pause": "Sinus pause",
   "heartClock.ecgLabel": "Synthetic ECG, one lead. Grid: 25 mm per second, 10 mm per millivolt.",
   "heartClock.schematic": "A schematic teaching model, not a recording and not for diagnosis. Not reviewed by a physician. Durations follow published averages and are simplified; some values are model assumptions.",
   "heartClock.model3d": "Heart model",

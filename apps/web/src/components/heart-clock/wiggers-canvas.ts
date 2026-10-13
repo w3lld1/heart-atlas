@@ -59,9 +59,12 @@ export function drawWiggers(
 ): void {
   context.clearRect(0, 0, width, wiggersHeight);
   const beat = clock.beatAt(now);
+  // The axis spans the rhythm RR, not a sinus pause after it: on an 8 s beat systole would be a
+  // sliver. In a pause the cursor waits at the right edge.
+  const rr = beat.timing.rr;
   const plotWidth = width - axisWidth - 4;
   const count = Math.max(2, Math.floor(plotWidth));
-  const xAt = (t: number) => axisWidth + (t / beat.rr) * plotWidth;
+  const xAt = (t: number) => axisWidth + (Math.min(t, rr) / rr) * plotWidth;
 
   // Ventricular systole: from mitral closure (S1) to aortic closure (S2).
   const [, contraction = 0, , relaxation = 0] = phaseStarts(beat.timing);
@@ -69,10 +72,10 @@ export function drawWiggers(
   context.fillRect(xAt(contraction), 0, xAt(relaxation) - xAt(contraction), wiggersHeight);
 
   const samples = Array.from({ length: count }, (_, k) => {
-    const t = (k / (count - 1)) * beat.rr;
-    return clock.hemodynamicsAt(beat.start + Math.min(t, beat.rr - 1e-6));
+    const t = (k / (count - 1)) * rr;
+    return clock.hemodynamicsAt(beat.start + Math.min(t, rr - 1e-6));
   });
-  const ecg = clock.ecgBetween(beat.start, beat.start + beat.rr - 1e-6, count);
+  const ecg = clock.ecgBetween(beat.start, beat.start + rr - 1e-6, count);
 
   const maxPressure = Math.max(140, Math.ceil((beat.params.lvSystolic + 20) / 40) * 40);
   const pressureY = (p: number) =>

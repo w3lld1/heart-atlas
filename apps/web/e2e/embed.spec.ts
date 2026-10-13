@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
   defaultParams,
+  defaultRateLimits,
   heartRateLimits,
   paramRanges,
   presetParams,
@@ -194,6 +195,16 @@ test.describe('embed parameters', () => {
 
   test('ignores an out-of-range value', async ({ page }) => {
     await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[1] + 1}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(defaultParams.heartRate));
+  });
+
+  test('keeps a rate the model allows inside the preset limits', async ({ page }) => {
+    // 35 bpm is inside the model (30–180) but below the 40 bpm floor of a preset without its own.
+    await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[0] + 5}`);
+    await hydrated(page);
+    await expect(slider(page)).toHaveValue(String(defaultRateLimits[0]));
+    await page.goto(`en/embed/ecg/?rate=${paramRanges.heartRate[0] - 1}`);
     await hydrated(page);
     await expect(slider(page)).toHaveValue(String(defaultParams.heartRate));
   });

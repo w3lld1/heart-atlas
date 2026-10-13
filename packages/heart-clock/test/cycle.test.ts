@@ -23,6 +23,17 @@ function beat(id: PresetId) {
 }
 
 describe('cycleState', () => {
+  it('rests in a sinus pause: no excitation, ventricles filling', () => {
+    const clock = createHeartClock({ heartRate: 60, pauseEvery: 3, pauseDuration: 2500 });
+    for (let t = 3100; t < 5500; t += 200) {
+      const state = cycleState(clock, t);
+      expect(state.phase).toBe('filling');
+      expect(state.excited).toEqual([]);
+      expect(state.valveOpen['mitral-valve']).toBe(1);
+      expect(state.valveOpen['aortic-valve']).toBe(0);
+    }
+  });
+
   it('follows the conduction system and the valves through a normal beat', () => {
     const { clock, start, timing } = beat('normal');
     const at = (t: number) => cycleState(clock, start + t);
