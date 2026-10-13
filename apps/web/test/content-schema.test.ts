@@ -124,6 +124,15 @@ describe('article schema', () => {
     expect(articleSchema.safeParse({ ...valid(), wiggers: false }).success).toBe(false);
   });
 
+  it('leaves out the states after treatment only for an article with a preset', () => {
+    expect(articleSchema.parse(valid()).afterTreatment).toBe(true);
+    const preset = 'av-block-third-degree';
+    expect(articleSchema.parse({ ...valid(), preset, afterTreatment: false }).afterTreatment).toBe(
+      false,
+    );
+    expect(articleSchema.safeParse({ ...valid(), afterTreatment: false }).success).toBe(false);
+  });
+
   it('rejects unknown frontmatter keys', () => {
     expect(articleSchema.safeParse({ ...valid(), source: [] }).success).toBe(false);
   });

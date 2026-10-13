@@ -288,6 +288,24 @@ describe('ArticleClock', () => {
     ]);
   });
 
+  it('leaves out the states after treatment when the article turns them off', async () => {
+    const withReact = await AstroContainer.create();
+    withReact.addServerRenderer({ renderer: reactRenderer });
+    withReact.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' });
+    const html = await withReact.renderToString(ArticleClock, {
+      props: {
+        locale: 'en',
+        preset: 'av-block-third-degree',
+        morePresets: ['sick-sinus-syndrome'],
+        afterTreatment: false,
+      },
+    });
+    const presets = [
+      ...html.matchAll(/type="radio" name="[^"]*-preset"[^>]*?value="([^"]+)"/g),
+    ].map((m) => m[1]);
+    expect(presets).toEqual(['normal', 'av-block-third-degree', 'sick-sinus-syndrome']);
+  });
+
   it('leaves out the Wiggers diagram when the article turns it off', async () => {
     const withReact = await AstroContainer.create();
     withReact.addServerRenderer({ renderer: reactRenderer });

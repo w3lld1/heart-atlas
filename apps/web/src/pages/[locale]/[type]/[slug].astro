@@ -98,6 +98,7 @@ const congenital = type === 'disease' && isCongenitalModelId(slug) ? slug : unde
       {...(article.preset ? { preset: article.preset } : {})}
       morePresets={article.morePresets}
       wiggers={article.wiggers}
+      afterTreatment={article.afterTreatment}
       {...(disease ? { disease } : {})}
       {...(congenital ? { congenital } : {})}
     />

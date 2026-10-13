@@ -20,17 +20,27 @@ interface Props {
   morePresets?: readonly Exclude<PresetId, 'normal'>[];
   /** false hides the Wiggers diagram (frontmatter `wiggers`). */
   wiggers?: boolean;
+  /** false leaves out the states after treatment (frontmatter `afterTreatment`). */
+  afterTreatment?: boolean;
   /** The disease whose signs the 3D model shows. */
   disease?: DiseaseId;
   /** A patient model of the article's congenital defect: docs/plans/2026-10-12-congenital-models.md. */
   congenital?: CongenitalModelId;
 }
 
-const { locale, preset, morePresets = [], wiggers = true, disease, congenital } = Astro.props;
+const {
+  locale,
+  preset,
+  morePresets = [],
+  wiggers = true,
+  afterTreatment = true,
+  disease,
+  congenital,
+} = Astro.props;
 // Normal, the disease and, when its treatment changes the ECG, the state after treatment
 // (docs/plans/2026-10-13-heart-clock-after-treatment.md), then the article's other presets, each with its own.
 const withTreated = (id: Exclude<PresetId, 'normal'>): PresetId[] => {
-  const treated = presetTreated[id];
+  const treated = afterTreatment ? presetTreated[id] : undefined;
   return treated ? [id, treated] : [id];
 };
 // The schema rejects repeats; the Set keeps the switch right for a direct use of the component.
