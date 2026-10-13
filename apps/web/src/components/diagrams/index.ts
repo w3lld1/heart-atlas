@@ -48,6 +48,7 @@ import PulmonaryValveStenosis from './PulmonaryValveStenosis.astro';
 import RestrictiveCardiomyopathy from './RestrictiveCardiomyopathy.astro';
 import SickSinusSyndrome from './SickSinusSyndrome.astro';
 import SupraventricularTachycardia from './SupraventricularTachycardia.astro';
+import TakayasuArteritis from './TakayasuArteritis.astro';
 import TetralogyOfFallot from './TetralogyOfFallot.astro';
 import TranspositionOfTheGreatArteries from './TranspositionOfTheGreatArteries.astro';
 import TricuspidRegurgitation from './TricuspidRegurgitation.astro';
@@ -107,6 +108,7 @@ export const diagrams = {
   'restrictive-cardiomyopathy': RestrictiveCardiomyopathy,
   'sick-sinus-syndrome': SickSinusSyndrome,
   'supraventricular-tachycardia': SupraventricularTachycardia,
+  'takayasu-arteritis': TakayasuArteritis,
   'tetralogy-of-fallot': TetralogyOfFallot,
   'transposition-of-the-great-arteries': TranspositionOfTheGreatArteries,
   'tricuspid-regurgitation': TricuspidRegurgitation,

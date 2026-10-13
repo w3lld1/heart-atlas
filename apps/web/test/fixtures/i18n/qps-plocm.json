@@ -590,5 +590,15 @@
   "diagram.label.smaller-cusp": "[RTL] Smaller cusp",
   "diagram.label.larger-cusp": "[RTL] Larger cusp",
   "diagram.label.fusion-line": "[RTL] Fusion line",
-  "diagram.bicuspid-aortic-valve.title": "[RTL] Diagram of the closed aortic valve seen from the aorta: normally the valve has three cusps that meet in the centre; a bicuspid aortic valve has two cusps, a smaller one and a larger one formed by two fused cusps, which carries a fusion line; the valve is not drawn narrowed"
+  "diagram.bicuspid-aortic-valve.title": "[RTL] Diagram of the closed aortic valve seen from the aorta: normally the valve has three cusps that meet in the centre; a bicuspid aortic valve has two cusps, a smaller one and a larger one formed by two fused cusps, which carries a fusion line; the valve is not drawn narrowed",
+  "diagram.label.brachiocephalic-trunk": "[RTL] Brachiocephalic trunk",
+  "diagram.label.left-common-carotid": "[RTL] Left common carotid artery",
+  "diagram.label.right-arm": "[RTL] Right arm",
+  "diagram.label.left-arm": "[RTL] Left arm",
+  "diagram.label.pulse-normal": "[RTL] Normal pulse",
+  "diagram.label.pulse-weak": "[RTL] Weak pulse",
+  "diagram.label.pulse-weak-or-absent": "[RTL] Pulse weak or absent",
+  "diagram.label.narrowed-origin": "[RTL] Narrowed origin",
+  "diagram.label.blocked-origin": "[RTL] Blocked origin",
+  "diagram.takayasu-arteritis.title": "[RTL] Diagram of the aortic arch and its three branches, front view: normally the origins of the branches are not narrowed and the pulse is normal in both arms; in Takayasu arteritis the wall of the aorta and of the branch origins is thickened, and the branch origins may narrow or close; as an example, the origin of the brachiocephalic trunk is shown narrowed and the origin of the left subclavian artery blocked, so less blood reaches the arms and the pulse in them is weak or absent"
 }
