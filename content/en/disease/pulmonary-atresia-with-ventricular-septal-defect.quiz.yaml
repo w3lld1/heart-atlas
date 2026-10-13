@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is wrong with the heart in this defect?
+    options:
+      - text: The pulmonary valve is narrowed, but blood still passes through it
+      - text: The right ventricle's outflow to the pulmonary artery is closed
+        correct: true
+      - text: The outflow from the left ventricle to the aorta is closed
+    explanation: There is no direct connection between the right ventricle and the pulmonary artery; the outflow of blood from the right ventricle to the lungs is closed.
+    cite: [1, 2]
+  - level: patient
+    prompt: How does blood reach the lungs in this defect?
+    options:
+      - text: From the aorta, through the arterial duct or collaterals
+        correct: true
+      - text: Straight from the right ventricle through the pulmonary valve
+      - text: From the left ventricle through a separate vessel, bypassing the aorta
+    explanation: There is no direct route from the right ventricle to the lungs, so blood goes there through the aorta, via an open arterial duct or collateral vessels.
+    cite: [1]
+  - level: patient
+    prompt: How do the symptoms of this defect differ from tetralogy of Fallot?
+    options:
+      - text: It never causes cyanosis at all
+      - text: Hypercyanotic spells are more frequent and more severe
+      - text: It does not cause hypercyanotic spells
+        correct: true
+    explanation: Unlike tetralogy of Fallot, this defect does not cause hypercyanotic spells. Its main sign is cyanosis.
+    cite: [1]
+  - level: patient
+    prompt: What does the Russian guideline list as a reason for emergency admission to hospital?
+    options:
+      - text: Upcoming planned dental treatment
+      - text: A sudden increase in cyanosis or breathlessness
+        correct: true
+      - text: The child moving to an adult cardiologist at age 18
+    explanation: Reasons for emergency admission are a sudden increase in cyanosis or breathlessness and worsening heart failure. Dental treatment is agreed with the cardiologist in advance, and after 18 follow-up continues at an adult clinic.
+    cite: [1]
+  - level: student
+    prompt: What corresponds to Somerville type IV?
+    options:
+      - text: Atresia of the pulmonary valve only, with a formed trunk and both branches
+      - text: Atresia of the valve, the trunk and one PA
+      - text: Atresia of the valve, the trunk and both PAs, with collateral flow
+        correct: true
+    explanation: Type IV is atresia of the valve, the trunk and both PAs, with pulmonary blood flow through a network of collaterals. Atresia of the valve with a formed trunk and both branches is type I; of the valve, the trunk and one PA, type III.
+    cite: [1]
+  - level: student
+    prompt: How does oxygen saturation compare in the aorta, the collateral arteries and the PA?
+    options:
+      - text: It is the same in all three vessels
+        correct: true
+      - text: It is higher in the PA than in the aorta and collaterals
+      - text: It is higher in the aorta than in the PA and collaterals
+    explanation: According to the Russian guideline, oxygen saturation is the same in the aorta, the collateral arteries and the PA.
+    cite: [1]
