@@ -38,8 +38,17 @@ export function heroPoster(): {
 }
 
 /** Congenital models built by packages/models (MODELS in build.ts): docs/plans/2026-10-12-congenital-models.md. */
-export const congenitalModelIds = ['tetralogy-of-fallot'] as const;
+export const congenitalModelIds = [
+  'tetralogy-of-fallot',
+  'transposition-of-the-great-arteries',
+] as const;
 export type CongenitalModelId = (typeof congenitalModelIds)[number];
+
+/** How many features of the defect the caption lists (`congenital.<id>.sign<n>` keys). */
+export const congenitalSignCount: Record<CongenitalModelId, 2 | 4> = {
+  'tetralogy-of-fallot': 4,
+  'transposition-of-the-great-arteries': 2,
+};
 
 export function isCongenitalModelId(id: string): id is CongenitalModelId {
   return (congenitalModelIds as readonly string[]).includes(id);

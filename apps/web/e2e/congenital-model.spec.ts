@@ -45,7 +45,7 @@ test.describe('congenital heart model', () => {
     await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
     await expect(figure.getByLabel(en['viewer.section'], { exact: true })).toHaveValue('frontal');
     await expect(figure.getByLabel(en['viewer.section.position'])).toBeVisible();
-    await figure.getByLabel(en['congenital.ghost']).check();
+    await figure.getByLabel(en['congenital.tetralogy-of-fallot.ghost']).check();
     for (const id of ['myocardium', 'blood-pool'] as const) {
       await expect(figure.getByRole('button', { name: en[`structure.${id}`] })).toBeVisible();
     }
@@ -76,6 +76,46 @@ test.describe('congenital heart model in its article', () => {
       await load.click();
       const model = figure.getByRole('application', { name: t['viewer.canvasLabel'] });
       await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
+    });
+  }
+
+  for (const [locale, t] of [
+    ['en', en],
+    ['ru', ru],
+  ] as const) {
+    test(`the transposition article (${locale}) shows the whole model with its two features`, async ({
+      page,
+    }) => {
+      await page.goto(`${locale}/disease/transposition-of-the-great-arteries/`);
+      const figure = page.locator('figure', { hasText: t['congenital.source'] });
+      await expect(figure).toContainText(
+        t['congenital.transposition-of-the-great-arteries.caption'],
+      );
+      for (const n of [1, 2] as const) {
+        await expect(figure).toContainText(
+          t[`congenital.transposition-of-the-great-arteries.sign${n}`],
+        );
+      }
+      await expect(figure.getByRole('link', { name: t['congenital.source'] })).toHaveAttribute(
+        'href',
+        'https://3d.nih.gov/entries/3DPX-007810/3',
+      );
+      const load = figure.getByRole('button', { name: t['viewer.load'] });
+      await load.scrollIntoViewIfNeeded();
+      await expect(figure.locator('astro-island')).not.toHaveAttribute('ssr');
+      const glb = page.waitForRequest(/transposition-of-the-great-arteries-lod[01]\.glb$/);
+      await load.click();
+      await glb;
+      const model = figure.getByRole('application', { name: t['viewer.canvasLabel'] });
+      await expect(model).toHaveAttribute('aria-busy', 'false', LOAD);
+      // Its feature shows from outside, so it opens whole, unlike tetralogy of Fallot.
+      await expect(figure.getByLabel(t['viewer.section'], { exact: true })).toHaveValue('off');
+      await figure.getByLabel(t['congenital.transposition-of-the-great-arteries.ghost']).check();
+      for (const id of ['systemic-circulation', 'pulmonary-circulation'] as const) {
+        await expect(figure.getByRole('button', { name: t[`structure.${id}`] })).toBeVisible();
+      }
+      await expect(figure).toContainText('Mena, KA');
+      expect((await axe(page).analyze()).violations).toEqual([]);
     });
   }
 

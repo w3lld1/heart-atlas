@@ -93,8 +93,11 @@ const ZONE = new Color('#5b1780');
 const ZONE_MIX = 0.9;
 const LV = 'left-ventricle';
 const GHOST_GROUPS = new Set(['chamber']);
-/** The muscle layer of congenital models: see-through, it shows the blood cast of the chambers. */
-const GHOST_MESHES = new Set(['myocardium']);
+/**
+ * Layers of congenital models that turn see-through: the muscle shows the blood cast of the
+ * chambers; the systemic circulation of transposition shows the pulmonary one behind it.
+ */
+const GHOST_MESHES = new Set(['myocardium', 'systemic-circulation']);
 const AXIS = { sagittal: 0, transverse: 1, frontal: 2 } as const;
 
 type KeyHandler = (key: string) => boolean;
