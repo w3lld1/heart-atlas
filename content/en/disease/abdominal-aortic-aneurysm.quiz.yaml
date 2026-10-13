@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is named as the main risk factor for an abdominal aortic aneurysm?
+    options:
+      - text: Working at a computer
+      - text: Smoking
+        correct: true
+      - text: Short height
+    explanation: The main risk factor for an abdominal aortic aneurysm is smoking.
+    cite: [2, 4, 5]
+  - level: patient
+    prompt: What is the main test for finding an abdominal aortic aneurysm?
+    options:
+      - text: Electrocardiogram (ECG)
+      - text: Urine test
+      - text: Ultrasound scan of the abdominal aorta
+        correct: true
+    explanation: The main test is an ultrasound scan of the abdominal aorta. It is quick, involves no radiation and almost always finds an aneurysm.
+    cite: [2, 4]
+  - level: patient
+    prompt: How is the risk of rupture linked to the size of the aneurysm?
+    options:
+      - text: The larger the aneurysm, the higher the risk of rupture
+        correct: true
+      - text: The risk of rupture does not depend on size
+      - text: Small aneurysms have the highest risk of rupture
+    explanation: The main danger of an aneurysm is rupture. The larger the aneurysm, the higher the risk, while for small aneurysms it is very low.
+    cite: [3, 5]
+  - level: patient
+    prompt: Which sign means you should call an ambulance?
+    options:
+      - text: A mild runny nose
+      - text: Sudden, severe pain in the abdomen or back
+        correct: true
+      - text: Dry skin on the hands
+    explanation: Call your local emergency number for sudden, severe pain in the abdomen or back, and for loss of consciousness or fainting.
+    cite: [2, 3]
+  - level: student
+    prompt: What characterises AAA histopathologically?
+    options:
+      - text: Amyloidosis of the aortic wall
+      - text: Congenital narrowing of the aorta
+      - text: Medial degeneration
+        correct: true
+    explanation: AAA shares risk factors with atherosclerosis but is histopathologically distinct; it is characterised by medial degeneration.
+    cite: [2, 4]
+  - level: student
+    prompt: What is AAA rupture most commonly misdiagnosed as?
+    options:
+      - text: Renal colic and myocardial infarction
+        correct: true
+      - text: Migraine and otitis
+      - text: Pneumonia and bronchitis
+    explanation: The classic triad is present in about 50% of patients with rupture; the most common misdiagnoses are renal colic and myocardial infarction.
+    cite: [2]
