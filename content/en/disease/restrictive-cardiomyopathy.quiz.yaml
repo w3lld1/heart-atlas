@@ -1,0 +1,52 @@
+questions:
+  - level: patient
+    prompt: What happens to the ventricular walls in restrictive cardiomyopathy?
+    options:
+      - text: The walls become stiff and do not fill properly with blood between heartbeats
+        correct: true
+      - text: The aortic valve narrows
+      - text: The coronary arteries become blocked
+    explanation: In RCM the walls of the ventricles become stiff, but not necessarily thickened, and do not fill properly with blood between heartbeats.
+    cite: [4]
+  - level: patient
+    prompt: Can a specific cause of RCM be found?
+    options:
+      - text: Yes, the cause is always known
+      - text: In more than half of cases no specific cause is found
+        correct: true
+    explanation: In more than half of cases no specific cause is found.
+    cite: [4]
+  - level: patient
+    prompt: When do symptoms of RCM usually appear?
+    options:
+      - text: At rest, and they go away during exertion
+      - text: During exertion
+        correct: true
+    explanation: Symptoms appear during exertion, when the pressure in the stiff heart rises quickly and it cannot pump as much blood as the body needs.
+    cite: [4]
+  - level: patient
+    prompt: What does a heart ultrasound show in RCM?
+    options:
+      - text: Small atria
+      - text: A narrowed aortic valve
+      - text: Enlarged atria
+        correct: true
+    explanation: 'A heart ultrasound shows enlarged atria: the heart may still squeeze normally, but the muscle is stiff and does not fill with enough blood.'
+    cite: [4]
+  - level: student
+    prompt: What does cardiac output depend on in RCM?
+    options:
+      - text: Heart rate, because stroke volume is relatively fixed
+        correct: true
+      - text: Stroke volume, which rises easily during exercise
+    explanation: Stroke volume is often relatively fixed, so cardiac output depends on heart rate.
+    cite: [3]
+  - level: student
+    prompt: Which disease does the clinical picture of RCM closely resemble?
+    options:
+      - text: Aortic stenosis
+      - text: Constrictive pericarditis
+        correct: true
+      - text: Asthma
+    explanation: The clinical picture of RCM closely resembles constrictive pericarditis, a disease of the pericardium.
+    cite: [3]

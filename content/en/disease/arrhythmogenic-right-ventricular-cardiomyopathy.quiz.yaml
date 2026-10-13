@@ -1,0 +1,51 @@
+questions:
+  - level: patient
+    prompt: What replaces heart muscle in ARVC?
+    options:
+      - text: Bone tissue
+      - text: Fibrofatty tissue
+        correct: true
+      - text: Cartilage
+    explanation: ARVC is an inherited disease in which heart muscle is replaced by fibrofatty tissue.
+    cite: [1, 3]
+  - level: patient
+    prompt: Which structures do the mutations in ARVC most often disturb?
+    options:
+      - text: Desmosomes, the junctions that hold heart muscle cells together
+        correct: true
+      - text: The heart valves
+    explanation: Changes (mutations) in genes most often disturb desmosomes, the junctions that hold heart muscle cells together.
+    cite: [3]
+  - level: patient
+    prompt: When are dangerous arrhythmias especially likely in ARVC?
+    options:
+      - text: Only during sleep
+      - text: During emotional stress or physical exertion
+        correct: true
+    explanation: Dangerous arrhythmias are especially likely during emotional stress or physical exertion.
+    cite: [3]
+  - level: patient
+    prompt: How is ARVC diagnosed?
+    options:
+      - text: With a single blood test
+      - text: With a single chest X-ray
+      - text: From a combination of findings, because no single test settles it
+        correct: true
+    explanation: 'No single test settles the diagnosis: it is based on a combination of findings, namely changes on the ECG and on heart imaging, recorded arrhythmias, cases of the disease or of sudden death in the family, and the results of genetic testing.'
+    cite: [3]
+  - level: student
+    prompt: Which phenotypes of arrhythmogenic cardiomyopathy are recognised?
+    options:
+      - text: Only right ventricular
+      - text: Predominantly right ventricular, biventricular and predominantly left ventricular
+        correct: true
+    explanation: Three phenotypes of arrhythmogenic cardiomyopathy are recognised, predominantly right ventricular ("classic" ARVC), biventricular and predominantly left ventricular.
+    cite: [1, 3]
+  - level: student
+    prompt: What do AF and signs of ventricular systolic failure usually indicate in ARVC?
+    options:
+      - text: Advanced disease
+        correct: true
+      - text: The earliest stage of the disease
+    explanation: Atrial fibrillation and signs of right and/or left ventricular systolic failure are usually manifestations of advanced disease.
+    cite: [3]

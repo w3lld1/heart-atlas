@@ -1,0 +1,50 @@
+questions:
+  - level: patient
+    prompt: What is transposition of the great arteries?
+    options:
+      - text: A defect in which the pulmonary artery is missing
+      - text: The aorta arises from the right ventricle and the pulmonary artery from the left
+        correct: true
+    explanation: In TGA the two main arteries leave the heart the "wrong way round", the aorta from the right ventricle and the pulmonary artery from the left.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What is the main sign of TGA in a newborn?
+    options:
+      - text: Blueness that hardly improves when the baby breathes oxygen
+        correct: true
+      - text: A high temperature
+      - text: A skin rash
+    explanation: The main sign is blueness (cyanosis), which hardly improves when the baby breathes oxygen.
+    cite: [1]
+  - level: patient
+    prompt: What happens to a baby with TGA when the ductus arteriosus closes?
+    options:
+      - text: The baby recovers
+      - text: The baby becomes even more unwell
+        correct: true
+    explanation: When the ductus arteriosus closes, the baby becomes even more unwell.
+    cite: [1]
+  - level: patient
+    prompt: What is done in the arterial switch operation (Jatene operation)?
+    options:
+      - text: The mitral valve is replaced with a prosthesis
+      - text: The aorta and pulmonary artery are swapped over and the coronary arteries moved to the new aorta
+        correct: true
+    explanation: In the arterial switch operation the aorta and pulmonary artery are cut and swapped over, and the coronary arteries are moved to the new aorta.
+    cite: [3]
+  - level: student
+    prompt: What does the degree of hypoxaemia depend on in TGA?
+    options:
+      - text: The size of the communications between the circulations and the amount of mixing
+        correct: true
+      - text: The blood cholesterol level
+    explanation: The degree of hypoxaemia depends on the size of the communications between the circulations and the amount of mixing.
+    cite: [1]
+  - level: student
+    prompt: What is the second heart sound usually like in TGA?
+    options:
+      - text: Widely split and soft
+      - text: Single and loud
+        correct: true
+    explanation: Apart from generalised cyanosis, the physical examination is rather unremarkable; the second heart sound is single and loud.
+    cite: [3]

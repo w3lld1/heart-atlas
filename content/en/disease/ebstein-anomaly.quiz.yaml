@@ -1,0 +1,51 @@
+questions:
+  - level: patient
+    prompt: What happens to the heart in Ebstein anomaly?
+    options:
+      - text: The aortic valve narrows
+      - text: The tricuspid valve leaflets are displaced down towards the apex of the right ventricle
+        correct: true
+      - text: A coronary artery becomes blocked
+    explanation: In Ebstein anomaly the leaflets of the tricuspid valve are abnormally formed and displaced downwards, towards the apex of the right ventricle.
+    cite: [2, 3]
+  - level: patient
+    prompt: Can a person with a mild form not know about the condition for a long time?
+    options:
+      - text: Yes, for decades
+        correct: true
+      - text: No, a mild form is always obvious right after birth
+    explanation: With a mild form a person may not know about the condition for decades.
+    cite: [2]
+  - level: patient
+    prompt: What is done in the "cone reconstruction"?
+    options:
+      - text: A stent is placed in a coronary artery
+      - text: The leaflets are shaped into a cone-shaped valve attached to the valve ring
+        correct: true
+    explanation: In the cone reconstruction the leaflets are shaped into a cone-shaped valve and attached to the true valve ring.
+    cite: [1, 3]
+  - level: patient
+    prompt: How long is follow-up by a cardiologist needed with Ebstein anomaly?
+    options:
+      - text: Only until surgery
+      - text: Only in the first year of life
+      - text: For life, including after surgery
+        correct: true
+    explanation: Follow-up by a cardiologist is needed for life, including after surgery; for adults, in centres that treat adults with congenital heart disease.
+    cite: [1, 2]
+  - level: student
+    prompt: Which method is the gold standard for assessing RV volume and function in Ebstein anomaly?
+    options:
+      - text: Cardiac MRI
+        correct: true
+      - text: Coronary angiography
+    explanation: MRI is the gold standard for assessing RV volume and function.
+    cite: [1]
+  - level: student
+    prompt: What P wave is usually seen in Ebstein anomaly?
+    options:
+      - text: Low and flattened
+      - text: Tall and peaked (the "Himalayan" P wave)
+        correct: true
+    explanation: The P wave is usually tall and peaked (the "Himalayan" P wave).
+    cite: [1]

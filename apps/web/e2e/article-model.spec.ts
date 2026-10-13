@@ -41,6 +41,12 @@ test.describe('3D model in a disease article without signs on the model', () => 
     'ventricular-tachycardia': ['left-ventricle', 'right-ventricle'],
     'wpw-syndrome': ['av-node'],
     'brugada-syndrome': ['right-ventricle'],
+    'restrictive-cardiomyopathy': [
+      'left-ventricle',
+      'right-ventricle',
+      'left-atrium',
+      'right-atrium',
+    ],
   };
   for (const [slug, ids] of Object.entries(places)) {
     test(`${slug} highlights the place the article names`, async ({ page }) => {
