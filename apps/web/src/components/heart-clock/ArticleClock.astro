@@ -1,5 +1,5 @@
 ---
-import type { PresetId } from '@heart-atlas/heart-clock';
+import { presetLead, type PresetId } from '@heart-atlas/heart-clock';
 import type { DiseaseId } from '@heart-atlas/viewer';
 import { getMessages } from '../../i18n/messages.ts';
 import type { CongenitalModelId } from '../../lib/heart-model.ts';
@@ -42,6 +42,7 @@ const messages = Object.fromEntries(
         messages={messages}
         presets={['normal', preset]}
         preset={preset}
+        lead={presetLead(preset)}
         headingLevel={3}
       />
     </>

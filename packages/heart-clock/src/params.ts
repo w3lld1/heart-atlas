@@ -65,6 +65,17 @@ export interface HeartParams {
    * of a Q wave, and the R peak moves later. 0 draws the usual QRS. At most half of `qrsDuration`.
    */
   deltaWave: number;
+  /** Q wave amplitude, mV (0 or negative). */
+  qAmplitude: number;
+  /** R wave amplitude, mV. */
+  rAmplitude: number;
+  /** S wave amplitude, mV (0 or negative). */
+  sAmplitude: number;
+  /**
+   * Shape of `stShift`: 0 keeps the shift as a plateau up to the T wave; 1 makes it highest at the
+   * J point and lets it fall in a convex (coved) curve to nothing at the T wave's centre.
+   */
+  stSlope: number;
 }
 
 // assumption: defaults are model choices inside the normal ranges of StatPearls "Electrocardiogram"
@@ -96,6 +107,11 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   pauseEvery: 0,
   pauseDuration: 0,
   deltaWave: 0,
+  // assumption: Q, R and S amplitudes; R = 1 mV sets the scale (lead II).
+  qAmplitude: -0.1,
+  rAmplitude: 1,
+  sAmplitude: -0.25,
+  stSlope: 0,
 });
 
 /** Inclusive [min, max] for every parameter. */
@@ -124,6 +140,10 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   pauseEvery: [0, 20],
   pauseDuration: [0, 6000],
   deltaWave: [0, 80],
+  qAmplitude: [-0.5, 0],
+  rAmplitude: [0.1, 2],
+  sAmplitude: [-2, 0],
+  stSlope: [0, 1],
 };
 
 /** Heart rates, bpm, a heart rate control offers for a preset without its own rate floor. */

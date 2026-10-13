@@ -2,6 +2,7 @@ import {
   createHeartClock,
   cycleState,
   presetIds,
+  presetLead,
   presetParams,
   presetRateLimits,
   publishCycleSource,
@@ -10,6 +11,7 @@ import {
   withdrawCycleSource,
   type CycleSource,
   type HeartParams,
+  type Lead,
   type Phase,
   type PresetId,
 } from '@heart-atlas/heart-clock';
@@ -71,17 +73,22 @@ export interface HeartClockDemoProps {
   params?: Partial<HeartParams>;
   /** Level of the island's own headings, so they nest under the page's section heading. */
   headingLevel?: 2 | 3;
+  /**
+   * Lead for every preset, so an article compares normal with its disease in the disease's lead.
+   * Without it each preset is drawn in its own lead (`presetLead`).
+   */
+  lead?: Lead;
 }
 
 /** Parameters of a preset with the caller's overrides, or undefined if the two do not fit. */
-function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined) {
-  const merged = { ...presetParams(id), ...params };
+function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined, lead: Lead) {
+  const merged = { ...presetParams(id, lead), ...params };
   try {
     const limits = presetRateLimits(id, merged);
     // presetRateLimits checks every rate itself, so a caller's rate outside them would only fail
     // later, when the clock is created; keep it inside instead. A preset with a rate floor
     // (SVT) also keeps a caller's slower rate at the floor.
-    return { params: { ...merged, heartRate: clamp(merged.heartRate, limits) }, limits };
+    return { params: { ...merged, heartRate: clamp(merged.heartRate, limits) }, limits, lead };
   } catch (error) {
     if (error instanceof RangeError) return undefined;
     throw error;
@@ -110,6 +117,7 @@ export default function HeartClockDemo({
   preset,
   params,
   headingLevel = 2,
+  lead,
 }: HeartClockDemoProps) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
   // Presets that fit the caller's parameters, with their parameters and heart rate limits.
@@ -120,10 +128,14 @@ export default function HeartClockDemo({
     // that sets its own rate (SVT) still starts at it when the reader switches to it later.
     const rateless = withoutHeartRate(params);
     return ids.flatMap((id) => {
-      const merged = mergedParams(id, setsHeartRate(id) && id !== initial ? rateless : params);
+      const merged = mergedParams(
+        id,
+        setsHeartRate(id) && id !== initial ? rateless : params,
+        lead ?? presetLead(id),
+      );
       return merged ? [{ id, ...merged }] : [];
     });
-  }, [presets, preset, params]);
+  }, [presets, preset, params, lead]);
   // The reader's choice, with the heart rate it starts at: the reader's own, or the preset's when
   // switching to or from a preset that sets its rate (switchedHeartRate).
   const [selection, setSelection] = useState<{ id: PresetId; rate: number } | undefined>();
@@ -423,7 +435,7 @@ export default function HeartClockDemo({
           ref={canvasRef}
           className={styles['ecg']}
           role="img"
-          aria-label={t['heartClock.ecgLabel']}
+          aria-label={t['heartClock.ecgLabel'].replace('{lead}', choice.lead)}
           aria-describedby={descriptionId}
           style={{ inlineSize: width ? `${width}px` : '100%', blockSize: `${ecgHeight}px` }}
         />

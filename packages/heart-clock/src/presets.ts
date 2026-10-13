@@ -140,12 +140,43 @@ export function isPresetId(value: string): value is PresetId {
   return (presetIds as readonly string[]).includes(value);
 }
 
+/** ECG leads the model can draw. It draws one at a time. */
+export const leads = ['II', 'V1'] as const;
+export type Lead = (typeof leads)[number];
+
 /**
- * Full parameters of a preset: the defaults with the preset on top. Switching between presets
- * with these resets every parameter the other preset changed.
+ * The QRS of each lead without disease, under every preset drawn in that lead. Spec:
+ * docs/plans/2026-10-13-heart-clock-rhythms.md, section 4.
  */
-export function presetParams(id: PresetId): Readonly<HeartParams> {
-  return resolveParams(presets[id]);
+export const leadBaselines: Readonly<Record<Lead, Readonly<Partial<HeartParams>>>> = Object.freeze({
+  II: Object.freeze({}),
+  V1: Object.freeze({
+    // V1 has the smallest R wave of the chest leads and the largest S wave (StatPearls,
+    // Electrocardiogram): an rS complex. assumption: R 0.3 mV and S −1 mV; the source gives
+    // no amplitudes. No q wave: assumption, the source does not mention one in V1.
+    qAmplitude: 0,
+    rAmplitude: 0.3,
+    sAmplitude: -1,
+    // The P wave is commonly biphasic in V1 (StatPearls, same); the model draws one hump, so it
+    // keeps the lead II P wave. The T wave keeps the lead II shape too (assumption).
+  }),
+});
+
+/** The lead a preset is drawn in; presets not listed here are drawn in lead II. */
+export const presetLeads: Readonly<Partial<Record<PresetId, Lead>>> = Object.freeze({});
+
+/** The lead a preset is drawn in. */
+export function presetLead(id: PresetId): Lead {
+  return presetLeads[id] ?? 'II';
+}
+
+/**
+ * Full parameters of a preset: the defaults, the lead's baseline and the preset on top. Switching
+ * between presets with these resets every parameter the other preset changed. `lead` is the
+ * preset's own by default; an article compares normal with its disease in the disease's lead.
+ */
+export function presetParams(id: PresetId, lead: Lead = presetLead(id)): Readonly<HeartParams> {
+  return resolveParams({ ...leadBaselines[lead], ...presets[id] });
 }
 
 /**

@@ -1,0 +1,52 @@
+---
+// Test-only page (HA_TEST_CONTENT=1 builds): the heart clock with the rhythm parameters of
+// docs/plans/2026-10-13-heart-clock-rhythms.md, before any real preset uses them. Other builds
+// make no page here.
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import HeartClockDemo, {
+  heartClockMessageKeys,
+  type HeartClockMessages,
+} from '../../../components/heart-clock/HeartClockDemo.tsx';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { localeCodes } from '../../../i18n/locales.ts';
+import { getMessages } from '../../../i18n/messages.ts';
+
+export const getStaticPaths = (() =>
+  process.env['HA_TEST_CONTENT'] === '1'
+    ? localeCodes.map((locale) => ({ params: { locale } }))
+    : []) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+const messages = Object.fromEntries(
+  heartClockMessageKeys.map((key) => [key, t[key]]),
+) as HeartClockMessages;
+---
+
+<BaseLayout locale={locale} title="Heart clock rhythms" description="Test page.">
+  <h1>Heart clock rhythms</h1>
+  <section data-test="pauses">
+    <HeartClockDemo
+      client:load
+      locale={locale}
+      messages={messages}
+      params={{ heartRate: 60, pauseEvery: 2, pauseDuration: 2000 }}
+    />
+  </section>
+  <section data-test="v1">
+    <HeartClockDemo
+      client:load
+      locale={locale}
+      messages={messages}
+      lead="V1"
+      params={{
+        prInterval: 100,
+        qrsDuration: 140,
+        deltaWave: 40,
+        stShift: 0.2,
+        stSlope: 1,
+        tAmplitude: -0.2,
+      }}
+    />
+  </section>
+</BaseLayout>

@@ -65,7 +65,9 @@ test.describe('article page', () => {
     await expect(
       conditions.getByRole('radio', { name: ru['heartClock.preset.atrial-fibrillation'] }),
     ).toBeChecked();
-    await expect(page.getByRole('img', { name: ru['heartClock.ecgLabel'] })).toBeVisible();
+    await expect(
+      page.getByRole('img', { name: ru['heartClock.ecgLabel'].replace('{lead}', 'II') }),
+    ).toBeVisible();
     await expect(
       page.getByRole('heading', { level: 3, name: ru['heartClock.wiggers.title'] }),
     ).toBeVisible();

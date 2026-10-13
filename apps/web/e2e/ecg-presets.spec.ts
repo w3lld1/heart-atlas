@@ -22,7 +22,7 @@ test('the AV block article switches between normal and first-degree AV block', a
   // The island is client:visible: scroll to it and wait for hydration before switching.
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
   await expect(ecg).toHaveAccessibleDescription(/long PR interval of more than 0\.20 s/);
   expect((await axe(page).analyze()).violations).toEqual([]);
   await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
@@ -47,7 +47,7 @@ test('the SVT article starts at the preset heart rate and normal goes back to 75
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
   const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
-  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
   await expect(slider).toHaveValue('170');
   await expect(slider).toHaveAttribute('min', '120');
   await expect(ecg).toHaveAccessibleDescription(/^Supraventricular tachycardia at 170 /);
@@ -81,7 +81,7 @@ test('the long QT article shows a long QT at the reader heart rate', async ({ pa
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
   const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
-  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
   // The preset keeps the default rate; its long QT does not fit the fastest rates.
   await expect(slider).toHaveValue('75');
   await expect(slider).toHaveAttribute('max', '137');
@@ -114,7 +114,7 @@ test('the VT article starts at the preset heart rate and normal goes back to 75'
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
   const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
-  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
   await expect(slider).toHaveValue('150');
   await expect(slider).toHaveAttribute('min', '101');
   await expect(slider).toHaveAttribute('max', '169');
@@ -134,7 +134,7 @@ test('the VT article keeps the monitor still with motion off', async ({ page }) 
   const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
   await conditions.scrollIntoViewIfNeeded();
   const play = page.getByRole('button', { name: en['heartClock.play'], exact: true });
-  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+  const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
   // The text description carries the rhythm while the trace stands still.
   await expect(play).toBeVisible();
   await expect(ecg).toHaveAccessibleDescription(/^Ventricular tachycardia at 150 /);

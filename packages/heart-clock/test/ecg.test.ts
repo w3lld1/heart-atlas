@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { beatWaves, fWaves } from '../src/ecg.ts';
 import { defaultParams, resolveParams } from '../src/params.ts';
+import { leadBaselines, presetParams } from '../src/presets.ts';
 import { beatTiming } from '../src/timing.ts';
 
 const timing = beatTiming(800, defaultParams);
@@ -94,5 +95,53 @@ describe('delta wave', () => {
     expect(beatTiming(1000, { ...defaultParams, deltaWave: 0 })).toEqual(plain);
     expect(() => resolveParams({ qrsDuration: 90, deltaWave: 46 })).toThrow(/deltaWave/);
     expect(() => resolveParams({ qrsDuration: 90, deltaWave: 45 })).not.toThrow();
+  });
+});
+
+describe('QRS amplitudes and ST shape', () => {
+  it('draws an rS complex in V1 and changes nothing in lead II', () => {
+    const v1 = presetParams('normal', 'V1');
+    const t = beatTiming(1000, v1);
+    const qrs = Array.from({ length: 200 }, (_, k) =>
+      beatWaves(t.qOnset + (k * v1.qrsDuration) / 199, t, v1),
+    );
+    expect(Math.max(...qrs)).toBeCloseTo(0.3, 1);
+    expect(Math.min(...qrs)).toBeLessThan(-0.9);
+    expect(presetParams('normal', 'II')).toEqual(defaultParams);
+    expect(presetParams('normal')).toEqual(defaultParams);
+  });
+
+  it('bends a raised ST into a coved segment that falls towards the T wave', () => {
+    const params = { ...defaultParams, stShift: 0.3, stSlope: 1, tAmplitude: -0.3 };
+    const t = beatTiming(1000, params);
+    const at = (x: number) => beatWaves(x, t, params);
+    const tCentre = t.tEnd - 2.5 * 0.07 * (t.tEnd - t.qOnset);
+    const points = Array.from({ length: 20 }, (_, k) =>
+      at(t.jPoint + 10 + ((tCentre - t.jPoint - 20) * k) / 19),
+    );
+    expect(points[0]).toBeGreaterThan(0.2);
+    for (let k = 1; k < points.length; k += 1) expect(points[k]).toBeLessThan(points[k - 1] ?? 0);
+    expect(at(tCentre)).toBeLessThan(0);
+    const flat = { ...params, stSlope: 0, tAmplitude: 0.3 };
+    expect(beatWaves(t.jPoint + 60, beatTiming(1000, flat), flat)).toBeCloseTo(0.3, 1);
+  });
+
+  it('draws V1, a delta wave and a coved ST together without gaps', () => {
+    const params = resolveParams({
+      ...leadBaselines.V1,
+      prInterval: 100,
+      qrsDuration: 140,
+      deltaWave: 40,
+      stShift: 0.2,
+      stSlope: 1,
+      tAmplitude: -0.2,
+    });
+    const t = beatTiming(900, params);
+    let previous = beatWaves(0, t, params);
+    for (let x = 0.5; x < 900; x += 0.5) {
+      const value = beatWaves(x, t, params);
+      expect(Math.abs(value - previous), `${x} ms`).toBeLessThan(0.1);
+      previous = value;
+    }
   });
 });

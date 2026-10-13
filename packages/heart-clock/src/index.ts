@@ -20,7 +20,11 @@ export { soundEvents, type HeartSound, type SoundEvent } from './sounds.ts';
 export { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 export {
   isPresetId,
+  leadBaselines,
+  leads,
   presetIds,
+  presetLead,
+  presetLeads,
   presetParams,
   presetRateFloors,
   presetRateLimits,
@@ -28,6 +32,7 @@ export {
   presets,
   setsHeartRate,
   switchedHeartRate,
+  type Lead,
   type PresetId,
 } from './presets.ts';
 export { cycleState } from './cycle.ts';

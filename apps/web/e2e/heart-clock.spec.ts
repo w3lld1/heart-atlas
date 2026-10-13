@@ -100,7 +100,7 @@ test.describe('heart clock controls', () => {
     await slider.fill('120');
     await expect(page.getByText(/Sinus rhythm at 120 beats per minute/)).toBeVisible();
     await expect(
-      page.getByRole('img', { name: en['heartClock.ecgLabel'] }),
+      page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') }),
     ).toHaveAccessibleDescription(/120 beats per minute/);
   });
 
@@ -173,7 +173,7 @@ test.describe('disease presets', () => {
     await expect(conditions).toHaveAccessibleDescription(
       en['heartClock.preset.atrial-fibrillation.summary'],
     );
-    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
     await expect(ecg).toHaveAccessibleDescription(/^Atrial fibrillation at an average of 75 /);
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
@@ -252,7 +252,7 @@ test.describe('disease presets', () => {
     await expect(page.locator('[data-phase]')).toBeVisible();
     // The ECG still has dark trace pixels.
     const inked = await page
-      .getByRole('img', { name: en['heartClock.ecgLabel'] })
+      .getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') })
       .evaluate((canvas: HTMLCanvasElement) => {
         const context = canvas.getContext('2d');
         if (!context) return 0;

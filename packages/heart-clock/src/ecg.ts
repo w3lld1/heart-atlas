@@ -14,13 +14,9 @@ function smoothstep(from: number, to: number, t: number): number {
   return x * x * (3 - 2 * x);
 }
 
-// assumption: Q, R and S amplitudes; R = 1 mV sets the scale.
-const qAmplitude = -0.1;
-const rAmplitude = 1;
-const sAmplitude = -0.25;
 // assumption: the delta wave rises to 0.3 of R. Sources describe its shape (a slurred, slow
 // upstroke), not its height.
-const deltaAmplitude = 0.3 * rAmplitude;
+const deltaShare = 0.3;
 
 /**
  * ECG of one beat at `t` ms from its start, mV, without f waves. A sum of Gaussians as in ECGSYN
@@ -29,14 +25,18 @@ const deltaAmplitude = 0.3 * rAmplitude;
  */
 export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): number {
   const { pDuration, qOnset, jPoint, tEnd } = timing;
+  const { qAmplitude, rAmplitude, sAmplitude } = params;
   const qrs = params.qrsDuration;
   const qt = tEnd - qOnset;
   // assumption: wave widths as fractions of the intervals they live in; ±2.5σ stays inside them.
   const tAfter = 0.07 * qt;
   const tCentre = tEnd - 2.5 * tAfter;
+  // stSlope bends the plateau into a coved segment: highest at J, falling ever faster to T.
+  const fall = params.stSlope * Math.min(1, Math.max(0, (t - jPoint) / (tCentre - jPoint))) ** 2;
   const st =
     params.stShift *
     smoothstep(jPoint - Math.min(15, 0.15 * qrs), jPoint, t) *
+    (1 - fall) *
     (1 - smoothstep(tCentre, tEnd, t));
   // With a delta wave the QRS starts with a slow rise instead of a Q wave, and R and S fit into
   // the rest of the complex. Spec: docs/plans/2026-10-13-heart-clock-rhythms.md, section 3.
@@ -47,7 +47,7 @@ export function beatWaves(t: number, timing: BeatTiming, params: HeartParams): n
   const r = wave(t, timing.rPeak, rAmplitude, 0.1 * rest, 0.1 * rest);
   // The slow rise goes on at the same slope until the steep R upstroke overtakes it, so the two
   // join without a step and R keeps its amplitude.
-  const deltaRise = delta > 0 ? (deltaAmplitude * Math.max(0, t - qOnset)) / delta : 0;
+  const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;
   const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
   return (
     wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5) +
