@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is takotsubo syndrome?
+    options:
+      - text: A temporary problem with how part of the left ventricle contracts
+        correct: true
+      - text: An inborn narrowing of the aorta that is noticed from the day of birth
+      - text: Permanent destruction of the heart valves after a bout of tonsillitis
+    explanation: Takotsubo syndrome is a temporary problem with how part of the left ventricle contracts; its features resemble an acute coronary syndrome, that is, a heart attack.
+    cite: [3]
+  - level: patient
+    prompt: Where does the name "takotsubo" come from?
+    options:
+      - text: It is the surname of the Japanese doctor who first described it
+      - text: It is the name of the Japanese city where it was first found
+      - text: It is the Japanese word for an octopus trap
+        correct: true
+    explanation: The name comes from Japanese; it is the word for an octopus trap, which the left ventricle resembles at the end of its contraction.
+    cite: [3]
+  - level: patient
+    prompt: Who is affected by takotsubo syndrome most often?
+    options:
+      - text: Teenage boys under 15
+      - text: Women after the menopause
+        correct: true
+      - text: Young men who play sports at a high level
+    explanation: Women after the menopause are affected by takotsubo syndrome most often.
+    cite: [3]
+  - level: patient
+    prompt: How long does the left ventricle usually take to recover its contraction?
+    options:
+      - text: 4–8 weeks
+        correct: true
+      - text: Only 10–20 years later
+      - text: It never recovers
+    explanation: 'Takotsubo syndrome is reversible; the left ventricle usually recovers its full contraction within 4–8 weeks. But in the acute phase the condition can be dangerous, and follow-up after discharge still matters: in a small proportion of people the condition comes back, sometimes years later.'
+    cite: [4]
+  - level: student
+    prompt: What is considered the gold standard for diagnosing takotsubo syndrome?
+    options:
+      - text: A single blood troponin test
+      - text: Coronary angiography with left ventriculography
+        correct: true
+      - text: Holter ECG monitoring over a full 24-hour period
+    explanation: Coronary angiography with left ventriculography is considered the gold standard. Troponin is only moderately elevated in most cases.
+    cite: [3]
+  - level: student
+    prompt: What does cardiac MRI show in most patients with takotsubo syndrome?
+    options:
+      - text: Extensive late gadolinium enhancement with no myocardial oedema
+      - text: A normal myocardium with no signal changes of any kind at all
+      - text: Myocardial oedema without late gadolinium enhancement
+        correct: true
+    explanation: In most patients with takotsubo syndrome MRI shows myocardial oedema in the regions with abnormal contraction, and late gadolinium enhancement is usually absent.
+    cite: [4]

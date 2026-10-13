@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is acute rheumatic fever?
+    options:
+      - text: An inborn defect of the heart valves that is noticed from birth
+      - text: The body's inflammatory reaction to strep throat
+        correct: true
+      - text: The streptococcal infection itself, spreading from the throat to the heart
+    explanation: Rheumatic fever is not an infection itself but the body's inflammatory reaction to a streptococcal throat infection, tonsillitis or pharyngitis (strep throat).
+    cite: [1, 5]
+  - level: patient
+    prompt: When does rheumatic fever usually start after a group A streptococcal sore throat?
+    options:
+      - text: In the first 1 to 2 hours of the sore throat
+      - text: Only 5 to 10 years after the sore throat
+      - text: 2 to 3 weeks later
+        correct: true
+    explanation: Rheumatic fever starts after tonsillitis or pharyngitis caused by group A streptococcus, usually 2 to 3 weeks later.
+    cite: [1, 4]
+  - level: patient
+    prompt: Which heart valves does rheumatic disease most often affect?
+    options:
+      - text: The mitral and aortic valves
+        correct: true
+      - text: The tricuspid and pulmonary valves
+      - text: Only the pulmonary valve, nothing else
+    explanation: Rheumatic disease most often affects the mitral and aortic valves. The tricuspid and pulmonary valves are seldom if ever affected in isolation.
+    cite: [4]
+  - level: patient
+    prompt: What can a heart ultrasound do when rheumatic fever is suspected?
+    options:
+      - text: Prove rheumatic fever on its own, without looking at other signs
+      - text: Find inflamed valves even when no murmur is heard
+        correct: true
+      - text: Measure the level of antibodies to group A streptococcus in the blood
+    explanation: There is no single test that proves rheumatic fever. A heart ultrasound is recommended for everyone with suspected rheumatic fever; it can find inflammation of the valves even when no murmur is heard. Antibodies to streptococcus are tested in the blood.
+    cite: [1, 4]
+  - level: student
+    prompt: Under the Jones criteria, what diagnoses an initial episode of ARF with evidence of GAS infection?
+    options:
+      - text: Any single minor manifestation
+      - text: The GAS infection alone, with no manifestations at all
+      - text: 2 major, or 1 major and 2 minor
+        correct: true
+    explanation: With evidence of preceding GAS infection, an initial episode of ARF is diagnosed with 2 major or 1 major and 2 minor manifestations. There are five major criteria — carditis, arthritis, chorea, erythema marginatum and subcutaneous nodules.
+    cite: [1]
+  - level: student
+    prompt: What is the most common manifestation of ARF?
+    options:
+      - text: Migratory polyarthritis
+        correct: true
+      - text: Erythema marginatum and subcutaneous nodules
+      - text: Isolated involvement of the pulmonary valve
+    explanation: Migratory polyarthritis is the most common manifestation of ARF. Cutaneous manifestations are uncommon, and the pulmonary valve is seldom if ever affected in isolation.
+    cite: [4]

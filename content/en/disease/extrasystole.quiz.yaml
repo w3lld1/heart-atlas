@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is a premature beat (extrasystole)?
+    options:
+      - text: Narrowing of one of the heart valves due to calcium deposits
+      - text: Inflammation of the heart muscle after a viral infection
+      - text: An extra heartbeat that comes too early
+        correct: true
+    explanation: A premature beat is an extra heartbeat. The electrical impulse starts somewhere other than usual and before the next normal heartbeat would occur.
+    cite: [1, 6, 7]
+  - level: patient
+    prompt: Who has premature beats?
+    options:
+      - text: Both healthy people and people with heart disease
+        correct: true
+      - text: Only people with severe heart disease, after a heart attack
+      - text: Only professional athletes, during exercise
+    explanation: Premature beats are very common both in healthy people and in people with heart disease, and nearly everyone has an occasional atrial premature beat.
+    cite: [4, 5]
+  - level: patient
+    prompt: What does Holter monitoring do?
+    options:
+      - text: Shows the structure of the heart valves using ultrasound waves
+      - text: Records the ECG continuously in daily life for 18 hours or longer
+        correct: true
+      - text: Measures blood pressure and the blood potassium level once every day
+    explanation: To record infrequent premature beats and match them with symptoms, doctors use Holter monitoring. A portable device records the ECG continuously during everyday life for 18 hours or longer.
+    cite: [1]
+  - level: patient
+    prompt: What is the outlook for life with ventricular premature beats without heart disease or a weak left ventricle?
+    options:
+      - text: Poor if there are more than a thousand premature beats a day
+      - text: Poor with any type of premature beats, even rare single ones
+      - text: Good, whatever their type and number
+        correct: true
+    explanation: People with ventricular premature beats who have no heart disease and no weakening of the left ventricle have a good outlook for life, whatever the type of premature beats and their number per day. If there are very many premature beats, the doctor still checks from time to time how well the ventricles are working. If irregular beats come with dizziness, weakness, feeling faint or loss of consciousness, call an ambulance.
+    cite: [1, 2]
+  - level: student
+    prompt: What does a PVC look like on the ECG?
+    options:
+      - text: Early QRS ≥ 120 ms with no preceding P wave
+        correct: true
+      - text: An early narrow QRS under 120 ms, with no P wave before it
+      - text: An early wide QRS that always has a P wave before it
+    explanation: On the ECG a PVC is a premature QRS complex of 120 ms or more, without a preceding P wave, with a T wave discordant to the main QRS deflection.
+    cite: [1]
+  - level: student
+    prompt: Above what share of all beats does the Russian guideline call PVCs frequent?
+    options:
+      - text: Above 1 %
+      - text: Above 10 %
+        correct: true
+      - text: Above half of all heartbeats
+    explanation: PVC burden is the proportion of ventricular ectopic beats among all heartbeats during Holter monitoring. The Russian Ministry of Health guideline calls PVCs frequent when they exceed 10 % of beats.
+    cite: [1]

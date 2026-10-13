@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is mitral valve prolapse?
+    options:
+      - text: Narrowing of the aortic valve, so blood struggles to leave for the aorta
+      - text: The mitral valve leaflets bulging back into the left atrium
+        correct: true
+      - text: An inborn hole in the wall between the left and right atria of the heart
+    explanation: Mitral valve prolapse (MVP) is when the leaflets of the mitral valve bulge back into the left atrium while the left ventricle contracts (systole).
+    cite: [5, 6]
+  - level: patient
+    prompt: How common is MVP?
+    options:
+      - text: About 2.4% of people have it
+        correct: true
+      - text: About one person in a million has it
+      - text: Almost everyone over the age of 50 has it
+    explanation: MVP is common; about 2.4% of people have it.
+    cite: [1, 5]
+  - level: patient
+    prompt: What is the most common cause of MVP?
+    options:
+      - text: Atherosclerosis of the arteries that supply the heart
+      - text: An injury to the chest, for example in a fall
+      - text: Myxomatous degeneration of the valve
+        correct: true
+    explanation: The most common cause of MVP is myxomatous degeneration of the valve. The leaflets enlarge and become stretchy, and the chordae become longer and thinner.
+    cite: [5]
+  - level: patient
+    prompt: How is the diagnosis of MVP confirmed?
+    options:
+      - text: Only by the shape of the chest, with no tests at all
+      - text: With a heart ultrasound, echocardiography
+        correct: true
+      - text: Only by the person's complaint of palpitations
+    explanation: The diagnosis is confirmed with a heart ultrasound (echocardiography). The shape of the chest alone does not make the diagnosis.
+    cite: [5, 6]
+  - level: student
+    prompt: In MVP, what happens to the click and murmur when LV size decreases (standing, Valsalva)?
+    options:
+      - text: Click nearer S1, murmur louder and longer
+        correct: true
+      - text: The click is delayed and the systolic murmur shortens
+      - text: Click and murmur do not change with changes in posture
+    explanation: Manoeuvres that decrease LV size (sitting, standing, Valsalva) move the click closer to S1 and make the murmur appear or become louder and longer. Squatting delays the click and shortens the murmur; it is the click of congenital aortic stenosis that does not move with posture.
+    cite: [1, 5]
+  - level: student
+    prompt: What is mitral annular disjunction (MAD)?
+    options:
+      - text: Fusion of the mitral valve leaflets with each other at both commissures
+      - text: A ruptured chord that leaves the free edge of a leaflet flailing
+      - text: Partial detachment of the annulus from the ventricle in systole
+        correct: true
+    explanation: Mitral annular disjunction (MAD) is a partial detachment of the annulus from the ventricular myocardium during systole. It is diagnosed on echocardiography from systolic separation of the annulus and the ventricular myocardium in the posterolateral region.
+    cite: [5]
