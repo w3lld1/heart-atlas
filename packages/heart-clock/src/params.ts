@@ -115,7 +115,7 @@ export interface HeartParams {
   ventricularPacing: number;
   /**
    * Bidirectional ventricular tachycardia: 1 draws the QRS, ST and T of every second beat (odd beat
-   * index) in opposite polarity, in every lead, so the complexes alternate up and down; 0 keeps
+   * index) in opposite polarity, in every lead (sources describe the frontal axis: use limb leads), so the complexes alternate up and down; 0 keeps
    * every beat the same. Needs a rhythm without P waves of its own (VT).
    * Spec: docs/plans/2026-10-14-heart-clock-bidirectional-vt.md.
    */
