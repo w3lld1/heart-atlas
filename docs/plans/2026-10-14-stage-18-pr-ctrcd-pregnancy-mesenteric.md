@@ -55,7 +55,7 @@
 | esc | guideline | 2022 ESC Guidelines on cardio-oncology | 2022 | [10.1093/eurheartj/ehac244](https://doi.org/10.1093/eurheartj/ehac244) | Только набор слайдов и «Essential Messages» |
 | minzdrav-rf | guideline | Дилатационная кардиомиопатия (ID 1008_1), раздел 2.6.2.2 | 2025 | [10.15829/1560-4071-2026-6672](https://doi.org/10.15829/1560-4071-2026-6672) | Весь текст через API |
 | minzdrav-rf | guideline | Хроническая сердечная недостаточность (ID 156_2) | 2024 | [10.15829/1560-4071-2024-6162](https://doi.org/10.15829/1560-4071-2024-6162) | Отдельные фрагменты |
-| msd-manuals | reference | Dilated Cardiomyopathy (professional и consumer) | 2026 | msdmanuals.com | Только упоминания причин |
+| esc | guideline | Cardio-Oncology: What Patients Need to Know (официальное руководство ESC для пациентов по рекомендации 2022) | 2022 | escardio.org | Целиком |
 | statpearls | reference | Anthracycline Toxicity; Radiation-Induced Cardiac Toxicity | 2023–2024 | [PMID 38261713](https://pubmed.ncbi.nlm.nih.gov/38261713/), [PMID 32119340](https://pubmed.ncbi.nlm.nih.gov/32119340/) | Только аннотации |
 
 Отдельной рекомендации Минздрава о кардиотоксичности нет; используем раздел в рекомендации по ДКМП. Определение — словами, без чисел (у Минздрава старое числовое определение, у ESC 2022 новое). Обратимость повреждения — с указанием источника. Симптомы — «сразу сообщить врачу»; признаки, при которых нужна скорая, — ссылками на статьи о сердечной недостаточности, инфаркте и ТЭЛА.
@@ -68,7 +68,7 @@
 | esc | guideline | 2025 ESC Guidelines for the management of cardiovascular disease and pregnancy | 2025 | [10.1093/eurheartj/ehaf193](https://doi.org/10.1093/eurheartj/ehaf193) | Только набор слайдов |
 | nice | guideline | Hypertension in pregnancy: diagnosis and management (NG133) | 2019, обновлено 2023 | [nice.org.uk/guidance/ng133](https://www.nice.org.uk/guidance/ng133) | Рекомендации целиком |
 | msd-manuals | reference | Preeclampsia and Eclampsia; Hypertension in Pregnancy (professional) | 2024–2025 | msdmanuals.com | Целиком, en и ru |
-| who | reference | Pre-eclampsia (fact sheet) | 2026 | [who.int](https://www.who.int/news-room/fact-sheets/detail/pre-eclampsia) | Целиком |
+| who | guideline | Pre-eclampsia (fact sheet; tier организации, как в статье о болезни Шагаса) | 2026 | [who.int](https://www.who.int/news-room/fact-sheets/detail/pre-eclampsia) | Целиком |
 
 Препараты — только «назначает врач». Частоту преэклампсии и пороги «тяжёлой» гипертензии приписываем источнику. Красные флаги (судороги, сильная головная боль, нарушение зрения, боль под рёбрами справа или в верхней части живота, рвота, внезапные отёки лица и рук, одышка, очень высокое давление) — с «103 или 112», в том числе после родов. Ссылки: гипертония, гипертонический криз, перипартальная кардиомиопатия.
 
