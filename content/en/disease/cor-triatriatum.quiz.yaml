@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is cor triatriatum?
+    options:
+      - text: Atria and ventricles are connected the wrong way round
+      - text: A membrane splits the left atrium in two
+        correct: true
+      - text: The aortic valve leaflets are fused from birth
+    explanation: In cor triatriatum a membrane divides the left atrium into two chambers.
+    cite: [1]
+  - level: patient
+    prompt: When does this defect form?
+    options:
+      - text: In old age, from wear of the heart valves
+      - text: After a sore throat in the school years
+      - text: Before birth, as the fetus develops
+        correct: true
+    explanation: The defect forms before birth, when the pulmonary veins develop abnormally in the fetus and a partition forms in the left atrium.
+    cite: [1]
+  - level: patient
+    prompt: What is the main test for diagnosing this defect?
+    options:
+      - text: Heart ultrasound with Doppler
+        correct: true
+      - text: Electrocardiogram (ECG)
+      - text: A blood test from a vein in the arm
+    explanation: The main test is a heart ultrasound (echocardiography) with colour Doppler mapping.
+    cite: [1]
+  - level: patient
+    prompt: What is the definitive treatment for this defect?
+    options:
+      - text: Physiotherapy and chest massage
+      - text: Surgery to remove the membrane
+        correct: true
+      - text: A course of tablets that dissolves the membrane
+    explanation: The definitive treatment is surgery, in which the surgeon removes the membrane that obstructs blood flow inside the left atrium.
+    cite: [1]
+  - level: student
+    prompt: What reliable sign of the defect is found at catheterisation?
+    options:
+      - text: A pressure gradient across the aortic valve
+      - text: Narrowing of the right coronary artery
+      - text: Two areas of different pressure in the LA
+        correct: true
+    explanation: At catheterisation, a reliable sign of the defect is two areas with different pressures in the left atrium.
+    cite: [1]
+  - level: student
+    prompt: What is the term cor triatriatum dexter used for?
+    options:
+      - text: For anomalies with division of the right atrium
+        correct: true
+      - text: For an opening in the wall between the atria
+      - text: For mitral valve narrowing after rheumatic fever
+    explanation: The term cor triatriatum dexter is used for various anomalies with division of the right atrium; it is not related to classic (left-sided) cor triatriatum.
+    cite: [1]
