@@ -478,18 +478,21 @@ test('the bundle branch block article shows right, left and anterior fascicular 
   expect((await axe(page).analyze()).violations).toEqual([]);
 });
 
-test('the Chagas article shows right bundle branch block without the Wiggers diagram', async ({
+test('the Chagas article shows both early conduction blocks without the Wiggers diagram', async ({
   page,
 }) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/chagas-cardiomyopathy/');
-  // Normal and right bundle branch block (`preset`). Anterior fascicular block is left out: its
-  // summary calls the isolated block low-risk, which would mislead next to Chagas heart disease.
+  // Normal, right bundle branch block (`preset`) and anterior fascicular block (`morePresets`):
+  // the two conduction blocks the article names as the usual start of Chagas heart disease.
   const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
-  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(conditions.getByRole('radio')).toHaveCount(3);
   await expect(
     conditions.getByRole('radio', { name: en['heartClock.preset.right-bundle-branch-block'] }),
   ).toBeChecked();
+  await expect(conditions.getByRole('radio').nth(2)).toHaveAccessibleName(
+    en['heartClock.preset.left-anterior-fascicular-block'],
+  );
 
   await conditions.scrollIntoViewIfNeeded();
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
