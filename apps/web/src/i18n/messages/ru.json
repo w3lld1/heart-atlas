@@ -540,6 +540,7 @@
   "heartClock.wiggers.systole": "Систола желудочков",
   "heartClock.wiggers.title": "Диаграмма Виггерса",
   "heartClock.wiggers.volume": "Объём ЛЖ, % от конечно-диастолического",
+  "heartSounds.articleTitle": "Послушайте сердце",
   "heartSounds.choose": "Звук",
   "heartSounds.click": "щелчок",
   "heartSounds.diagramLabel": "Фонокардиограмма одного сердечного цикла: {sound}",

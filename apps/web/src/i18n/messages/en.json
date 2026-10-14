@@ -540,6 +540,7 @@
   "heartClock.wiggers.systole": "Ventricular systole",
   "heartClock.wiggers.title": "Wiggers diagram",
   "heartClock.wiggers.volume": "LV volume, % of end-diastolic",
+  "heartSounds.articleTitle": "Listen to the heart",
   "heartSounds.choose": "Sound",
   "heartSounds.click": "click",
   "heartSounds.diagramLabel": "Phonocardiogram of one heart cycle: {sound}",

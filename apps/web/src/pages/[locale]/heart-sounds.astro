@@ -23,6 +23,15 @@ const messages = Object.fromEntries(
 const sources = [
   ...new Map(heartSoundIds.flatMap((id) => heartSoundSources[id]).map((s) => [s.href, s])).values(),
 ];
+// Each sound cites its sources by their numbers in that list.
+const citations = Object.fromEntries(
+  heartSoundIds.map((id) => [
+    id,
+    heartSoundSources[id]
+      .map((source) => sources.findIndex((s) => s.href === source.href) + 1)
+      .sort((a, b) => a - b),
+  ]),
+);
 ---
 
 <BaseLayout locale={locale} title={t['heartSounds.title']} description={t['heartSounds.intro']}>
@@ -31,16 +40,11 @@ const sources = [
   <p class="schematic" role="note">
     {t['heartSounds.schematic']}
   </p>
-  <HeartSounds
-    client:visible
-    messages={messages}
-    sounds={heartSoundIds}
-    sources={heartSoundSources}
-  />
+  <HeartSounds client:visible messages={messages} sounds={heartSoundIds} citations={citations} />
   <h2>{t['heartSounds.sources']}</h2>
   <ol class="sources">
-    {sources.map((source) => (
-      <li>
+    {sources.map((source, i) => (
+      <li id={`source-${i + 1}`}>
         <a href={source.href} lang={source.lang}>
           {source.text}
         </a>
