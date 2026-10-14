@@ -2,6 +2,40 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-10-14
+
+Twenty-four new disease articles, five new heart clock presets including bundle branch blocks and bidirectional ventricular tachycardia, nine more disease shapes on the 3D model, a page for physicians and a shorter header on phones.
+
+### Articles
+
+- New disease articles in Russian and English, each with a diagram: spontaneous coronary artery dissection, bundle branch block, Chagas cardiomyopathy and postural orthostatic tachycardia syndrome ([#341](https://github.com/w3lld1/heart-atlas/pull/341)), coronary artery anomalies ([#348](https://github.com/w3lld1/heart-atlas/pull/348)), hypertensive crisis, orthostatic hypotension, carotid artery stenosis and pericardial effusion ([#360](https://github.com/w3lld1/heart-atlas/pull/360)), congenital supravalvular aortic stenosis ([#361](https://github.com/w3lld1/heart-atlas/pull/361)), cor triatriatum ([#366](https://github.com/w3lld1/heart-atlas/pull/366)), congenital subaortic stenosis ([#373](https://github.com/w3lld1/heart-atlas/pull/373)), cardiogenic shock, patent foramen ovale, renal artery stenosis and inappropriate sinus tachycardia ([#377](https://github.com/w3lld1/heart-atlas/pull/377)), double-chambered right ventricle ([#382](https://github.com/w3lld1/heart-atlas/pull/382)), pulmonary regurgitation, cardiotoxicity of cancer treatment, hypertension in pregnancy and pre-eclampsia and mesenteric ischaemia ([#384](https://github.com/w3lld1/heart-atlas/pull/384)), pulmonary atresia with intact ventricular septum ([#386](https://github.com/w3lld1/heart-atlas/pull/386)), double outlet right ventricle ([#391](https://github.com/w3lld1/heart-atlas/pull/391)) and vascular Ehlers–Danlos syndrome ([#399](https://github.com/w3lld1/heart-atlas/pull/399)). The site now has one hundred disease articles.
+- The bundle branch block and Chagas cardiomyopathy articles show their blocks on the heart clock ([#362](https://github.com/w3lld1/heart-atlas/pull/362), [#375](https://github.com/w3lld1/heart-atlas/pull/375)), the inappropriate sinus tachycardia and POTS articles show sinus tachycardia ([#385](https://github.com/w3lld1/heart-atlas/pull/385)), and the catecholaminergic polymorphic ventricular tachycardia article shows bidirectional ventricular tachycardia ([#392](https://github.com/w3lld1/heart-atlas/pull/392)).
+- Older articles link to the new pulmonary regurgitation and hypertension in pregnancy articles ([#395](https://github.com/w3lld1/heart-atlas/pull/395)).
+
+### Heart clock
+
+- New presets: right and left bundle branch block and left anterior fascicular block ([#356](https://github.com/w3lld1/heart-atlas/pull/356), [#359](https://github.com/w3lld1/heart-atlas/pull/359), [#372](https://github.com/w3lld1/heart-atlas/pull/372)), sinus tachycardia ([#380](https://github.com/w3lld1/heart-atlas/pull/380)) and bidirectional ventricular tachycardia, where the QRS complexes point up and down in turn ([#388](https://github.com/w3lld1/heart-atlas/pull/388)). Their numbers come from cited sources or are marked as model assumptions.
+- The heart clock page and the ECG embed list the states in one list with four groups (rhythm disorders, conduction blocks, heart and blood vessels, after treatment); the play, sound and speed controls are easier to use on a phone ([#363](https://github.com/w3lld1/heart-atlas/pull/363)).
+
+### 3D model
+
+- Nine more diseases change the shape of the model: chambers grow, a narrowed valve opens only partly and a leaking valve keeps a gap when shut in mitral stenosis and regurgitation, aortic and tricuspid regurgitation, pulmonary valve stenosis, pulmonary hypertension, ventricular septal defect and restrictive cardiomyopathy ([#345](https://github.com/w3lld1/heart-atlas/pull/345)); a thoracic aortic aneurysm widens the ascending aorta ([#358](https://github.com/w3lld1/heart-atlas/pull/358)).
+- The viewer's switches, list, slider and heartbeat button take the site style, and on a wide screen the model stays in view beside the structure list ([#349](https://github.com/w3lld1/heart-atlas/pull/349)).
+
+### Heart sounds
+
+- "Heart sounds" is in the site menu, on the home page and in search ([#365](https://github.com/w3lld1/heart-atlas/pull/365)). In the valve articles the player is a framed "Listen to the heart" block, and its labels keep a readable size on any screen ([#347](https://github.com/w3lld1/heart-atlas/pull/347)).
+
+### Learning
+
+- Quizzes in twenty-five more articles, 109 in all ([#346](https://github.com/w3lld1/heart-atlas/pull/346), [#350](https://github.com/w3lld1/heart-atlas/pull/350), [#357](https://github.com/w3lld1/heart-atlas/pull/357), [#368](https://github.com/w3lld1/heart-atlas/pull/368), [#375](https://github.com/w3lld1/heart-atlas/pull/375), [#378](https://github.com/w3lld1/heart-atlas/pull/378), [#381](https://github.com/w3lld1/heart-atlas/pull/381), [#390](https://github.com/w3lld1/heart-atlas/pull/390), [#392](https://github.com/w3lld1/heart-atlas/pull/392), [#394](https://github.com/w3lld1/heart-atlas/pull/394), [#396](https://github.com/w3lld1/heart-atlas/pull/396)).
+
+### Site
+
+- A "For physicians" page, linked from the footer, lists ways for a physician to help, with an issue form, an author template and a review guide ([#367](https://github.com/w3lld1/heart-atlas/pull/367)).
+- On a phone the header is about half as tall: search, the motion switch and the languages open from one button; the search field has a hint, and the menu shows that it scrolls ([#374](https://github.com/w3lld1/heart-atlas/pull/374)).
+- Specs for the next work: stage 16 and 17 articles ([#355](https://github.com/w3lld1/heart-atlas/pull/355), [#370](https://github.com/w3lld1/heart-atlas/pull/370)) and bundle branch block presets ([#352](https://github.com/w3lld1/heart-atlas/pull/352)).
+
 ## [0.7.0] - 2026-10-14
 
 The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, disease shapes to pick on the 3D model, a disease catalogue with groups and a filter, ten new disease articles and a page for addresses that do not exist.
@@ -203,6 +237,7 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.8.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.8.0
 [0.7.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.7.0
 [0.6.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.6.0
 [0.5.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.5.0
