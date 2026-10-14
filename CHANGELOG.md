@@ -4,7 +4,7 @@ All notable changes to Heart Atlas are listed here. The format follows [Keep a C
 
 ## [0.7.0] - 2026-10-14
 
-The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, disease shapes to pick on the 3D model, nine new disease articles and a page for addresses that do not exist.
+The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, disease shapes to pick on the 3D model, a disease catalogue with groups and a filter, ten new disease articles and a page for addresses that do not exist.
 
 ### Heart clock
 
@@ -22,13 +22,14 @@ The heart clock ECG in leads I, II and III at once, a player of heart sounds and
 
 ### Articles
 
-- New disease articles in Russian and English, each with a diagram: pulmonary atresia with ventricular septal defect ([#293](https://github.com/w3lld1/heart-atlas/pull/293)), left ventricular noncompaction, catecholaminergic polymorphic ventricular tachycardia, ventricular fibrillation and chronic thromboembolic pulmonary hypertension ([#295](https://github.com/w3lld1/heart-atlas/pull/295)), acute limb ischaemia ([#300](https://github.com/w3lld1/heart-atlas/pull/300)), single ventricle ([#322](https://github.com/w3lld1/heart-atlas/pull/322)), partial anomalous pulmonary venous return ([#329](https://github.com/w3lld1/heart-atlas/pull/329)) and aortopulmonary window ([#338](https://github.com/w3lld1/heart-atlas/pull/338)). The site now has seventy-five disease articles.
+- New disease articles in Russian and English, each with a diagram: pulmonary atresia with ventricular septal defect ([#293](https://github.com/w3lld1/heart-atlas/pull/293)), left ventricular noncompaction, catecholaminergic polymorphic ventricular tachycardia, ventricular fibrillation and chronic thromboembolic pulmonary hypertension ([#295](https://github.com/w3lld1/heart-atlas/pull/295)), acute limb ischaemia ([#300](https://github.com/w3lld1/heart-atlas/pull/300)), single ventricle ([#322](https://github.com/w3lld1/heart-atlas/pull/322)), partial anomalous pulmonary venous return ([#329](https://github.com/w3lld1/heart-atlas/pull/329)) aortopulmonary window ([#338](https://github.com/w3lld1/heart-atlas/pull/338)) and interrupted aortic arch ([#344](https://github.com/w3lld1/heart-atlas/pull/344)). The site now has seventy-six disease articles.
+- The disease list is cards in ten groups (rhythm, coronary, valves, congenital and others) with jump links and counts, and a "Find a disease" field narrows the cards as you type; the other sections get the same cards ([#339](https://github.com/w3lld1/heart-atlas/pull/339)).
 - The congenitally corrected transposition article shows the heart clock with complete AV block, without the Wiggers diagram and the pacemaker state, which are written for a usual heart ([#294](https://github.com/w3lld1/heart-atlas/pull/294)).
 - Above every article a visible "Explanation level" label names the patient and student buttons, and a line under them says what the chosen level gives ([#312](https://github.com/w3lld1/heart-atlas/pull/312)).
 
 ### Learning
 
-- Quizzes in eleven more articles, 82 in all ([#292](https://github.com/w3lld1/heart-atlas/pull/292), [#302](https://github.com/w3lld1/heart-atlas/pull/302), [#304](https://github.com/w3lld1/heart-atlas/pull/304), [#314](https://github.com/w3lld1/heart-atlas/pull/314), [#325](https://github.com/w3lld1/heart-atlas/pull/325)).
+- Quizzes in thirteen more articles, 84 in all ([#292](https://github.com/w3lld1/heart-atlas/pull/292), [#302](https://github.com/w3lld1/heart-atlas/pull/302), [#304](https://github.com/w3lld1/heart-atlas/pull/304), [#314](https://github.com/w3lld1/heart-atlas/pull/314), [#325](https://github.com/w3lld1/heart-atlas/pull/325), [#343](https://github.com/w3lld1/heart-atlas/pull/343)).
 - Quiz numbers start the question line, and the diagram's "Normal / Disease / After treatment" switch fits one row on a phone ([#315](https://github.com/w3lld1/heart-atlas/pull/315)).
 - Track pages show the steps as numbered cards that fill when read, and search results use the site's fonts and colours in both themes ([#327](https://github.com/w3lld1/heart-atlas/pull/327)).
 
