@@ -9,7 +9,13 @@ interface Props {
 const t = getMessages(Astro.props.locale);
 ---
 
-<div class="motion-switch" role="group" data-pagefind-ignore aria-label={t['motion.label']}>
+<div
+  class="motion-switch"
+  role="group"
+  data-pagefind-ignore
+  aria-label={t['motion.label']}
+  data-auto-picked={t['motion.autoPicked']}
+>
   <span class="label" aria-hidden="true">
     {t['motion.label']}
   </span>
@@ -24,6 +30,8 @@ const t = getMessages(Astro.props.locale);
     </button>
   ))}
   <span id="motion-effective" class="visually-hidden" data-motion-effective></span>
+  <!-- What the outlined button means, for sighted readers; screen readers get it above. -->
+  <span class="hint" aria-hidden="true" data-motion-hint></span>
 </div>
 
 <script>
@@ -33,6 +41,9 @@ const t = getMessages(Astro.props.locale);
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-set-motion]');
   // Tells screen readers which level "Auto" picked; sighted readers see the outlined button.
   const effective = document.querySelector<HTMLElement>('[data-motion-effective]');
+  const hint = document.querySelector<HTMLElement>('[data-motion-hint]');
+  const autoPicked =
+    document.querySelector<HTMLElement>('[data-auto-picked]')?.dataset['autoPicked'] ?? '';
 
   const currentChoice = () =>
     motionChoices.find((c) => c === root.dataset['motionChoice']) ?? 'auto';
@@ -41,13 +52,19 @@ const t = getMessages(Astro.props.locale);
     const choice = currentChoice();
     const level = root.dataset['motion'];
     if (effective) effective.textContent = '';
+    if (hint) hint.textContent = '';
     for (const button of buttons) {
       const value = button.dataset['setMotion'];
       const isEffective = choice === 'auto' && value === level;
       button.setAttribute('aria-pressed', String(value === choice));
       // In "auto" the level in effect is marked without pressing its button.
       button.classList.toggle('effective', isEffective);
-      if (isEffective && effective) effective.textContent = button.textContent?.trim() ?? '';
+      const name = button.textContent?.trim() ?? '';
+      const picked = autoPicked.replace('{level}', name);
+      if (isEffective) button.title = picked;
+      else button.removeAttribute('title');
+      if (isEffective && effective) effective.textContent = name;
+      if (isEffective && hint) hint.textContent = picked;
     }
   }
 
@@ -92,6 +109,14 @@ const t = getMessages(Astro.props.locale);
   .label {
     margin-inline-end: 0.25rem;
     color: var(--color-muted);
+  }
+
+  /* Shown in the phone header panel only (SiteHeader); a title explains it elsewhere. */
+  .hint {
+    display: none;
+    flex-basis: 100%;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
   }
 
   button {
