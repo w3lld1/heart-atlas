@@ -128,7 +128,7 @@ The level switch hides one level when JavaScript runs; without JavaScript both a
 
 ### `<Diagram>`
 
-An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
+An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, `normal` / `rbbb` / `lbbb` (bundle branch block), or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
 
 ```mdx
 <Diagram name="aortic-stenosis">

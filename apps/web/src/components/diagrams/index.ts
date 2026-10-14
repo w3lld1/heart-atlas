@@ -65,6 +65,7 @@ const customStates: Partial<Record<DiagramName, StateSpec>> = {
   'aortic-stenosis': withTreatment,
   'atrial-septal-defect': withTreatment,
   'blood-flow': single,
+  // Opens on the left block: it is the one tied to heart failure and to chest-pain emergencies.
   'bundle-branch-block': { states: ['normal', 'rbbb', 'lbbb'], initial: 'lbbb' },
   'coarctation-of-the-aorta': withTreatment,
   'conduction-system': single,

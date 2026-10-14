@@ -59,16 +59,20 @@ const labelSpots = {
   lbbb: { interrupted: { x: 412, y: 216 }, later: { x: 236, y: 274, anchor: 'start' } },
 } as const;
 
-// One ECG beat on its own baseline in the bottom panel. Wide QRS: a broad notched complex that rises
-// straight from the baseline (no initial q, as in LBBB in I, aVL, V5–V6) with the T wave turned
-// against it; narrow QRS: a sharp complex with an upright T wave.
+// One ECG beat on its own baseline in the bottom panel, in the lead where each block is usually
+// described (MSD): RBBB in V1 as rSR′, LBBB in V6 as a broad notched R with no initial q. In both
+// the T wave is turned against the wide QRS. Normal: a sharp complex with an upright T wave.
 const base = 396;
 const qrsStart = 100;
-const beat = (wide: boolean) => {
+const beat = (state: string) => {
+  const wide = state !== 'normal';
   const p = `M24,${base} L40,${base} C48,${base - 16} 66,${base - 16} 74,${base}`;
-  const qrs = wide
-    ? `L${qrsStart},${base} L${qrsStart + 16},${base - 40} L${qrsStart + 27},${base - 30} L${qrsStart + 38},${base - 44} L${qrsStart + 50},${base + 6} L${qrsStart + 56},${base}`
-    : `L${qrsStart},${base} L${qrsStart + 6},${base + 6} L${qrsStart + 14},${base - 44} L${qrsStart + 22},${base + 8} L${qrsStart + 28},${base}`;
+  const qrs =
+    state === 'rbbb'
+      ? `L${qrsStart},${base} L${qrsStart + 8},${base - 16} L${qrsStart + 18},${base + 12} L${qrsStart + 36},${base - 44} L${qrsStart + 56},${base}`
+      : state === 'lbbb'
+        ? `L${qrsStart},${base} L${qrsStart + 16},${base - 40} L${qrsStart + 27},${base - 30} L${qrsStart + 38},${base - 44} L${qrsStart + 56},${base}`
+        : `L${qrsStart},${base} L${qrsStart + 6},${base + 6} L${qrsStart + 14},${base - 44} L${qrsStart + 22},${base + 8} L${qrsStart + 28},${base}`;
   const tStart = qrsStart + (wide ? 56 : 28) + 26;
   const tPeak = wide ? base + 22 : base - 24;
   return `${p} ${qrs} L${tStart},${base} C${tStart + 12},${tPeak} ${tStart + 40},${tPeak} ${tStart + 52},${base} L300,${base}`;
@@ -182,7 +186,12 @@ const bracket = (wide: boolean) => {
       </g>
 
       {/* ECG beat: narrow QRS in the normal state, wide QRS with a block */}
-      <path class="bbb-trace" d={beat(state !== 'normal')} />
+      <path class="bbb-trace" d={beat(state)} />
+      {state !== 'normal' && (
+        <text class="diagram-small" x="40" y="346" text-anchor="middle">
+          {state === 'rbbb' ? 'V1' : 'V6'}
+        </text>
+      )}
       <path class="bbb-bracket" d={bracket(state !== 'normal')} />
       <text x="412" y="356" text-anchor="end">
         {state === 'normal' ? t['diagram.label.narrow-qrs'] : t['diagram.label.wide-qrs']}
