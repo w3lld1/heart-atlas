@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is single ventricle?
+    options:
+      - text: Both ventricles are there, but the wall between them has a hole
+      - text: Both atria connect to only one well-developed ventricle
+        correct: true
+      - text: Both ventricles develop normally, but one valve is narrowed
+    explanation: Single ventricle is a congenital heart defect in which both atria are connected to only one well-developed ventricle. The second ventricle is absent or so underdeveloped that the heart cannot be made normal, with two fully working ventricles.
+    cite: [1, 2]
+  - level: patient
+    prompt: Why does the blood carry less oxygen than normal in single ventricle?
+    options:
+      - text: Air hardly reaches the lungs because the airways are narrowed
+      - text: The blood has too few red cells because of a bone marrow disease
+      - text: Blood from the lungs and from the body mixes in one chamber
+        correct: true
+    explanation: In single ventricle, the pulmonary and systemic circulations work in parallel rather than in series. Blood from the lungs and blood from the body mix in one chamber, so the blood carries less oxygen than normal.
+    cite: [1]
+  - level: patient
+    prompt: What do the staged operations for single ventricle do?
+    options:
+      - text: They improve circulation but do not cure the defect
+        correct: true
+      - text: They create a second ventricle and fully cure the defect
+      - text: They only ease pain and do not affect the circulation
+    explanation: 'Treatment is a series of operations, one after another. They do not create a second ventricle: these operations are palliative, which means they do not cure the defect but ease the condition by improving the circulation in a heart with a complex structure.'
+    cite: [1]
+  - level: patient
+    prompt: According to the article, what in an adult after the Fontan operation means calling an ambulance at once?
+    options:
+      - text: Dry skin on the hands in cold winter weather
+      - text: Wanting a short nap after a large lunch
+      - text: A prolonged episode of fast heartbeat
+        correct: true
+    explanation: 'In adults after the Fontan operation, a prolonged episode of fast heartbeat is an emergency: call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK).'
+    cite: [2]
+  - level: student
+    prompt: What can narrowing of the bulboventricular foramen cause if the aorta arises from the outlet chamber?
+    options:
+      - text: Subaortic stenosis that obstructs systemic flow
+        correct: true
+      - text: Pulmonary stenosis that reduces pulmonary flow
+      - text: Mitral regurgitation that overloads the left atrium
+    explanation: If the aorta arises from the outlet chamber, the route from the systemic ventricle to the aorta passes through the bulboventricular foramen, which is in effect a VSD. Over time it may narrow (subaortic stenosis) and obstruct systemic flow.
+    cite: [1]
+  - level: student
+    prompt: What does the absence of a subpulmonary ventricle cause in the Fontan circulation?
+    options:
+      - text: Systemic venous hypotension and a volume-overloaded ventricle
+      - text: Systemic venous hypertension and a preload-deprived ventricle
+        correct: true
+      - text: Pulmonary venous hypertension and a pressure-overloaded ventricle
+    explanation: The absence of a subpulmonary ventricle results in chronic systemic venous hypertension, altered pulmonary haemodynamics and a chronically "preload-deprived" ventricle.
+    cite: [2]
