@@ -1,0 +1,106 @@
+---
+import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { localeCodes } from '../../i18n/locales.ts';
+import { getMessages } from '../../i18n/messages.ts';
+import { repoUrl } from '../../site.ts';
+
+// How physicians can help while the project has no reviewers: docs/plans/2026-10-14-editorial-carry-over.md.
+export const getStaticPaths = (() =>
+  localeCodes.map((locale) => ({ params: { locale } }))) satisfies GetStaticPaths;
+
+const { locale } = Astro.params as InferGetStaticParamsType<typeof getStaticPaths>;
+const t = getMessages(locale);
+
+const offerUrl = `${repoUrl}/issues/new?template=physician.yml`;
+const ways = [
+  {
+    id: 'review',
+    title: t['doctors.review.title'],
+    text: t['doctors.review.text'],
+    links: [
+      { href: offerUrl, label: t['doctors.offer'] },
+      { href: `${repoUrl}/blob/main/docs/medical-review.md`, label: t['doctors.guide'] },
+    ],
+  },
+  {
+    id: 'write',
+    title: t['doctors.write.title'],
+    text: t['doctors.write.text'],
+    links: [
+      { href: offerUrl, label: t['doctors.offer'] },
+      {
+        href: `${repoUrl}/blob/main/docs/medical-author-template.md`,
+        label: t['doctors.template'],
+      },
+    ],
+  },
+  {
+    id: 'error',
+    title: t['doctors.error.title'],
+    text: t['doctors.error.text'],
+    links: [
+      { href: `${repoUrl}/issues/new?template=content-error.yml`, label: t['review.report'] },
+    ],
+  },
+];
+---
+
+<BaseLayout locale={locale} title={t['doctors.title']} description={t['doctors.intro']}>
+  <h1>{t['doctors.title']}</h1>
+  <p class="intro">{t['doctors.intro']}</p>
+  <h2>{t['doctors.ways']}</h2>
+  <ul class="ways">
+    {ways.map((way) => (
+      <li data-way={way.id}>
+        <h3>{way.title}</h3>
+        <p>{way.text}</p>
+        <p class="links">
+          {way.links.map((link) => (
+            <a href={link.href}>{link.label}</a>
+          ))}
+        </p>
+      </li>
+    ))}
+  </ul>
+  <h2>{t['doctors.publicTitle']}</h2>
+  <p>{t['doctors.public']}</p>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-inline-size: 65ch;
+    font-size: 1.0625rem;
+  }
+
+  .ways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ways li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 1rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+  }
+
+  .ways h3,
+  .ways p {
+    margin: 0;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-block-start: auto;
+  }
+</style>

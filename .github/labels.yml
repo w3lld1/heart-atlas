@@ -11,6 +11,9 @@
 - name: medical-accuracy
   color: 'b60205'
   description: 'Possible medical or factual error'
+- name: physician
+  color: 'f9d0c4'
+  description: 'A physician offers to review or write articles'
 - name: i18n
   color: '1d76db'
   description: 'Languages and translations'

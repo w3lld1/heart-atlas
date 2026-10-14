@@ -1,0 +1,48 @@
+name: Physician / Врач
+description: Review an article or write one with us / Проверить статью или написать её вместе с нами
+title: '[physician] '
+labels: ['content', 'physician']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Everything in this issue is public. Do not post patient data, medical documents or copies of your diplomas.
+        Всё в этом issue публично. Не публикуйте данные пациентов, медицинские документы и копии дипломов.
+
+        How it works / Как это устроено: [docs/medical-review.md](https://github.com/w3lld1/heart-atlas/blob/main/docs/medical-review.md)
+  - type: dropdown
+    id: role
+    attributes:
+      label: I would like to / Я хочу
+      multiple: true
+      options:
+        - Review existing articles / Проверять статьи
+        - Write or extend an article / Написать или дополнить статью
+    validations:
+      required: true
+  - type: input
+    id: specialty
+    attributes:
+      label: Specialty / Специальность
+      description: For example cardiology, paediatric cardiology, functional diagnostics / Например, кардиология, детская кардиология, функциональная диагностика
+    validations:
+      required: true
+  - type: textarea
+    id: articles
+    attributes:
+      label: Articles or topics / Статьи или темы
+      description: Links to articles on the site, or topics you could write about / Ссылки на статьи сайта или темы, о которых вы могли бы написать
+  - type: dropdown
+    id: credit
+    attributes:
+      label: Your name on the site / Ваше имя на сайте
+      description: A reviewed article can show the reviewer's name / У проверенной статьи можно указать имя рецензента
+      options:
+        - Show my name / Указывать моё имя
+        - Do not show my name / Не указывать имя
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else / Что-то ещё

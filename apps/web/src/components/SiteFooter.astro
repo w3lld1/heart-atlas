@@ -41,6 +41,9 @@ const base = import.meta.env.BASE_URL;
           <a href={`${repoUrl}/blob/main/DISCLAIMER.md`}>{t['footer.disclaimerLink']}</a>
         </li>
         <li>
+          <a href={localePath(base, locale, 'for-doctors/')}>{t['doctors.title']}</a>
+        </li>
+        <li>
           <a href={repoUrl}>{t['footer.source']}</a>
         </li>
         <li>

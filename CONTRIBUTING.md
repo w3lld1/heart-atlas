@@ -10,7 +10,7 @@ By contributing you agree that code is licensed under [MIT](LICENSE) and content
 - **Write or improve an article.** See "Medical content" below and [Adding an article](docs/adding-an-article.md).
 - **Translate.** See "Adding a language" below.
 - **Write code.** Pick an issue labelled `good first issue` or `help wanted`, or open an issue first for anything larger.
-- **Review as a physician.** If you are a cardiologist or teach cardiology, open an issue titled "Medical reviewer". We will add you to the reviewer list once the review workflow is in place.
+- **Review or write as a physician.** Open an issue with the [Physician form](https://github.com/w3lld1/heart-atlas/issues/new?template=physician.yml). How a review works: [Medical review](docs/medical-review.md). To write an article without code or Git, follow the [author template](docs/medical-author-template.md).
 
 ## How we work
 
