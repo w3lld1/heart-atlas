@@ -120,6 +120,7 @@ export const diseaseGroups = {
     'marfan-syndrome',
     'mesenteric-ischemia',
     'peripheral-artery-disease',
+    'polyarteritis-nodosa',
     'popliteal-artery-aneurysm',
     'raynaud-phenomenon',
     'renal-artery-stenosis',

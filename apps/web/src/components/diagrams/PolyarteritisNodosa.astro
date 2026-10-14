@@ -1,0 +1,220 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const arteryLines = lines('diagram.label.medium-sized-artery', 26);
+const inflamedLines = [
+  ...lines('diagram.label.inflamed-segments', 26),
+  ...lines('diagram.label.at-artery-branching', 26),
+];
+const infarctLines = lines('diagram.label.organ-area-dies-infarct', 24);
+const tissueLines = lines('diagram.label.organ-tissue', 18);
+
+// A generic medium-sized artery seen from the front, carrying blood from the left to an organ on
+// the right (for example a kidney or the intestine). It divides into three branches; the middle
+// one gives off a smaller side branch. Only arteries are drawn: polyarteritis nodosa spares veins.
+// Normal: smooth walls, even calibre, blood reaches the whole organ.
+// Disease: inflamed segments with a thick wall and a narrow lumen at the two branch points, with
+// unchanged wall between them; on the lower branch small aneurysms (bulges) alternate with
+// narrowings; the upper branch is closed by a clot and the part of the organ it supplies is grey.
+// No veins, glomeruli, lungs, granulomas, plaques, drugs or numbers anywhere.
+const trunk = 'M12,185 H180';
+const upper = 'M180,185 C220,185 230,95 280,95 H470';
+const middle = 'M180,185 H470';
+const lower = 'M180,185 C220,185 230,275 280,275 H470';
+const side = 'M300,185 C320,185 330,225 352,225 H470';
+// Inflamed segments: around the main branch point and around the start of the side branch.
+const inflamed = [
+  'M150,185 H180',
+  'M180,185 C192,185 200,175 205,160',
+  'M180,185 H212',
+  'M180,185 C192,185 200,195 205,210',
+  'M286,185 H316',
+  'M300,185 C310,185 316,192 321,200',
+];
+// Beads on the lower branch: aneurysms and narrowings in turn, all outside the organ.
+const aneurysms = [292, 340];
+const narrowings = ['M311,275 H325', 'M355,275 H365'];
+// The clot in the upper branch; no blood flows past it.
+const clot = { x: 322, y: 95 };
+const upperToClot = 'M180,185 C220,185 230,95 280,95 H312';
+// The wedge of the organ beyond the closed branch.
+const wedge = 'M376,95 L478,50 L502,150 Z';
+const organ = { x: 372, y: 40, width: 136, height: 290 };
+---
+
+<svg
+  viewBox="0 0 520 345"
+  role="img"
+  aria-label={t['diagram.polyarteritis-nodosa.title']}
+  lang={locale}
+>
+  <!-- The organ the artery feeds; in disease the part beyond the closed branch is grey -->
+  <rect
+    x={organ.x}
+    y={organ.y}
+    width={organ.width}
+    height={organ.height}
+    rx="36"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="2"
+  ></rect>
+  <path class="disease-only pan-grey" d={wedge}></path>
+
+  <!-- Arteries: walls, then lumens on top. In disease the inflamed segments have a thick wall. -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={trunk} stroke-width="14" stroke-linecap="butt"></path>
+    <path d={upper} stroke-width="10"></path>
+    <path d={middle} stroke-width="10"></path>
+    <path d={lower} stroke-width="10"></path>
+    <path d={side} stroke-width="8"></path>
+    <g class="disease-only">
+      {inflamed.map((d) => (
+        <path d={d} stroke-width="22" />
+      ))}
+    </g>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linecap="round">
+    <path d={trunk} stroke-width="8" stroke-linecap="butt"></path>
+    <path d={upper} stroke-width="5"></path>
+    <path d={middle} stroke-width="5"></path>
+    <path d={lower} stroke-width="5"></path>
+    <path d={side} stroke-width="4"></path>
+  </g>
+
+  <!-- Disease: a narrow channel in the inflamed segments and in the narrowings -->
+  <g class="disease-only" fill="none" stroke-linecap="butt">
+    <g stroke="var(--diagram-arterial)" stroke-width="8">
+      {inflamed.map((d) => (
+        <path d={d} />
+      ))}
+      {narrowings.map((d) => (
+        <path d={d} stroke-width="6" />
+      ))}
+    </g>
+    <g stroke="var(--diagram-arterial-fill)" stroke-width="2">
+      {inflamed.map((d) => (
+        <path d={d} />
+      ))}
+      {narrowings.map((d) => (
+        <path d={d} stroke-width="1.5" />
+      ))}
+    </g>
+  </g>
+
+  <!-- Disease: small aneurysms bulge out of the weakened wall of the lower branch -->
+  <g class="disease-only">
+    {aneurysms.map((x) => (
+      <>
+        <circle cx={x} cy="275" r="10" fill="var(--diagram-arterial)" />
+        <circle cx={x} cy="275" r="6.5" fill="var(--diagram-arterial-fill)" />
+      </>
+    ))}
+  </g>
+
+  <!-- Moving blood; hidden without motion. In disease it stops at the clot. -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path class="dash-flow" d={trunk}></path>
+    <path class="dash-flow" d={middle}></path>
+    <path class="dash-flow" d={lower}></path>
+    <path class="dash-flow" d={side}></path>
+    <path class="dash-flow normal-only" d={upper}></path>
+    <path class="dash-flow disease-only" d={upperToClot}></path>
+  </g>
+
+  <!-- Disease: the clot closes the upper branch. The outline keeps it visible on the lumen. -->
+  <ellipse
+    class="disease-only"
+    cx={clot.x}
+    cy={clot.y}
+    rx="10"
+    ry="4.5"
+    fill="var(--diagram-arterial)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></ellipse>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="12" y={170 - (arteryLines.length - 1) * lineHeight}>
+    {arteryLines.map((line, index) => (
+      <tspan x="12" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={organ.x + organ.width / 2} y="300" text-anchor="middle">
+    {tissueLines.map((line, index) => (
+      <tspan x={organ.x + organ.width / 2} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Normal -->
+  <text class="diagram-small normal-only" x="12" y="232">
+    {t['diagram.label.open-branches']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line x1="168" y1="198" x2="128" y2="232" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="12" y="248">
+      {inflamedLines.map((line, index) => (
+        <tspan x="12" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={clot.x} y="80" text-anchor="middle">
+      {t['diagram.label.clot']}
+    </text>
+    <text class="diagram-small" x={aneurysms[0]} y="303" text-anchor="middle">
+      {t['diagram.label.aneurysm']}
+    </text>
+    <text class="diagram-small" x="318" y="258" text-anchor="middle">
+      {t['diagram.label.narrowing']}
+    </text>
+    <text class="diagram-small" x={organ.x + organ.width / 2} y="14" text-anchor="middle">
+      {infarctLines.map((line, index) => (
+        <tspan x={organ.x + organ.width / 2} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The part of the organ beyond the closed branch turns grey; fully opaque so that it keeps a 3:1
+     contrast against the tissue in the light theme. */
+  .diagram .pan-grey {
+    fill: var(--color-muted);
+  }
+</style>
