@@ -1,0 +1,276 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arterialArrow = `${uid}-tos-arterial-arrow`;
+const venousArrow = `${uid}-tos-venous-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const plexusLines = lines('diagram.label.brachial-plexus-nerves', 20);
+const nervesLines = lines('diagram.label.nerves-compressed-pain-tingling', 18);
+const arteryLines = lines('diagram.label.artery-compressed-arm-pale-cool', 18);
+const veinLines = lines('diagram.label.vein-compressed-arm-swollen-bluish', 14);
+
+// One side of the neck and shoulder seen from the front, simplified: the neck is at the top
+// left, the arm is off the picture to the right. The collarbone runs from low on the left up to
+// the shoulder; the first rib arches below it. The scalene muscles come down from the neck to the
+// first rib. The nerves of the brachial plexus come from the neck under the scalene muscles and
+// run over the first rib to the arm; the subclavian artery rises from the chest across the first
+// rib under the collarbone, next to the nerves, and goes out to the arm; the subclavian vein
+// passes between the collarbone and the first rib, in front of the scalene muscles, down into
+// the chest. Nothing else is drawn: no extra rib, no clot, no test position, no numbers.
+const clavicle = 'M60,262 L496,42';
+const firstRib = 'M30,350 Q270,165 500,340';
+const scalenes = 'M165,0 H210 L270,240 L234,246 Z';
+// Nerves: three lines, pressed together in disease where they leave the scalene muscles.
+const nerve = (offset: number, spread: number) =>
+  `M${192 + 12 * offset},0 C${205 + 12 * offset},120 ${228 + 6 * offset},${193 + spread * offset} 290,${193 + spread * offset} C310,${193 + spread * offset} 310,${193 + 7 * offset} 330,${193 + 7 * offset} H520`;
+const nerveOffsets = [-1, 0, 1];
+// Artery, from the chest up over the first rib and out to the arm. In disease it is narrowed for
+// a short stretch where it crosses the first rib (a waist with butt ends on both sides).
+const artery = 'M300,400 V248 Q300,216 332,216 H520';
+const arteryBeforeWaist = 'M300,400 V270';
+const arteryWaist = 'M300,270 V252';
+const arteryAfterWaist = 'M300,252 V248 Q300,216 332,216 H520';
+// Vein, from the arm to the chest, through the gap between the collarbone and the first rib.
+const vein = 'M520,236 H330 L215,244 L150,250 Q112,256 104,300 L98,400';
+const veinBeforeWaist = 'M520,236 H330 L215,244 L198,245.6';
+const veinWaist = 'M198,245.6 L166,248.5';
+const veinAfterWaist = 'M166,248.5 L150,250 Q112,256 104,300 L98,400';
+// Flow arrows: arterial blood to the arm, venous blood back to the chest.
+const arterialFlow = 'M300,392 V248 Q300,216 332,216 H504';
+const venousFlow = 'M512,236 H330 L215,244 L150,250 Q112,256 104,300 L99,384';
+// Sites of compression in disease, ringed.
+const sites = {
+  nerves: { x: 284, y: 193 },
+  artery: { x: 300, y: 264 },
+  vein: { x: 182, y: 247 },
+};
+const ring = 17;
+const nervesLabelY = 56;
+---
+
+<svg
+  viewBox="0 0 520 400"
+  role="img"
+  aria-label={t['diagram.thoracic-outlet-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arterialArrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={venousArrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- First rib: a bone drawn as an outline -->
+  <g fill="none" stroke-linecap="round">
+    <path d={firstRib} stroke="var(--color-muted)" stroke-width="20"></path>
+    <path d={firstRib} stroke="var(--color-bg)" stroke-width="12"></path>
+  </g>
+
+  <!-- Subclavian artery: wall, then lumen on top of it -->
+  <g fill="none" stroke-linejoin="round">
+    <path data-only="normal" d={artery} stroke="var(--diagram-arterial)" stroke-width="12"></path>
+    <path
+      data-only="normal"
+      d={artery}
+      stroke="var(--diagram-arterial-fill)"
+      stroke-width="7"
+    ></path>
+    <g data-only="disease">
+      <path d={arteryBeforeWaist} stroke="var(--diagram-arterial)" stroke-width="12"></path>
+      <path d={arteryWaist} stroke="var(--diagram-arterial)" stroke-width="6"></path>
+      <path d={arteryAfterWaist} stroke="var(--diagram-arterial)" stroke-width="12"></path>
+      <path d={arteryBeforeWaist} stroke="var(--diagram-arterial-fill)" stroke-width="7"></path>
+      <path d={arteryWaist} stroke="var(--diagram-arterial-fill)" stroke-width="2"></path>
+      <path d={arteryAfterWaist} stroke="var(--diagram-arterial-fill)" stroke-width="7"></path>
+    </g>
+  </g>
+
+  <!-- Nerves of the brachial plexus, under the scalene muscles -->
+  <g fill="none" stroke="var(--diagram-impulse)" stroke-width="3" stroke-linecap="round">
+    <g data-only="normal">
+      {nerveOffsets.map((offset) => (
+        <path d={nerve(offset, 7)} />
+      ))}
+    </g>
+    <g data-only="disease">
+      {nerveOffsets.map((offset) => (
+        <path d={nerve(offset, 2)} />
+      ))}
+    </g>
+  </g>
+  <!-- A dark core keeps the yellow nerves visible against a light background -->
+  <g fill="none" stroke="var(--color-text)" stroke-width="1" stroke-linecap="round">
+    <g data-only="normal">
+      {nerveOffsets.map((offset) => (
+        <path d={nerve(offset, 7)} />
+      ))}
+    </g>
+    <g data-only="disease">
+      {nerveOffsets.map((offset) => (
+        <path d={nerve(offset, 2)} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Scalene muscles, over the nerves -->
+  <path
+    d={scalenes}
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.6"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  ></path>
+
+  <!-- Subclavian vein, in front of the muscles and of the artery -->
+  <g fill="none" stroke-linejoin="round">
+    <path data-only="normal" d={vein} stroke="var(--diagram-venous)" stroke-width="14"></path>
+    <path data-only="normal" d={vein} stroke="var(--diagram-venous-fill)" stroke-width="9"></path>
+    <g data-only="disease">
+      <path d={veinBeforeWaist} stroke="var(--diagram-venous)" stroke-width="14"></path>
+      <path d={veinWaist} stroke="var(--diagram-venous)" stroke-width="6"></path>
+      <path d={veinAfterWaist} stroke="var(--diagram-venous)" stroke-width="14"></path>
+      <path d={veinBeforeWaist} stroke="var(--diagram-venous-fill)" stroke-width="9"></path>
+      <path d={veinWaist} stroke="var(--diagram-venous-fill)" stroke-width="2"></path>
+      <path d={veinAfterWaist} stroke="var(--diagram-venous-fill)" stroke-width="9"></path>
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path
+      d={arterialFlow}
+      stroke="var(--diagram-arterial)"
+      marker-end={`url(#${arterialArrow})`}
+    ></path>
+    <path d={venousFlow} stroke="var(--diagram-venous)" marker-end={`url(#${venousArrow})`}></path>
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+    <path class="dash-flow" d={arterialFlow}></path>
+    <path class="dash-flow" d={venousFlow}></path>
+  </g>
+
+  <!-- Collarbone, in front of everything else -->
+  <g fill="none" stroke-linecap="round">
+    <path d={clavicle} stroke="var(--color-muted)" stroke-width="20"></path>
+    <path d={clavicle} stroke="var(--color-bg)" stroke-width="12"></path>
+  </g>
+
+  <!-- Disease: the three sites of compression, ringed, each with a leader to its label -->
+  <g data-only="disease" fill="none" stroke="var(--color-text)" stroke-width="1.5">
+    <circle cx={sites.nerves.x} cy={sites.nerves.y} r={ring} stroke-dasharray="4 3"></circle>
+    <circle cx={sites.artery.x} cy={sites.artery.y} r={ring} stroke-dasharray="4 3"></circle>
+    <circle cx={sites.vein.x} cy={sites.vein.y} r={ring} stroke-dasharray="4 3"></circle>
+    <g stroke="var(--color-muted)">
+      <line
+        x1="300"
+        y1={nervesLabelY + lineHeight * (nervesLines.length - 1) + 6}
+        x2={sites.nerves.x + 4}
+        y2={sites.nerves.y - ring}
+      ></line>
+      <line x1="394" y1="254" x2={sites.artery.x + ring} y2={sites.artery.y}></line>
+      <line x1="160" y1="300" x2={sites.vein.x - 2} y2={sites.vein.y + ring}></line>
+    </g>
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="216" y="16">
+    {t['diagram.label.scalene-muscles']}
+  </text>
+  <text class="diagram-small" x="512" y="22" text-anchor="end">
+    {t['diagram.label.clavicle']}
+  </text>
+  <text
+    class="diagram-small"
+    x="512"
+    y={168 - lineHeight * (plexusLines.length - 1)}
+    text-anchor="end"
+  >
+    {plexusLines.map((line, index) => (
+      <tspan x="512" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x="512" y="372" text-anchor="end">
+    {t['diagram.label.first-rib']}
+  </text>
+  <text class="diagram-small" x="312" y="392">
+    {t['diagram.label.subclavian-artery']}
+  </text>
+  <text class="diagram-small" x="112" y="392">
+    {t['diagram.label.subclavian-vein']}
+  </text>
+
+  <!-- Disease labels -->
+  <g data-only="disease">
+    <text class="diagram-small" x="262" y={nervesLabelY}>
+      {nervesLines.map((line, index) => (
+        <tspan x="262" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="512" y="258" text-anchor="end">
+      {arteryLines.map((line, index) => (
+        <tspan x="512" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="132" y="314">
+      {veinLines.map((line, index) => (
+        <tspan x="132" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>

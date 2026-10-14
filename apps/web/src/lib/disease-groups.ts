@@ -135,6 +135,7 @@ export const diseaseGroups = {
     'subclavian-artery-stenosis',
     'takayasu-arteritis',
     'thoracic-aortic-aneurysm',
+    'thoracic-outlet-syndrome',
     'thromboangiitis-obliterans',
     'vascular-ehlers-danlos-syndrome',
     'vertebral-artery-stenosis',
