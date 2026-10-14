@@ -667,6 +667,7 @@
   "heartClock.phase": "[RTL] Phase of the cycle",
   "heartClock.phase.atrial-systole": "[RTL] Atrial contraction",
   "heartClock.phase.ejection": "[RTL] Ejection",
+  "heartClock.phase.fibrillation": "[RTL] Ventricular fibrillation: no coordinated contractions, no output",
   "heartClock.phase.filling": "[RTL] Ventricular filling",
   "heartClock.phase.isovolumic-contraction": "[RTL] Isovolumic contraction",
   "heartClock.phase.isovolumic-relaxation": "[RTL] Isovolumic relaxation",

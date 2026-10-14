@@ -11,6 +11,7 @@ import { pDurationAt, phaseAt } from './timing.ts';
  */
 export function cycleState(clock: HeartClock, t: number): CycleState {
   const beat = clock.beatAt(t);
+  if (beat.fibrillation) return fibrillationState;
   const { timing, params } = beat;
   const tInBeat = t - beat.start;
   const phase = phaseAt(tInBeat, timing, params);
@@ -94,6 +95,28 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
     },
   };
 }
+
+/**
+ * Ventricular fibrillation: no coordinated excitation along the conduction system, no contraction,
+ * and closed valves (assumption for the AV valves; no ejection opens the others). The model does
+ * not draw the quivering, which the sources do not describe.
+ */
+const fibrillationState: CycleState = Object.freeze({
+  phase: 'fibrillation',
+  excited: [],
+  contraction: {
+    'right-atrium': 0,
+    'left-atrium': 0,
+    'right-ventricle': 0,
+    'left-ventricle': 0,
+  },
+  valveOpen: {
+    'tricuspid-valve': 0,
+    'mitral-valve': 0,
+    'pulmonary-valve': 0,
+    'aortic-valve': 0,
+  },
+});
 
 /** The beat at `t`, or undefined when the clock no longer keeps it (after a jump in time). */
 function keptBeat(clock: HeartClock, t: number): Beat | undefined {

@@ -38,6 +38,7 @@ export const heartClockMessageKeys = [
   'heartClock.phase.isovolumic-relaxation',
   'heartClock.phase.filling',
   'heartClock.phase.pause',
+  'heartClock.phase.fibrillation',
   'heartClock.ecgLabel',
   'heartClock.soundOn',
   'heartClock.soundOff',

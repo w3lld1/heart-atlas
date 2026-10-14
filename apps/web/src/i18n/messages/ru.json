@@ -667,6 +667,7 @@
   "heartClock.phase": "Фаза цикла",
   "heartClock.phase.atrial-systole": "Сокращение предсердий",
   "heartClock.phase.ejection": "Изгнание",
+  "heartClock.phase.fibrillation": "Фибрилляция желудочков: нет согласованных сокращений, нет выброса",
   "heartClock.phase.filling": "Наполнение желудочков",
   "heartClock.phase.isovolumic-contraction": "Изоволюмическое сокращение",
   "heartClock.phase.isovolumic-relaxation": "Изоволюмическое расслабление",
