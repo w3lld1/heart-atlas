@@ -64,8 +64,8 @@ export const withTreatment: StateSpec = {
  */
 const customStates: Partial<Record<DiagramName, StateSpec>> = {
   'aortic-stenosis': withTreatment,
-  'atrial-septal-defect': withTreatment,
   'athletes-heart': { states: ['normal', 'athlete'], initial: 'athlete' },
+  'atrial-septal-defect': withTreatment,
   'blood-flow': single,
   // Opens on the left block: it is the one tied to heart failure and to chest-pain emergencies.
   'bundle-branch-block': { states: ['normal', 'rbbb', 'lbbb'], initial: 'lbbb' },
