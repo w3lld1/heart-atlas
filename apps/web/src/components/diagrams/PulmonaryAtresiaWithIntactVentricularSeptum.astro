@@ -1,0 +1,242 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-paivs-arrow-v`;
+const arrowA = `${uid}-paivs-arrow-a`;
+// Labels too long for one line are split in two.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const closedLines = twoLines(t['diagram.label.rv-outflow-closed']);
+const ductLines = twoLines(t['diagram.label.open-duct']);
+// The same layout as the pulmonary atresia with VSD diagram: the ventricles sit low with the septum
+// at x 285, the pulmonary arteries run across at y 130 and the aorta arches over them into the
+// descending aorta on the right. Labels sit in the free column on the left. Vessels are tubes: a
+// wide stroke in the wall colour under a narrower one in the blood colour.
+const vessel = {
+  trunk: 'M250,246 L250,130',
+  branches: 'M160,130 L462,130',
+  aorta: 'M315,250 L315,90 C315,58 350,46 395,46 C450,46 490,62 490,100 L490,396',
+  // Pulmonary atresia with intact septum (MSD «Other Congenital Cardiac Anomalies»): the trunk ends
+  // at a closed valve over the right ventricle, and the lungs get blood from the aorta through the
+  // open duct (MSD; MSD «Overview of Congenital Cardiovascular Anomalies», duct-dependent lesions).
+  closedTrunk: 'M250,232 L250,130',
+  duct: 'M452,62 C452,90 447,106 446,128',
+  ductBlood: 'M452,56 C452,90 447,106 446,132',
+};
+// Paths of the blood, shared by the arrows and the moving dashes on top of them.
+const flow = {
+  toTrunk: 'M250,332 L250,140',
+  toRightLung: 'M250,140 C250,133 244,130 236,130 L170,130',
+  toLeftLung: 'M250,140 C250,133 256,130 264,130 L450,130',
+  toAorta: 'M320,336 L316,250 L315,90 C315,58 350,46 395,46 C450,46 490,62 490,100 L490,382',
+  // Disease: blood from the aorta through the duct into the pulmonary arteries.
+  throughDuct: 'M452,72 C452,92 447,106 446,122',
+  fromDuct: 'M440,130 L170,130',
+};
+---
+
+<svg
+  viewBox="0 0 520 400"
+  role="img"
+  aria-label={t['diagram.pulmonary-atresia-with-intact-ventricular-septum.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Ventricles with the septum between them; the outer wall is the same in both states -->
+  <path
+    d="M175,230 L395,230 C405,288 369,354 285,374 C201,354 165,288 175,230 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Normal: a pulmonary trunk and two branches with venous blood from the right ventricle. The
+       branch to the left lung passes behind the aorta, so the pulmonary arteries come first. -->
+  <g class="normal-only" fill="none">
+    <path d={vessel.branches} stroke="var(--diagram-venous)" stroke-width="20"></path>
+    <path d={vessel.trunk} stroke="var(--diagram-venous)" stroke-width="40"></path>
+    <path d={vessel.branches} stroke="var(--diagram-venous-fill)" stroke-width="16"></path>
+    <path d={vessel.trunk} stroke="var(--diagram-venous-fill)" stroke-width="36"></path>
+    <g stroke="var(--diagram-venous)" stroke-width="3" stroke-linecap="round">
+      <path d={flow.toRightLung} marker-end={`url(#${arrowV})`}></path>
+      <path d={flow.toLeftLung} marker-end={`url(#${arrowV})`}></path>
+    </g>
+    <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+      <path class="dash-flow" d={flow.toRightLung}></path>
+      <path class="dash-flow" d={flow.toLeftLung}></path>
+    </g>
+  </g>
+
+  <!-- Disease: the trunk ends at the closed valve; the pulmonary arteries hold blood that came
+       from the aorta through the duct -->
+  <g class="disease-only" fill="none">
+    <path d={vessel.branches} stroke="var(--diagram-venous)" stroke-width="20"></path>
+    <path d={vessel.closedTrunk} stroke="var(--diagram-venous)" stroke-width="40"></path>
+    <path d={vessel.branches} stroke="var(--diagram-arterial-fill)" stroke-width="16"></path>
+    <path d={vessel.closedTrunk} stroke="var(--diagram-arterial-fill)" stroke-width="36"></path>
+    <path
+      d={flow.fromDuct}
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+      <path class="dash-flow" d={flow.fromDuct}></path>
+    </g>
+  </g>
+
+  <!-- Aorta from the left ventricle: the same in both states -->
+  <g fill="none">
+    <path d={vessel.aorta} stroke="var(--diagram-arterial)" stroke-width="34"></path>
+    <path d={vessel.aorta} stroke="var(--diagram-arterial-fill)" stroke-width="30"></path>
+  </g>
+
+  <!-- Right ventricle cavity: normal size, or small with an outflow that ends blindly at a solid
+       plate where the pulmonary valve should open -->
+  <path
+    class="normal-only"
+    d="M190,242 L277,242 L277,356 C231,348 193,312 190,242 Z"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></path>
+  <rect
+    class="normal-only"
+    x="232"
+    y="240"
+    width="36"
+    height="4"
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+  <path
+    class="disease-only"
+    d="M222,264 L242,264 L244,241 L256,241 L258,264 L277,264 L277,326 C252,320 226,300 222,264 Z"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></path>
+  <rect class="disease-only" x="230" y="232" width="40" height="8" fill="var(--color-text)"></rect>
+
+  <!-- Left ventricle cavity and its opening into the aorta: the same in both states -->
+  <path
+    d="M293,242 L381,242 C377,304 337,346 293,356 Z"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+  <rect x="300" y="240" width="30" height="4" fill="var(--diagram-arterial-fill)"></rect>
+
+  <!-- Blood paths: venous blood to the lungs only in the normal heart; arterial blood from the left
+       ventricle to the body in both states -->
+  <g class="normal-only" fill="none" stroke-linecap="round">
+    <path d={flow.toTrunk} stroke="var(--diagram-venous)" stroke-width="3"></path>
+    <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+      <path class="dash-flow" d={flow.toTrunk}></path>
+    </g>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path
+      d={flow.toAorta}
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+      <path class="dash-flow" d={flow.toAorta}></path>
+    </g>
+  </g>
+
+  <!-- Disease: the open duct between the underside of the arch and the pulmonary artery -->
+  <g class="disease-only" fill="none" stroke-linecap="round">
+    <path d={vessel.duct} stroke="var(--diagram-arterial)" stroke-width="12"></path>
+    <path d={vessel.ductBlood} stroke="var(--diagram-arterial-fill)" stroke-width="8"></path>
+    <path
+      d={flow.throughDuct}
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+      marker-end={`url(#${arrowA})`}
+    ></path>
+    <g class="flow" stroke="var(--color-bg)" stroke-width="1.5">
+      <path class="dash-flow" d={flow.throughDuct}></path>
+    </g>
+  </g>
+
+  <!-- The septum is whole in both states; it is labelled below the heart -->
+  <line x1="285" y1="250" x2="285" y2="372" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text class="normal-only" x="285" y="395" text-anchor="middle">
+    {t['diagram.label.septum']}
+  </text>
+  <text class="disease-only" x="285" y="395" text-anchor="middle">
+    {t['diagram.label.intact-septum']}
+  </text>
+
+  <!-- Chamber and vessel labels inside the drawing; the small right ventricle of the disease is
+       labelled from the left column -->
+  <text class="normal-only" x="212" y="300" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+  <text x="358" y="292" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text x="395" y="22" text-anchor="middle">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small disease-only" x="438" y="84" text-anchor="end">
+    <tspan x="438">{ductLines[0]}</tspan>
+    <tspan x="438" dy="15">
+      {ductLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Labels in the left column with leader lines into the drawing -->
+  <g class="disease-only" stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="150" y1="203" x2="229" y2="236"></line>
+    <line x1="150" y1="290" x2="240" y2="290"></line>
+  </g>
+  <text class="diagram-small" x="8" y="134">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="196">
+    <tspan x="8">{closedLines[0]}</tspan>
+    <tspan x="8" dy="15">
+      {closedLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small disease-only" x="8" y="294">
+    {t['diagram.label.small-rv']}
+  </text>
+</svg>

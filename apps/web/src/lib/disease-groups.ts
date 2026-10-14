@@ -85,6 +85,7 @@ export const diseaseGroups = {
     'partial-anomalous-pulmonary-venous-return',
     'patent-ductus-arteriosus',
     'patent-foramen-ovale',
+    'pulmonary-atresia-with-intact-ventricular-septum',
     'pulmonary-atresia-with-ventricular-septal-defect',
     'single-ventricle',
     'subaortic-stenosis',
