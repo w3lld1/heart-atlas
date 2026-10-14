@@ -50,8 +50,16 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
   <h1>{title}</h1>
   {grouped && (
     <>
-      <form class="catalog-filter" role="search" hidden data-catalog-filter>
-        <label for="catalog-filter-input">{t['catalog.filter.label']}</label>
+      <form
+        class="catalog-filter"
+        role="search"
+        aria-labelledby="catalog-filter-label"
+        hidden
+        data-catalog-filter
+      >
+        <label id="catalog-filter-label" for="catalog-filter-input">
+          {t['catalog.filter.label']}
+        </label>
         <input id="catalog-filter-input" type="search" autocomplete="off" />
       </form>
       <nav class="catalog-groups" aria-label={t['catalog.groups']}>
@@ -83,7 +91,7 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
     <section
       class="catalog-group"
       aria-labelledby={group ? `group-${group}` : undefined}
-      data-catalog-group
+      data-catalog-group={group ?? ''}
     >
       {group && <h2 id={`group-${group}`}>{groupTitle(group)}</h2>}
       <ul class="catalog-cards" role="list">
@@ -119,10 +127,14 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
     text: (card.textContent ?? '').toLocaleLowerCase(),
   }));
   const groups = [...document.querySelectorAll<HTMLElement>('[data-catalog-group]')];
-  const jumps = [...document.querySelectorAll<HTMLElement>('[data-catalog-jump]')];
+  const jumpOf = (group: HTMLElement) =>
+    document.querySelector<HTMLElement>(
+      `[data-catalog-jump="${group.dataset['catalogGroup'] ?? ''}"]`,
+    );
 
   if (form && input && status && empty && searchLink) {
     const searchBase = searchLink.href;
+    let announce: ReturnType<typeof setTimeout> | undefined;
     const apply = () => {
       const query = input.value.trim().toLocaleLowerCase();
       let shown = 0;
@@ -131,19 +143,22 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
         card.hidden = !match;
         if (match) shown += 1;
       }
-      for (const [index, group] of groups.entries()) {
+      for (const group of groups) {
         const visible = group.querySelector('[data-catalog-card]:not([hidden])') !== null;
         group.hidden = !visible;
-        const jump = jumps[index];
+        const jump = jumpOf(group);
         if (jump) jump.hidden = !visible;
       }
       empty.hidden = shown > 0;
       const url = new URL(searchBase);
       if (query) url.searchParams.set('q', input.value.trim());
       searchLink.href = url.href;
-      status.textContent = query
+      // The count is announced once typing pauses, not on every key.
+      clearTimeout(announce);
+      const message = query
         ? (status.dataset['message'] ?? '').replaceAll('{count}', String(shown))
         : '';
+      announce = setTimeout(() => (status.textContent = message), 400);
     };
     form.addEventListener('submit', (event) => event.preventDefault());
     input.addEventListener('input', apply);
@@ -224,8 +239,9 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
     font-size: 0.875rem;
   }
 
+  /* Stays rendered when empty: a live region that appears with its text is often not read. */
   .catalog-status:empty {
-    display: none;
+    margin: 0;
   }
 
   .catalog-group[hidden] {
@@ -285,8 +301,10 @@ const groupTitle = (group: DiseaseGroup) => t[`catalog.group.${group}`];
     content: '';
   }
 
-  .catalog-link:focus-visible {
-    outline: none;
+  @supports selector(:has(*)) {
+    .catalog-link:focus-visible {
+      outline: none;
+    }
   }
 
   .catalog-card > div:has(.catalog-link:focus-visible) {

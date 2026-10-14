@@ -6,6 +6,8 @@ import { axe } from './axe.ts';
 // docs/plans/2026-10-13-disease-catalog.md.
 test.describe('disease catalogue', () => {
   test('groups the diseases and filters them as you type', async ({ page }) => {
+    // The fixture content build has two test articles and no real groups.
+    test.skip(process.env['HA_TEST_CONTENT'] === '1', 'needs the production content build');
     await page.goto('ru/disease/');
     const nav = page.getByRole('navigation', { name: ru['catalog.groups'] });
     await expect(
@@ -17,7 +19,7 @@ test.describe('disease catalogue', () => {
 
     const cards = page.locator('[data-catalog-card]:visible');
     const total = await cards.count();
-    const filter = page.getByLabel(ru['catalog.filter.label']);
+    const filter = page.getByRole('searchbox', { name: ru['catalog.filter.label'] });
     await filter.fill('Тетрада Фалло');
     await expect(cards).toHaveCount(1);
     await expect(
@@ -52,7 +54,7 @@ test.describe('disease catalogue without JavaScript', () => {
 
   test('shows every card and no filter', async ({ page }) => {
     await page.goto('ru/disease/');
-    await expect(page.getByLabel(ru['catalog.filter.label'])).toBeHidden();
+    await expect(page.getByRole('searchbox', { name: ru['catalog.filter.label'] })).toBeHidden();
     await expect(page.locator('[data-catalog-card]:visible').first()).toBeVisible();
     expect(await page.locator('[data-catalog-card]:visible').count()).toBe(
       await page.locator('[data-catalog-card]').count(),
