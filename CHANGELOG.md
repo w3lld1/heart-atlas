@@ -4,7 +4,7 @@ All notable changes to Heart Atlas are listed here. The format follows [Keep a C
 
 ## [0.7.0] - 2026-10-14
 
-The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, eight new disease articles and a page for addresses that do not exist.
+The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, disease shapes to pick on the 3D model, nine new disease articles and a page for addresses that do not exist.
 
 ### Heart clock
 
@@ -16,9 +16,13 @@ The heart clock ECG in leads I, II and III at once, a player of heart sounds and
 - A new page plays heart sounds and valve murmurs in time with the heart clock: normal sounds, aortic stenosis and regurgitation, mitral stenosis and regurgitation and mitral valve prolapse ([#299](https://github.com/w3lld1/heart-atlas/pull/299), [#306](https://github.com/w3lld1/heart-atlas/pull/306)). The sounds are synthesized and schematic; what each murmur sounds like and where it is heard come from cited sources.
 - The five valve disease articles play their murmur next to the normal sounds ([#321](https://github.com/w3lld1/heart-atlas/pull/321)).
 
+### 3D model
+
+- The 3D page has a "Show on the model" list of the diseases whose shape the model can show; the pick changes the model, its caption and sources, links to the article and stays in the address, so it can be shared. An article with a disease shape but without a heart clock gets a "Normal / With the disease" switch on its model, and under the 3D page model there are links to the articles with real patient heart models ([#324](https://github.com/w3lld1/heart-atlas/pull/324)).
+
 ### Articles
 
-- New disease articles in Russian and English, each with a diagram: pulmonary atresia with ventricular septal defect ([#293](https://github.com/w3lld1/heart-atlas/pull/293)), left ventricular noncompaction, catecholaminergic polymorphic ventricular tachycardia, ventricular fibrillation and chronic thromboembolic pulmonary hypertension ([#295](https://github.com/w3lld1/heart-atlas/pull/295)), acute limb ischaemia ([#300](https://github.com/w3lld1/heart-atlas/pull/300)), single ventricle ([#322](https://github.com/w3lld1/heart-atlas/pull/322)) and partial anomalous pulmonary venous return ([#329](https://github.com/w3lld1/heart-atlas/pull/329)). The site now has seventy-four disease articles.
+- New disease articles in Russian and English, each with a diagram: pulmonary atresia with ventricular septal defect ([#293](https://github.com/w3lld1/heart-atlas/pull/293)), left ventricular noncompaction, catecholaminergic polymorphic ventricular tachycardia, ventricular fibrillation and chronic thromboembolic pulmonary hypertension ([#295](https://github.com/w3lld1/heart-atlas/pull/295)), acute limb ischaemia ([#300](https://github.com/w3lld1/heart-atlas/pull/300)), single ventricle ([#322](https://github.com/w3lld1/heart-atlas/pull/322)), partial anomalous pulmonary venous return ([#329](https://github.com/w3lld1/heart-atlas/pull/329)) and aortopulmonary window ([#338](https://github.com/w3lld1/heart-atlas/pull/338)). The site now has seventy-five disease articles.
 - The congenitally corrected transposition article shows the heart clock with complete AV block, without the Wiggers diagram and the pacemaker state, which are written for a usual heart ([#294](https://github.com/w3lld1/heart-atlas/pull/294)).
 - Above every article a visible "Explanation level" label names the patient and student buttons, and a line under them says what the chosen level gives ([#312](https://github.com/w3lld1/heart-atlas/pull/312)).
 
