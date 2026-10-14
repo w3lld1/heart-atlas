@@ -329,6 +329,12 @@ const pressureLabels = [
     animation: oh-trace 5s linear infinite;
   }
 
+  /* Paused: show the whole curve, never a half-drawn one. */
+  .diagram:has(.diagram-pause :checked) .oh-trace {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
   @keyframes oh-beat {
     0%,
     40%,

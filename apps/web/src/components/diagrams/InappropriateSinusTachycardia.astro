@@ -1,0 +1,307 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-ist-clip`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+
+/*
+ * A schematic heart-rate curve over a day: no scale and no real measurements. The only number is
+ * the dashed line at 100 beats per minute, the definition of sinus tachycardia. Normal: the rate
+ * stays below the line at rest and goes above it only during exercise, then comes back down.
+ * Inappropriate sinus tachycardia: the rate is above the line already at rest and rises sharply
+ * with light exercise. In both states the rate rises and falls gradually (no sudden on/off steps,
+ * which would be a paroxysmal re-entry tachycardia), and the rhythm still comes from the sinus
+ * node: the small heart and its sinus node are the same, only the beat is faster.
+ */
+const graphTop = 40;
+const axisX = 72;
+const axisY = 250;
+const axisEnd = 328;
+const line100Y = 150;
+const restX = 124;
+
+const normalCurve =
+  'M74,196 C100,190 125,200 150,193 S180,190 190,188 C200,182 204,102 215,102 C226,102 232,172 250,186 S300,196 328,191';
+const diseaseCurve =
+  'M74,138 C100,128 125,140 150,128 S180,134 190,132 C196,128 198,104 206,102 C216,101 222,118 246,126 S300,136 328,130';
+
+// The exercise band under each curve: longer exercise normally, a short light one in the disease.
+const exercise = [
+  {
+    state: 'normal-only',
+    x: 192,
+    width: 46,
+    lines: wrap(t['diagram.label.exercise'], 12),
+  },
+  {
+    state: 'disease-only',
+    x: 190,
+    width: 24,
+    lines: wrap(t['diagram.label.light-exercise'], 12),
+  },
+];
+
+const titleLines = wrap(t['diagram.label.heart-rate-over-day'], 40);
+const line100Lines = wrap(t['diagram.label.line-100-per-minute'], 9);
+
+// The heart in the top corner: the same shape and the same sinus node in both states.
+const heart =
+  'M410,112 C376,88 368,60 390,50 C400,46 410,54 410,62 C410,54 420,46 430,50 C452,60 444,88 410,112 Z';
+const node = { x: 397, y: 60 };
+const nodeLabelX = 344;
+const nodeLabelY = 128;
+const nodeLines = wrap(t['diagram.label.sinus-node-sets-rhythm'], 18);
+
+// Labels in the right column with a leader line to the part of the curve they describe.
+const labelX = 344;
+const maxChars = 20;
+interface Label {
+  y: number;
+  toX: number;
+  toY: number;
+  lines: string[];
+}
+function label(key: MessageKey, y: number, toX: number, toY: number): Label {
+  return { y, toX, toY, lines: wrap(t[key], maxChars) };
+}
+const normalLabels = [
+  label('diagram.label.heart-rate-rises-with-exercise', 184, 221, 106),
+  label('diagram.label.calm-heart-rate-at-rest', 240, 300, 193),
+];
+const diseaseLabels = [
+  label('diagram.label.sharp-rise-with-light-exercise', 184, 197, 116),
+  label('diagram.label.gradual-rise-and-fall', 240, 150, 131),
+];
+// In the disease state the rest label sits inside the graph, just above the raised resting part of
+// the curve, so that its leader does not cross the other two.
+const restLines = wrap(t['diagram.label.fast-heart-rate-at-rest'], 16);
+const restLabelX = axisX + 6;
+const restLabelY = 114 - (restLines.length - 1) * lineHeight;
+---
+
+<svg
+  viewBox="0 0 480 296"
+  role="img"
+  aria-label={t['diagram.inappropriate-sinus-tachycardia.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <rect x={axisX} y={graphTop} width={axisEnd - axisX} height={axisY - graphTop}></rect>
+    </clipPath>
+  </defs>
+
+  <!-- Graph title -->
+  <text class="diagram-small" x={axisX} y={graphTop - 22}>
+    {titleLines.map((line, index) => (
+      <tspan x={axisX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Exercise band, one per state -->
+  {exercise.map((item) => (
+    <g class={item.state}>
+      <rect
+        x={item.x}
+        y={graphTop}
+        width={item.width}
+        height={axisY - graphTop}
+        fill="var(--color-muted)"
+        fill-opacity="0.18"
+      />
+      <text class="diagram-small" x={item.x + item.width / 2} y={axisY + 16} text-anchor="middle">
+        {item.lines.map((line, index) => (
+          <tspan x={item.x + item.width / 2} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  ))}
+
+  <!-- Axes: shape only, no scale -->
+  <path
+    d={`M${axisX},${graphTop} V${axisY} H${axisEnd}`}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <text class="diagram-small" x={restX} y={axisY + 16} text-anchor="middle">
+    {t['diagram.label.at-rest']}
+  </text>
+  <text class="diagram-small" x={axisEnd} y={axisY + 16} text-anchor="end">
+    {t['diagram.label.time']}
+  </text>
+
+  <!-- The one labelled line: 100 beats per minute -->
+  <path
+    d={`M${axisX},${line100Y} H${axisEnd}`}
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="6 4"
+  ></path>
+  <text
+    class="diagram-small"
+    x={axisX - 6}
+    y={line100Y + 4 - ((line100Lines.length - 1) * lineHeight) / 2}
+    text-anchor="end"
+  >
+    {line100Lines.map((line, index) => (
+      <tspan x={axisX - 6} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Heart-rate curve, one per state; it draws itself from left to right -->
+  <g clip-path={`url(#${clipId})`} fill="none" stroke-linecap="round">
+    <path
+      class="normal-only ist-trace"
+      d={normalCurve}
+      pathLength="1"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+    ></path>
+    <path
+      class="disease-only ist-trace"
+      d={diseaseCurve}
+      pathLength="1"
+      stroke="var(--diagram-arterial)"
+      stroke-width="3"
+    ></path>
+  </g>
+
+  <!-- The heart and its sinus node: the same in both states; only the beat is faster -->
+  <path class="normal-only ist-beat" d={heart} fill="var(--diagram-muscle)"></path>
+  <path class="disease-only ist-beat ist-fast" d={heart} fill="var(--diagram-muscle)"></path>
+  <circle
+    cx={node.x}
+    cy={node.y}
+    r="5"
+    fill="var(--diagram-impulse)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></circle>
+  <line
+    x1={nodeLabelX + 6}
+    y1={nodeLabelY - 14}
+    x2={node.x - 4}
+    y2={node.y + 4}
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></line>
+  <text class="diagram-small" x={nodeLabelX} y={nodeLabelY}>
+    {nodeLines.map((line, index) => (
+      <tspan x={nodeLabelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Disease: the raised resting rate, labelled in place -->
+  <text class="diagram-small disease-only" x={restLabelX} y={restLabelY}>
+    {restLines.map((line, index) => (
+      <tspan x={restLabelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Labels with leader lines, one set per state -->
+  {[
+    { state: 'normal-only', labels: normalLabels },
+    { state: 'disease-only', labels: diseaseLabels },
+  ].map((group) => (
+    <g class={group.state}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        {group.labels.map((item) => (
+          <line x1={labelX - 4} y1={item.y - 4} x2={item.toX} y2={item.toY} />
+        ))}
+      </g>
+      {group.labels.map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* The curve draws itself from left to right; without motion it stands complete, and the labels
+     carry the difference. The heart beats faster in the disease state. */
+  .diagram .ist-trace {
+    stroke-dasharray: 1;
+    animation: ist-trace 6s linear infinite;
+  }
+
+  .diagram .ist-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ist-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .ist-fast {
+    animation-duration: 0.55s;
+  }
+
+  /* Paused: show the whole curve, never a half-drawn one. */
+  .diagram:has(.diagram-pause :checked) .ist-trace {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  @keyframes ist-trace {
+    0% {
+      stroke-dashoffset: 1;
+    }
+
+    70%,
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes ist-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.1);
+    }
+  }
+</style>

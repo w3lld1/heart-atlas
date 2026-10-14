@@ -1,0 +1,340 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const hatchId = `${uid}-cs-hatch`;
+const heartClipId = `${uid}-cs-heart`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const labelX = 206;
+const maxChars = 36;
+
+// A label in the right column with a leader line to the part of the figure it names. No numbers
+// (blood pressure, urine, lactate), no devices and no medicines: the picture shows only that the
+// heart pumps out too little blood and what the organs show when they lack it.
+interface Label {
+  y: number;
+  toX: number;
+  toY: number;
+  lines: string[];
+}
+function label(key: MessageKey, y: number, toX: number, toY: number): Label {
+  return { y, toX, toY, lines: wrap(t[key], maxChars) };
+}
+
+const normalLabels = [
+  label('diagram.label.brain', 40, 128, 42),
+  label('diagram.label.lungs', 140, 156, 156),
+  label('diagram.label.heart-pumps-enough-blood', 196, 130, 206),
+  label('diagram.label.skin', 250, 164, 250),
+  label('diagram.label.kidneys', 300, 156, 290),
+];
+const diseaseLabels = [
+  label('diagram.label.confusion', 40, 128, 42),
+  label('diagram.label.lung-congestion', 140, 156, 156),
+  label('diagram.label.infarct-heart-pumps-little-blood', 196, 130, 206),
+  label('diagram.label.cold-clammy-skin', 250, 164, 250),
+  label('diagram.label.kidneys-little-urine', 300, 156, 290),
+];
+
+// The figure, front view: the brain in the head, both lungs and the heart in the chest, the aorta
+// from the heart over the arch and down the trunk, a patch of skin on the side of the trunk and
+// both kidneys. The left ventricle is the lower part of the heart on the right of the picture.
+const heart =
+  'M100,240 C70,218 62,194 78,184 C88,178 100,184 100,192 C100,184 112,178 122,184 C138,194 130,218 100,240 Z';
+const aorta = 'M100,192 V150 Q100,140 109,140 Q118,140 118,150 V286';
+
+// Arteries from the aorta to the organs, each ending in an arrowhead. Normal: thick arteries and
+// large arrowheads. Cardiogenic shock: thin arteries and small arrowheads, because the heart
+// pumps out too little blood.
+type Direction = 'up' | 'right' | 'left';
+interface Branch {
+  from: string;
+  tipX: number;
+  tipY: number;
+  dir: Direction;
+}
+const branches: Branch[] = [
+  { from: 'M106,141', tipX: 106, tipY: 68, dir: 'up' },
+  { from: 'M118,246', tipX: 151, tipY: 246, dir: 'right' },
+  { from: 'M118,286', tipX: 101, tipY: 286, dir: 'left' },
+  { from: 'M118,286', tipX: 135, tipY: 286, dir: 'right' },
+];
+function branchPath(branch: Branch, size: number): string {
+  const { from, tipX, tipY, dir } = branch;
+  if (dir === 'up') return `${from} V${tipY + size}`;
+  return `${from} H${dir === 'right' ? tipX - size : tipX + size}`;
+}
+function arrowHead(branch: Branch, size: number): string {
+  const { tipX: x, tipY: y, dir } = branch;
+  if (dir === 'up') return `M${x},${y} L${x - size},${y + size + 1} L${x + size},${y + size + 1} Z`;
+  const back = dir === 'right' ? x - size - 1 : x + size + 1;
+  return `M${x},${y} L${back},${y - size} L${back},${y + size} Z`;
+}
+const states = [
+  { state: 'normal-only', aortaWidth: 10, branchWidth: 6, head: 9, flowClass: 'dash-flow' },
+  {
+    state: 'disease-only',
+    aortaWidth: 4,
+    branchWidth: 2.5,
+    head: 5,
+    flowClass: 'dash-flow cs-slow',
+  },
+];
+
+const kidney = (x: number, flip: boolean) =>
+  flip
+    ? `M${x},272 C${x - 14},270 ${x - 14},302 ${x},300 C${x + 8},299 ${x + 10},290 ${x + 4},286 C${x + 10},282 ${x + 8},273 ${x},272 Z`
+    : `M${x},272 C${x + 14},270 ${x + 14},302 ${x},300 C${x - 8},299 ${x - 10},290 ${x - 4},286 C${x - 10},282 ${x - 8},273 ${x},272 Z`;
+const kidneys = [kidney(90, true), kidney(146, false)];
+const brain =
+  'M72,46 C70,26 86,16 100,18 C114,16 130,26 128,46 C128,58 116,62 100,60 C84,62 72,58 72,46 Z';
+const skin = { x: 152, y: 230, width: 14, height: 34 };
+const lungs = [
+  { cx: 62, cy: 162 },
+  { cx: 138, cy: 162 },
+];
+// Fluid in the lungs in cardiogenic shock: small drops in the lower part of each lung.
+const drops = [
+  [54, 176],
+  [66, 186],
+  [70, 170],
+  [130, 176],
+  [142, 186],
+  [146, 170],
+];
+---
+
+<svg
+  viewBox="0 0 480 340"
+  role="img"
+  aria-label={t['diagram.cardiogenic-shock.title']}
+  lang={locale}
+>
+  <defs>
+    <pattern id={hatchId} width="6" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0,6 L6,0" stroke="var(--color-text)" stroke-width="1.5"></path>
+    </pattern>
+    <clipPath id={heartClipId}>
+      <path d={heart}></path>
+    </clipPath>
+  </defs>
+
+  <!-- The figure: head, neck and trunk as plain outlines -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <circle cx="100" cy="52" r="40"></circle>
+    <path d="M92,92 V104 M108,92 V104"></path>
+    <rect x="40" y="104" width="120" height="226" rx="22"></rect>
+  </g>
+
+  <!-- Lungs: clear normally, with congestion (fluid) in cardiogenic shock -->
+  {lungs.map((lung) => (
+    <ellipse
+      class="normal-only"
+      cx={lung.cx}
+      cy={lung.cy}
+      rx="18"
+      ry="36"
+      fill="none"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    />
+  ))}
+  <g class="disease-only">
+    {lungs.map((lung) => (
+      <ellipse
+        cx={lung.cx}
+        cy={lung.cy}
+        rx="18"
+        ry="36"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="1.5"
+      />
+    ))}
+    <g fill="var(--diagram-venous)">
+      {drops.map(([x, y]) => (
+        <circle cx={x} cy={y} r="2.5" />
+      ))}
+    </g>
+  </g>
+
+  <!-- Organs that get blood from the aorta: well supplied normally (filled), short of blood in
+       cardiogenic shock (dashed outline, no fill) -->
+  <g
+    class="normal-only"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  >
+    <path d={brain}></path>
+    <rect x={skin.x} y={skin.y} width={skin.width} height={skin.height} rx="5"></rect>
+    {kidneys.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    stroke-dasharray="4 3"
+  >
+    <path d={brain}></path>
+    <rect x={skin.x} y={skin.y} width={skin.width} height={skin.height} rx="5"></rect>
+    {kidneys.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+  <path
+    d="M100,20 V58 M82,34 Q90,40 84,48 M118,34 Q110,40 116,48"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Aorta and the arteries to the organs with their arrowheads: thick normally, thin in shock -->
+  {states.map((item) => (
+    <g class={item.state}>
+      <g fill="none" stroke="var(--diagram-arterial)">
+        <path d={aorta} stroke-width={item.aortaWidth} />
+        {branches.map((branch) => (
+          <path d={branchPath(branch, item.head)} stroke-width={item.branchWidth} />
+        ))}
+      </g>
+      <g fill="var(--diagram-arterial)">
+        {branches.map((branch) => (
+          <path d={arrowHead(branch, item.head)} />
+        ))}
+      </g>
+    </g>
+  ))}
+
+  <!-- Moving blood: slower and thinner in shock; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--color-bg)">
+    {states.map((item) => (
+      <g class={item.state} stroke-width={item.state === 'normal-only' ? 2 : 1}>
+        <path class={item.flowClass} d={aorta} />
+        {branches.map((branch) => (
+          <path class={item.flowClass} d={branchPath(branch, item.head)} />
+        ))}
+      </g>
+    ))}
+  </g>
+
+  <!-- Heart in front of the aorta: a full beat normally; in shock a weak, fast beat and an infarct
+       zone in the wall of the left ventricle -->
+  <g class="normal-only">
+    <path class="cs-beat" d={heart} fill="var(--diagram-muscle)"></path>
+  </g>
+  <g class="disease-only">
+    <g class="cs-beat-weak">
+      <path d={heart} fill="var(--diagram-muscle)"></path>
+      <g clip-path={`url(#${heartClipId})`}>
+        <ellipse cx="118" cy="216" rx="14" ry="18" fill="var(--color-bg)"></ellipse>
+        <ellipse cx="118" cy="216" rx="14" ry="18" fill={`url(#${hatchId})`}></ellipse>
+        <ellipse
+          cx="118"
+          cy="216"
+          rx="14"
+          ry="18"
+          fill="none"
+          stroke="var(--color-text)"
+          stroke-width="1.5"
+          stroke-dasharray="4 3"
+        ></ellipse>
+      </g>
+    </g>
+  </g>
+
+  <!-- Labels with leader lines, one set per state -->
+  {[
+    { state: 'normal-only', labels: normalLabels },
+    { state: 'disease-only', labels: diseaseLabels },
+  ].map((group) => (
+    <g class={group.state}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        {group.labels.map((item) => (
+          <line x1="200" y1={item.y - 4} x2={item.toX} y2={item.toY} />
+        ))}
+      </g>
+      {group.labels.map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* Normally the heart beats fully; in cardiogenic shock it beats weakly and fast and the blood
+     moves more slowly. Without motion the thin arteries, small arrowheads, the infarct zone,
+     the dashed organs and the labels carry the difference. */
+  .diagram .cs-beat,
+  .diagram .cs-beat-weak {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cs-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .cs-beat-weak {
+    animation-name: cs-beat-weak;
+    animation-duration: 0.7s;
+  }
+
+  .diagram .cs-slow {
+    animation-duration: 4s;
+  }
+
+  @keyframes cs-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.12);
+    }
+  }
+
+  @keyframes cs-beat-weak {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.03);
+    }
+  }
+</style>

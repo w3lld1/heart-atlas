@@ -1,0 +1,175 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-pfo-arrow`;
+
+// Long labels do not fit their place on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const secundumLines = twoLines(t['diagram.label.septum-secundum']);
+const primumLines = twoLines(t['diagram.label.septum-primum']);
+const strainingLines = twoLines(t['diagram.label.shunt-on-straining']);
+
+// A close-up of the two atria with the septum between them; the right atrium is on the viewer's
+// left. Normal: one septum with a shallow oval depression (the fossa ovalis) on the right atrial
+// side. Patent foramen ovale: the septum is two overlapping layers, the septum secundum above on
+// the right atrial side and the septum primum below on the left atrial side, with a narrow slanted
+// slit between them that is usually closed. A dashed arrow shows that blood may pass from right to
+// left on straining. There is no round hole in the middle and the chambers keep their size: that
+// would be an atrial septal defect, a separate diagram.
+const septum = { left: 196, right: 224, top: 50, bottom: 270 };
+// The slit runs up and to the left atrium: it opens into the right atrium at its lower end and
+// into the left atrium at its upper end. The gap is a little wider than the thin dashed arrow
+// through it, so the slit stays visible with the arrow drawn.
+const slitRa = { x: septum.left, y: 188 };
+const slitLa = { x: septum.right, y: 124 };
+const gap = 10;
+const secundum = `${septum.left},${septum.top} ${septum.right},${septum.top} ${slitLa.x},${slitLa.y - gap / 2} ${slitRa.x},${slitRa.y - gap / 2}`;
+const primum = `${septum.left},${septum.bottom} ${septum.right},${septum.bottom} ${slitLa.x},${slitLa.y + gap / 2} ${slitRa.x},${slitRa.y + gap / 2}`;
+const shuntPath = `M150,206 L${slitRa.x - 2},${slitRa.y} L${slitLa.x + 2},${slitLa.y} L258,116`;
+---
+
+<svg
+  viewBox="0 14 420 266"
+  role="img"
+  aria-label={t['diagram.patent-foramen-ovale.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="7"
+      markerHeight="7"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Atria: venous blood on the right side of the heart (viewer's left), arterial on the left -->
+  <rect
+    x="20"
+    y={septum.top}
+    width="186"
+    height={septum.bottom - septum.top}
+    rx="40"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></rect>
+  <rect
+    x="214"
+    y={septum.top}
+    width="186"
+    height={septum.bottom - septum.top}
+    rx="40"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></rect>
+
+  <!-- Normal: one septum with the fossa ovalis, a shallow depression on the right atrial side -->
+  <g class="normal-only">
+    <rect
+      x={septum.left}
+      y={septum.top}
+      width={septum.right - septum.left}
+      height={septum.bottom - septum.top}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></rect>
+    <ellipse
+      cx={septum.left + 3}
+      cy="155"
+      rx="6"
+      ry="24"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></ellipse>
+    <line
+      x1="150"
+      y1="116"
+      x2={septum.left - 2}
+      y2="148"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></line>
+    <text x="110" y="110" text-anchor="middle">
+      {t['diagram.label.fossa-ovalis']}
+    </text>
+  </g>
+
+  <!-- Patent foramen ovale: two overlapping layers with a narrow slanted slit between them -->
+  <g class="disease-only">
+    <polygon
+      points={secundum}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></polygon>
+    <polygon
+      points={primum}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></polygon>
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1="168" y1="92" x2={septum.left + 4} y2="92"></line>
+      <line x1="262" y1="214" x2={septum.right - 4} y2="214"></line>
+    </g>
+    <text x="110" y="86" text-anchor="middle">
+      {secundumLines[0]}
+    </text>
+    <text x="110" y="105" text-anchor="middle">
+      {secundumLines[1]}
+    </text>
+    <text x="320" y="208" text-anchor="middle">
+      {primumLines[0]}
+    </text>
+    <text x="320" y="227" text-anchor="middle">
+      {primumLines[1]}
+    </text>
+
+    <!-- Blood may pass from right to left through the slit on straining: dashed, not constant -->
+    <path
+      class="dash-flow"
+      d={shuntPath}
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+      fill="none"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+    <text x="320" y="86" text-anchor="middle">
+      {strainingLines[0]}
+    </text>
+    <text x="320" y="105" text-anchor="middle">
+      {strainingLines[1]}
+    </text>
+  </g>
+
+  <text x={(septum.left + septum.right) / 2} y="36" text-anchor="middle">
+    {t['diagram.label.interatrial-septum']}
+  </text>
+  <text x="110" y="250" text-anchor="middle">
+    {t['diagram.label.ra']}
+  </text>
+  <text x="310" y="250" text-anchor="middle">
+    {t['diagram.label.la']}
+  </text>
+</svg>

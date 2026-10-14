@@ -1,0 +1,201 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max = 28) => wrap(t[key], max);
+const smallerKidneyLines = lines('diagram.label.kidney-beyond-narrowing-smaller');
+const reninLines = lines('diagram.label.kidney-releases-renin-pressure-rises');
+const fmdLines = lines('diagram.label.fibromuscular-dysplasia-string-of-beads', 29);
+
+// Front view of the abdominal aorta with a renal artery to each kidney. Normal: both arteries have
+// an even lumen and both kidneys are the same size. Disease: an atherosclerotic plaque at the
+// origin of one renal artery narrows it, the kidney beyond it is smaller and releases renin, and
+// blood pressure rises. Fibromuscular dysplasia, the other cause, is a separate small view below:
+// a renal artery whose narrowings alternate with widenings like a string of beads. No percentages,
+// no stent and no numbers anywhere.
+const aortaX = 240;
+const arteryY = 150;
+// Each kidney's hilum, where its artery enters, faces the aorta.
+const leftHilum = 150;
+const rightHilum = 330;
+const kidney = (hx: number, side: 1 | -1) => {
+  const x = (dx: number) => hx - side * dx;
+  const y = arteryY;
+  return `M${x(0)},${y - 14} C${x(4)},${y - 50} ${x(30)},${y - 56} ${x(46)},${y - 44} C${x(64)},${y - 30} ${x(64)},${y + 30} ${x(46)},${y + 44} C${x(30)},${y + 56} ${x(4)},${y + 50} ${x(0)},${y + 14} C${x(8)},${y + 6} ${x(8)},${y - 6} ${x(0)},${y - 14} Z`;
+};
+const leftKidney = kidney(leftHilum, 1);
+const rightKidney = kidney(rightHilum, -1);
+// The smaller kidney keeps its hilum on the artery.
+const shrink = `translate(${leftHilum} ${arteryY}) scale(0.78) translate(${-leftHilum} ${-arteryY})`;
+const leftArtery = `M${aortaX},${arteryY} H${leftHilum - 4}`;
+const rightArtery = `M${aortaX},${arteryY} H${rightHilum + 4}`;
+const aorta = `M${aortaX},0 V360`;
+// Plaques at the origin of the left renal artery narrow its lumen from above and below.
+const plaques = [
+  `M231,${arteryY - 8} C225,${arteryY + 1} 208,${arteryY + 1} 200,${arteryY - 8} Z`,
+  `M231,${arteryY + 8} C225,${arteryY - 1} 208,${arteryY - 1} 200,${arteryY + 8} Z`,
+];
+// Fibromuscular dysplasia view: a short renal artery with beads in its middle part.
+const fmdY = 342;
+const beads = [330, 348, 366, 384, 402];
+const labelCentre = 110;
+---
+
+<svg
+  viewBox="0 0 480 360"
+  role="img"
+  aria-label={t['diagram.renal-artery-stenosis.title']}
+  lang={locale}
+>
+  <!-- Renal arteries and the aorta: walls, then lumens on top -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    <path d={leftArtery} stroke-width="16"></path>
+    <path d={rightArtery} stroke-width="16"></path>
+    <path d={aorta} stroke-width="30"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    <path d={`M${aortaX - 12},${arteryY} H${leftHilum - 4}`} stroke-width="10"></path>
+    <path d={`M${aortaX + 12},${arteryY} H${rightHilum + 4}`} stroke-width="10"></path>
+    <path d={aorta} stroke-width="22"></path>
+  </g>
+
+  <!-- Moving blood down the aorta and out to the kidneys; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path class="dash-flow" d={aorta}></path>
+    <path class="dash-flow" d={`M${aortaX - 12},${arteryY} H${leftHilum}`}></path>
+    <path class="dash-flow" d={`M${aortaX + 12},${arteryY} H${rightHilum}`}></path>
+  </g>
+
+  <!-- Kidneys: the same size normally; with stenosis the left one is smaller -->
+  <g fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5">
+    <path class="normal-only" d={leftKidney}></path>
+    <path class="disease-only" d={leftKidney} transform={shrink}></path>
+    <path d={rightKidney}></path>
+  </g>
+
+  <!-- A plaque at the origin of the left renal artery. The outline keeps its edge visible against
+       the lumen in the light theme. -->
+  <g class="disease-only" fill="var(--diagram-plaque)" stroke="var(--color-text)" stroke-width="1">
+    {plaques.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Labels shared by both states -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="292" y1="68" x2="292" y2="142"></line>
+  </g>
+  <text class="diagram-small" x="218" y="24" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="262" y="62">
+    {t['diagram.label.renal-arteries']}
+  </text>
+  <text class="diagram-small" x="370" y="230" text-anchor="middle">
+    {t['diagram.label.kidney']}
+  </text>
+
+  <!-- Normal: the left kidney is named like the right one -->
+  <text class="diagram-small normal-only" x={labelCentre} y="230" text-anchor="middle">
+    {t['diagram.label.kidney']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="200" y1="76" x2="215" y2="138"></line>
+    </g>
+    <circle cx="215" cy="141" r="2.5" fill="var(--color-text)"></circle>
+    <text x="200" y="70" text-anchor="end">
+      {t['diagram.label.plaque']}
+    </text>
+    <text class="diagram-small" x={labelCentre} y="230" text-anchor="middle">
+      {smallerKidneyLines.map((line, index) => (
+        <tspan x={labelCentre} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <!-- Renin from the kidney raises blood pressure -->
+    <g class="ras-pulse">
+      <g fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+        <line x1={labelCentre} y1="252" x2={labelCentre} y2="266" stroke-width="3"></line>
+        <path d={`M${labelCentre - 6},264 L${labelCentre},274 L${labelCentre + 6},264 Z`}></path>
+      </g>
+      <text class="diagram-small" x={labelCentre} y="290" text-anchor="middle">
+        {reninLines.map((line, index) => (
+          <tspan x={labelCentre} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+
+    <!-- The other cause: fibromuscular dysplasia, beads in the middle part of a renal artery -->
+    <text class="diagram-small" x="264" y="262">
+      {fmdLines.map((line, index) => (
+        <tspan x="264" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <g fill="var(--diagram-arterial)">
+      <path d={`M290,${fmdY} H450`} stroke="var(--diagram-arterial)" stroke-width="12"></path>
+      {beads.map((x) => (
+        <circle cx={x} cy={fmdY} r="9" />
+      ))}
+    </g>
+    <g fill="var(--diagram-arterial-fill)">
+      <path d={`M290,${fmdY} H320`} stroke="var(--diagram-arterial-fill)" stroke-width="7"></path>
+      <path d={`M412,${fmdY} H450`} stroke="var(--diagram-arterial-fill)" stroke-width="7"></path>
+      <path d={`M320,${fmdY} H412`} stroke="var(--diagram-arterial-fill)" stroke-width="2.5"></path>
+      {beads.map((x) => (
+        <circle cx={x} cy={fmdY} r="6" />
+      ))}
+    </g>
+  </g>
+</svg>
+
+<style is:global>
+  /* With stenosis the renin label pulses; without motion it stands still and the label carries
+     the meaning. */
+  .diagram .ras-pulse {
+    animation: ras-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes ras-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+
+    40% {
+      opacity: 1;
+    }
+  }
+</style>
