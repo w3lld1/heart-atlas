@@ -4,6 +4,8 @@ import { leadGains, unitGains } from '../src/leads.ts';
 import { defaultParams, resolveParams } from '../src/params.ts';
 import { presetIds, presetLead, presetParams } from '../src/presets.ts';
 
+const everyPresetTimeout = 20_000;
+
 const limbPresets = presetIds.filter((id) => presetLead(id) === 'II');
 const oddAxes = { pAxis: 100, qrsAxis: 0, sAxis: -10, tAxis: 130, stAxis: 110, fAxis: 90 };
 
@@ -171,16 +173,22 @@ describe('preset pictures in leads I, II and III', () => {
     expect(peak(wide.I)).toBeLessThan(0.15 * peak(wide.II));
   });
 
-  it('stay inside a limb strip, 1.5 mV up and 1 mV down, for every preset', () => {
-    for (const id of presetIds) {
-      const clock = createHeartClock(presetParams(id));
-      for (let from = 0; from < 30000; from += 9000) {
-        for (const lead of ['I', 'II', 'III'] as const) {
-          const values = Array.from(clock.ecgBetween(from, from + 9000, 9001, lead));
-          expect(Math.max(...values), `${id} in ${lead}`).toBeLessThan(1.5);
-          expect(Math.min(...values), `${id} in ${lead}`).toBeGreaterThan(-1);
+  // Samples every preset in three leads: about 2 s locally, past the default 5 s on a busy CI
+  // runner (#466).
+  it(
+    'stay inside a limb strip, 1.5 mV up and 1 mV down, for every preset',
+    () => {
+      for (const id of presetIds) {
+        const clock = createHeartClock(presetParams(id));
+        for (let from = 0; from < 30000; from += 9000) {
+          for (const lead of ['I', 'II', 'III'] as const) {
+            const values = Array.from(clock.ecgBetween(from, from + 9000, 9001, lead));
+            expect(Math.max(...values), `${id} in ${lead}`).toBeLessThan(1.5);
+            expect(Math.min(...values), `${id} in ${lead}`).toBeGreaterThan(-1);
+          }
         }
       }
-    }
-  });
+    },
+    everyPresetTimeout,
+  );
 });

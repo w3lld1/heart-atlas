@@ -4,6 +4,7 @@
 // without the Wiggers diagram (frontmatter `wiggers: false`), and limb leads I, II and III next to
 // a V1 preset (docs/plans/2026-10-13-heart-clock-three-leads.md). Other builds make no page here.
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { clockChoices } from '../../../components/heart-clock/choices.ts';
 import HeartClockDemo from '../../../components/heart-clock/HeartClockDemo.tsx';
 import {
   heartClockMessageKeys,
@@ -32,7 +33,11 @@ const messages = Object.fromEntries(
       client:load
       locale={locale}
       messages={messages}
-      params={{ heartRate: 60, pauseEvery: 2, pauseDuration: 2000 }}
+      choices={clockChoices(undefined, undefined, {
+        heartRate: 60,
+        pauseEvery: 2,
+        pauseDuration: 2000,
+      })}
     />
   </section>
   <section data-test="v1">
@@ -40,15 +45,19 @@ const messages = Object.fromEntries(
       client:load
       locale={locale}
       messages={messages}
-      lead="V1"
-      params={{
-        prInterval: 100,
-        qrsDuration: 140,
-        deltaWave: 40,
-        stShift: 0.2,
-        stSlope: 1,
-        tAmplitude: -0.2,
-      }}
+      choices={clockChoices(
+        undefined,
+        undefined,
+        {
+          prInterval: 100,
+          qrsDuration: 140,
+          deltaWave: 40,
+          stShift: 0.2,
+          stSlope: 1,
+          tAmplitude: -0.2,
+        },
+        'V1',
+      )}
     />
   </section>
   <section data-test="flutter">
@@ -56,7 +65,12 @@ const messages = Object.fromEntries(
       client:load
       locale={locale}
       messages={messages}
-      params={{ heartRate: 75, pAmplitude: 0, flutterConduction: 4, flutterAmplitude: 0.2 }}
+      choices={clockChoices(undefined, undefined, {
+        heartRate: 75,
+        pAmplitude: 0,
+        flutterConduction: 4,
+        flutterAmplitude: 0.2,
+      })}
     />
   </section>
   <section data-test="limb-leads">
@@ -64,7 +78,7 @@ const messages = Object.fromEntries(
       client:load
       locale={locale}
       messages={messages}
-      presets={['normal', 'brugada-syndrome']}
+      choices={clockChoices(['normal', 'brugada-syndrome'])}
       wiggers={false}
     />
   </section>
@@ -73,7 +87,7 @@ const messages = Object.fromEntries(
       client:load
       locale={locale}
       messages={messages}
-      presets={['normal', 'av-block-third-degree']}
+      choices={clockChoices(['normal', 'av-block-third-degree'], 'av-block-third-degree')}
       preset="av-block-third-degree"
       wiggers={false}
     />

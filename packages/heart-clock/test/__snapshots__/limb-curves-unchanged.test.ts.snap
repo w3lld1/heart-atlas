@@ -90,6 +90,14 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "II:2a563f6f",
     "III:973f2405",
   ],
+  "early-repolarization": [
+    "I:ae086",
+    "II:d99c4ec2",
+    "III:d7bd2530",
+    "I:86f812fa",
+    "II:d99c4ec2",
+    "III:433f5a1f",
+  ],
   "focal-atrial-tachycardia": [
     "I:5e5c2966",
     "II:66559849",

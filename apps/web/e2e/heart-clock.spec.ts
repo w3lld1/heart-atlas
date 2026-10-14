@@ -425,6 +425,30 @@ test.describe('disease presets', () => {
     expect((await axe(page).analyze()).violations).toEqual([]);
   });
 
+  test("show early repolarization at the reader's rate", async ({ page }) => {
+    // docs/plans/2026-10-14-heart-clock-early-repolarization.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    await expect(
+      conditions.locator(
+        `optgroup[label="${en['heartClock.group.rhythm']}"] option[value="early-repolarization"]`,
+      ),
+    ).toHaveCount(1);
+    const rate = await slider.inputValue();
+    await choose(page, 'early-repolarization');
+    await expect(slider).toHaveValue(rate);
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.early-repolarization.summary'],
+    );
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.early-repolarization.ecg'].replace('{rate}', rate),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
   test('show bidirectional VT at its own rate', async ({ page }) => {
     // docs/plans/2026-10-14-heart-clock-bidirectional-vt.md
     await page.goto('en/heart-clock/');

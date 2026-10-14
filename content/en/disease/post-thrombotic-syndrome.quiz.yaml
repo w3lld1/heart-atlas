@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Post-thrombotic syndrome is a long-term consequence of what?
+    options:
+      - text: A sprained ankle ligament
+      - text: Deep vein thrombosis
+        correct: true
+      - text: A broken bone in the foot
+    explanation: Post-thrombotic syndrome (PTS), also called post-thrombotic disease, is a long-term consequence of deep vein thrombosis (DVT).
+    cite: [1, 4]
+  - level: patient
+    prompt: How do the valves in the leg veins normally work?
+    options:
+      - text: They let blood pass both ways without holding it
+      - text: They let blood pass only downwards, to the foot
+      - text: They let blood pass only upwards, to the heart
+        correct: true
+    explanation: Normally, the valves in the veins let blood pass only upwards, towards the heart, and stop it from flowing back.
+    cite: [5]
+  - level: patient
+    prompt: What can scar tissue left by the clot damage?
+    options:
+      - text: The Achilles tendon
+      - text: The knee joint
+      - text: The vein valves
+        correct: true
+    explanation: Scar tissue left by the clot can damage the valves in the veins; as a result, blood flow in the veins falls and the pressure in them rises.
+    cite: [5]
+  - level: patient
+    prompt: Which sudden sign is a reason to call an emergency number, as the article says it may be pulmonary embolism?
+    options:
+      - text: Coughing up blood
+        correct: true
+      - text: Mild hiccups after a meal
+      - text: A runny nose with no fever
+    explanation: If shortness of breath, chest pain, coughing up blood or fainting appear suddenly, call your local emergency number; this may be pulmonary embolism.
+    cite: [1, 3]
+  - level: student
+    prompt: How does MSD define PTS?
+    options:
+      - text: Acute inflammation of the small foot joints after long exercise
+      - text: Symptomatic chronic venous insufficiency after DVT
+        correct: true
+      - text: Inherited weakness of the lymphatic vessel wall in the leg
+    explanation: PTS is symptomatic chronic venous insufficiency after DVT, and PTS always causes symptoms.
+    cite: [4]
+  - level: student
+    prompt: According to MSD, what does prolonged venous hypertension cause?
+    options:
+      - text: Tissue dehydration and hypocalcaemia
+      - text: Tissue oedema, inflammation and hypoxia
+        correct: true
+      - text: Bone atrophy, hypoglycaemia and loss of hair
+    explanation: Prolonged venous hypertension causes tissue oedema, inflammation and hypoxia.
+    cite: [4]

@@ -5,6 +5,7 @@
   "description": "Cardiac cycle clock: beat timing, phases and a synthetic ECG.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
     "./cycle-source": "./src/cycle-source.ts"

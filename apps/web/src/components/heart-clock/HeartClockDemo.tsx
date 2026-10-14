@@ -3,17 +3,10 @@ import {
   cycleState,
   hasPulse,
   monitorPhase,
-  presetLead,
-  presetParams,
-  presetRateLimits,
   publishCycleSource,
-  setsHeartRate,
-  switchedHeartRate,
   withdrawCycleSource,
   type CycleSource,
   limbLeads,
-  type HeartParams,
-  type Lead,
   type LimbLead,
   type Phase,
   type PresetId,
@@ -31,7 +24,8 @@ import {
 } from './ecg-canvas.ts';
 import type { HeartSoundPlayer } from './heart-sounds.ts';
 import type { WiggersColors } from './wiggers-canvas.ts';
-import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts';
+import { clamp, switchedRate, type ClockChoice } from './clock-choice.ts';
+import { maxSwitchChoices, presetGroups } from './preset-groups.ts';
 import type { HeartClockMessages } from './messages.ts';
 import styles from './HeartClockDemo.module.css';
 
@@ -39,19 +33,12 @@ export interface HeartClockDemoProps {
   /** Locale code from the registry, for number formatting. */
   locale: string;
   messages: HeartClockMessages;
-  /** Presets the reader can switch between; without them there is no switch. */
-  presets?: readonly PresetId[];
-  /** Preset to start with; the first of `presets` by default. */
+  /** Presets the reader can switch between, from `clockChoices`; one choice shows no switch. */
+  choices: readonly ClockChoice[];
+  /** Preset to start with; the first of `choices` by default. */
   preset?: PresetId;
-  /** Clock parameters applied on top of the preset. */
-  params?: Partial<HeartParams>;
   /** Level of the island's own headings, so they nest under the page's section heading. */
   headingLevel?: 2 | 3;
-  /**
-   * Lead for every preset, so an article compares normal with its disease in the disease's lead.
-   * Without it each preset is drawn in its own lead (`presetLead`).
-   */
-  lead?: Lead;
   /**
    * Whether to show the Wiggers diagram. It draws the left ventricle as the one that pumps to the
    * body, so an article where the right ventricle does (corrected transposition) turns it off.
@@ -64,32 +51,6 @@ export interface HeartClockDemoProps {
   limbLeads?: boolean;
 }
 
-/** Parameters of a preset with the caller's overrides, or undefined if the two do not fit. */
-function mergedParams(id: PresetId, params: Partial<HeartParams> | undefined, lead: Lead) {
-  const merged = { ...presetParams(id, lead), ...params };
-  try {
-    const limits = presetRateLimits(id, merged);
-    // presetRateLimits checks every rate itself, so a caller's rate outside them would only fail
-    // later, when the clock is created; keep it inside instead. A preset with a rate floor
-    // (SVT) also keeps a caller's slower rate at the floor.
-    return { params: { ...merged, heartRate: clamp(merged.heartRate, limits) }, limits, lead };
-  } catch (error) {
-    if (error instanceof RangeError) return undefined;
-    throw error;
-  }
-}
-
-/** The caller's parameters without their heart rate. */
-function withoutHeartRate(params: Partial<HeartParams> | undefined): Partial<HeartParams> {
-  const rest = { ...params };
-  delete rest.heartRate;
-  return rest;
-}
-
-function clamp(value: number, [min, max]: readonly [number, number]): number {
-  return Math.min(max, Math.max(min, value));
-}
-
 const speeds = [0.25, 0.5, 1] as const;
 /** Longest frame step, so a background tab does not jump the trace when it comes back. */
 const maxFrameMs = 100;
@@ -97,33 +58,15 @@ const maxFrameMs = 100;
 export default function HeartClockDemo({
   locale,
   messages: t,
-  presets,
+  choices,
   preset,
-  params,
   headingLevel = 2,
-  lead,
   wiggers: showWiggers = true,
   limbLeads: showLimbLeads = true,
 }: HeartClockDemoProps) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
-  // Presets that fit the caller's parameters, with their parameters and heart rate limits.
-  const choices = useMemo(() => {
-    const ids = presets ?? [preset ?? 'normal'];
-    const initial = preset ?? ids[0];
-    // A caller's rate (an embed's ?rate=) applies to the preset the monitor starts with; a preset
-    // that sets its own rate (SVT) still starts at it when the reader switches to it later.
-    const rateless = withoutHeartRate(params);
-    return ids.flatMap((id) => {
-      const merged = mergedParams(
-        id,
-        setsHeartRate(id) && id !== initial ? rateless : params,
-        lead ?? presetLead(id),
-      );
-      return merged ? [{ id, ...merged }] : [];
-    });
-  }, [presets, preset, params, lead]);
   // The reader's choice, with the heart rate it starts at: the reader's own, or the preset's when
-  // switching to or from a preset that sets its rate (switchedHeartRate).
+  // switching to or from a preset that sets its rate (switchedRate).
   const [selection, setSelection] = useState<{ id: PresetId; rate: number } | undefined>();
   const choice = choices.find((item) => item.id === (selection?.id ?? preset)) ?? choices[0];
   if (!choice) throw new RangeError('No preset fits these heart clock parameters');
@@ -372,11 +315,9 @@ export default function HeartClockDemo({
 
   function changePreset(next: PresetId) {
     const nextChoice = choices.find((item) => item.id === next);
-    if (!nextChoice) return;
-    const rate = clamp(
-      switchedHeartRate(presetId, next, heartRate, nextChoice.params.heartRate),
-      nextChoice.limits,
-    );
+    // `choice` is set by now (the render throws without one); the closure loses that narrowing.
+    if (!choice || !nextChoice) return;
+    const rate = switchedRate(choice, nextChoice, heartRate);
     // Sounds queued for the old clock would play out of step.
     playerRef.current?.cancel();
     setSelection({ id: next, rate });
@@ -449,14 +390,14 @@ export default function HeartClockDemo({
             onChange={(event) => changePreset(event.currentTarget.value as PresetId)}
           >
             {choices
-              .filter((choice) => presetGroup[choice.id] === null)
+              .filter((choice) => choice.group === null)
               .map((choice) => (
                 <option key={choice.id} value={choice.id}>
                   {t[`heartClock.preset.${choice.id}`]}
                 </option>
               ))}
             {presetGroups.map((group) => {
-              const members = choices.filter((choice) => presetGroup[choice.id] === group);
+              const members = choices.filter((choice) => choice.group === group);
               return (
                 members.length > 0 && (
                   <optgroup key={group} label={t[`heartClock.group.${group}`]}>

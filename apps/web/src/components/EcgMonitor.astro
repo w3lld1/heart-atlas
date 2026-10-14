@@ -1,5 +1,6 @@
 ---
 import { isPresetId, type PresetId } from '@heart-atlas/heart-clock';
+import { clockChoices } from './heart-clock/choices.ts';
 import HeartClockDemo from './heart-clock/HeartClockDemo.tsx';
 import { heartClockMessageKeys, type HeartClockMessages } from './heart-clock/messages.ts';
 import { defaultLocale } from '../i18n/locales.ts';
@@ -33,8 +34,8 @@ const messages = Object.fromEntries(
       client:visible
       locale={locale}
       messages={messages}
+      choices={clockChoices(presets, preset)}
       {...(preset === undefined ? {} : { preset })}
-      {...(presets === undefined ? {} : { presets })}
     />
   </div>
   <figcaption>
