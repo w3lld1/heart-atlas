@@ -1,0 +1,327 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-obes-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// Abdominal organs (a loop of intestine) on the left, three risk factors in the middle (blood
+// pressure, blood lipids, sugar metabolism) and the heart on the right. Normal: no excess fat
+// around the organs, the three factors are normal and nothing links the abdomen to the heart.
+// Disease: fat collects inside the abdomen around the organs, and arrows lead from it to the
+// three factors and on to the heart, whose risk of disease rises. Without motion the arrows stay
+// in place as dashed lines; only their drift and the heartbeat stop. No body outline, no numbers,
+// no plaques and no enlarged heart: the captions do not describe them.
+const gut =
+  'M60,160 H150 A20,20 0 0 1 150,200 H60 A20,20 0 0 0 60,240 H150 A20,20 0 0 1 150,280 H60';
+// Fat between and around the loops of the intestine.
+const fat = [
+  { cx: 105, cy: 180, rx: 42, ry: 8 },
+  { cx: 105, cy: 220, rx: 42, ry: 8 },
+  { cx: 105, cy: 260, rx: 42, ry: 8 },
+  { cx: 105, cy: 144, rx: 44, ry: 7 },
+  { cx: 105, cy: 296, rx: 44, ry: 7 },
+  { cx: 28, cy: 220, rx: 9, ry: 24 },
+  { cx: 182, cy: 180, rx: 9, ry: 22 },
+  { cx: 182, cy: 260, rx: 9, ry: 22 },
+];
+
+// The three risk factors: boxes in a column, centred on `y`.
+const box = { x: 232, width: 160, height: 42 };
+const factors: { y: number; normal: MessageKey; disease: MessageKey }[] = [
+  { y: 110, normal: 'diagram.label.blood-pressure-normal', disease: 'diagram.label.high-pressure' },
+  {
+    y: 190,
+    normal: 'diagram.label.blood-lipids-normal',
+    disease: 'diagram.label.blood-lipids-disturbed',
+  },
+  {
+    y: 270,
+    normal: 'diagram.label.sugar-metabolism-normal',
+    disease: 'diagram.label.sugar-metabolism-disturbed',
+  },
+];
+const rows = factors.map((factor) => factor.y);
+
+// The heart on the right, centred on (heartX, heartY).
+const heartX = 482;
+const heartY = 194;
+const s = 0.8;
+const p = (dx: number, dy: number) => `${heartX + dx * s},${heartY + dy * s}`;
+const heart = `M${p(0, 45)} C${p(-50, 15)} ${p(-58, -25)} ${p(-34, -37)} C${p(-18, -45)} ${p(0, -33)} ${p(0, -21)} C${p(0, -33)} ${p(18, -45)} ${p(34, -37)} C${p(58, -25)} ${p(50, 15)} ${p(0, 45)} Z`;
+
+// Disease arrows: from the fat to each factor, and from each factor to the heart.
+const fromFat = rows.map((y) => `M196,220 C210,220 212,${y} ${box.x - 6},${y}`);
+const toHeart = rows.map(
+  (y, index) =>
+    `M${box.x + box.width},${y} C420,${y} 420,${180 + index * 14} 436,${180 + index * 14}`,
+);
+
+const boxMax = 20;
+// First baseline of a label centred vertically in its box.
+const firstLine = (y: number, count: number) => y + 4 - ((count - 1) * lineHeight) / 2;
+
+const fatLines = lines('diagram.label.excess-fat-inside-abdomen', 24);
+const organLines = lines('diagram.label.abdominal-organs', 24);
+const calmHeartLines = lines('diagram.label.heart-without-extra-load', 16);
+const riskHeartLines = lines('diagram.label.higher-risk-of-heart-disease', 16);
+const labelX = 16;
+const labelY = 30;
+// Callout lines start just below the last line of the label they belong to.
+const calloutY = (count: number) => labelY + (count - 1) * lineHeight + 6;
+---
+
+<svg
+  viewBox="0 0 560 360"
+  role="img"
+  aria-label={t['diagram.obesity-and-heart.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Disease: fat around the abdominal organs, drawn under the intestine -->
+  <g
+    class="disease-only obes-fat"
+    fill="var(--diagram-fat)"
+    stroke="var(--color-muted)"
+    stroke-width="1"
+  >
+    {fat.map((blob) => (
+      <ellipse cx={blob.cx} cy={blob.cy} rx={blob.rx} ry={blob.ry} />
+    ))}
+  </g>
+
+  <!-- Abdominal organs: a loop of intestine, the same in both states -->
+  <path
+    d={gut}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="17"
+    stroke-linecap="round"
+  ></path>
+  <path
+    d={gut}
+    fill="none"
+    stroke="var(--diagram-muscle)"
+    stroke-width="13"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- The three risk factors -->
+  {rows.map((y) => (
+    <>
+      <rect
+        class="normal-only"
+        x={box.x}
+        y={y - box.height / 2}
+        width={box.width}
+        height={box.height}
+        rx="8"
+        fill="none"
+        stroke="var(--color-muted)"
+        stroke-width="1.5"
+      />
+      <rect
+        class="disease-only"
+        x={box.x}
+        y={y - box.height / 2}
+        width={box.width}
+        height={box.height}
+        rx="8"
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      />
+    </>
+  ))}
+
+  <!-- Disease: arrows from the fat to the factors and on to the heart -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2.5"
+    stroke-dasharray="7 4"
+  >
+    {fromFat.map((d) => (
+      <path class="obes-drift" d={d} marker-end={`url(#${arrow})`} />
+    ))}
+    {toHeart.map((d) => (
+      <path class="obes-drift" d={d} marker-end={`url(#${arrow})`} />
+    ))}
+  </g>
+
+  <!-- The heart beats calmly in both states -->
+  <path
+    class="obes-beat"
+    d={heart}
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="105" y="326" text-anchor="middle">
+    {organLines.map((line, index) => (
+      <tspan x="105" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={heartX} y="140" text-anchor="middle">
+    {t['diagram.label.heart']}
+  </text>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    {factors.map((factor) => {
+      const factorLines = lines(factor.normal, boxMax);
+      const cx = box.x + box.width / 2;
+      return (
+        <text
+          class="diagram-small"
+          x={cx}
+          y={firstLine(factor.y, factorLines.length)}
+          text-anchor="middle"
+        >
+          {factorLines.map((line, lineIndex) => (
+            <tspan x={cx} dy={lineIndex === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      );
+    })}
+    <text class="diagram-small" x={heartX} y="248" text-anchor="middle">
+      {calmHeartLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line
+      x1="40"
+      y1={calloutY(fatLines.length)}
+      x2="96"
+      y2="137"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={labelX} y={labelY}>
+      {fatLines.map((line, index) => (
+        <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    {factors.map((factor) => {
+      const factorLines = lines(factor.disease, boxMax);
+      const cx = box.x + box.width / 2;
+      return (
+        <text
+          class="diagram-small"
+          x={cx}
+          y={firstLine(factor.y, factorLines.length)}
+          text-anchor="middle"
+        >
+          {factorLines.map((line, lineIndex) => (
+            <tspan x={cx} dy={lineIndex === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      );
+    })}
+    <text class="diagram-small" x={heartX} y="248" text-anchor="middle">
+      {riskHeartLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* Fat gets its own pale yellow, so it does not read as the plaque colour other diagrams use. */
+  .diagram .obes-fat {
+    --diagram-fat: #f4dc8c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .diagram .obes-fat {
+      --diagram-fat: #9c853a;
+    }
+  }
+
+  /* The heart beats calmly; in disease the dashed arrows drift from the fat towards the heart.
+     Without motion the heart stands still and the dashed arrows stay in place. */
+  .diagram .obes-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: obes-beat 1.1s ease-in-out infinite;
+  }
+
+  .diagram .obes-drift {
+    animation: obes-drift 1.2s linear infinite;
+  }
+
+  @keyframes obes-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.06);
+    }
+  }
+
+  @keyframes obes-drift {
+    to {
+      stroke-dashoffset: -11;
+    }
+  }
+</style>

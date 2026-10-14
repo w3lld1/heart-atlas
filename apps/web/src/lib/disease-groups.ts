@@ -34,6 +34,7 @@ export const diseaseGroups = {
     'takotsubo-syndrome',
   ],
   'risk-factors': [
+    'chronic-kidney-disease-and-heart',
     'diabetes-and-heart',
     'dyslipidemia',
     'familial-hypercholesterolemia',
@@ -41,9 +42,12 @@ export const diseaseGroups = {
     'hypertension-in-pregnancy',
     'hypertensive-crisis',
     'lipoprotein-a',
+    'obesity-and-heart',
     'orthostatic-hypotension',
     'pheochromocytoma',
     'primary-aldosteronism',
+    'sleep-apnea-and-heart',
+    'smoking-and-heart',
   ],
   myocardium: [
     'alcoholic-cardiomyopathy',

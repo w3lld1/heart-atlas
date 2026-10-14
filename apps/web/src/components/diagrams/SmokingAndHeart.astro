@@ -1,0 +1,235 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-smk-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey) => wrap(t[key], 20);
+
+// A coronary artery cut lengthwise: upper wall (y 70–104), its inner lining (y 104–110), the lumen
+// with blood (y 110–180), the lower inner lining (y 180–186) and the lower wall (y 186–220). The
+// inner lining is drawn as a pale band so that its state is the point of the picture.
+// Normal: both linings are smooth and whole, there is no plaque or clot, blood flows freely.
+// Disease: a stretch of the upper lining is torn into fragments (wall damage); in the lower wall a
+// plaque bulges into the lumen and a clot sits on it, so blood squeezes past in a thin stream.
+// Drawn without numbers and without any timeline, as the captions say.
+const liningTop = 104;
+const liningBottom = 186;
+const lining = 6;
+// The damaged stretch of the upper lining: fragments of the band with gaps and ragged edges.
+const damageFrom = 40;
+const damageTo = 150;
+const fragments = [
+  'M40,104 L52,104 L50,109 L44,111 L40,108 Z',
+  'M60,104 L74,104 L76,108 L68,112 L61,109 Z',
+  'M84,104 L96,104 L94,110 L87,108 Z',
+  'M106,104 L120,104 L118,111 L111,108 L107,110 Z',
+  'M130,104 L141,104 L144,109 L135,111 Z',
+];
+const plaque =
+  'M196,186 C218,186 226,142 260,142 C294,142 302,186 324,186 C316,214 204,214 196,186 Z';
+// The clot on the plaque: an irregular lump that narrows the lumen further.
+const clot =
+  'M228,148 C224,136 236,124 248,126 C254,120 268,120 274,126 C288,124 298,136 292,148 C280,154 240,154 228,148 Z';
+const clotStrands = ['M238,140 C248,134 256,142 266,134', 'M252,130 C262,136 272,128 284,138'];
+// The path of the blood past the clot.
+const narrowFlow =
+  'M0,145 C80,145 150,145 190,135 C214,122 232,116 260,116 C288,116 306,122 330,135 C350,145 380,145 400,145';
+const flowRows = [128, 145, 162];
+
+const smoothLines = lines('diagram.label.smooth-inner-lining');
+const damageLines = lines('diagram.label.wall-damage');
+const clotLines = lines('diagram.label.tendency-to-clots');
+const labelY = 24;
+// Callout lines start just below the last line of the label they belong to.
+const calloutY = (count: number) => labelY + (count - 1) * lineHeight + 6;
+const plaqueLabelY = 258;
+---
+
+<svg
+  viewBox="0 0 400 310"
+  role="img"
+  aria-label={t['diagram.smoking-and-heart.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Walls (they reach under the lining bands) and the lumen with blood -->
+  <rect x="0" y="110" width="400" height="70" fill="var(--diagram-arterial-fill)"></rect>
+  <rect
+    x="0"
+    y="70"
+    width="400"
+    height={liningTop + lining - 70}
+    fill="var(--diagram-muscle)"
+  ></rect>
+  <rect
+    x="0"
+    y={liningBottom - lining}
+    width="400"
+    height={220 - liningBottom + lining}
+    fill="var(--diagram-muscle)"
+  ></rect>
+
+  <!-- Inner lining. Normal: whole and smooth along both walls. The outline keeps the pale band
+       visible on the page background in both themes. -->
+  <g fill="var(--color-bg)" stroke="var(--color-muted)" stroke-width="1">
+    <rect class="normal-only" x="0" y={liningTop} width="400" height={lining}></rect>
+    <rect class="normal-only" x="0" y={liningBottom - lining} width="400" height={lining}></rect>
+    <!-- Disease: the upper lining is torn on one stretch; the lower one is broken by the plaque -->
+    <g class="disease-only">
+      <rect x="0" y={liningTop} width={damageFrom} height={lining}></rect>
+      {fragments.map((d) => (
+        <path d={d} />
+      ))}
+      <rect x={damageTo} y={liningTop} width={400 - damageTo} height={lining}></rect>
+      <rect x="0" y={liningBottom - lining} width="198" height={lining}></rect>
+      <rect x="322" y={liningBottom - lining} width="78" height={lining}></rect>
+    </g>
+  </g>
+
+  <!-- Disease: a plaque in the lower wall with a clot on it -->
+  <g class="disease-only">
+    <path
+      d={plaque}
+      fill="var(--diagram-plaque)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+    <path
+      d={clot}
+      fill="var(--diagram-arterial)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></path>
+    <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="1.5">
+      {clotStrands.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Blood flow along the artery, visible with and without motion -->
+  <path
+    d="M10,170 H74"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrow})`}
+  ></path>
+
+  <!-- Moving blood: dashes along the lumen; past the clot only a thin stream -->
+  <g class="flow" stroke="var(--diagram-arterial)">
+    <g class="normal-only">
+      {flowRows.map((y) => (
+        <path class="dash-flow" d={`M0,${y} H400`} stroke-width="2" />
+      ))}
+    </g>
+    <path class="dash-flow disease-only" d={narrowFlow} stroke-width="1.5"></path>
+  </g>
+
+  <!-- Label shared by both states -->
+  <text x="16" y="296">
+    {t['diagram.label.coronary-artery']}
+  </text>
+
+  <!-- Normal label -->
+  <g class="normal-only">
+    <line
+      x1="40"
+      y1={calloutY(smoothLines.length)}
+      x2="90"
+      y2={liningTop}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x="16" y={labelY}>
+      {smoothLines.map((line, index) => (
+        <tspan x="16" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line
+      x1="40"
+      y1={calloutY(damageLines.length)}
+      x2="90"
+      y2={liningTop}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x="16" y={labelY}>
+      {damageLines.map((line, index) => (
+        <tspan x="16" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <line
+      x1="350"
+      y1={calloutY(clotLines.length)}
+      x2="272"
+      y2="126"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x="384" y={labelY} text-anchor="end">
+      {clotLines.map((line, index) => (
+        <tspan x="384" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <line
+      x1="260"
+      y1="200"
+      x2="260"
+      y2={plaqueLabelY - 18}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text x="260" y={plaqueLabelY} text-anchor="middle">
+      {t['diagram.label.plaque']}
+    </text>
+  </g>
+</svg>

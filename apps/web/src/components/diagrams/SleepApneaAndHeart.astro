@@ -1,0 +1,347 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-osa-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// A sleeping person in profile on the left (closed eye), with the airway drawn inside: the nose,
+// the throat (pharynx), the windpipe and the two lungs in the chest. The heart is on the right,
+// with a bar for the oxygen in the blood above it. Normal: the throat is open, air flows in, the
+// bar is full and the heart beats at its usual rhythm. Obstructive sleep apnoea: the soft walls of
+// the throat bulge in and close it, so the air stops at the closure while the lungs keep moving
+// (the efforts to breathe in continue); the bar is low (less oxygen in the blood), the pause ends
+// with a brief awakening, and the heart beats more slowly (the pulse may slow). Two states only:
+// no CPAP mask, no numbers, no enlarged chambers and no fibrillation waves.
+const head = { cx: 110, cy: 88, rx: 56, ry: 62 };
+const nose = 'M162,70 L184,98 L164,104';
+const eye = 'M128,70 q9,7 18,0';
+const torso = 'M92,186 C44,190 30,212 30,240 V370 H250 V240 C250,212 200,190 152,186';
+
+// The airway: a channel 20 wide (x 118–138) from the nose down to the windpipe.
+const airway = 'M166,94 H118 V232 H138 V106 H166 Z';
+const bronchi = ['M128,228 L92,258', 'M128,228 L164,258'];
+const lungs = [
+  { cx: 82, cy: 292 },
+  { cx: 174, cy: 292 },
+];
+// Disease: the soft walls of the throat bulge in from both sides and meet in the middle.
+const collapsedWalls = [
+  'M118,112 C118,124 128,126 128,138 C128,150 118,152 118,166 Z',
+  'M138,112 C138,124 128,126 128,138 C128,150 138,152 138,166 Z',
+];
+const airIn = 'M204,100 H172';
+// Moving air: all the way down to the lungs normally, only as far as the closure in apnoea.
+const flowNormal = 'M168,100 H128 V232';
+const flowBlocked = 'M168,100 H128 V124';
+
+// The throat label sits right of the neck; its leader starts at the label's first line.
+const throatX = 192;
+const throatY = 152;
+const openLines = lines('diagram.label.pharynx-open-air-passes', 18);
+const collapsedLines = lines('diagram.label.pharynx-collapses-no-air', 18);
+const leaderStart = { x: throatX - 4, y: throatY - 4 };
+const leaderEnd = { x: 140, y: 138 };
+
+const awakeningLines = lines('diagram.label.brief-awakening', 22);
+const effortLines = lines('diagram.label.breathing-efforts-continue', 30);
+const lungsLabelY = 364;
+const effortY = 394;
+
+// The oxygen bar: full normally, low in apnoea.
+const bar = { x: 330, y: 112, width: 160, height: 14 };
+const oxygenLabelX = bar.x;
+const oxygenNormalLines = lines('diagram.label.blood-oxygen', 26);
+const oxygenLowLines = lines('diagram.label.blood-oxygen-falls', 26);
+const oxygenY = (count: number) => bar.y - 10 - (count - 1) * lineHeight;
+
+// The heart, the same shape in both states; it beats more slowly in apnoea.
+const heartX = 410;
+const heart =
+  'M410,330 C352,290 334,240 352,208 C368,182 398,188 410,208 C422,188 452,182 468,208 C486,240 468,290 410,330 Z';
+const heartLabelY = 176;
+const rhythmY = 356;
+const slowLines = lines('diagram.label.pulse-may-slow', 24);
+---
+
+<svg
+  viewBox="0 0 520 420"
+  role="img"
+  aria-label={t['diagram.sleep-apnea-and-heart.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- The sleeping person: head with a closed eye, neck and chest -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linejoin="round">
+    <ellipse cx={head.cx} cy={head.cy} rx={head.rx} ry={head.ry}></ellipse>
+    <path d={nose}></path>
+    <path d={torso}></path>
+    <line x1="92" y1="146" x2="92" y2="186"></line>
+    <line x1="152" y1="129" x2="152" y2="186"></line>
+  </g>
+  <path
+    d={eye}
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- Lungs: they keep moving in both states, as the efforts to breathe continue -->
+  <g class="osa-breathe">
+    {lungs.map((lung) => (
+      <ellipse
+        cx={lung.cx}
+        cy={lung.cy}
+        rx="38"
+        ry="54"
+        fill="var(--diagram-venous-fill)"
+        stroke="var(--diagram-venous)"
+        stroke-width="2"
+      />
+    ))}
+  </g>
+
+  <!-- The airway from the nose through the throat to the windpipe and the bronchi -->
+  <path
+    d={airway}
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+    stroke-linejoin="round"
+  ></path>
+  <g stroke="var(--diagram-venous)" stroke-width="6" stroke-linecap="round">
+    {bronchi.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Disease: the soft walls of the throat close the airway -->
+  <g
+    class="disease-only"
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  >
+    {collapsedWalls.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Air breathed in through the nose, visible with and without motion -->
+  <path
+    d={airIn}
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrow})`}
+  ></path>
+
+  <!-- Moving air: down to the lungs normally, stopping at the closure in apnoea -->
+  <g class="flow" stroke="var(--diagram-venous)" stroke-width="2">
+    <path class="dash-flow normal-only" d={flowNormal}></path>
+    <path class="dash-flow disease-only" d={flowBlocked}></path>
+  </g>
+
+  <!-- Oxygen in the blood: a full bar normally, a low one in apnoea -->
+  <rect
+    x={bar.x}
+    y={bar.y}
+    width={bar.width}
+    height={bar.height}
+    rx="3"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></rect>
+  <rect
+    class="normal-only"
+    x={bar.x + 2}
+    y={bar.y + 2}
+    width={bar.width - 4}
+    height={bar.height - 4}
+    rx="2"
+    fill="var(--diagram-arterial)"
+  ></rect>
+  <rect
+    class="disease-only"
+    x={bar.x + 2}
+    y={bar.y + 2}
+    width={(bar.width - 4) / 3}
+    height={bar.height - 4}
+    rx="2"
+    fill="var(--diagram-arterial)"
+  ></rect>
+
+  <!-- The heart beats at its usual rhythm normally and more slowly in apnoea -->
+  {[
+    { state: 'normal-only', beat: 'osa-beat' },
+    { state: 'disease-only', beat: 'osa-beat osa-slow' },
+  ].map(({ state, beat }) => (
+    <path
+      class={`${state} ${beat}`}
+      d={heart}
+      fill="var(--diagram-muscle)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    />
+  ))}
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x={heartX} y={heartLabelY} text-anchor="middle">
+    {t['diagram.label.heart']}
+  </text>
+  <text class="diagram-small" x="128" y={lungsLabelY} text-anchor="middle">
+    {t['diagram.label.lungs']}
+  </text>
+  <line
+    x1={leaderStart.x}
+    y1={leaderStart.y}
+    x2={leaderEnd.x}
+    y2={leaderEnd.y}
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></line>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    <text class="diagram-small" x={throatX} y={throatY}>
+      {openLines.map((line, index) => (
+        <tspan x={throatX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={oxygenLabelX} y={oxygenY(oxygenNormalLines.length)}>
+      {oxygenNormalLines.map((line, index) => (
+        <tspan x={oxygenLabelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y={rhythmY} text-anchor="middle">
+      {t['diagram.label.normal-rhythm']}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <text class="diagram-small" x={throatX} y={throatY}>
+      {collapsedLines.map((line, index) => (
+        <tspan x={throatX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="176" y="30">
+      {awakeningLines.map((line, index) => (
+        <tspan x="176" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={oxygenLabelX} y={oxygenY(oxygenLowLines.length)}>
+      {oxygenLowLines.map((line, index) => (
+        <tspan x={oxygenLabelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="140" y={effortY} text-anchor="middle">
+      {effortLines.map((line, index) => (
+        <tspan x="140" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y={rhythmY} text-anchor="middle">
+      {slowLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The lungs move with each effort to breathe in, in both states; the heart beats, more slowly
+     in apnoea. Without motion the lungs and the heart stand still and the moving air is hidden:
+     the arrow at the nose, the closed throat, the oxygen bar and the labels carry the difference. */
+  .diagram .osa-breathe {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: osa-breathe 4s ease-in-out infinite;
+  }
+
+  .diagram .osa-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: osa-beat 1.1s ease-in-out infinite;
+  }
+
+  .diagram .osa-slow {
+    animation-duration: 2s;
+  }
+
+  @keyframes osa-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes osa-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.06);
+    }
+  }
+</style>

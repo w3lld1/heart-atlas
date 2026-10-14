@@ -1,0 +1,253 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes the id of the hatch pattern. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const hatchId = `${uid}-ckdh-hatch`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// A heart and a kidney joined by an artery. Normal: blood flows from the heart to the kidney, and
+// the kidney passes waste, extra salt, water and potassium out in the urine. The urine arrow is
+// the same in both states: CKD does not usually mean less urine. Disease: the kidney filters less
+// well (it is hatched, and a label says that less waste and potassium leave in the urine); an
+// arrow from the kidney to the
+// heart carries salt and water retention and rising blood potassium, a plaque in the artery marks
+// the higher risk of atherosclerosis, and an arrow from the heart back to the kidney shows that
+// heart and vessel disease harms the kidneys. The kidney keeps its size and shape: the sources
+// read do not describe it as shrunken in every case. No numbers, no drugs, no devices.
+const heartX = 100;
+const heartTip = 260;
+const heart = `M${heartX},${heartTip} C${heartX - 50},${heartTip - 30} ${heartX - 58},${heartTip - 70} ${heartX - 34},${heartTip - 82} C${heartX - 18},${heartTip - 90} ${heartX},${heartTip - 78} ${heartX},${heartTip - 66} C${heartX},${heartTip - 78} ${heartX + 18},${heartTip - 90} ${heartX + 34},${heartTip - 82} C${heartX + 58},${heartTip - 70} ${heartX + 50},${heartTip - 30} ${heartX},${heartTip} Z`;
+
+// The kidney, with its hilum facing the heart.
+const kidneyY = 210;
+const hilum = 372;
+const x = (dx: number) => hilum + dx;
+const kidney = `M${x(0)},${kidneyY - 14} C${x(4)},${kidneyY - 50} ${x(30)},${kidneyY - 56} ${x(46)},${kidneyY - 44} C${x(64)},${kidneyY - 30} ${x(64)},${kidneyY + 30} ${x(46)},${kidneyY + 44} C${x(30)},${kidneyY + 56} ${x(4)},${kidneyY + 50} ${x(0)},${kidneyY + 14} C${x(8)},${kidneyY + 6} ${x(8)},${kidneyY - 6} ${x(0)},${kidneyY - 14} Z`;
+
+// The artery from the heart to the kidney hilum; the heart is drawn over its start.
+const arteryY = kidneyY;
+const artery = `M${heartX + 30},${arteryY} L${hilum + 4},${arteryY}`;
+const plaque = { x: 255, y: arteryY - 7 };
+
+// Urine leaves the lower pole of the kidney.
+const urine = `M${x(30)},${kidneyY + 52} C${x(34)},${kidneyY + 70} ${x(50)},${kidneyY + 78} ${x(78)},${kidneyY + 86}`;
+const urineHead = (w: number) =>
+  `M${x(78) - w},${kidneyY + 86 - w * 1.3} L${x(92)},${kidneyY + 90} L${x(78) - w * 0.6},${kidneyY + 86 + w * 1.3} Z`;
+
+// Disease: an arc from the kidney over the artery to the heart, and one back under it.
+const toHeart = `M${hilum + 6},${kidneyY - 50} C${hilum - 30},${kidneyY - 118} ${heartX + 90},${kidneyY - 118} ${heartX + 44},${kidneyY - 52}`;
+const toHeartHead = `M${heartX + 40},${kidneyY - 68} L${heartX + 38},${kidneyY - 44} L${heartX + 56},${kidneyY - 58} Z`;
+const toKidney = `M${heartX + 12},${heartTip + 4} C${heartX + 60},${heartTip + 70} ${hilum - 40},${heartTip + 70} ${hilum + 6},${heartTip + 6}`;
+const toKidneyHead = `M${hilum - 6},${heartTip + 12} L${hilum + 14},${heartTip} L${hilum + 10},${heartTip + 24} Z`;
+
+const filterLines = lines(
+  'diagram.label.kidneys-filter-blood-waste-salt-water-potassium-in-urine',
+  40,
+);
+const saltLines = lines('diagram.label.salt-water-retained-higher-pressure-heart-failure-risk', 44);
+const potassiumLines = lines('diagram.label.blood-potassium-rises-rhythm-disorder-risk', 44);
+const plaqueLines = lines('diagram.label.atherosclerosis-risk-higher', 24);
+const harmLines = lines('diagram.label.heart-vessel-disease-harms-kidneys', 34);
+const worseLines = lines(
+  'diagram.label.kidneys-filter-less-well-less-waste-potassium-in-urine',
+  20,
+);
+
+const topX = 270;
+const topY = 30;
+// Normal: the callout runs from the last line of the label down to the kidney.
+const filterCalloutY = topY + (filterLines.length - 1) * lineHeight + 6;
+// Disease: the two arc labels stack above the arc.
+const potassiumY = topY + saltLines.length * lineHeight + 8;
+---
+
+<svg
+  viewBox="0 0 520 400"
+  role="img"
+  aria-label={t['diagram.chronic-kidney-disease-and-heart.title']}
+  lang={locale}
+>
+  <defs>
+    <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0,8 L8,0" stroke="var(--color-muted)" stroke-width="1.5"></path>
+    </pattern>
+  </defs>
+
+  <!-- Artery: wall drawn as a wide stroke, lumen as a narrower one on top -->
+  <path d={artery} fill="none" stroke="var(--diagram-arterial)" stroke-width="22"></path>
+  <path d={artery} fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="16"></path>
+
+  <!-- Disease: a plaque on the artery wall -->
+  <ellipse
+    class="disease-only"
+    cx={plaque.x}
+    cy={plaque.y}
+    rx="20"
+    ry="6"
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></ellipse>
+
+  <!-- Moving blood from the heart to the kidney -->
+  <g class="flow" stroke-width="3">
+    <path class="dash-flow" d={artery} stroke="var(--diagram-arterial)"></path>
+  </g>
+
+  <!-- Heart -->
+  <path
+    class="ckdh-beat"
+    d={heart}
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Kidney -->
+  <path
+    d={kidney}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Disease: the kidney filters less well, drawn as hatching over it -->
+  <path
+    class="disease-only"
+    d={kidney}
+    fill={`url(#${hatchId})`}
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="4 3"
+  ></path>
+
+  <!-- Urine: the same arrow in both states -->
+  <g fill="var(--diagram-impulse)" stroke="var(--diagram-impulse)">
+    <path d={urine} fill="none" stroke-width="7"></path>
+    <path d={urineHead(7)} stroke-width="1"></path>
+  </g>
+
+  <!-- Disease: the two-way link between the kidney and the heart -->
+  <g class="disease-only" fill="var(--color-text)" stroke="var(--color-text)">
+    <path d={toHeart} fill="none" stroke-width="3"></path>
+    <path d={toHeartHead} stroke-width="1"></path>
+    <path d={toKidney} fill="none" stroke-width="3"></path>
+    <path d={toKidneyHead} stroke-width="1"></path>
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x={heartX} y={heartTip - 104} text-anchor="middle">
+    {t['diagram.label.heart']}
+  </text>
+  <text class="diagram-small" x={x(66)} y={kidneyY + 4}>
+    {t['diagram.label.kidney']}
+  </text>
+  <text class="diagram-small" x={plaque.x} y={arteryY + 30} text-anchor="middle">
+    {t['diagram.label.artery']}
+  </text>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    <line
+      x1={topX}
+      y1={filterCalloutY}
+      x2={x(24)}
+      y2={kidneyY - 54}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={topX} y={topY} text-anchor="middle">
+      {filterLines.map((line, index) => (
+        <tspan x={topX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <text class="diagram-small" x={topX} y={topY} text-anchor="middle">
+      {saltLines.map((line, index) => (
+        <tspan x={topX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={topX} y={potassiumY} text-anchor="middle">
+      {potassiumLines.map((line, index) => (
+        <tspan x={topX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={plaque.x} y={arteryY - 34} text-anchor="middle">
+      {plaqueLines.map((line, index) => (
+        <tspan x={plaque.x} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="240" y={heartTip + 84} text-anchor="middle">
+      {harmLines.map((line, index) => (
+        <tspan x="240" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="508" y={kidneyY + 122} text-anchor="end">
+      {worseLines.map((line, index) => (
+        <tspan x="508" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The heart beats calmly in both states; blood moves along the artery. Without motion the
+     arrows, the plaque, the hatched kidney and the labels carry the difference. */
+  .diagram .ckdh-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ckdh-beat 1.1s ease-in-out infinite;
+  }
+
+  @keyframes ckdh-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.06);
+    }
+  }
+</style>
