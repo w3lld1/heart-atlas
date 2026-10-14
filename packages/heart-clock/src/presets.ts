@@ -189,7 +189,7 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // (Minzdrav 2025, Supraventricular tachycardias, §2.4). P′ negative in the inferior leads
     // suggests a caudal focus (same). assumption: that kind, with the default P amplitude inverted
     // and an axis of 90°, so P′ is negative in II and III and flat in I; the focus can be
-    // anywhere in the atria, and other foci give other P′ shapes.
+    // anywhere in the atria (same, §1.2.2), and other foci give other P′ shapes.
     pAmplitude: -0.15,
     pAxis: 90,
   }),

@@ -161,6 +161,7 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-premature-beats-vpb',
     lang: 'en',
   },
+  // Also behind focal atrial tachycardia, with the SVT guideline (619_3) above.
   {
     text: 'MSD Manuals, Professional Version. Ectopic Supraventricular Arrhythmias. 2024.',
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ectopic-supraventricular-arrhythmias',
@@ -177,7 +178,7 @@ export const presetSources: readonly ClockSource[] = [
     lang: 'en',
   },
   // WPW and Brugada syndromes: docs/plans/2026-10-12-more-ecg-presets.md. The SVT guideline
-  // (619_3, also behind focal atrial tachycardia) is listed above with SVT, the ESC 2019 SVT translation with atrial flutter, and the
+  // (619_3) is listed above with SVT, the ESC 2019 SVT translation with atrial flutter, and the
   // Ventricular arrhythmias guideline (569_2) with long QT syndrome and VT.
   {
     text: 'MSD Manuals, Professional Version. Wolff-Parkinson-White Syndrome (WPW Syndrome). 2024.',
