@@ -812,7 +812,7 @@
   "viewer.disease.restrictive-cardiomyopathy": "Both atria are enlarged; the left ventricle is usually not enlarged.",
   "viewer.disease.sources": "Sources for the model:",
   "viewer.disease.startBeat": "Start the heartbeat to see how the motion changes.",
-  "viewer.disease.thoracic-aortic-aneurysm": "The ascending aorta is widened. An aneurysm is a widening of the aorta by more than 50% compared with its normal diameter.",
+  "viewer.disease.thoracic-aortic-aneurysm": "The ascending aorta is widened. There is no single size at which a widening is called an aneurysm.",
   "viewer.disease.tricuspid-regurgitation": "The tricuspid valve does not close fully, so a gap stays in it. The right atrium is enlarged; most often the cause is a widened right ventricle.",
   "viewer.disease.ventricular-septal-defect": "The marker shows where the hole in the wall between the ventricles is; the model does not show the hole itself. With a large flow through the hole, the left atrium and left ventricle widen.",
   "viewer.disease.view": "Model",

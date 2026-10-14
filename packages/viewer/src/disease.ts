@@ -159,17 +159,19 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
     grow: { 'left-atrium': 1.25, 'right-atrium': 1.25 },
     sources: { article: [3, 4] },
   },
-  // An aneurysm is a widening by more than 50% of the normal diameter (article [2, 4]); the model
-  // shows it on the tubular ascending aorta above a normal root, as the article diagram does.
+  // The model widens the tubular ascending aorta above a normal root, as the article diagram does
+  // [1, 2], the part where thoracic aneurysms are most common [3]. There is no single size for an
+  // aneurysm; two sources take a widening by more than 50% (article [2, 4]).
   // assumption: 60%, just over that threshold.
-  'thoracic-aortic-aneurysm': { aortaBulge: 0.6, sources: { article: [2, 4] } },
+  'thoracic-aortic-aneurysm': { aortaBulge: 0.6, sources: { article: [1, 2, 3, 4] } },
 };
 
 /**
  * Where the ascending aorta bulges, in metres along the aortic valve axis from the valve centre:
  * rising over x..y, falling over z..w; and the distance from the axis beyond which a point belongs
  * to another part of the aorta (reach). Measured on heart.glb: the tubular part runs from about
- * 1 to 4.5 cm above the valve with a radius of about 1.5 cm; the descending aorta is 6-7 cm away.
+ * 1 to 4.5 cm above the valve with a radius of about 1.25 cm, its centreline a few millimetres
+ * beside the valve axis (the viewer moves the axis onto it); the descending aorta is 6-7 cm away.
  */
 export const AORTA_BULGE = { range: [0.006, 0.016, 0.036, 0.048], reach: [0.02, 0.026] } as const;
 

@@ -293,6 +293,22 @@ function setBulgeFrame(aorta: Mesh, scene: Object3D, uniforms: DeformUniforms) {
   const axis = new Vector3(...frame.normal);
   const toAorta = new Box3().setFromObject(aorta).getCenter(new Vector3()).sub(centre);
   if (axis.dot(toAorta) < 0) axis.negate();
+  // The vessel's centreline runs beside the valve axis, not through it: move the axis onto the
+  // mean of the tubular part's points, so both walls widen alike.
+  const points = worldPositions(aorta);
+  const offset = new Vector3();
+  const p = new Vector3();
+  let count = 0;
+  for (let i = 0; i < points.length; i += 3) {
+    p.set(points[i] ?? 0, points[i + 1] ?? 0, points[i + 2] ?? 0).sub(centre);
+    const h = p.dot(axis);
+    if (h < AORTA_BULGE.range[1] || h > AORTA_BULGE.range[2]) continue;
+    p.addScaledVector(axis, -h);
+    if (p.length() > AORTA_BULGE.reach[0]) continue;
+    offset.add(p);
+    count++;
+  }
+  if (count > 0) centre.addScaledVector(offset, 1 / count);
   const localCentre = aorta.worldToLocal(centre.clone());
   const localTip = aorta.worldToLocal(centre.clone().add(axis));
   // Quantization scales the node uniformly, so distances map by one factor too.
@@ -301,6 +317,7 @@ function setBulgeFrame(aorta: Mesh, scene: Object3D, uniforms: DeformUniforms) {
   uniforms.uBulgeAxis.value.copy(localTip.sub(localCentre).normalize());
   uniforms.uBulgeRange.value.set(...AORTA_BULGE.range).multiplyScalar(perMetre);
   uniforms.uBulgeReach.value.set(...AORTA_BULGE.reach).multiplyScalar(perMetre);
+  aorta.userData.bulgeFrame = true;
 }
 
 /** Positions of a mesh in model space, undoing quantization and node transforms. */
@@ -475,7 +492,8 @@ export function Model({ onLoaded, ...props }: ModelProps) {
         : onVentricles(group)
           ? growOnVentricles(shape)
           : 1;
-      if (mesh.name === AORTA) deform.uBulge.value = shape?.aortaBulge ?? 0;
+      if (mesh.name === AORTA)
+        deform.uBulge.value = mesh.userData.bulgeFrame ? (shape?.aortaBulge ?? 0) : 0;
       if (mesh.name !== LV) continue;
       const kind = shape?.zone?.kind;
       deform.uZoneSelect.value.set(kind === 'inferior' ? 1 : 0, kind === 'septal' ? 1 : 0);
