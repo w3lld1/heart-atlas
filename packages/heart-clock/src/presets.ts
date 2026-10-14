@@ -26,6 +26,7 @@ export const presetIds = [
   'short-qt-syndrome',
   'ventricular-tachycardia',
   'bidirectional-ventricular-tachycardia',
+  'ventricular-fibrillation',
   'atrial-flutter',
   'atrial-premature-beats',
   'ventricular-premature-beats',
@@ -252,6 +253,18 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // assumption: an R of 0.8 mV, so the inverted complexes stay inside the 1 mV below the
     // baseline that the strip shows. The axes stay at 60°, so all three limb leads alternate.
     rAmplitude: 0.8,
+  }),
+  'ventricular-fibrillation': Object.freeze({
+    // Ventricular fibrillation: irregular oscillations from 300 per minute with changing shape and
+    // size, no P, QRS or T (Minzdrav 2025, Ventricular arrhythmias, 1.1; MSD Manuals, Ventricular
+    // Fibrillation, 2024), and no blood pumped (MSD, same). The clock has no beats, no pulse and
+    // no heart rate (`hasPulse`); the rate only sets the length of its time slots.
+    // Spec: docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md.
+    ventricularFibrillation: 1,
+    // assumption: the sources do not describe the atria in VF, so the model leaves out P waves and
+    // atrial contraction (params.ts requires both at 0).
+    pAmplitude: 0,
+    atrialContribution: 0,
   }),
   'atrial-flutter': Object.freeze({
     // Typical atrial flutter with 2:1 conduction. The rate is the sign, so this preset sets it: the
@@ -564,6 +577,15 @@ export function rateLimitsFrom(
     throw new RangeError(`${name} does not fit any heart rate from ${floor} to ${ceiling}`);
   }
   return [low, high];
+}
+
+/**
+ * Whether the heart pumps with these parameters: not in ventricular fibrillation, which has no
+ * pulse and so no heart rate to show or set (MSD Manuals, Cardiac Arrest, 2025). The interface
+ * reads this instead of preset ids.
+ */
+export function hasPulse(params: Readonly<HeartParams>): boolean {
+  return params.ventricularFibrillation === 0;
 }
 
 /** Whether a preset sets its own heart rate. */

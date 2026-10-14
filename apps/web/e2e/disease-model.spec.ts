@@ -207,4 +207,24 @@ test.describe('disease signs on the 3D model', () => {
     await condition.selectOption('normal');
     await expect(caption).toHaveCount(0, LOAD);
   });
+
+  test('the heart clock page model says why it stays still in ventricular fibrillation', async ({
+    page,
+  }) => {
+    // docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md
+    test.slow();
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const condition = page.getByRole('combobox', { name: en['heartClock.condition'] });
+    const caption = page.getByText(en['viewer.heartbeat.fibrillation'], { exact: true });
+    await loadModel(page);
+    await expect(caption).toHaveCount(0);
+    await condition.selectOption('ventricular-fibrillation');
+    await expect(caption).toBeVisible(LOAD);
+    // Not a sign of disease, so it comes without the note about disease signs.
+    await expect(page.getByText(en['viewer.disease.note'], { exact: true })).toHaveCount(0);
+    expect((await axe(page).analyze()).violations).toEqual([]);
+    await condition.selectOption('normal');
+    await expect(caption).toHaveCount(0, LOAD);
+  });
 });

@@ -1,6 +1,7 @@
 import type { PresetId } from '@heart-atlas/heart-clock';
 import type { Vec3 } from './camera.ts';
 import type { ChamberId, ValveId } from './cycle.ts';
+import type { ViewerMessageKey } from './types.ts';
 
 // Shapes of disease on the normal heart model: docs/plans/2026-10-12-disease-signs-3d.md. Every
 // sign comes from a source already checked in the disease article (`article`, its Cite number) or
@@ -200,6 +201,16 @@ export function growOwner(name: string): ChamberId | undefined {
   return undefined;
 }
 
+/**
+ * A note under the model for a heart clock preset whose state the model does not draw. In
+ * ventricular fibrillation the ventricles quiver but pump no blood (MSD Manuals, Ventricular
+ * Fibrillation, 2024); the model stays still, and the note keeps that from reading as asystole.
+ * Spec: docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md.
+ */
+export const presetNote: Readonly<Partial<Record<PresetId, ViewerMessageKey>>> = {
+  'ventricular-fibrillation': 'viewer.heartbeat.fibrillation',
+};
+
 /** Shape shown for each heart clock preset on a page that follows the clock. */
 export const presetShape: Record<PresetId, DiseaseId | null> = {
   normal: null,
@@ -220,6 +231,7 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'short-qt-syndrome': null,
   'ventricular-tachycardia': null,
   'bidirectional-ventricular-tachycardia': null,
+  'ventricular-fibrillation': null,
   'atrial-flutter': null,
   'atrial-premature-beats': null,
   'ventricular-premature-beats': null,

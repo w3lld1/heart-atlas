@@ -236,6 +236,19 @@ test.describe('embed parameters', () => {
     await expect(page.getByRole('img', { name: ecgLabel('II') })).toBeVisible();
   });
 
+  test('ignores a URL rate for ventricular fibrillation, which has no pulse', async ({ page }) => {
+    await page.goto('en/embed/ecg/?preset=ventricular-fibrillation&rate=120');
+    await hydrated(page);
+    await expect(condition(page)).toHaveValue('ventricular-fibrillation');
+    await expect(slider(page)).toHaveCount(0);
+    await expect(page.getByRole('status', { name: en['heartClock.heartRate'] })).toHaveText(
+      en['heartClock.noPulse'],
+    );
+    // Switching to normal starts at its own rate, not at the ignored one.
+    await condition(page).selectOption('normal');
+    await expect(slider(page)).toHaveValue(String(defaultParams.heartRate));
+  });
+
   test('the reader can change the rate set by the URL', async ({ page }) => {
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
@@ -348,6 +361,15 @@ test.describe('embed builder', () => {
     await rate.fill(String(asdMax + 1));
     await expect(code).not.toHaveValue(/rate=/);
     await expect(page.locator('#rate-error')).not.toBeEmpty();
+    await rate.fill('');
+    // Ventricular fibrillation has no pulse: the rate field hides, and a typed rate is left out,
+    // even one out of range.
+    await rate.fill('500');
+    await condition.selectOption('ventricular-fibrillation');
+    await expect(rate).toBeHidden();
+    await expect(code).toHaveValue(/\/en\/embed\/ecg\/\?preset=ventricular-fibrillation"/);
+    await expect(page.locator('#rate-error')).toBeEmpty();
+    await condition.selectOption('normal');
     await rate.fill('');
     // Left on a disease preset, so the module switch below shows that it is dropped.
     await condition.selectOption('atrial-fibrillation');

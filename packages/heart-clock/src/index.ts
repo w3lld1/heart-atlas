@@ -38,6 +38,7 @@ export {
 export { soundEvents, type HeartSound, type SoundEvent } from './sounds.ts';
 export { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 export {
+  hasPulse,
   isPresetId,
   leadBaselines,
   leads,

@@ -37,6 +37,7 @@ export const viewerMessageKeys = [
   'viewer.heartbeat.rate',
   'viewer.heartbeat.rateValue',
   'viewer.heartbeat.note',
+  'viewer.heartbeat.fibrillation',
   'viewer.disease.note',
   'viewer.disease.pick',
   'viewer.disease.startBeat',

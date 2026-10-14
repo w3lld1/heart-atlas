@@ -17,6 +17,7 @@ import {
   diseaseFromQuery,
   diseaseShapes,
   diseaseView,
+  presetNote,
   queryWithDisease,
   shownDisease,
   type DiseaseId,
@@ -318,6 +319,8 @@ export default function HeartViewer({
     view !== null &&
     diseaseShapes[view.id].beat === true;
   if (beatHint) captions.push(t['viewer.disease.startBeat']);
+  // Not a sign of disease, so it goes without the note about disease signs.
+  const presetCaption = cyclePreset ? presetNote[cyclePreset] : undefined;
   const extraSources = view ? diseaseShapes[view.id].sources.extra : undefined;
   const status = STATUS[phase];
   const rateText = t['viewer.heartbeat.rateValue'].replace('{rate}', () => String(rate));
@@ -349,7 +352,9 @@ export default function HeartViewer({
                 section={section}
                 sectionPosition={sectionPosition}
                 canvasLabel={t['viewer.canvasLabel']}
-                describedBy={captions.length > 0 ? `${id}-help ${id}-disease` : `${id}-help`}
+                describedBy={
+                  captions.length > 0 || presetCaption ? `${id}-help ${id}-disease` : `${id}-help`
+                }
                 reducedMotion={reducedMotion}
                 focusOnReady={focusOnReady}
                 cycle={cycle}
@@ -461,9 +466,10 @@ export default function HeartViewer({
           )}
         </div>
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
-        <div className={captions.length > 0 ? styles.disease : undefined}>
+        <div className={captions.length > 0 || presetCaption ? styles.disease : undefined}>
           {/* Polite and always present, so a disease picked or a preset switched is read out. */}
           <div id={`${id}-disease`} aria-live="polite">
+            {presetCaption && <p>{t[presetCaption]}</p>}
             {captions.map((caption) => (
               <p key={caption}>{caption}</p>
             ))}

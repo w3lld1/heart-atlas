@@ -1,6 +1,7 @@
 import {
   createHeartClock,
   cycleState,
+  hasPulse,
   monitorPhase,
   presetIds,
   presetLead,
@@ -30,6 +31,7 @@ export const heartClockMessageKeys = [
   'heartClock.play',
   'heartClock.pause',
   'heartClock.heartRate',
+  'heartClock.noPulse',
   'heartClock.speed',
   'heartClock.phase',
   'heartClock.phase.atrial-systole',
@@ -42,6 +44,7 @@ export const heartClockMessageKeys = [
   'heartClock.ecgLabel',
   'heartClock.soundOn',
   'heartClock.soundOff',
+  'heartClock.noSounds',
   'heartClock.wiggers.title',
   'heartClock.wiggers.label',
   'heartClock.wiggers.description',
@@ -53,6 +56,7 @@ export const heartClockMessageKeys = [
   'heartClock.wiggers.la',
   'heartClock.wiggers.lvVolume',
   'heartClock.wiggers.systole',
+  'heartClock.wiggers.noCycles',
   'heartClock.condition',
   ...presetGroups.map((group) => `heartClock.group.${group}` as const),
   ...presetIds.flatMap(
@@ -182,6 +186,8 @@ export default function HeartClockDemo({
   const [width, setWidth] = useState(0);
   const [dpr, setDpr] = useState(1);
   const [soundOn, setSoundOn] = useState(false);
+  // Ventricular fibrillation: no pulse, so no rate to set, no heart sounds and no cycles to draw.
+  const pulse = hasPulse(choice.params);
 
   // One strip per limb lead, or one strip with the clock's own trace (lead II or V1).
   const threeStrips = showLimbLeads && choice.lead === 'II';
@@ -329,8 +335,8 @@ export default function HeartClockDemo({
       scheme.removeEventListener('change', onScheme);
       playerRef.current?.cancel();
     };
-    // showWiggers and the strips mount and unmount canvases, so their refs must be read again.
-  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, strips]);
+    // showWiggers, pulse and the strips mount and unmount canvases, so their refs must be read again.
+  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, pulse, strips]);
 
   // Closes the audio context when the island goes away.
   useEffect(
@@ -496,19 +502,28 @@ export default function HeartClockDemo({
           </svg>
           {soundOn ? t['heartClock.soundOff'] : t['heartClock.soundOn']}
         </button>
-        <div className={styles['rate']}>
-          <label htmlFor={`${id}-rate`}>{t['heartClock.heartRate']}</label>
-          <input
-            id={`${id}-rate`}
-            type="range"
-            min={minRate}
-            max={maxRate}
-            step={1}
-            value={heartRate}
-            onChange={(event) => changeHeartRate(Number(event.currentTarget.value))}
-          />
-          <output htmlFor={`${id}-rate`}>{heartRate}</output>
-        </div>
+        {/* The button stays, so silence does not look like a broken sound. */}
+        {!pulse && <span className={styles['note']}>{t['heartClock.noSounds']}</span>}
+        {pulse ? (
+          <div className={styles['rate']}>
+            <label htmlFor={`${id}-rate`}>{t['heartClock.heartRate']}</label>
+            <input
+              id={`${id}-rate`}
+              type="range"
+              min={minRate}
+              max={maxRate}
+              step={1}
+              value={heartRate}
+              onChange={(event) => changeHeartRate(Number(event.currentTarget.value))}
+            />
+            <output htmlFor={`${id}-rate`}>{heartRate}</output>
+          </div>
+        ) : (
+          <div className={styles['rate']}>
+            <span id={`${id}-rate-label`}>{t['heartClock.heartRate']}</span>
+            <output aria-labelledby={`${id}-rate-label`}>{t['heartClock.noPulse']}</output>
+          </div>
+        )}
         <fieldset className={styles['speed']}>
           <legend>{t['heartClock.speed']}</legend>
           <div className={styles['segments']}>
@@ -557,34 +572,43 @@ export default function HeartClockDemo({
       {showWiggers && (
         <>
           <Heading className={styles['wiggers-title']}>{t['heartClock.wiggers.title']}</Heading>
-          <div className={styles['strip']} dir="ltr">
-            <canvas
-              ref={wiggersRef}
-              className={styles['wiggers']}
-              role="img"
-              aria-label={t['heartClock.wiggers.label']}
-              aria-describedby={`${id}-wiggers`}
-              style={{ inlineSize: width ? `${width}px` : '100%', blockSize: `${wiggersHeight}px` }}
-            />
-          </div>
-          <ul className={styles['legend']}>
-            {(
-              [
-                ['lv', 'heartClock.wiggers.lv'],
-                ['aorta', 'heartClock.wiggers.aorta'],
-                ['la', 'heartClock.wiggers.la'],
-                ['volume', 'heartClock.wiggers.lvVolume'],
-                ['systole', 'heartClock.wiggers.systole'],
-              ] as const
-            ).map(([key, label]) => (
-              <li key={key} data-series={key}>
-                {t[label]}
-              </li>
-            ))}
-          </ul>
-          <p id={`${id}-wiggers`} className={styles['description']}>
-            {t['heartClock.wiggers.description']}
-          </p>
+          {pulse ? (
+            <>
+              <div className={styles['strip']} dir="ltr">
+                <canvas
+                  ref={wiggersRef}
+                  className={styles['wiggers']}
+                  role="img"
+                  aria-label={t['heartClock.wiggers.label']}
+                  aria-describedby={`${id}-wiggers`}
+                  style={{
+                    inlineSize: width ? `${width}px` : '100%',
+                    blockSize: `${wiggersHeight}px`,
+                  }}
+                />
+              </div>
+              <ul className={styles['legend']}>
+                {(
+                  [
+                    ['lv', 'heartClock.wiggers.lv'],
+                    ['aorta', 'heartClock.wiggers.aorta'],
+                    ['la', 'heartClock.wiggers.la'],
+                    ['volume', 'heartClock.wiggers.lvVolume'],
+                    ['systole', 'heartClock.wiggers.systole'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <li key={key} data-series={key}>
+                    {t[label]}
+                  </li>
+                ))}
+              </ul>
+              <p id={`${id}-wiggers`} className={styles['description']}>
+                {t['heartClock.wiggers.description']}
+              </p>
+            </>
+          ) : (
+            <p className={styles['no-cycles']}>{t['heartClock.wiggers.noCycles']}</p>
+          )}
         </>
       )}
     </div>

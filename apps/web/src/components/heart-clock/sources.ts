@@ -219,6 +219,18 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.nice.org.uk/guidance/cg109',
     lang: 'en',
   },
+  // Ventricular fibrillation: docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md.
+  // Minzdrav 569_2 and the ESC 2022 ventricular arrhythmias guideline are listed above.
+  {
+    text: 'MSD Manuals, Professional Version. Ventricular Fibrillation (VF). 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-fibrillation-vf',
+    lang: 'en',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Cardiac Arrest. 2025.',
+    href: 'https://www.msdmanuals.com/professional/critical-care-medicine/cardiac-arrest-and-cardiopulmonary-resuscitation-cpr/cardiac-arrest',
+    lang: 'en',
+  },
   // Sick sinus syndrome after treatment (pacemaker): docs/plans/2026-10-13-heart-clock-after-treatment.md.
   // The ESC 2021 pacing translation and the Bradyarrhythmias guideline (160_2) are listed above.
   {

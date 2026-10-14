@@ -3,6 +3,7 @@ import { checkParams, createHeartClock } from '../src/clock.ts';
 import { cycleState } from '../src/cycle.ts';
 import { vfWaves } from '../src/ecg.ts';
 import { resolveParams, type HeartParams } from '../src/params.ts';
+import { hasPulse, presetIds, presetParams } from '../src/presets.ts';
 import { soundEvents } from '../src/sounds.ts';
 
 // Ventricular fibrillation: irregular oscillations from 300 per minute with changing shape and
@@ -182,5 +183,17 @@ describe('ventricular fibrillation clock', () => {
       );
     }
     expect(() => checkParams(resolveParams({ ventricularFibrillation: 0.5 }))).toThrow(RangeError);
+  });
+});
+
+describe('ventricular fibrillation preset', () => {
+  it('passes the checks and has no pulse; every other preset has one', () => {
+    const params = presetParams('ventricular-fibrillation');
+    checkParams(params);
+    expect(hasPulse(params)).toBe(false);
+    expect(createHeartClock(params).beatAt(1000).fibrillation).toBe(true);
+    for (const id of presetIds.filter((other) => other !== 'ventricular-fibrillation')) {
+      expect(hasPulse(presetParams(id)), id).toBe(true);
+    }
   });
 });
