@@ -381,6 +381,22 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       70,
     ],
   },
+  "sinus-tachycardia": {
+    "curves": [
+      "101:d40e6072",
+      "137:4c2ebca7",
+      "170:d403a310",
+      "180:6b6e6b1a",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      101,
+      180,
+    ],
+  },
   "stemi": {
     "curves": [
       "40:e1a837a3",

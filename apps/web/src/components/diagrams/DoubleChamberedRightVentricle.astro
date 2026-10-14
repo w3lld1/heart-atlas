@@ -1,0 +1,260 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-dcrv-arrow`;
+// Long-axis view of the right ventricle in systole: the inlet and apical part below, the outflow
+// tract (infundibulum) as a straight stretch from y = 150 up to the pulmonary valve at y = 80, the
+// pulmonary trunk above. In the disease state muscle bands at y = 160 narrow the mid-cavity: the part
+// below them has a thick wall (high pressure), the outflow tract above keeps a thin wall (low
+// pressure), and the pulmonary valve is drawn the same as in the normal state (ESC 2020 ACHD 4.8.1,
+// StatPearls NBK546625). Blood particles: start column (x), start row (y) and a delay so the second
+// row trails the first.
+const particles = [
+  { x: 95, y: 228, delay: 0 },
+  { x: 115, y: 228, delay: 0 },
+  { x: 135, y: 228, delay: 0 },
+  { x: 95, y: 248, delay: 0.2 },
+  { x: 115, y: 248, delay: 0.2 },
+  { x: 135, y: 248, delay: 0.2 },
+];
+// With the muscle bands the same particles start a little wider and converge on the narrow passage.
+const jet = particles.map((p) => ({ ...p, offset: Math.sign(p.x - 115) * 25 }));
+const cavity =
+  'M75,14 L75,150 C55,165 52,185 52,205 C52,255 88,282 115,282 C142,282 178,255 178,205 C178,185 175,165 155,150 L155,14';
+---
+
+<svg
+  viewBox="0 0 440 310"
+  role="img"
+  aria-label={t['diagram.double-chambered-right-ventricle.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Right ventricle wall: thin everywhere normally; with the muscle bands the part below them is
+       thick and the outflow tract above them stays thin -->
+  <path
+    class="normal-only"
+    d="M75,80 L67,80 L67,150 C46,163 44,185 44,205 C44,262 84,290 115,290 C146,290 186,262 186,205 C186,185 184,163 163,150 L163,80 L155,80 Z"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    class="disease-only"
+    d="M75,80 L67,80 L67,152 C30,160 28,185 28,205 C28,272 78,302 115,302 C152,302 202,272 202,205 C202,185 200,160 163,152 L163,80 L155,80 Z"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Right ventricle cavity, outflow tract and pulmonary trunk: one lumen with the valve in it -->
+  <path d={`${cavity} Z`} fill="var(--diagram-venous-fill)"></path>
+  <path d={cavity} fill="none" stroke="var(--diagram-venous)" stroke-width="2"></path>
+
+  <!-- Normal: a wide, even stream through the free cavity, the outflow tract and the open valve -->
+  <g class="normal-only" fill="none" stroke="var(--diagram-venous)" stroke-width="3">
+    <path d="M95,226 L95,28" marker-end={`url(#${arrowId})`}></path>
+    <path d="M115,226 L115,28" marker-end={`url(#${arrowId})`}></path>
+    <path d="M135,226 L135,28" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Disease: blood converges on the narrow passage between the muscle bands and leaves it as a
+       narrow stream -->
+  <g class="disease-only" fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <path d="M90,226 C90,198 113,184 114,166" stroke-width="3"></path>
+    <path d="M115,226 L115,166" stroke-width="3"></path>
+    <path d="M140,226 C140,198 117,184 116,166" stroke-width="3"></path>
+    <path
+      d="M110,156 L120,156 L118,24 L112,24 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M115,156 L115,28" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Pulmonary valve leaflets (side view), open in systole; the same in both states -->
+  <g transform="translate(78,80) rotate(-80)">
+    <path class="dcrv-leaf" d="M0,-2.5 Q20,-4 36,-2 Q40,0 36,2 Q20,4 0,2.5 Z"></path>
+  </g>
+  <g transform="translate(152,80) scale(-1,1) rotate(-80)">
+    <path class="dcrv-leaf" d="M0,-2.5 Q20,-4 36,-2 Q40,0 36,2 Q20,4 0,2.5 Z"></path>
+  </g>
+  <circle cx="78" cy="80" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="152" cy="80" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Disease: muscle bands across the middle of the cavity, leaving a narrow passage -->
+  <g
+    class="disease-only"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  >
+    <path d="M70,152 C86,150 102,153 108,160 C102,167 86,170 64,168 Z"></path>
+    <path d="M160,152 C144,150 128,153 122,160 C128,167 144,170 166,168 Z"></path>
+  </g>
+
+  <!-- Moving blood: a wide, even stream normally, a narrow stream past the muscle bands -->
+  <g class="flow">
+    <g class="normal-only">
+      {particles.map((p) => (
+        <circle
+          class="dcrv-p dcrv-p-normal"
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {jet.map((p) => (
+        <circle
+          class="dcrv-p dcrv-p-jet"
+          cx={115 + p.offset}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`--dcrv-dx: ${-p.offset}px; animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines from the drawing to the label column -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="158" y1="30" x2="208" y2="30"></line>
+    <line x1="155" y1="80" x2="208" y2="80"></line>
+    <line x1="166" y1="122" x2="208" y2="122"></line>
+    <line class="disease-only" x1="150" y1="162" x2="208" y2="176"></line>
+    <line class="normal-only" x1="185" y1="215" x2="208" y2="215"></line>
+    <line class="disease-only" x1="201" y1="215" x2="208" y2="215"></line>
+  </g>
+
+  <!-- Labels -->
+  <text x="214" y="35">
+    {t['diagram.label.pulmonary-trunk']}
+  </text>
+  <text x="214" y="85">
+    {t['diagram.label.pulmonary-valve']}
+  </text>
+  <text x="214" y="127">
+    {t['diagram.label.rv-outflow-tract']}
+  </text>
+  <text class="disease-only" x="214" y="147">
+    {t['diagram.label.low-pressure']}
+  </text>
+  <text class="disease-only" x="214" y="181">
+    {t['diagram.label.muscle-bands']}
+  </text>
+  <text class="normal-only" x="214" y="220">
+    {t['diagram.label.thin-wall']}
+  </text>
+  <text class="disease-only" x="214" y="220">
+    {t['diagram.label.thick-wall']}
+  </text>
+  <text class="disease-only" x="214" y="240">
+    {t['diagram.label.high-pressure']}
+  </text>
+  <text x="115" y="264" text-anchor="middle">
+    {t['diagram.label.rv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .dcrv-leaf {
+    fill: var(--color-border);
+    stroke: var(--color-muted);
+    stroke-width: 2;
+  }
+
+  .diagram .dcrv-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .dcrv-p-normal {
+    animation: dcrv-normal 2.4s linear infinite;
+  }
+
+  .diagram .dcrv-p-jet {
+    animation: dcrv-jet 2.4s linear infinite;
+  }
+
+  /* Normal: a wide stream rises at an even pace. */
+  @keyframes dcrv-normal {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    52% {
+      opacity: 1;
+    }
+
+    58%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  /* Muscle bands: blood crowds into the narrow passage, then rises as a narrow stream. */
+  @keyframes dcrv-jet {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    32% {
+      opacity: 1;
+      transform: translate(var(--dcrv-dx), -62px) scale(0.8, 1);
+    }
+
+    36% {
+      transform: translate(var(--dcrv-dx), -86px) scale(0.6, 2.2);
+    }
+
+    47% {
+      opacity: 1;
+      transform: translate(var(--dcrv-dx), -185px) scale(0.6, 2.2);
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--dcrv-dx), -200px) scale(0.6, 2.2);
+    }
+  }
+</style>

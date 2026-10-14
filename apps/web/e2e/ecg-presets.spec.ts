@@ -501,3 +501,26 @@ test('the Chagas article shows both early conduction blocks without the Wiggers 
   await expect(page.getByRole('img', { name: en['heartClock.wiggers.label'] })).toHaveCount(0);
   await expect(page.getByText(en['heartClock.wiggers.title'])).toHaveCount(0);
 });
+
+for (const slug of [
+  'inappropriate-sinus-tachycardia',
+  'postural-orthostatic-tachycardia-syndrome',
+]) {
+  test(`the ${slug} article shows sinus tachycardia`, async ({ page }) => {
+    test.skip(fixtures, 'needs the production content build');
+    await page.goto(`en/disease/${slug}/`);
+    // Normal and sinus tachycardia (`preset`). The summary says one strip cannot tell the cause.
+    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    await expect(conditions.getByRole('radio')).toHaveCount(2);
+    await expect(
+      conditions.getByRole('radio', { name: en['heartClock.preset.sinus-tachycardia'] }),
+    ).toBeChecked();
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.sinus-tachycardia.summary'],
+    );
+
+    await conditions.scrollIntoViewIfNeeded();
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+}

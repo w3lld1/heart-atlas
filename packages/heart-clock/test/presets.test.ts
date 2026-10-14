@@ -34,6 +34,7 @@ const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'av-block-second-degree-mobitz-1': [40, 70],
   'av-block-third-degree': [35, 50],
   'av-block-third-degree-paced': [60, 100],
+  'sinus-tachycardia': [101, 180],
   'supraventricular-tachycardia': [120, 180],
   'long-qt-syndrome': [40, 137],
   'ventricular-tachycardia': [101, 169],
@@ -465,6 +466,7 @@ describe('preset heart rate', () => {
       'av-block-second-degree-mobitz-2',
       'av-block-third-degree',
       'av-block-third-degree-paced',
+      'sinus-tachycardia',
       'supraventricular-tachycardia',
       'ventricular-tachycardia',
       'atrial-flutter',
@@ -478,6 +480,8 @@ describe('preset heart rate', () => {
     expect(presetRateFloors['ventricular-tachycardia']).toBe(101);
     expect(switchedHeartRate('normal', 'supraventricular-tachycardia', 90)).toBe(170);
     expect(switchedHeartRate('supraventricular-tachycardia', 'normal', 150)).toBe(75);
+    expect(switchedHeartRate('normal', 'sinus-tachycardia', 90)).toBe(120);
+    expect(presetRateFloors['sinus-tachycardia']).toBe(101);
     expect(switchedHeartRate('normal', 'stemi', 90)).toBe(90);
     expect(switchedHeartRate('stemi', 'atrial-fibrillation', 110)).toBe(110);
     expect(switchedHeartRate('normal', 'ventricular-tachycardia', 90)).toBe(150);

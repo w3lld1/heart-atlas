@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is cardiogenic shock?
+    options:
+      - text: A strong emotional upset after sudden bad news
+      - text: The heart's output falls sharply and organs lack oxygen
+        correct: true
+      - text: Inflammation of the stomach lining after very spicy, fatty food
+    explanation: Cardiogenic shock is a life-threatening state in which the heart's output of blood falls sharply and the organs and tissues receive too little blood and oxygen.
+    cite: [1, 5]
+  - level: patient
+    prompt: Which organs does the body send blood to first of all as shock begins?
+    options:
+      - text: Skin of the arms and legs
+      - text: Stomach and intestines
+      - text: The heart and the brain
+        correct: true
+    explanation: At first the body tries to help itself — the blood vessels narrow, the pulse speeds up, and blood is sent first of all to the heart and the brain.
+    cite: [5]
+  - level: patient
+    prompt: According to the article, what is the main thing doctors aim for in cardiogenic shock?
+    options:
+      - text: Treating its cause
+        correct: true
+      - text: Waiting for it to pass by itself
+      - text: Gradually losing weight over several months
+    explanation: The main thing is to treat the cause of the shock.
+    cite: [7]
+  - level: patient
+    prompt: A person has chest pain or heart disease. Which sign does the article say means calling an ambulance?
+    options:
+      - text: Small white spots appeared on the nails
+      - text: Becoming sluggish, sleepy or confused
+        correct: true
+      - text: Hair has been growing back a little faster than usual after a haircut
+    explanation: Call an ambulance if a person with chest pain or known heart disease becomes sluggish, sleepy or confused, has cold, sweaty, pale or bluish skin, a weak rapid pulse or fast breathing, cannot sit up without feeling light-headed or fainting, or has almost stopped passing urine.
+    cite: [1, 7]
+  - level: student
+    prompt: According to MSD, what happens to cells when oxygen delivery in shock is inadequate?
+    options:
+      - text: They shift to anaerobic metabolism and lactate rises
+        correct: true
+      - text: Division speeds up and they renew faster across tissues
+      - text: Glycogen and fat build up as a reserve
+    explanation: When oxygen delivery is inadequate, cells shift to anaerobic metabolism and lactate rises; if shock persists, cell damage becomes irreversible.
+    cite: [5]
+  - level: student
+    prompt: Who does the ESC 2026 guideline recommend should guide the choice of temporary mechanical circulatory support?
+    options:
+      - text: The patient's relatives, as they wish
+      - text: Hospital admissions desk staff
+      - text: A multidisciplinary Shock Team
+        correct: true
+    explanation: The ESC 2026 guideline recommends a multidisciplinary Shock Team to guide the choice of temporary mechanical circulatory support (I C).
+    cite: [3]

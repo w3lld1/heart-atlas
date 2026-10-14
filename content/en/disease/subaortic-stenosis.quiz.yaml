@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Where does the obstruction to blood flow lie in this defect?
+    options:
+      - text: Inside the pulmonary veins, just where they enter the atrium
+      - text: Below the aortic valve, at the outlet of the left ventricle
+        correct: true
+      - text: In the neck arteries, on the path to the brain
+    explanation: In subaortic stenosis the obstruction to blood flow lies not in the aortic valve itself but below it, where blood leaves the left ventricle for the aorta.
+    cite: [1, 2]
+  - level: patient
+    prompt: What is it called when the aortic valve, damaged by the jet, leaks blood back?
+    options:
+      - text: Aortic stenosis
+      - text: Hypertrophic cardiomyopathy
+      - text: Aortic regurgitation
+        correct: true
+    explanation: 'The fast jet of blood through the narrowing damages the aortic valve, and the valve may start to leak blood back: this is aortic regurgitation.'
+    cite: [1]
+  - level: patient
+    prompt: Which is the main test for diagnosing this defect?
+    options:
+      - text: Heart ultrasound with Doppler
+        correct: true
+      - text: Leg vein ultrasound with Doppler
+      - text: Neck artery ultrasound with Doppler
+    explanation: The main test is a heart ultrasound (echocardiography) with Doppler.
+    cite: [1, 2]
+  - level: patient
+    prompt: What does the surgeon do during the operation for this defect?
+    options:
+      - text: Places a stent in one of the coronary arteries
+      - text: Removes the membrane or ridge and part of the muscle below it
+        correct: true
+      - text: Transplants a donor heart from another person into the patient
+    explanation: The surgeon removes the membrane or ridge and part of the muscle below it on the septal side.
+    cite: [1, 2]
+  - level: student
+    prompt: What causes LVOT obstruction in obstructive HCM?
+    options:
+      - text: A clot in the left atrial appendage during atrial fibrillation
+      - text: Calcification of the pulmonary valve leaflets
+      - text: Basal septum and systolic anterior motion of the mitral valve
+        correct: true
+    explanation: In HCM the LVOT obstruction is dynamic; it results from the hypertrophied basal interventricular septum and systolic anterior motion of the mitral valve.
+    cite: [3, 4]
+  - level: student
+    prompt: Which method can tell subaortic stenosis from a hypertrophied septum?
+    options:
+      - text: Transoesophageal echocardiography
+        correct: true
+      - text: Plain chest X-ray in two projections
+      - text: Bone scintigraphy with technetium
+    explanation: A hypertrophied interventricular septum may hide the membrane; transoesophageal echocardiography can distinguish subaortic stenosis from a hypertrophied septum.
+    cite: [1]

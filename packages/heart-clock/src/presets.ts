@@ -20,6 +20,7 @@ export const presetIds = [
   'av-block-second-degree-mobitz-2',
   'av-block-third-degree',
   'av-block-third-degree-paced',
+  'sinus-tachycardia',
   'supraventricular-tachycardia',
   'long-qt-syndrome',
   'ventricular-tachycardia',
@@ -164,6 +165,15 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     qAmplitude: 0,
     sAmplitude: 0,
     tAmplitude: -0.3,
+  }),
+  'sinus-tachycardia': Object.freeze({
+    // Sinus tachycardia is sinus rhythm faster than 100 per minute (Minzdrav 2025,
+    // Supraventricular tachycardias, §1.2.1). The rate is the sign, so this preset sets it; every
+    // other parameter stays normal: the P waves are those of normal sinus rhythm (same, §2.4).
+    // assumption: 120, clearly above 100. It serves inappropriate sinus tachycardia and POTS,
+    // which look the same on one strip.
+    // Spec: docs/plans/2026-10-14-heart-clock-sinus-tachycardia.md.
+    heartRate: 120,
   }),
   'supraventricular-tachycardia': Object.freeze({
     // Typical AV nodal re-entrant tachycardia. The rate is the sign, so this preset sets it:
@@ -383,6 +393,9 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
 export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Object.freeze({
   // Reentrant SVT is 120–250 bpm (MSD Manuals, Reentrant (Paroxysmal) SVT, 2024).
   'supraventricular-tachycardia': 120,
+  // Sinus tachycardia is faster than 100 per minute (Minzdrav 2025, Supraventricular tachycardias,
+  // §1.2.1): 101 is the lowest whole rate above that.
+  'sinus-tachycardia': 101,
   // VT runs at more than 100 per minute (Minzdrav 2025, Ventricular arrhythmias): 101 is the lowest
   // whole rate above that, so the slider never shows a rate below the VT definition.
   'ventricular-tachycardia': 101,
