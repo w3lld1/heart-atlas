@@ -7,18 +7,22 @@ import { axe } from './axe.ts';
 // Real articles; the HA_TEST_CONTENT build has fixture articles instead.
 const fixtures = process.env['HA_TEST_CONTENT'] === '1';
 
-test('the AV block article shows complete AV block, the pacemaker after treatment and Mobitz I and II', async ({
+test('the AV block article shows complete AV block, the pacemaker after treatment, first-degree block and Mobitz I and II', async ({
   page,
 }) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/av-block/');
-  // Normal, complete block, its state after treatment, then Mobitz I and II (`morePresets`).
+  // Normal, complete block, its state after treatment, then first-degree block and Mobitz I and II
+  // (`morePresets`).
   const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
-  await expect(conditions.getByRole('radio')).toHaveCount(5);
+  await expect(conditions.getByRole('radio')).toHaveCount(6);
   await expect(conditions.getByRole('radio').nth(3)).toHaveAccessibleName(
-    en['heartClock.preset.av-block-second-degree-mobitz-1'],
+    en['heartClock.preset.av-block-first-degree'],
   );
   await expect(conditions.getByRole('radio').nth(4)).toHaveAccessibleName(
+    en['heartClock.preset.av-block-second-degree-mobitz-1'],
+  );
+  await expect(conditions.getByRole('radio').nth(5)).toHaveAccessibleName(
     en['heartClock.preset.av-block-second-degree-mobitz-2'],
   );
   await expect(
@@ -56,6 +60,18 @@ test('the AV block article shows complete AV block, the pacemaker after treatmen
   );
   await expect(ecg).toHaveAccessibleDescription(
     en['heartClock.preset.av-block-third-degree-paced.ecg'].replace('{rate}', '75'),
+  );
+
+  // First-degree block: long PR, every P wave conducted.
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.av-block-first-degree'], exact: true })
+    .check();
+  await expect(slider).toHaveValue('75');
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-first-degree.summary'],
+  );
+  await expect(ecg).toHaveAccessibleDescription(
+    en['heartClock.preset.av-block-first-degree.ecg'].replace('{rate}', '75'),
   );
 
   // Second-degree block: Mobitz I (growing PR) and Mobitz II (constant PR, dropped QRS).
