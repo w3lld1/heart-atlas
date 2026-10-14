@@ -195,5 +195,7 @@ describe('ventricular fibrillation preset', () => {
     for (const id of presetIds.filter((other) => other !== 'ventricular-fibrillation')) {
       expect(hasPulse(presetParams(id)), id).toBe(true);
     }
+    // A caller's parameters without the preset count too.
+    expect(hasPulse(resolveParams(vf))).toBe(false);
   });
 });

@@ -491,7 +491,12 @@ export default function HeartClockDemo({
           </svg>
           {playing ? t['heartClock.pause'] : t['heartClock.play']}
         </button>
-        <button type="button" className={styles['sound']} onClick={toggleSound}>
+        <button
+          type="button"
+          className={styles['sound']}
+          onClick={toggleSound}
+          aria-describedby={pulse ? undefined : `${id}-no-sounds`}
+        >
           <svg className={styles['icon']} viewBox="0 0 16 16" aria-hidden="true">
             <path d="M2 6h3l4-3.5v11L5 10H2z" />
             {soundOn ? (
@@ -503,7 +508,11 @@ export default function HeartClockDemo({
           {soundOn ? t['heartClock.soundOff'] : t['heartClock.soundOn']}
         </button>
         {/* The button stays, so silence does not look like a broken sound. */}
-        {!pulse && <span className={styles['note']}>{t['heartClock.noSounds']}</span>}
+        {!pulse && (
+          <span id={`${id}-no-sounds`} className={styles['note']}>
+            {t['heartClock.noSounds']}
+          </span>
+        )}
         {pulse ? (
           <div className={styles['rate']}>
             <label htmlFor={`${id}-rate`}>{t['heartClock.heartRate']}</label>
@@ -520,7 +529,9 @@ export default function HeartClockDemo({
           </div>
         ) : (
           <div className={styles['rate']}>
-            <span id={`${id}-rate-label`}>{t['heartClock.heartRate']}</span>
+            <span id={`${id}-rate-label`} className={styles['rate-label']}>
+              {t['heartClock.heartRate']}
+            </span>
             <output aria-labelledby={`${id}-rate-label`}>{t['heartClock.noPulse']}</output>
           </div>
         )}

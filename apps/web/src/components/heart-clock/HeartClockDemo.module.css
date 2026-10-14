@@ -93,7 +93,7 @@
 }
 
 .rate label,
-.rate span {
+.rate-label {
   grid-column: 1 / -1;
 }
 

@@ -421,7 +421,9 @@ test.describe('disease presets', () => {
     await expect(slider).toHaveCount(0);
     await expect(noPulse).toHaveText(en['heartClock.noPulse']);
     // The sound button stays, with a note so the silence does not look broken.
-    await expect(page.getByRole('button', { name: en['heartClock.soundOn'] })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: en['heartClock.soundOn'] }),
+    ).toHaveAccessibleDescription(en['heartClock.noSounds']);
     await expect(page.getByText(en['heartClock.noSounds'], { exact: true })).toBeVisible();
     await expect(wiggers).toHaveCount(0);
     await expect(page.getByText(en['heartClock.wiggers.noCycles'], { exact: true })).toBeVisible();
