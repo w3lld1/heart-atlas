@@ -223,6 +223,27 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       180,
     ],
   },
+  "early-repolarization": {
+    "curves": [
+      "40:3e34574f",
+      "40:3e34574f",
+      "47:50a8f768",
+      "60:9e1121c0",
+      "75:fb624c81",
+      "100:1af47d1f",
+      "137:2d10a25e",
+      "170:a2fb02a8",
+      "180:48cedf5e",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
   "focal-atrial-tachycardia": {
     "curves": [
       "100:deadcb35",

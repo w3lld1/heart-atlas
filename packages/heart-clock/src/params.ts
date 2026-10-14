@@ -25,6 +25,11 @@ export interface HeartParams {
   tAmplitude: number;
   /** ST segment shift from the J point to the end of T, mV. */
   stShift: number;
+  /**
+   * Height of a J wave, mV: a hump at the J point that notches the end of the QRS (early
+   * repolarization). Drawn along `stAxis`. 0 turns it off.
+   */
+  jWave: number;
   /** Amplitude of atrial fibrillation f waves, mV. 0 turns them off. */
   fWaveAmplitude: number;
   /** Frequency of f waves, Hz. */
@@ -194,6 +199,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   pAmplitude: 0.15,
   tAmplitude: 0.3,
   stShift: 0,
+  jWave: 0,
   fWaveAmplitude: 0,
   fWaveFrequency: 6,
   // 120/80 mmHg: StatPearls "Physiology, Cardiac Cycle". EF above 60% is normal there; 0.65 is
@@ -259,6 +265,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   pAmplitude: [-0.5, 0.5],
   tAmplitude: [-1, 1],
   stShift: [-0.5, 0.5],
+  jWave: [0, 0.3],
   fWaveAmplitude: [0, 0.3],
   fWaveFrequency: [4, 10],
   lvSystolic: [70, 260],

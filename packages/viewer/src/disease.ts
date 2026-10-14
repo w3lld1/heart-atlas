@@ -209,6 +209,7 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'sick-sinus-syndrome-paced': null,
   'wpw-syndrome': null,
   'brugada-syndrome': null,
+  'early-repolarization': null,
   'right-bundle-branch-block': null,
   'left-bundle-branch-block': null,
   'left-anterior-fascicular-block': null,

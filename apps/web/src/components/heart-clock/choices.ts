@@ -70,6 +70,7 @@ export const presetGroup: Readonly<Record<PresetId, PresetGroup | null>> = {
   'sick-sinus-syndrome-paced': 'treated',
   'wpw-syndrome': 'rhythm',
   'brugada-syndrome': 'rhythm',
+  'early-repolarization': 'rhythm',
   'right-bundle-branch-block': 'conduction',
   'left-bundle-branch-block': 'conduction',
   'left-anterior-fascicular-block': 'conduction',

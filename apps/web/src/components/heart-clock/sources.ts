@@ -190,6 +190,13 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/brugada-syndrome',
     lang: 'en',
   },
+  // Early repolarization: docs/plans/2026-10-14-heart-clock-early-repolarization.md. ESC 2022
+  // Ventricular arrhythmias is listed below with short QT syndrome.
+  {
+    text: 'MSD Manuals, Professional Version. Early Repolarization Syndrome. 2026.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/early-repolarization-syndrome',
+    lang: 'en',
+  },
   // Bundle branch blocks: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
   {
     text: 'MSD Manuals, Professional Version. Bundle Branch Block and Fascicular Block. 2024.',

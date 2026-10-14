@@ -19,6 +19,12 @@ function smoothstep(from: number, to: number, t: number): number {
 // upstroke), not its height.
 const deltaShare = 0.3;
 
+// assumption: widths of the J wave as shares of the QRS, a narrow rise from the end of the QRS and
+// a slower fall into the ST segment (a slurred end). Sources describe it as a notch or slur at the
+// end of the QRS, without widths.
+const jBefore = 0.08;
+const jAfter = 0.25;
+
 /** P wave lasting `pDuration` ms at `t` ms from its onset, mV. */
 export function pWave(t: number, pDuration: number, params: HeartParams): number {
   return wave(t, pDuration / 2, params.pAmplitude, pDuration / 5, pDuration / 5);
@@ -79,12 +85,15 @@ export function beatWaves(
   // With P waves on their own clock (`atrialRate`, `dissociatedP`) the beat has no P wave.
   const p = params.atrialRate > 0 ? 0 : pWave(t, pDuration, params);
   const s = wave(t, sCentre, sAmplitude, sSigma, sSigma);
+  // A J wave: a hump at the J point that ends the QRS with a notch and slurs down into the ST
+  // segment (early repolarization).
+  const j = params.jWave === 0 ? 0 : wave(t, jPoint, params.jWave, jBefore * qrs, jAfter * qrs);
   return (
     gains.p * p +
     gains.qr * (q + rWithDelta) +
     gains.s * s +
     gains.t * wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
-    gains.st * st
+    gains.st * (st + j)
   );
 }
 
