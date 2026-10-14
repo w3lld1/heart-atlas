@@ -7,7 +7,8 @@ import {
   type MurmurEvent,
   type Tone,
 } from './auscultation.ts';
-import { HeartSoundsPlayer, playerClock } from './player.ts';
+import type { HeartSoundsPlayer } from './player.ts';
+import { playerClock } from './player-clock.ts';
 import styles from './HeartSounds.module.css';
 
 export const heartSoundsMessageKeys = [
@@ -77,6 +78,8 @@ export default function HeartSounds({ messages: t, sounds, sound, citations }: H
   const [still, setStill] = useState(true);
   const contextRef = useRef<AudioContext | null>(null);
   const playerRef = useRef<HeartSoundsPlayer | null>(null);
+  // The sound the reader asked for while the player's code was still loading.
+  const wantedRef = useRef<HeartSoundId | null>(null);
   const cursorRef = useRef<SVGLineElement>(null);
   const id = useId();
 
@@ -119,6 +122,7 @@ export default function HeartSounds({ messages: t, sounds, sound, citations }: H
   // Stops the sound and closes the audio context when the island goes away.
   useEffect(
     () => () => {
+      wantedRef.current = null;
       playerRef.current?.stop();
       void contextRef.current?.close();
     },
@@ -127,8 +131,9 @@ export default function HeartSounds({ messages: t, sounds, sound, citations }: H
 
   // The audio context is created only here, on a click: browsers block sound before a gesture.
   function toggle() {
-    if (playerRef.current?.playing) {
-      playerRef.current.stop();
+    if (playerRef.current?.playing || wantedRef.current) {
+      wantedRef.current = null;
+      playerRef.current?.stop();
       setPlaying(false);
       // A running context can hold the device's audio session (media controls on iOS).
       void contextRef.current?.suspend().catch(() => undefined);
@@ -143,13 +148,33 @@ export default function HeartSounds({ messages: t, sounds, sound, citations }: H
       return; // No Web Audio: the button stays off.
     }
     void contextRef.current.resume().catch(() => undefined);
-    playerRef.current ??= new HeartSoundsPlayer(contextRef.current);
-    playerRef.current.play(selected);
     setPlaying(true);
+    if (playerRef.current) {
+      playerRef.current.play(selected);
+      return;
+    }
+    // The player's code loads on the first "Listen" (docs/plans/2026-10-14-lazy-sound-players.md).
+    // The context was created above, inside the click, so the sound may start after the import.
+    const context = contextRef.current;
+    wantedRef.current = selected;
+    void import('./player.ts').then(
+      ({ HeartSoundsPlayer }) => {
+        const wanted = wantedRef.current;
+        playerRef.current ??= new HeartSoundsPlayer(context);
+        if (wanted === null) return; // Stopped while loading.
+        wantedRef.current = null;
+        playerRef.current.play(wanted);
+      },
+      () => {
+        wantedRef.current = null;
+        setPlaying(false);
+      },
+    );
   }
 
   function choose(next: HeartSoundId) {
     setSelected(next);
+    if (wantedRef.current) wantedRef.current = next;
     // A new sound starts from the beginning of a beat.
     if (playerRef.current?.playing) playerRef.current.play(next);
   }

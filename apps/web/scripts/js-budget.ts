@@ -48,14 +48,19 @@ function resolveFile(url: string, from: string): string | undefined {
 }
 
 /**
- * Entries of 3D that pages import only on demand, so they and what only they reach are the 3D the
- * budget leaves out: the live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or
- * the "Rotate in 3D" button) and the viewer's scene (`Scene.tsx`, after the load button; disease
- * articles show the viewer with its poster until then).
+ * Entries that pages import only on demand, so they and what only they reach are left out of the
+ * budget: the 3D heart and the sound players.
+ * - The live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or the "Rotate in
+ *   3D" button).
+ * - The viewer's scene (`Scene.tsx`, after the load button; disease articles show the viewer with
+ *   its poster until then).
+ * - The heart clock's sound (`heart-clock/heart-sounds.ts`) and the heart sounds player
+ *   (`heart-sounds/player.ts`), after the first sound or "Listen" click
+ *   (docs/plans/2026-10-14-lazy-sound-players.md).
  */
-export const lazy3dEntry = /^(hero|Scene)\.[\w-]+\.js$/;
+export const onDemandEntry = /^(hero|Scene|heart-sounds|player)\.[\w-]+\.js$/;
 
-/** gzip bytes of inline scripts plus every JS file reachable from the page, without the 3D heart. */
+/** gzip bytes of inline scripts plus every JS file reachable from the page, without the on-demand entries. */
 export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] } {
   const html = readFileSync(htmlFile, 'utf8');
   let bytes = 0;
@@ -71,7 +76,7 @@ export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] 
   const seen = new Set<string>();
   while (pending.length > 0) {
     const file = pending.pop();
-    if (!file || seen.has(file) || lazy3dEntry.test(basename(file))) continue;
+    if (!file || seen.has(file) || onDemandEntry.test(basename(file))) continue;
     seen.add(file);
     const code = readFileSync(file);
     bytes += gzipSize(code);

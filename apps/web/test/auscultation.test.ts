@@ -8,7 +8,7 @@ import {
   openingSnapDelayMs,
   type HeartSoundId,
 } from '../src/components/heart-sounds/auscultation.ts';
-import { playerHeartRate } from '../src/components/heart-sounds/player.ts';
+import { playerHeartRate } from '../src/components/heart-sounds/player-clock.ts';
 
 const rates = [playerHeartRate, 45, 100];
 

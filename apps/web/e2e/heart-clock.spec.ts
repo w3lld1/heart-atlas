@@ -538,4 +538,34 @@ test.describe('heart sounds', () => {
     await expect(page.getByRole('button', { name: en['heartClock.soundOff'] })).toBeVisible();
     await expect.poll(started, { timeout: 5000 }).toBeGreaterThan(0);
   });
+
+  test('stay off when turned off while the player loads', async ({ page }) => {
+    // docs/plans/2026-10-14-lazy-sound-players.md: the player's code loads on the first click.
+    await page.addInitScript(() => {
+      const counter = window as unknown as { startedOscillators: number };
+      counter.startedOscillators = 0;
+      const start = OscillatorNode.prototype.start;
+      OscillatorNode.prototype.start = function (...args: Parameters<OscillatorNode['start']>) {
+        counter.startedOscillators += 1;
+        return start.apply(this, args);
+      };
+    });
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route(/\/heart-sounds\.[\w-]+\.js$/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto('en/heart-clock/');
+    await page.getByRole('button', { name: en['heartClock.soundOn'] }).click();
+    await page.getByRole('button', { name: en['heartClock.soundOff'] }).click();
+    await expect(page.getByRole('button', { name: en['heartClock.soundOn'] })).toBeVisible();
+    release();
+    await page.waitForTimeout(1500);
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { startedOscillators: number }).startedOscillators,
+      ),
+    ).toBe(0);
+  });
 });

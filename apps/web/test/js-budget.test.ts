@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fontUrls, jsReferences, lazy3dEntry } from '../scripts/js-budget.ts';
+import { fontUrls, jsReferences, onDemandEntry } from '../scripts/js-budget.ts';
 
 describe('jsReferences', () => {
   it('finds script, island and preload URLs in HTML', () => {
@@ -35,12 +35,16 @@ describe('fontUrls', () => {
   });
 });
 
-describe('lazy3dEntry', () => {
-  it('matches only the entries of 3D loaded on demand', () => {
-    expect(lazy3dEntry.test('hero.DZVkaJ9a.js')).toBe(true);
-    expect(lazy3dEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
-    expect(lazy3dEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
-    expect(lazy3dEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
-    expect(lazy3dEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
+describe('onDemandEntry', () => {
+  it('matches only the entries loaded on demand', () => {
+    expect(onDemandEntry.test('hero.DZVkaJ9a.js')).toBe(true);
+    expect(onDemandEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
+    expect(onDemandEntry.test('heart-sounds.Bq1x2Yz3.js')).toBe(true);
+    expect(onDemandEntry.test('player.C9dE8fGh.js')).toBe(true);
+    expect(onDemandEntry.test('player-clock.Dk3L9mNp.js')).toBe(false);
+    expect(onDemandEntry.test('HeartSounds.xA7Uo7RQ.js')).toBe(false);
+    expect(onDemandEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
+    expect(onDemandEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
+    expect(onDemandEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
   });
 });
