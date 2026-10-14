@@ -75,6 +75,7 @@ export const diseaseGroups = {
     'patent-ductus-arteriosus',
     'pulmonary-atresia-with-ventricular-septal-defect',
     'single-ventricle',
+    'supravalvular-aortic-stenosis',
     'tetralogy-of-fallot',
     'total-anomalous-pulmonary-venous-return',
     'transposition-of-the-great-arteries',
