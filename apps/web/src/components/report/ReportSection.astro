@@ -1,0 +1,35 @@
+---
+// A section of the report sample, such as "Left ventricle", with its terms (<ReportTerm>) as a
+// list. Spec: docs/plans/2026-10-14-report-explorer.md.
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+// The sample has no values (spec, constraint 3), headings included.
+if (/\d/.test(title))
+  throw new Error(`<ReportSection title="${title}">: the sample has no numbers`);
+---
+
+<div class="report-section">
+  <h4>{title}</h4>
+  <ul class="report-terms" role="list">
+    <slot />
+  </ul>
+</div>
+
+<style>
+  .report-section {
+    margin-block-start: 1.25rem;
+  }
+
+  h4 {
+    margin-block: 0 0.5rem;
+  }
+
+  .report-terms {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

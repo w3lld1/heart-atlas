@@ -186,6 +186,22 @@ The heart sounds player: normal S1 and S2 next to the murmur of a valve disease,
 
 An unknown sound fails the build. Adding a new sound means adding it to `heart-sounds/auscultation.ts` with sources, which is app work, not article work.
 
+### `<ReportExplorer>`
+
+A made-up teaching sample of a test report, such as an echocardiography report, with the words explained (docs/plans/2026-10-14-report-explorer.md). It renders under an `h3` with a "made-up example" note, so put it inside an `##` section. Each `<ReportSection>` is a heading of the sample; each `<ReportTerm>` is a line that shows the parameter name and a placeholder instead of a value and opens, with no JavaScript, to its explanation. The explanation is sentences the site already has, with their `<Cite>`; `article` (`<type>/<slug>`) adds a "More" link to that article in the page language.
+
+```mdx
+<ReportExplorer>
+  <ReportSection title="Left ventricle">
+    <ReportTerm term="Left ventricular ejection fraction" article="disease/heart-failure">
+      A sentence from the article.<Cite n={1} />
+    </ReportTerm>
+  </ReportSection>
+</ReportExplorer>
+```
+
+The sample has no numbers, ranges or words like "reduced" in its lines: a reader would compare them with their own report. The build fails on a `<ReportTerm>` without `<Cite>`, on an `article` that does not exist in the language of the text, and on `<ReportExplorer>` outside an article.
+
 ## Translations
 
 Translate an article by adding a file with the same `<type>/<slug>.mdx` under another locale. Give each translation its own `aliases` in that language. Until a translation exists, the page in that locale shows the article from the fallback language with a notice. See [Adding a language](adding-a-language.md).
