@@ -124,6 +124,7 @@ const ventricularPrematureShape = {
   qrsDuration: 140,
   qAmplitude: 0,
   sAmplitude: 0,
+  rNotch: 0,
   tAmplitude: -0.3,
   stShift: 0,
   stSlope: 0,

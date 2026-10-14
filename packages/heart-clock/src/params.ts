@@ -320,6 +320,10 @@ export function resolveParams(
   if (params.flutterConduction > 0 && (params.fWaveAmplitude > 0 || params.rrIrregularity > 0)) {
     throw new RangeError('flutterConduction needs fWaveAmplitude and rrIrregularity at 0');
   }
+  // The slow rise of a delta wave would fill one half of the notch.
+  if (params.rNotch > 0 && params.deltaWave > 0) {
+    throw new RangeError('rNotch needs deltaWave at 0');
+  }
   if (params.deltaWave > params.qrsDuration / 2) {
     throw new RangeError('deltaWave must be at most half of qrsDuration');
   }

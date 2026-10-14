@@ -213,7 +213,8 @@ describe('S wave width and R notch', () => {
     const dip = Math.min(...qrs.slice(peaks[0], peaks[1]));
     expect(dip / 0.6).toBeCloseTo(0.7, 2);
     expect(Math.max(...qrs)).toBeLessThanOrEqual(0.6);
-    expect(Math.max(...qrs)).toBeGreaterThan(0.45);
+    expect(Math.max(...qrs)).toBeGreaterThan(0.8 * 0.6);
+    expect(() => resolveParams({ ...params, deltaWave: 40 })).toThrow(RangeError);
     // Without a notch R has one top.
     const plain = resolveParams({ ...params, rNotch: 0 });
     const one: number[] = [];
