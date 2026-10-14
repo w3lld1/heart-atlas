@@ -39,22 +39,18 @@ export function cycleState(clock: HeartClock, t: number): CycleState {
   }
   // StatPearls ECG: the PR interval includes the AV node delay. His bundle with it: assumption. In
   // complete AV block no atrial impulse passes; with ventricular pacing the pacemaker counts the
-  // delay.
-  if (
-    !dissociated &&
-    params.ventricularPacing === 0 &&
-    tInBeat >= timing.pDuration &&
-    tInBeat < timing.qOnset
-  ) {
+  // delay, and a rhythm from the ventricles does not pass the node at all.
+  const fromVentricles = params.ventricularPacing === 1 || params.ventricularRhythm === 1;
+  if (!dissociated && !fromVentricles && tInBeat >= timing.pDuration && tInBeat < timing.qOnset) {
     excited.push('av-node', 'bundle-of-his');
   }
   // assumption: the escape rhythm of complete AV block with a narrow QRS starts in the AV junction
   // (StatPearls, Third-Degree AV Block); the model lights the His bundle with the QRS.
   if (dissociated && inQrs) excited.push('bundle-of-his');
-  // StatPearls ECG: QRS is ventricular depolarization. A paced ventricle, or a ventricular
-  // premature beat, is excited through the muscle, not through the bundle branches (assumption:
-  // the model shows no lead and no site).
-  if (inQrs && params.ventricularPacing === 0 && beat.premature !== 2) {
+  // StatPearls ECG: QRS is ventricular depolarization. A paced ventricle, a ventricular premature
+  // beat or a rhythm from the ventricles (ventricular tachycardia) is excited through the muscle,
+  // not through the bundle branches (assumption: the model shows no lead and no site).
+  if (inQrs && !fromVentricles && beat.premature !== 2) {
     excited.push('right-bundle-branch', 'left-bundle-branch', 'purkinje-fibers');
   }
 

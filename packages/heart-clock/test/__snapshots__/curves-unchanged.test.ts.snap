@@ -189,9 +189,9 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
   },
   "bidirectional-ventricular-tachycardia": {
     "curves": [
-      "101:35c4b57",
-      "137:953b0115",
-      "169:1843a39c",
+      "101:36472fa9",
+      "137:8d4341b8",
+      "169:6823ec27",
     ],
     "limits": [
       40,
@@ -511,9 +511,9 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
   },
   "ventricular-tachycardia": {
     "curves": [
-      "101:7e7cd56b",
-      "137:c2e7f5b3",
-      "169:aca643fe",
+      "101:67ffd24d",
+      "137:bfb134ac",
+      "169:bebfd0e5",
     ],
     "limits": [
       40,

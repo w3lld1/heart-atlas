@@ -114,6 +114,12 @@ export interface HeartParams {
    */
   ventricularPacing: number;
   /**
+   * Ventricular rhythm: 1 starts every QRS in the ventricular muscle, not through the AV node and
+   * the bundle branches (ventricular tachycardia), so the 3D model lights neither, and the atria
+   * do not contract with the beat. 0 is a rhythm conducted from above. Issue #389.
+   */
+  ventricularRhythm: number;
+  /**
    * Bidirectional ventricular tachycardia: 1 draws the QRS, ST and T of every second beat (odd beat
    * index) in opposite polarity, in every lead (sources describe the frontal axis: use limb leads), so the complexes alternate up and down; 0 keeps
    * every beat the same. Needs a rhythm without P waves of its own (VT).
@@ -217,6 +223,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   atrialPacing: 0,
   atrialRate: 0,
   ventricularPacing: 0,
+  ventricularRhythm: 0,
   bidirectional: 0,
   ventricularFibrillation: 0,
   blockedP: 0,
@@ -275,6 +282,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   atrialPacing: [0, 1],
   atrialRate: [0, 150],
   ventricularPacing: [0, 1],
+  ventricularRhythm: [0, 1],
   bidirectional: [0, 1],
   ventricularFibrillation: [0, 1],
   blockedP: [0, 1],
@@ -339,13 +347,14 @@ export function resolveParams(
       params.atrialRate > 0 ||
       params.atrialPacing > 0 ||
       params.ventricularPacing > 0 ||
+      params.ventricularRhythm > 0 ||
       params.prematureEvery > 0 ||
       params.deltaWave > 0 ||
       params.bidirectional > 0 ||
       params.s2Split > 0)
   ) {
     throw new RangeError(
-      'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, prematureEvery, deltaWave, bidirectional and s2Split at 0',
+      'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, ventricularRhythm, prematureEvery, deltaWave, bidirectional and s2Split at 0',
     );
   }
   if (!Number.isInteger(params.pauseEvery) || params.pauseEvery === 1) {
@@ -440,6 +449,28 @@ export function resolveParams(
   ) {
     throw new RangeError(
       'ventricularPacing needs fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery and deltaWave at 0',
+    );
+  }
+  if (!Number.isInteger(params.ventricularRhythm)) {
+    throw new RangeError(`ventricularRhythm must be 0 or 1, got ${params.ventricularRhythm}`);
+  }
+  // A rhythm from the ventricles has no P wave or atrial kick of its own in front of each QRS, and
+  // none of the modes that conduct from the atria, pace or pre-excite.
+  if (
+    params.ventricularRhythm === 1 &&
+    (params.pAmplitude > 0 ||
+      params.atrialContribution > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.pauseEvery > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.prematureEvery > 0 ||
+      params.deltaWave > 0)
+  ) {
+    throw new RangeError(
+      'ventricularRhythm needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
     );
   }
   if (!Number.isInteger(params.bidirectional)) {

@@ -109,8 +109,9 @@ export function phaseStarts(timing: BeatTiming): readonly number[] {
 
 /**
  * Phase at `t` ms from the start of the beat (0 ≤ t < rr). With P waves on their own clock
- * (`atrialRate`), or a beat whose QRS starts at once (a ventricular premature beat), the atria do
- * not contract with the beat, so its start is still filling.
+ * (`atrialRate`), a rhythm from the ventricles (`ventricularRhythm`), or a beat whose QRS starts
+ * at once (a ventricular premature beat), the atria do not contract with the beat, so its start
+ * is still filling.
  */
 export function phaseAt(t: number, timing: BeatTiming, params: HeartParams): Phase {
   if (params.ventricularFibrillation === 1) return 'fibrillation';
@@ -118,7 +119,8 @@ export function phaseAt(t: number, timing: BeatTiming, params: HeartParams): Pha
   let index = 0;
   while (index + 1 < starts.length && t >= (starts[index + 1] ?? Infinity)) index += 1;
   const phase = phases[index] ?? 'filling';
-  return phase === 'atrial-systole' && (params.atrialRate > 0 || timing.qOnset === 0)
+  return phase === 'atrial-systole' &&
+    (params.atrialRate > 0 || params.ventricularRhythm === 1 || timing.qOnset === 0)
     ? 'filling'
     : phase;
 }
