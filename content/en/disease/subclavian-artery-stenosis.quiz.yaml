@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Where does the artery that is narrowed in this condition carry blood?
+    options:
+      - text: To the arm and, through its branches, to the kidneys and adrenal glands
+      - text: To the arm and, through its branches, to the neck and brain
+        correct: true
+      - text: To the arm and, through its branches, to the stomach and bowel
+    explanation: Subclavian artery stenosis is a narrowing of the artery that carries blood to the arm and, through its branches, to the neck and brain.
+    cite: [7]
+  - level: patient
+    prompt: What happens in steal syndrome when the person works with the arm?
+    options:
+      - text: Blood flows to the arm out of the vertebral artery, which supplies the brain
+        correct: true
+      - text: The arm takes blood from the arteries of the stomach, bowel and liver instead
+      - text: While the arm works, the heart stops sending blood to the other arm for a time
+    explanation: If the narrowing lies before the point where the vertebral artery branches off, blood can flow to the working arm out of the vertebral artery, which supplies the brain.
+    cite: [6]
+  - level: patient
+    prompt: According to the article, which test is done first?
+    options:
+      - text: A blood test for thyroid hormones
+      - text: A recording of brain waves (EEG) during sleep
+      - text: An ultrasound (duplex) scan of the arteries
+        correct: true
+    explanation: The first test is an ultrasound (duplex) scan of the arteries.
+    cite: [1, 7]
+  - level: patient
+    prompt: According to the article, which arm sign is a reason to call an ambulance?
+    options:
+      - text: Mild dryness and flaking of the skin on the palms after washing dishes
+      - text: The arm suddenly becomes cold, pale and painful
+        correct: true
+      - text: A small bruise on the forearm that appeared after bumping into a door
+    explanation: Call an ambulance if an arm suddenly becomes cold, pale and painful, numb or weak, and its pulse has gone; this may be an acute blockage of the artery.
+    cite: [3, 7]
+  - level: student
+    prompt: Whom does coronary-subclavian steal concern?
+    options:
+      - text: Patients after aortic valve replacement with a mechanical prosthesis
+      - text: Patients with a pacemaker implanted below the left collarbone
+      - text: Patients after CABG with an internal mammary artery graft
+        correct: true
+    explanation: Coronary-subclavian steal concerns patients after CABG whose ipsilateral internal mammary artery has been used as a graft; with a proximal subclavian stenosis they may develop myocardial ischaemia.
+    cite: [1]
+  - level: student
+    prompt: Which method remains the reference standard when endovascular treatment is planned?
+    options:
+      - text: Catheter angiography
+        correct: true
+      - text: 12-lead electrocardiography
+      - text: Myocardial perfusion scintigraphy at rest
+    explanation: CTA and MRA give a detailed anatomical assessment of the lesion; catheter angiography remains the reference standard when endovascular treatment is planned.
+    cite: [7]
