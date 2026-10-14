@@ -1,0 +1,273 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-pts-arrow`;
+// Long labels do not fit their free space on one line: split them in two at the word boundary
+// that gives the shortest longer line.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  let bestWidth = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const first = words.slice(0, i).join(' ');
+    const second = words.slice(i).join(' ');
+    const width = Math.max(first.length, second.length);
+    if (width < bestWidth) {
+      best = [first, second];
+      bestWidth = width;
+    }
+  }
+  return best;
+}
+const pressureLines = twoLines(t['diagram.label.vein-pressure-raised']);
+const wallLines = twoLines(t['diagram.label.scarred-thick-wall']);
+// A segment of the leg with one deep vein in long section; the heart is up. The vein runs along
+// x = 200. Labels sit in free columns on both sides.
+// Outline of the leg segment; in disease it is wider at the ankle (swelling).
+const legNormal =
+  'M146,40 L254,40 C262,130 266,220 260,290 C256,330 250,355 246,370 L154,370 C150,355 144,330 140,290 C134,220 138,130 146,40 Z';
+const legSwollen =
+  'M146,40 L254,40 C262,130 266,200 265,245 C284,280 284,340 270,370 L130,370 C116,340 116,280 135,245 C134,200 138,130 146,40 Z';
+// Disease: the lumen inside the thick scarred wall, uneven and narrowed between y = 115 and 145.
+const lumenDisease =
+  'M191,30 V95 C191,108 197,110 197,120 V140 C197,150 191,152 191,165 V250 C189,265 193,280 191,295 V378 H209 V295 C211,280 207,265 209,250 V165 C209,152 203,150 203,140 V120 C203,110 209,108 209,95 V30 Z';
+// Venous valves at the same heights in both states.
+const valveYs = [230, 345];
+// Normal: two thin cusps each, open (pressed towards the wall) so blood passes upwards.
+const cuspsNormal = valveYs.flatMap((y) => [
+  `M187,${y} Q190,${y - 10} 193,${y - 18}`,
+  `M213,${y} Q210,${y - 10} 207,${y - 18}`,
+]);
+// Disease: short damaged stumps that do not reach each other.
+const cuspsDamaged = valveYs.flatMap((y) => [
+  `M191,${y} Q192,${y - 4} 194.5,${y - 7}`,
+  `M209,${y} Q208,${y - 4} 205.5,${y - 7}`,
+]);
+// Moving blood: start delays so the particles are spread along the vein.
+const rising = [0, -1.2, -2.4];
+const falling = [0, -1.5];
+---
+
+<svg
+  viewBox="0 0 470 380"
+  role="img"
+  aria-label={t['diagram.post-thrombotic-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Direction to the heart, the same in both states -->
+  <path
+    d="M60,150 V40"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    marker-end={`url(#${arrow})`}
+  ></path>
+  <text x="8" y="24">
+    {t['diagram.label.to-heart']}
+  </text>
+
+  <!-- Leg segment with the calf muscle; wider at the ankle in disease -->
+  <path
+    class="normal-only"
+    d={legNormal}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    class="disease-only"
+    d={legSwollen}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Normal deep vein: a thin wall around a wide lumen -->
+  <g class="normal-only">
+    <path d="M200,30 V378" stroke="var(--diagram-venous)" stroke-width="30"></path>
+    <path d="M200,30 V378" stroke="var(--diagram-venous-fill)" stroke-width="24"></path>
+  </g>
+
+  <!-- Vein after the clot: a thick scarred wall and an uneven, partly narrowed lumen -->
+  <g class="disease-only">
+    <path d="M200,30 V378" stroke="var(--diagram-venous)" stroke-width="34"></path>
+    <path d={lumenDisease} fill="var(--diagram-venous-fill)"></path>
+  </g>
+
+  <!-- Valve cusps: thin and open in the normal state, short damaged stumps in disease -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="3" stroke-linecap="round">
+    <g class="normal-only">
+      {cuspsNormal.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g class="disease-only" stroke-width="3.5">
+      {cuspsDamaged.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion: up towards the heart in the normal state,
+       back down the vein past the damaged valve in disease -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="3" marker-end={`url(#${arrow})`}>
+    <path class="normal-only" d="M200,310 V268"></path>
+    <path class="normal-only" d="M200,140 V98"></path>
+    <path class="disease-only" d="M200,258 V314"></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow" fill="var(--diagram-venous)">
+    <g class="normal-only">
+      {rising.map((delay) => (
+        <circle
+          class="pts-p pts-rise"
+          cx="200"
+          cy="372"
+          r="3.5"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {falling.map((delay) => (
+        <circle
+          class="pts-p pts-fall"
+          cx="200"
+          cy="240"
+          r="3.5"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="300" y1="64" x2="220" y2="64"></line>
+    <line x1="134" y1="186" x2="156" y2="186"></line>
+    <g class="normal-only">
+      <line x1="90" y1="284" x2="186" y2="224"></line>
+      <line x1="90" y1="288" x2="186" y2="338"></line>
+    </g>
+    <g class="disease-only">
+      <line x1="288" y1="130" x2="204" y2="130"></line>
+      <line x1="288" y1="188" x2="219" y2="188"></line>
+      <line x1="288" y1="232" x2="207" y2="226"></line>
+      <line x1="288" y1="268" x2="205" y2="268"></line>
+      <line x1="288" y1="308" x2="219" y2="308"></line>
+      <line x1="288" y1="352" x2="279" y2="352"></line>
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="304" y="68">
+    {t['diagram.label.leg-vein']}
+  </text>
+  <text class="diagram-small" x="8" y="190">
+    {t['diagram.label.calf-muscle']}
+  </text>
+  <text class="diagram-small normal-only" x="8" y="290">
+    {t['diagram.label.valves']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="292" y="134">
+      {t['diagram.label.narrowing']}
+    </text>
+    <text class="diagram-small" x="292" y="184">
+      {wallLines[0]}
+    </text>
+    <text class="diagram-small" x="292" y="199">
+      {wallLines[1]}
+    </text>
+    <text class="diagram-small" x="292" y="236">
+      {t['diagram.label.valves-damaged']}
+    </text>
+    <text class="diagram-small" x="292" y="272">
+      {t['diagram.label.backflow']}
+    </text>
+    <text class="diagram-small" x="292" y="304">
+      {pressureLines[0]}
+    </text>
+    <text class="diagram-small" x="292" y="319">
+      {pressureLines[1]}
+    </text>
+    <text class="diagram-small" x="292" y="356">
+      {t['diagram.label.edema']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .pts-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .pts-rise {
+    animation: pts-rise 3.6s linear infinite;
+  }
+
+  .diagram .pts-fall {
+    animation: pts-fall 3s linear infinite;
+  }
+
+  /* Normal: blood runs up the vein through the open valves, towards the heart. */
+  @keyframes pts-rise {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6%,
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, -340px);
+    }
+  }
+
+  /* Disease: past the damaged valve blood flows back down the vein. */
+  @keyframes pts-fall {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    80% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 90px);
+    }
+  }
+</style>

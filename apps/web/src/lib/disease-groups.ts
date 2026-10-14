@@ -134,7 +134,12 @@ export const diseaseGroups = {
     'thromboangiitis-obliterans',
     'vascular-ehlers-danlos-syndrome',
   ],
-  veins: ['deep-vein-thrombosis', 'superficial-thrombophlebitis', 'varicose-veins'],
+  veins: [
+    'deep-vein-thrombosis',
+    'post-thrombotic-syndrome',
+    'superficial-thrombophlebitis',
+    'varicose-veins',
+  ],
   pulmonary: [
     'chronic-thromboembolic-pulmonary-hypertension',
     'pulmonary-embolism',
