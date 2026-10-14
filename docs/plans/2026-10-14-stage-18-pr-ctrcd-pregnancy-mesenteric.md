@@ -41,7 +41,7 @@
 |---|---|---|---|---|---|
 | esc | guideline | 2020 ESC Guidelines for the management of adult congenital heart disease | 2020 | [10.1093/eurheartj/ehaa554](https://doi.org/10.1093/eurheartj/ehaa554) | Полный текст (открытая копия NHS North West CHD Network): тетрада Фалло, обструкция выводного тракта ПЖ, кондуиты |
 | minzdrav-rf | guideline | Тетрада Фалло (ID 39_3) | 2024 | [cr.minzdrav.gov.ru/view-cr/39_3](https://cr.minzdrav.gov.ru/view-cr/39_3) | Весь текст через API |
-| minzdrav-rf | guideline | Врождённый стеноз клапана лёгочной артерии (ID 731_2), дети | 2024 | [cr.minzdrav.gov.ru/view-cr/731_2](https://cr.minzdrav.gov.ru/view-cr/731_2) | Весь текст через API |
+| minzdrav-rf | guideline | Врождённый стеноз клапана лёгочной артерии (ID 731_2), дети | 2025 | [cr.minzdrav.gov.ru/view-cr/731_2](https://cr.minzdrav.gov.ru/view-cr/731_2) | Весь текст через API |
 | msd-manuals | reference | Pulmonary Regurgitation (professional) | 2025 | msdmanuals.com | Целиком, en и ru |
 | statpearls | reference | Pulmonary Regurgitation; Pulmonic Regurgitation | 2022–2024 | [PMID 32491496](https://pubmed.ncbi.nlm.nih.gov/32491496/), [PMID 31985929](https://pubmed.ncbi.nlm.nih.gov/31985929/) | Только аннотации |
 | nice | guideline | Percutaneous pulmonary valve implantation for right ventricular outflow tract dysfunction (HTG297) | 2013 | [nice.org.uk/guidance/htg297](https://www.nice.org.uk/guidance/htg297) | Рекомендации и описание процедуры; по желанию, только для абзаца о транскатетерном клапане |
