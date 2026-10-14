@@ -55,7 +55,7 @@ const shrink = `translate(${leftHilum} ${arteryY}) scale(0.78) translate(${-left
 const leftArtery = `M${aortaX},${arteryY} H${leftHilum - 4}`;
 const rightArtery = `M${aortaX},${arteryY} H${rightHilum + 4}`;
 const aorta = `M${aortaX},0 V360`;
-// Plaques at the origin of the left renal artery narrow its lumen from above and below.
+// Plaques at the origin of the renal artery on the viewer's left narrow its lumen from above and below.
 const plaques = [
   `M231,${arteryY - 8} C225,${arteryY + 1} 208,${arteryY + 1} 200,${arteryY - 8} Z`,
   `M231,${arteryY + 8} C225,${arteryY - 1} 208,${arteryY - 1} 200,${arteryY + 8} Z`,
@@ -91,7 +91,7 @@ const labelCentre = 110;
     <path class="dash-flow" d={`M${aortaX + 12},${arteryY} H${rightHilum}`}></path>
   </g>
 
-  <!-- Kidneys: the same size normally; with stenosis the left one is smaller -->
+  <!-- Kidneys: the same size normally; with stenosis the one on the viewer's left is smaller -->
   <g fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5">
     <path class="normal-only" d={leftKidney}></path>
     <path class="disease-only" d={leftKidney} transform={shrink}></path>

@@ -49,14 +49,14 @@ const normalLabels = [
   label('diagram.label.brain', 40, 128, 42),
   label('diagram.label.lungs', 140, 156, 156),
   label('diagram.label.heart-pumps-enough-blood', 196, 130, 206),
-  label('diagram.label.skin', 250, 164, 250),
+  label('diagram.label.skin', 250, 156, 250),
   label('diagram.label.kidneys', 300, 156, 290),
 ];
 const diseaseLabels = [
   label('diagram.label.confusion', 40, 128, 42),
   label('diagram.label.lung-congestion', 140, 156, 156),
   label('diagram.label.infarct-heart-pumps-little-blood', 196, 130, 206),
-  label('diagram.label.cold-clammy-skin', 250, 164, 250),
+  label('diagram.label.cold-clammy-skin', 250, 156, 250),
   label('diagram.label.kidneys-little-urine', 300, 156, 290),
 ];
 
@@ -79,7 +79,7 @@ interface Branch {
 }
 const branches: Branch[] = [
   { from: 'M106,141', tipX: 106, tipY: 68, dir: 'up' },
-  { from: 'M118,246', tipX: 151, tipY: 246, dir: 'right' },
+  { from: 'M118,246', tipX: 139, tipY: 246, dir: 'right' },
   { from: 'M118,286', tipX: 101, tipY: 286, dir: 'left' },
   { from: 'M118,286', tipX: 135, tipY: 286, dir: 'right' },
 ];
@@ -101,7 +101,7 @@ const states = [
     aortaWidth: 4,
     branchWidth: 2.5,
     head: 5,
-    flowClass: 'dash-flow cs-slow',
+    flowClass: 'dash-flow cgs-slow',
   },
 ];
 
@@ -112,7 +112,7 @@ const kidney = (x: number, flip: boolean) =>
 const kidneys = [kidney(90, true), kidney(146, false)];
 const brain =
   'M72,46 C70,26 86,16 100,18 C114,16 130,26 128,46 C128,58 116,62 100,60 C84,62 72,58 72,46 Z';
-const skin = { x: 152, y: 230, width: 14, height: 34 };
+const skin = { x: 140, y: 230, width: 14, height: 34 };
 const lungs = [
   { cx: 62, cy: 162 },
   { cx: 138, cy: 162 },
@@ -248,10 +248,10 @@ const drops = [
   <!-- Heart in front of the aorta: a full beat normally; in shock a weak, fast beat and an infarct
        zone in the wall of the left ventricle -->
   <g class="normal-only">
-    <path class="cs-beat" d={heart} fill="var(--diagram-muscle)"></path>
+    <path class="cgs-beat" d={heart} fill="var(--diagram-muscle)"></path>
   </g>
   <g class="disease-only">
-    <g class="cs-beat-weak">
+    <g class="cgs-beat-weak">
       <path d={heart} fill="var(--diagram-muscle)"></path>
       <g clip-path={`url(#${heartClipId})`}>
         <ellipse cx="118" cy="216" rx="14" ry="18" fill="var(--color-bg)"></ellipse>
@@ -298,23 +298,23 @@ const drops = [
   /* Normally the heart beats fully; in cardiogenic shock it beats weakly and fast and the blood
      moves more slowly. Without motion the thin arteries, small arrowheads, the infarct zone,
      the dashed organs and the labels carry the difference. */
-  .diagram .cs-beat,
-  .diagram .cs-beat-weak {
+  .diagram .cgs-beat,
+  .diagram .cgs-beat-weak {
     transform-box: fill-box;
     transform-origin: center;
-    animation: cs-beat 1s ease-in-out infinite;
+    animation: cgs-beat 1s ease-in-out infinite;
   }
 
-  .diagram .cs-beat-weak {
-    animation-name: cs-beat-weak;
+  .diagram .cgs-beat-weak {
+    animation-name: cgs-beat-weak;
     animation-duration: 0.7s;
   }
 
-  .diagram .cs-slow {
+  .diagram .cgs-slow {
     animation-duration: 4s;
   }
 
-  @keyframes cs-beat {
+  @keyframes cgs-beat {
     0%,
     40%,
     100% {
@@ -326,7 +326,7 @@ const drops = [
     }
   }
 
-  @keyframes cs-beat-weak {
+  @keyframes cgs-beat-weak {
     0%,
     40%,
     100% {
