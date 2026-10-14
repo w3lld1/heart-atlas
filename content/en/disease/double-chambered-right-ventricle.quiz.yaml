@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Where is the narrowing in this defect?
+    options:
+      - text: In the pulmonary veins, where they enter the left atrium
+      - text: In the middle of the cavity of the right ventricle
+        correct: true
+      - text: At the pulmonary valve, at the outlet of the right ventricle
+    explanation: In this defect, a narrowing in the middle of the cavity of the right ventricle divides it into two chambers.
+    cite: [2]
+  - level: patient
+    prompt: What complaints are described in adults with this defect?
+    options:
+      - text: Itchy skin and a rash on the hands after meals
+      - text: Joint pain in the fingers in the morning
+      - text: Shortness of breath and fainting on exertion
+        correct: true
+    explanation: According to the ESC guidelines, when there are symptoms, they are shortness of breath, chest discomfort, dizziness or fainting during physical exertion.
+    cite: [1]
+  - level: patient
+    prompt: What is the main test for diagnosing this defect?
+    options:
+      - text: Ultrasound of the heart (echocardiography)
+        correct: true
+      - text: Ultrasound of the thyroid gland with Doppler
+      - text: X-ray of the bones of both hands and wrists
+    explanation: The main test for this defect is an ultrasound scan of the heart, that is, echocardiography.
+    cite: [1]
+  - level: patient
+    prompt: Where, according to the ESC, should operations and catheter procedures be done?
+    options:
+      - text: In the treatment room of a district outpatient clinic near home
+      - text: In centres that specialise in congenital heart disease
+        correct: true
+      - text: In the cosmetology department of a multi-specialty medical centre
+    explanation: Both operations and catheter procedures for congenital defects like these should be done only in centres that specialise in congenital heart disease.
+    cite: [1]
+  - level: student
+    prompt: In the StatPearls classification, what causes the obstruction in type 2?
+    options:
+      - text: Calcification of the aortic valve cusps and annulus
+      - text: A thrombus in the left atrial appendage in older people
+      - text: Hypertrophy of the parietal and septal muscles
+        correct: true
+    explanation: StatPearls describes two types by the tissue causing the obstruction; in type 2, it is caused by hypertrophy of the parietal and septal muscles.
+    cite: [2]
+  - level: student
+    prompt: What approach does the ESC recommend for sub-infundibular stenosis?
+    options:
+      - text: Surgery
+        correct: true
+      - text: Pacemaker implantation
+      - text: Radiofrequency ablation
+    explanation: In the text of the treatment section, the ESC states that surgery is recommended for sub-infundibular or infundibular stenosis.
+    cite: [1]
