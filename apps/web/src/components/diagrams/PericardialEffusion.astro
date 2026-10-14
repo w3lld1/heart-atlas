@@ -1,0 +1,191 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const heartId = `${uid}-pe-heart`;
+const measureId = `${uid}-pe-measure`;
+
+// Long labels do not fit the column on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const outerLines = twoLines(t['diagram.label.outer-pericardial-layer']);
+const innerLines = twoLines(t['diagram.label.inner-pericardial-layer']);
+const distanceLines = twoLines(t['diagram.label.distance-between-layers']);
+
+// The same heart outline as the pericarditis diagram, drawn at different scales around one centre:
+// the heart with the inner (visceral) layer on its surface, and the outer (parietal) layer of the
+// pericardium. Normally only a thin layer of fluid lies between them; with an effusion the layer
+// is wide all round. The heart keeps its size and shape in both states and beats freely: the
+// chambers are not compressed (compression is tamponade, a separate diagram).
+const centre = { x: 140, y: 160 };
+const heartPath =
+  'M60,85 Q180,35 300,85 Q352,175 297,270 Q237,326 180,332 Q123,326 63,270 Q8,175 60,85 Z';
+const around = (scale: number) =>
+  `translate(${centre.x} ${centre.y}) scale(${scale}) translate(-180 -190)`;
+const heartScale = 0.5;
+const sacNormal = 0.56;
+const sacEffusion = 0.74;
+// Where a point of the outline lands at a given scale, for leader lines and the measuring arrow.
+const at = (x: number, y: number, scale: number) => ({
+  x: centre.x + (x - 180) * scale,
+  y: centre.y + (y - 190) * scale,
+});
+const apexHeart = at(180, 332, heartScale);
+const apexSac = at(180, 332, sacEffusion);
+const outerNormal = at(300, 85, sacNormal);
+const outerFluid = at(300, 85, sacEffusion);
+const innerPoint = at(297, 270, heartScale);
+// The middle of the layer between the two outlines on the right side of the heart.
+const sideHeart = at(325, 176, heartScale);
+const cavityNormal = { x: (sideHeart.x + at(325, 176, sacNormal).x) / 2, y: sideHeart.y };
+const cavityFluid = { x: (sideHeart.x + at(325, 176, sacEffusion).x) / 2, y: sideHeart.y };
+const column = 290;
+---
+
+<svg
+  viewBox="0 30 480 282"
+  role="img"
+  aria-label={t['diagram.pericardial-effusion.title']}
+  lang={locale}
+>
+  <defs>
+    <path id={heartId} d={heartPath}></path>
+    <marker
+      id={measureId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Outer (parietal) layer and the fluid under it: thin normally, a wide layer with effusion -->
+  <use
+    class="normal-only"
+    href={`#${heartId}`}
+    transform={around(sacNormal)}
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="3"
+    vector-effect="non-scaling-stroke"
+  ></use>
+  <use
+    class="disease-only"
+    href={`#${heartId}`}
+    transform={around(sacEffusion)}
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="3"
+    vector-effect="non-scaling-stroke"
+  ></use>
+
+  <!-- The heart of normal size with the inner (visceral) layer on its surface; it beats freely -->
+  <g class="pe-beat">
+    <use
+      href={`#${heartId}`}
+      transform={around(heartScale)}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="3"
+      vector-effect="non-scaling-stroke"
+    ></use>
+  </g>
+
+  <!-- Size of the effusion: the distance between the layers -->
+  <g class="disease-only">
+    <line
+      x1={apexHeart.x}
+      y1={apexHeart.y + 3}
+      x2={apexSac.x}
+      y2={apexSac.y - 3}
+      stroke="var(--color-text)"
+      stroke-width="2"
+      marker-start={`url(#${measureId})`}
+      marker-end={`url(#${measureId})`}
+    ></line>
+    <text x={centre.x} y="288" text-anchor="middle">
+      {distanceLines[0]}
+    </text>
+    <text x={centre.x} y="307" text-anchor="middle">
+      {distanceLines[1]}
+    </text>
+  </g>
+
+  <!-- Labels in the right column with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1={column - 6} y1="66" x2={outerNormal.x} y2={outerNormal.y}></line>
+    <line class="disease-only" x1={column - 6} y1="66" x2={outerFluid.x} y2={outerFluid.y}></line>
+    <line
+      class="normal-only"
+      x1={column - 6}
+      y1="150"
+      x2={cavityNormal.x}
+      y2={cavityNormal.y}
+    ></line>
+    <line
+      class="disease-only"
+      x1={column - 6}
+      y1="150"
+      x2={cavityFluid.x}
+      y2={cavityFluid.y}
+    ></line>
+    <line x1={column - 6} y1="214" x2={innerPoint.x} y2={innerPoint.y}></line>
+    <line x1={column - 6} y1="262" x2={centre.x + 15} y2={centre.y + 35}></line>
+  </g>
+  <text x={column} y="62">
+    {outerLines[0]}
+  </text>
+  <text x={column} y="81">
+    {outerLines[1]}
+  </text>
+  <text class="normal-only" x={column} y="155">
+    {t['diagram.label.pericardial-cavity']}
+  </text>
+  <text class="disease-only" x={column} y="155">
+    {t['diagram.label.effusion']}
+  </text>
+  <text x={column} y="210">
+    {innerLines[0]}
+  </text>
+  <text x={column} y="229">
+    {innerLines[1]}
+  </text>
+  <text x={column} y="267">
+    {t['diagram.label.heart-muscle']}
+  </text>
+</svg>
+
+<style is:global>
+  /* The heart beats inside the pericardium in both states; the outer layer does not move. */
+  .diagram .pe-beat {
+    transform-box: view-box;
+    transform-origin: 140px 160px;
+    animation: pe-beat 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pe-beat {
+    0%,
+    60%,
+    100% {
+      transform: scale(1);
+    }
+
+    25% {
+      transform: scale(0.94);
+    }
+  }
+</style>

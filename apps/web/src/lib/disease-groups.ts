@@ -28,7 +28,13 @@ export const diseaseGroups = {
     'spontaneous-coronary-artery-dissection',
     'takotsubo-syndrome',
   ],
-  'risk-factors': ['dyslipidemia', 'familial-hypercholesterolemia', 'hypertension'],
+  'risk-factors': [
+    'dyslipidemia',
+    'familial-hypercholesterolemia',
+    'hypertension',
+    'hypertensive-crisis',
+    'orthostatic-hypotension',
+  ],
   myocardium: [
     'arrhythmogenic-right-ventricular-cardiomyopathy',
     'cardiac-amyloidosis',
@@ -59,6 +65,7 @@ export const diseaseGroups = {
     'constrictive-pericarditis',
     'infective-endocarditis',
     'myocarditis',
+    'pericardial-effusion',
     'pericarditis',
   ],
   congenital: [
@@ -85,6 +92,7 @@ export const diseaseGroups = {
     'abdominal-aortic-aneurysm',
     'acute-limb-ischemia',
     'aortic-dissection',
+    'carotid-artery-stenosis',
     'marfan-syndrome',
     'peripheral-artery-disease',
     'takayasu-arteritis',

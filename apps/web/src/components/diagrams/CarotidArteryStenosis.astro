@@ -1,0 +1,210 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-cas-arrow`;
+// Long labels do not fit the label columns on one line: split them in two at the word boundary
+// that gives the shortest longer line, never leaving a one- or two-letter word (a preposition) at
+// the end of the first line.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  let bestScore = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const first = words.slice(0, i).join(' ');
+    const second = words.slice(i).join(' ');
+    const score =
+      Math.max(first.length, second.length) + ((words[i - 1]?.length ?? 0) <= 2 ? 100 : 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = [first, second];
+    }
+  }
+  return best;
+}
+const internalLines = twoLines(t['diagram.label.internal-carotid-artery']);
+const bifurcationLines = twoLines(t['diagram.label.carotid-bifurcation']);
+const fragmentLines = twoLines(t['diagram.label.fragment-may-break-off']);
+// The carotid artery in the neck, head up. It rises from the bottom and divides at y ≈ 300 (the
+// bifurcation): the internal carotid artery goes up on the left towards the brain, the other branch
+// up on the right. The branch on the right is drawn but not named: the article's sources do not
+// describe it. Vessels are wide strokes: the wall, then the lumen on top of it.
+const trunk = 'M214,440 V300';
+const internal = 'M212,320 V200 C212,150 190,100 190,0';
+const branch = 'M219,320 V296 C219,256 252,236 256,190 C262,150 262,60 262,0';
+// Routes of the moving blood: up the trunk, then into either branch.
+const internalRoute = 'M214,440 V320 Q214,312 212,304 V200 C212,150 190,100 190,4';
+const branchRoute = 'M214,440 V320 Q214,312 219,300 C219,256 252,236 256,190 C262,150 262,60 262,4';
+// Disease: plaques at the start of the internal carotid artery narrow its lumen from both sides.
+const plaques = ['M204,235 C212,252 212,278 204,295 Z', 'M220,235 C213,252 213,278 220,295 Z'];
+// A fragment that can break off the plaque and travel up the internal carotid artery.
+const fragmentRoute = 'M212,236 V200 C212,150 190,100 190,4';
+// Negative delays so the flow is already running when the page opens.
+const runs = [0, -1, -2];
+---
+
+<svg
+  viewBox="0 0 400 440"
+  role="img"
+  aria-label={t['diagram.carotid-artery-stenosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Artery walls, then the lumens on top of them, so the bifurcation reads as one vessel -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    <path d={trunk} stroke-width="28"></path>
+    <path d={internal} stroke-width="24"></path>
+    <path d={branch} stroke-width="16"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    <path d={trunk} stroke-width="20"></path>
+    <path d={internal} stroke-width="16"></path>
+    <path d={branch} stroke-width="10"></path>
+  </g>
+
+  <!-- Plaques narrow the start of the internal carotid artery. The outline keeps their edge visible
+       against the lumen in the light theme. -->
+  <g class="disease-only" fill="var(--diagram-plaque)" stroke="var(--color-text)" stroke-width="1">
+    {plaques.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- A fragment above the plaque on its way to the brain, visible with and without motion -->
+  <circle
+    class="disease-only"
+    cx="207.3"
+    cy="153.7"
+    r="3.5"
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></circle>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="3" stroke-linecap="round">
+    <path d="M214,430 V330" marker-end={`url(#${arrow})`}></path>
+    <path d="M190,70 V12" marker-end={`url(#${arrow})`}></path>
+  </g>
+
+  <!-- Moving blood up both branches; in the disease state a fragment also travels up -->
+  <g class="flow">
+    <g fill="var(--diagram-arterial)">
+      {runs.map((delay) => (
+        <circle
+          class="cas-run"
+          r="2.5"
+          style={`offset-path: path('${internalRoute}'); animation-duration: 3s; animation-delay: ${delay}s`}
+        />
+      ))}
+      {runs.map((delay) => (
+        <circle
+          class="cas-run"
+          r="2.5"
+          style={`offset-path: path('${branchRoute}'); animation-duration: 3s; animation-delay: ${delay - 0.5}s`}
+        />
+      ))}
+    </g>
+    <circle
+      class="cas-run disease-only"
+      r="3.5"
+      fill="var(--diagram-plaque)"
+      stroke="var(--color-text)"
+      stroke-width="1"
+      style={`offset-path: path('${fragmentRoute}'); animation-duration: 4s`}
+    ></circle>
+  </g>
+
+  <!-- Labels: the left column is anchored at its end, the right column at its start -->
+  <text class="diagram-small" x="170" y="24" text-anchor="end">
+    {t['diagram.label.to-brain']}
+  </text>
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="186" y1="100" x2="164" y2="100"></line>
+    <line x1="229" y1="310" x2="276" y2="310"></line>
+  </g>
+  <text class="diagram-small" x="160" y="97" text-anchor="end">
+    <tspan x="160">{internalLines[0]}</tspan>
+    <tspan x="160" dy="15">
+      {internalLines[1]}
+    </tspan>
+  </text>
+  <text class="diagram-small" x="280" y="307">
+    <tspan x="280">{bifurcationLines[0]}</tspan>
+    <tspan x="280" dy="15">
+      {bifurcationLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="203" y1="154" x2="164" y2="154"></line>
+      <line x1="208" y1="265" x2="164" y2="265"></line>
+    </g>
+    <circle cx="208" cy="265" r="2.5" fill="var(--color-text)"></circle>
+    <text class="diagram-small" x="160" y="151" text-anchor="end">
+      <tspan x="160">{fragmentLines[0]}</tspan>
+      <tspan x="160" dy="15">
+        {fragmentLines[1]}
+      </tspan>
+    </text>
+    <text x="160" y="271" text-anchor="end">
+      {t['diagram.label.plaque']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .cas-run {
+    offset-rotate: 0deg;
+    animation-name: cas-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .cas-run {
+      display: none;
+    }
+  }
+
+  /* Blood runs up the artery from the bottom of the neck towards the head. */
+  @keyframes cas-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6%,
+    88% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>

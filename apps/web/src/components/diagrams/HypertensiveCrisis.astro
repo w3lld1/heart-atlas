@@ -1,0 +1,238 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const labelX = 206;
+const maxChars = 30;
+
+// A label in the right column with a leader line to the organ it names. No blood pressure
+// numbers and no medicines anywhere: the crisis is defined by acute organ damage, not by a figure.
+interface Label {
+  y: number;
+  toX: number;
+  lines: string[];
+}
+function label(key: MessageKey, y: number, toX: number): Label {
+  return { y, toX, lines: wrap(t[key], maxChars) };
+}
+
+// The same five target organs in both states, front view: brain and eyes in the head, heart in
+// the chest, the aorta running from the heart over the arch and down the trunk, both kidneys.
+// Normal: blood pressure in the usual range and no damage. Hypertensive crisis: a sharp rise in
+// blood pressure and a mark of acute damage on each organ, with what the damage can be.
+const normalLabels = [
+  label('diagram.label.brain', 40, 128),
+  label('diagram.label.eye', 84, 124),
+  label('diagram.label.heart', 168, 116),
+  label('diagram.label.aorta', 222, 120),
+  label('diagram.label.kidneys', 262, 144),
+  label('diagram.label.blood-pressure-usual-range', 316, 144),
+];
+const diseaseLabels = [
+  label('diagram.label.brain-swelling-stroke', 32, 128),
+  label('diagram.label.eye-retinal-bleeding-swollen-optic-disc', 78, 124),
+  label('diagram.label.heart-ischemia-acute-failure', 160, 116),
+  label('diagram.label.aorta-dissection', 222, 120),
+  label('diagram.label.kidneys-acute-injury', 262, 144),
+  label('diagram.label.blood-pressure-rises-sharply', 316, 144),
+];
+
+// Where the damage marks sit: on each organ the labels point to.
+const marks = [
+  { x: 100, y: 40, r: 20 },
+  { x: 116, y: 80, r: 10 },
+  { x: 96, y: 168, r: 22 },
+  { x: 114, y: 222, r: 11 },
+  { x: 132, y: 262, r: 14 },
+  { x: 72, y: 262, r: 14 },
+];
+
+const heart =
+  'M96,192 C74,176 70,158 82,151 C88,147 96,152 96,158 C96,152 104,147 110,151 C122,158 118,176 96,192 Z';
+// Aorta from the top of the heart over the arch and down the trunk; an artery from the arch to the
+// head; an artery from the aorta to each kidney.
+const aorta = 'M92,156 V136 Q92,124 103,124 Q114,124 114,136 V330';
+const headArtery = 'M100,124 V100';
+const kidneyArteries = 'M114,258 H124 M114,258 H82';
+const kidney = (x: number, flip: boolean) =>
+  flip
+    ? `M${x},248 C${x - 14},246 ${x - 14},278 ${x},276 C${x + 8},275 ${x + 10},266 ${x + 4},262 C${x + 10},258 ${x + 8},249 ${x},248 Z`
+    : `M${x},248 C${x + 14},246 ${x + 14},278 ${x},276 C${x - 8},275 ${x - 10},266 ${x - 4},262 C${x - 10},258 ${x - 8},249 ${x},248 Z`;
+// Pressure on the wall of the aorta below the kidneys: small arrows normally, more and larger
+// arrows when blood pressure rises sharply.
+const normalArrows = [306, 326];
+const diseaseArrows = [296, 311, 326];
+---
+
+<svg
+  viewBox="0 0 480 350"
+  role="img"
+  aria-label={t['diagram.hypertensive-crisis.title']}
+  lang={locale}
+>
+  <!-- The figure: head, neck and trunk as plain outlines -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <circle cx="100" cy="56" r="44"></circle>
+    <path d="M92,100 V112 M108,100 V112"></path>
+    <rect x="46" y="112" width="108" height="228" rx="22"></rect>
+  </g>
+
+  <!-- Brain in the upper part of the head, two eyes below it -->
+  <path
+    d="M72,46 C70,26 86,16 100,18 C114,16 130,26 128,46 C128,58 116,62 100,60 C84,62 72,58 72,46 Z"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    d="M100,20 V58 M82,34 Q90,40 84,48 M118,34 Q110,40 116,48"
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <g fill="var(--color-bg)" stroke="var(--color-muted)" stroke-width="1.5">
+    <path d="M76,80 Q84,72 92,80 Q84,88 76,80 Z"></path>
+    <path d="M108,80 Q116,72 124,80 Q116,88 108,80 Z"></path>
+  </g>
+  <g fill="var(--color-muted)">
+    <circle cx="84" cy="80" r="3"></circle>
+    <circle cx="116" cy="80" r="3"></circle>
+  </g>
+
+  <!-- Arteries: the aorta behind the heart, a branch to the head and one to each kidney -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={aorta} stroke-width="9"></path>
+    <path d={headArtery} stroke-width="5"></path>
+    <path d={kidneyArteries} stroke-width="4"></path>
+  </g>
+
+  <!-- Kidneys -->
+  <g fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5">
+    <path d={kidney(72, true)}></path>
+    <path d={kidney(132, false)}></path>
+  </g>
+
+  <!-- Blood pressure on the wall of the aorta -->
+  <g class="normal-only" fill="var(--color-muted)" stroke="var(--color-muted)">
+    {normalArrows.map((y) => (
+      <>
+        <line x1="108" y1={y} x2="102" y2={y} stroke-width="2" />
+        <path d={`M103,${y - 4} L96,${y} L103,${y + 4} Z`} stroke="none" />
+        <line x1="120" y1={y} x2="126" y2={y} stroke-width="2" />
+        <path d={`M125,${y - 4} L132,${y} L125,${y + 4} Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+  <g class="disease-only htc-push" fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+    {diseaseArrows.map((y) => (
+      <>
+        <line x1="108" y1={y} x2="98" y2={y} stroke-width="3" />
+        <path d={`M100,${y - 6} L89,${y} L100,${y + 6} Z`} stroke="none" />
+        <line x1="120" y1={y} x2="130" y2={y} stroke-width="3" />
+        <path d={`M128,${y - 6} L139,${y} L128,${y + 6} Z`} stroke="none" />
+      </>
+    ))}
+  </g>
+
+  <!-- Moving blood along the aorta and its branches; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--color-bg)" stroke-width="2">
+    <path class="dash-flow" d={aorta}></path>
+    <path class="dash-flow" d="M100,124 V100"></path>
+  </g>
+
+  <!-- Heart in front of the aorta -->
+  <path class="htc-beat" d={heart} fill="var(--diagram-muscle)"></path>
+
+  <!-- Marks of acute organ damage in the crisis -->
+  <g class="disease-only htc-alert" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    {marks.map((mark) => (
+      <circle cx={mark.x} cy={mark.y} r={mark.r} stroke-dasharray="5 3" />
+    ))}
+  </g>
+
+  <!-- Labels with leader lines, one set per state -->
+  {[
+    { state: 'normal-only', labels: normalLabels },
+    { state: 'disease-only', labels: diseaseLabels },
+  ].map((group) => (
+    <g class={group.state}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        {group.labels.map((item) => (
+          <line x1="200" y1={item.y - 4} x2={item.toX} y2={item.y - 4} />
+        ))}
+      </g>
+      {group.labels.map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* The heart beats in both states; in the crisis the pressure arrows and the damage marks pulse.
+     Without motion everything stands still and the arrows, marks and labels carry the difference. */
+  .diagram .htc-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: htc-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .htc-push,
+  .diagram .htc-alert {
+    animation: htc-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes htc-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes htc-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+
+    35% {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,354 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-oh-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const labelX = 206;
+const maxChars = 30;
+
+// A label in the right column with a leader line to the part of the figure it describes. No
+// numbers: no blood pressure, heart rate or minutes, so nothing reads as a self-test.
+interface Label {
+  y: number;
+  toX: number;
+  toY: number;
+  lines: string[];
+}
+function label(key: MessageKey, y: number, toX: number, toY: number): Label {
+  return { y, toX, toY, lines: wrap(t[key], maxChars) };
+}
+
+// After standing up. Normal: some blood shifts into the leg veins, the vessels narrow, the heart
+// rate rises a little, blood pressure holds and the brain gets enough blood. Orthostatic
+// hypotension: the vessels do not narrow enough, more blood stays in the leg veins, blood
+// pressure falls too far and too little blood reaches the brain. The heart beats at the same pace
+// in both states: a marked rise in heart rate is not what this diagram is about.
+const normalLabels = [
+  label('diagram.label.enough-blood-to-brain', 40, 124, 48),
+  label('diagram.label.heart-rate-rises-slightly', 96, 126, 156),
+  label('diagram.label.vessels-narrow', 152, 152, 300),
+  label('diagram.label.some-blood-shifts-to-leg-veins', 208, 124, 352),
+];
+const diseaseLabels = [
+  label('diagram.label.lightheaded-dizzy', 40, 124, 48),
+  label('diagram.label.too-little-blood-to-brain', 96, 110, 100),
+  label('diagram.label.vessels-do-not-narrow-enough', 152, 136, 300),
+  label('diagram.label.more-blood-pools-in-leg-veins', 208, 124, 352),
+];
+
+// The standing figure: head, torso, arms and legs as plain outlines. The heart sits in the chest,
+// an artery runs from it up to the brain, and a vein runs up each leg to the heart.
+const heart =
+  'M108,180 C90,166 86,151 98,145 C104,142 108,147 108,151 C108,147 112,142 118,145 C130,151 126,166 108,180 Z';
+const artery = 'M104,146 V76';
+const leftVein = 'M81,410 V252 Q81,214 106,182';
+const rightVein = 'M119,410 V252 Q119,214 110,182';
+// Arrows that press on the legs from outside: the vessels narrow when the person stands up.
+const squeeze = ['M48,300 H62', 'M152,300 H138', 'M48,370 H62', 'M152,370 H138'];
+
+// Blood pressure after standing up, without a scale. Normal: a short dip, then it is back where
+// it was. Orthostatic hypotension: it falls further and stays lower while the person stands.
+const graphTop = 324;
+const axisX = 216;
+const axisY = 410;
+const axisEnd = 468;
+const standX = 276;
+const baseY = 350;
+const normalCurve = `M${axisX + 2},${baseY} H${standX} C284,${baseY} 288,372 296,372 C304,372 308,352 320,${baseY} H${axisEnd - 2}`;
+const diseaseCurve = `M${axisX + 2},${baseY} H${standX} C288,${baseY} 296,392 314,394 H${axisEnd - 2}`;
+const titleLines = wrap(t['diagram.label.pressure-after-standing'], 40);
+// The pressure label of each state sits right-aligned above the graph, and its leader runs
+// straight down to the flat part of that state's curve, clear of the graph title.
+const pressureX = axisEnd;
+const pressureY = 264;
+const pressureLeaderX = 460;
+const pressureLabels = [
+  {
+    state: 'normal-only',
+    lines: wrap(t['diagram.label.pressure-holds'], maxChars),
+    toY: baseY - 4,
+  },
+  {
+    state: 'disease-only',
+    lines: wrap(t['diagram.label.pressure-falls-too-far'], maxChars),
+    toY: 390,
+  },
+];
+---
+
+<svg
+  viewBox="0 0 480 440"
+  role="img"
+  aria-label={t['diagram.orthostatic-hypotension.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="6"
+      markerHeight="6"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- The figure -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <circle cx="100" cy="60" r="36"></circle>
+    <path d="M92,96 V108 M108,96 V108"></path>
+    <rect x="62" y="108" width="76" height="148" rx="18"></rect>
+    <rect x="42" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="142" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="66" y="260" width="30" height="160" rx="12"></rect>
+    <rect x="104" y="260" width="30" height="160" rx="12"></rect>
+  </g>
+
+  <!-- Brain: well supplied normally, short of blood when pressure falls too far -->
+  <ellipse
+    class="normal-only"
+    cx="100"
+    cy="54"
+    rx="24"
+    ry="18"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="100"
+    cy="54"
+    rx="24"
+    ry="18"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    stroke-dasharray="4 3"
+  ></ellipse>
+
+  <!-- Veins of the legs: a little blood shifts into them normally, more stays there in the disease -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="5">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+    </g>
+    <g class="disease-only" stroke-width="12">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+    </g>
+  </g>
+
+  <!-- The vessels narrow: only in the normal state -->
+  <g
+    class="normal-only"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    marker-end={`url(#${arrowId})`}
+  >
+    {squeeze.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Artery from the heart to the brain: a thinner stream when pressure falls too far -->
+  <path
+    class="normal-only"
+    d={artery}
+    stroke="var(--diagram-arterial)"
+    stroke-width="7"
+    stroke-linecap="round"
+  ></path>
+  <path
+    class="disease-only"
+    d={artery}
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  ></path>
+
+  <!-- Moving blood: slower in the disease; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--color-bg)" stroke-width="2">
+    <g class="normal-only">
+      <path class="dash-flow" d={artery}></path>
+      <path class="dash-flow" d={leftVein}></path>
+      <path class="dash-flow" d={rightVein}></path>
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow oh-slow" d={artery} stroke-width="1.5"></path>
+      <path class="dash-flow oh-slow" d={leftVein}></path>
+      <path class="dash-flow oh-slow" d={rightVein}></path>
+    </g>
+  </g>
+
+  <!-- Heart: the same pace in both states -->
+  <path class="oh-beat" d={heart} fill="var(--diagram-muscle)"></path>
+
+  <!-- Labels with leader lines, one set per state -->
+  {[
+    { state: 'normal-only', labels: normalLabels },
+    { state: 'disease-only', labels: diseaseLabels },
+  ].map((group) => (
+    <g class={group.state}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        {group.labels.map((item) => (
+          <line x1="200" y1={item.y - 4} x2={item.toX} y2={item.toY - 4} />
+        ))}
+      </g>
+      {group.labels.map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+
+  <!-- Pressure labels with a leader down to the curve, one per state -->
+  {pressureLabels.map((item) => (
+    <g class={item.state}>
+      <line
+        x1={pressureLeaderX}
+        y1={pressureY + (item.lines.length - 1) * lineHeight + 6}
+        x2={pressureLeaderX}
+        y2={item.toY}
+        stroke="var(--color-muted)"
+        stroke-width="1.5"
+      />
+      <text class="diagram-small" x={pressureX} y={pressureY} text-anchor="end">
+        {item.lines.map((line, index) => (
+          <tspan x={pressureX} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  ))}
+
+  <!-- Blood pressure after standing up: shape only, no scale -->
+  <text class="diagram-small" x={labelX} y={graphTop - 10}>
+    {titleLines.map((line, index) => (
+      <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <path
+    d={`M${axisX},${graphTop} V${axisY} H${axisEnd}`}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    d={`M${standX},${graphTop} V${axisY}`}
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="4 4"
+  ></path>
+  <text class="diagram-small" x={standX} y={axisY + 16} text-anchor="middle">
+    {t['diagram.label.stands-up']}
+  </text>
+  <text class="diagram-small" x={axisEnd} y={axisY + 16} text-anchor="end">
+    {t['diagram.label.time']}
+  </text>
+  <path
+    class="disease-only"
+    d={`M${standX},${baseY} H${pressureLeaderX - 8}`}
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="2 4"
+  ></path>
+  <path
+    class="normal-only oh-trace"
+    d={normalCurve}
+    pathLength="1"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  ></path>
+  <path
+    class="disease-only oh-trace"
+    d={diseaseCurve}
+    pathLength="1"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  ></path>
+</svg>
+
+<style is:global>
+  /* The heart beats at the same pace in both states. The pressure curve draws itself from left to
+     right; without motion it stands complete, and the labels, the thinner artery, the wider veins
+     and the dashed brain carry the difference. */
+  .diagram .oh-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: oh-beat 1s ease-in-out infinite;
+  }
+
+  .diagram .oh-slow {
+    animation-duration: 4s;
+  }
+
+  .diagram .oh-trace {
+    stroke-dasharray: 1;
+    animation: oh-trace 5s linear infinite;
+  }
+
+  @keyframes oh-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.15);
+    }
+  }
+
+  @keyframes oh-trace {
+    0% {
+      stroke-dashoffset: 1;
+    }
+
+    60%,
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>
