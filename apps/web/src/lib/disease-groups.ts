@@ -14,6 +14,7 @@ export const diseaseGroups = {
     'inappropriate-sinus-tachycardia',
     'long-qt-syndrome',
     'postural-orthostatic-tachycardia-syndrome',
+    'short-qt-syndrome',
     'sick-sinus-syndrome',
     'supraventricular-tachycardia',
     'vasovagal-syncope',
@@ -36,6 +37,7 @@ export const diseaseGroups = {
     'hypertension-in-pregnancy',
     'hypertensive-crisis',
     'orthostatic-hypotension',
+    'primary-aldosteronism',
   ],
   myocardium: [
     'arrhythmogenic-right-ventricular-cardiomyopathy',
@@ -65,6 +67,7 @@ export const diseaseGroups = {
     'tricuspid-regurgitation',
   ],
   inflammation: [
+    'acute-rheumatic-fever',
     'cardiac-myxoma',
     'cardiac-tamponade',
     'constrictive-pericarditis',
@@ -109,6 +112,7 @@ export const diseaseGroups = {
     'mesenteric-ischemia',
     'peripheral-artery-disease',
     'renal-artery-stenosis',
+    'subclavian-artery-stenosis',
     'takayasu-arteritis',
     'thoracic-aortic-aneurysm',
   ],

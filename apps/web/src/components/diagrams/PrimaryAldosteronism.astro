@@ -1,0 +1,246 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max = 26) => wrap(t[key], max);
+const keepsSodiumLines = lines('diagram.label.kidney-keeps-sodium-water-removes-potassium');
+const feedbackLines = lines('diagram.label.enough-fluid-less-renin-less-aldosterone');
+const usualPressureLines = lines('diagram.label.blood-pressure-usual-range');
+const adenomaLines = lines('diagram.label.adenoma-makes-aldosterone-without-signal', 26);
+const suppressedLines = lines('diagram.label.renin-suppressed', 12);
+const morePressureLines = lines('diagram.label.more-sodium-water-pressure-higher');
+const potassiumLines = lines('diagram.label.potassium-lost-in-urine-lower-in-blood');
+const heartLines = lines('diagram.label.heart-af-more-damage-than-pressure-explains', 20);
+
+// A kidney with its adrenal gland on top, and the loop that links them. Normal: the kidney
+// releases renin, renin makes the adrenal gland release aldosterone, aldosterone makes the kidney
+// keep sodium and water and lose potassium, and when there is enough fluid renin falls (feedback).
+// Disease: an adenoma in the adrenal gland makes aldosterone on its own, renin is suppressed (a
+// faint dashed arrow), the aldosterone arrow is thick, blood pressure is higher, potassium is
+// lower, and the heart is under strain (atrial fibrillation, more organ damage than the pressure
+// explains). No numbers, no drugs, no thickened heart wall.
+const kidneyY = 250;
+const hilum = 225;
+const x = (dx: number) => hilum - dx;
+const kidney = `M${x(0)},${kidneyY - 14} C${x(4)},${kidneyY - 50} ${x(30)},${kidneyY - 56} ${x(46)},${kidneyY - 44} C${x(64)},${kidneyY - 30} ${x(64)},${kidneyY + 30} ${x(46)},${kidneyY + 44} C${x(30)},${kidneyY + 56} ${x(4)},${kidneyY + 50} ${x(0)},${kidneyY + 14} C${x(8)},${kidneyY + 6} ${x(8)},${kidneyY - 6} ${x(0)},${kidneyY - 14} Z`;
+// The adrenal gland sits on the upper pole of the kidney like a cap.
+const adrenal =
+  'M160,200 C164,170 184,146 198,140 C212,152 222,176 220,202 C202,192 178,192 160,200 Z';
+const adenoma = { x: 204, y: 168, r: 12 };
+// Renin: from the kidney up the left side to the adrenal gland. Aldosterone: from the adrenal
+// gland down the right side back to the kidney.
+const reninPath = 'M160,292 C112,292 112,176 152,174';
+const reninHead = 'M150,167 L162,174 L150,181 Z';
+const aldoPath = 'M222,168 C268,172 268,226 236,234';
+const aldoHead = 'M242,226 L230,236 L244,240 Z';
+const columnX = 320;
+const heart =
+  'M330,342 C306,326 302,306 314,300 C322,296 330,302 330,308 C330,302 338,296 346,300 C358,306 354,326 330,342 Z';
+const heartLabelX = 364;
+---
+
+<svg
+  viewBox="0 0 520 400"
+  role="img"
+  aria-label={t['diagram.primary-aldosteronism.title']}
+  lang={locale}
+>
+  <!-- Kidney and adrenal gland -->
+  <path
+    d={kidney}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    d={adrenal}
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Disease: an adenoma in the adrenal gland. The outline keeps its edge visible in both themes. -->
+  <circle
+    class="disease-only"
+    cx={adenoma.x}
+    cy={adenoma.y}
+    r={adenoma.r}
+    fill="var(--diagram-impulse)"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></circle>
+
+  <!-- Renin arrow: solid normally, faint and dashed when renin is suppressed -->
+  <g class="normal-only" fill="var(--diagram-venous)" stroke="var(--diagram-venous)">
+    <path d={reninPath} fill="none" stroke-width="3"></path>
+    <path d={reninHead} stroke-width="1"></path>
+  </g>
+  <g
+    class="disease-only"
+    fill="var(--diagram-venous)"
+    stroke="var(--diagram-venous)"
+    opacity="0.45"
+  >
+    <path d={reninPath} fill="none" stroke-width="2" stroke-dasharray="5 5"></path>
+    <path d={reninHead} stroke-width="1"></path>
+  </g>
+
+  <!-- Aldosterone arrow: thin normally, thick and pulsing in disease -->
+  <g class="normal-only" fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+    <path d={aldoPath} fill="none" stroke-width="3"></path>
+    <path d={aldoHead} stroke-width="1"></path>
+  </g>
+  <g
+    class="disease-only praldo-pulse"
+    fill="var(--diagram-arterial)"
+    stroke="var(--diagram-arterial)"
+  >
+    <path d={aldoPath} fill="none" stroke-width="7"></path>
+    <path d={aldoHead} stroke-width="3"></path>
+  </g>
+
+  <!-- Heart -->
+  <path
+    d={heart}
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="152" y="146" text-anchor="end">
+    {t['diagram.label.adrenal-gland']}
+  </text>
+  <text class="diagram-small" x="192" y="328" text-anchor="middle">
+    {t['diagram.label.kidney']}
+  </text>
+  <text class="diagram-small" x="264" y="204">
+    {t['diagram.label.aldosterone']}
+  </text>
+  <text class="diagram-small" x={columnX} y="40">
+    {keepsSodiumLines.map((line, index) => (
+      <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    <text class="diagram-small" x="104" y="236" text-anchor="end">
+      {t['diagram.label.renin']}
+    </text>
+    <text class="diagram-small" x={columnX} y="120">
+      {feedbackLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y="232">
+      {usualPressureLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartLabelX} y="324">
+      {t['diagram.label.heart']}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line
+      x1="150"
+      y1="80"
+      x2={adenoma.x - 6}
+      y2={adenoma.y - 10}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x="16" y="30">
+      {adenomaLines.map((line, index) => (
+        <tspan x="16" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="104" y="228" text-anchor="end">
+      {suppressedLines.map((line, index) => (
+        <tspan x="104" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y="120">
+      {morePressureLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y="232">
+      {potassiumLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartLabelX} y="300">
+      {heartLines.map((line, index) => (
+        <tspan x={heartLabelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* In disease the thick aldosterone arrow pulses; without motion it stands still and its width
+     and the labels carry the meaning. */
+  .diagram .praldo-pulse {
+    animation: praldo-pulse 1.6s ease-in-out infinite;
+  }
+
+  .diagram:has(.diagram-pause :checked) .praldo-pulse {
+    animation: none;
+  }
+
+  @keyframes praldo-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+
+    40% {
+      opacity: 1;
+    }
+  }
+</style>

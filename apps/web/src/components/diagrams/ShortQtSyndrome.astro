@@ -1,0 +1,189 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// The wave letters P, QRS and T below are international ECG notation, the same in every locale, so they are not in messages.
+
+/*
+ * An ECG-like trace, not a measured one: there is no millisecond scale and no threshold. One beat
+ * enlarged with the QT interval marked from the start of QRS to the end of T. In the disease state
+ * the QRS stays where it is and the same T wave moves closer to it, so the ST segment almost
+ * disappears, T ends earlier and the QT bracket is shorter; the normal T stays as a dashed outline
+ * for comparison. The T wave keeps the normal shape on purpose: the sources read for the article
+ * describe no T-wave shape in this syndrome. No arrhythmia strip: the caption only speaks of the
+ * shorter QT.
+ */
+const base = 130;
+const qrsStart = 120;
+const qrsEnd = 164;
+// Gap between QRS and the start of T; only this changes between the states.
+const stNormal = 56;
+const stShort = 8;
+const tWidth = 64;
+const tStart = (st: number) => qrsEnd + st;
+const tEnd = (st: number) => tStart(st) + tWidth;
+const tWave = (st: number) => {
+  const x = tStart(st);
+  return `C${x + 14},86 ${x + 44},86 ${x + tWidth},${base}`;
+};
+const beat = (st: number) =>
+  [
+    `M24,${base} L60,${base}`,
+    // P wave
+    `C68,112 86,112 94,${base} L${qrsStart},${base}`,
+    // QRS
+    `L128,140 L142,46 L156,150 L${qrsEnd},${base}`,
+    // ST segment and T wave
+    `L${tStart(st)},${base} ${tWave(st)}`,
+    `L496,${base}`,
+  ].join(' ');
+const ghostT = `M${tStart(stNormal)},${base} ${tWave(stNormal)}`;
+
+// The QT bracket under the beat.
+const bracketY = 172;
+const bracket = (st: number) =>
+  `M${qrsStart},${bracketY - 8} L${qrsStart},${bracketY + 8} M${qrsStart},${bracketY} L${tEnd(st)},${bracketY} M${tEnd(st)},${bracketY - 8} L${tEnd(st)},${bracketY + 8}`;
+const guides = (st: number) =>
+  `M${qrsStart},${base + 8} L${qrsStart},${bracketY - 10} M${tEnd(st)},${base + 4} L${tEnd(st)},${bracketY - 10}`;
+---
+
+<svg
+  viewBox="0 0 520 240"
+  role="img"
+  aria-label={t['diagram.short-qt-syndrome.title']}
+  lang={locale}
+>
+  <!-- Baseline -->
+  <line class="sqt-base" x1="24" y1={base} x2="496" y2={base}></line>
+
+  <!-- The enlarged beat -->
+  <path class="sqt-trace normal-only" d={beat(stNormal)}></path>
+  <path class="sqt-trace disease-only" d={beat(stShort)}></path>
+  <path class="sqt-ghost disease-only" d={ghostT}></path>
+
+  <!-- QT interval: from the start of QRS to the end of T -->
+  <path class="sqt-guide normal-only" d={guides(stNormal)}></path>
+  <path class="sqt-guide disease-only" d={guides(stShort)}></path>
+  <path class="sqt-bracket normal-only" d={bracket(stNormal)}></path>
+  <path class="sqt-bracket disease-only" d={bracket(stShort)}></path>
+
+  <!-- A bright mark runs along the trace, like the sweep of a monitor -->
+  <g class="flow">
+    <path class="sqt-run normal-only" d={beat(stNormal)} pathLength="100"></path>
+    <path class="sqt-run disease-only" d={beat(stShort)} pathLength="100"></path>
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="77" y="104" text-anchor="middle">
+    P
+  </text>
+  <text class="diagram-small" x="142" y="36" text-anchor="middle">
+    QRS
+  </text>
+  <text
+    class="diagram-small normal-only"
+    x={tStart(stNormal) + tWidth / 2}
+    y="78"
+    text-anchor="middle"
+  >
+    T
+  </text>
+  <text
+    class="diagram-small disease-only"
+    x={tStart(stShort) + tWidth / 2}
+    y="78"
+    text-anchor="middle"
+  >
+    T
+  </text>
+  <text
+    class="normal-only"
+    x={(qrsStart + tEnd(stNormal)) / 2}
+    y={bracketY + 26}
+    text-anchor="middle"
+  >
+    {t['diagram.label.qt-interval']}
+  </text>
+  <text
+    class="disease-only"
+    x={(qrsStart + tEnd(stShort)) / 2}
+    y={bracketY + 26}
+    text-anchor="middle"
+  >
+    {t['diagram.label.short-qt-interval']}
+  </text>
+  <text class="diagram-small" x="496" y="232" text-anchor="end">
+    {t['diagram.label.time']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .sqt-base {
+    stroke: var(--color-muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 5;
+  }
+
+  .diagram .sqt-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Where the T wave ends normally: kept as an outline next to the early T wave. */
+  .diagram .sqt-ghost {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+  }
+
+  .diagram .sqt-guide {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+  }
+
+  .diagram .sqt-bracket {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  /* The sweep: a short bright dash along the trace (pathLength is 100). */
+  .diagram .sqt-run {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 5 95;
+    opacity: 0.85;
+    animation: sqt-sweep 3s linear infinite;
+  }
+
+  .diagram:has(.diagram-pause :checked) .sqt-run {
+    animation: none;
+  }
+
+  @keyframes sqt-sweep {
+    from {
+      stroke-dashoffset: 5;
+    }
+
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+</style>

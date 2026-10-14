@@ -1,0 +1,216 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// The leaflet label does not fit the space left of the wall on one line: split it in two after
+// its comma, or at the middle word boundary when a translation has no comma.
+function twoLines(label: string): [string, string] {
+  const comma = label.indexOf(', ');
+  if (comma > 0) return [label.slice(0, comma + 1), label.slice(comma + 2)];
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const swollenLines = twoLines(t['diagram.label.swollen-leaflet-nodules']);
+
+// A cut through the wall of the left heart next to the mitral valve. Blood is on the left, then
+// the three layers of the wall from the inside out: the endocardium (a line on the inner surface,
+// x = 200), the heart muscle (x = 200–300) and the pericardium (x = 300 and the outer layer).
+// Both states show the same wall; only what the caption names changes in acute carditis:
+// a swollen leaflet with nodules along its edge, foci of inflammation in the muscle and a thin
+// layer of fluid in the pericardium. No fused commissures, no stenosis, no enlarged chamber and
+// no numbers: those belong to chronic rheumatic heart disease, a separate diagram.
+const wallTop = 20;
+const wallBottom = 312;
+// The leaflet hangs from the annulus on the wall into the cavity: a quadratic curve.
+const leaflet = 'M200,72 Q150,97 100,152';
+// Points on that curve near its free edge (t = 0.8, 0.9, 1) for the nodules.
+const nodules = [
+  { x: 120, y: 131 },
+  { x: 110, y: 141 },
+  { x: 100, y: 152 },
+];
+// Chordae run from the leaflet edge to the papillary muscle on the wall.
+const chordae = [
+  { x: 100, y: 152 },
+  { x: 120, y: 131 },
+];
+const papillaryTip = { x: 172, y: 252 };
+// Foci of inflammation scattered through the muscle.
+const foci = [
+  { x: 228, y: 58 },
+  { x: 268, y: 116 },
+  { x: 226, y: 176 },
+  { x: 272, y: 222 },
+  { x: 240, y: 286 },
+];
+const outerNormal = 306;
+const outerFluid = 320;
+const column = 340;
+---
+
+<svg
+  viewBox="0 0 520 330"
+  role="img"
+  aria-label={t['diagram.acute-rheumatic-fever.title']}
+  lang={locale}
+>
+  <!-- Blood in the heart chamber next to the wall -->
+  <rect
+    x="0"
+    y={wallTop}
+    width="200"
+    height={wallBottom - wallTop}
+    fill="var(--diagram-arterial-fill)"
+  ></rect>
+
+  <!-- Heart muscle with the papillary muscle -->
+  <rect
+    x="200"
+    y={wallTop}
+    width="100"
+    height={wallBottom - wallTop}
+    fill="var(--diagram-muscle)"
+  ></rect>
+  <path d="M201,226 Q170,236 170,252 Q172,268 201,274 Z" fill="var(--diagram-muscle)"></path>
+
+  <!-- Foci of inflammation in the muscle: only in carditis -->
+  <g class="disease-only" fill="var(--diagram-arterial)">
+    {foci.map((f) => (
+      <ellipse class="arf-focus" cx={f.x} cy={f.y} rx="10" ry="7" />
+    ))}
+  </g>
+
+  <!-- Pericardium: the layer on the heart surface and the outer layer; fluid between them only in
+       carditis -->
+  <rect
+    class="disease-only"
+    x="301"
+    y={wallTop}
+    width={outerFluid - 301}
+    height={wallBottom - wallTop}
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <line x1="300" y1={wallTop} x2="300" y2={wallBottom}></line>
+    <line class="normal-only" x1={outerNormal} y1={wallTop} x2={outerNormal} y2={wallBottom}></line>
+    <line class="disease-only" x1={outerFluid} y1={wallTop} x2={outerFluid} y2={wallBottom}></line>
+  </g>
+
+  <!-- Endocardium on the inner surface of the wall -->
+  <line
+    x1="200"
+    y1={wallTop}
+    x2="200"
+    y2={wallBottom}
+    stroke="var(--color-muted)"
+    stroke-width="3"
+  ></line>
+
+  <!-- Chordae from the leaflet edge to the papillary muscle -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    {chordae.map((c) => (
+      <line x1={c.x} y1={c.y} x2={papillaryTip.x} y2={papillaryTip.y} />
+    ))}
+  </g>
+
+  <!-- Mitral leaflet: thin normally; swollen with nodules along its edge in carditis -->
+  <path
+    class="normal-only"
+    d={leaflet}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="4"
+    stroke-linecap="round"
+  ></path>
+  <g class="disease-only">
+    <path
+      d={leaflet}
+      fill="none"
+      stroke="var(--color-muted)"
+      stroke-width="11"
+      stroke-linecap="round"
+    ></path>
+    {nodules.map((n) => (
+      <circle
+        cx={n.x}
+        cy={n.y}
+        r="6"
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      />
+    ))}
+  </g>
+
+  <!-- Leader lines -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="60" y1="78" x2="145" y2="104"></line>
+    <line x1="188" y1="300" x2="198" y2="300"></line>
+    <line class="normal-only" x1={outerNormal} y1="44" x2={column - 6} y2="44"></line>
+    <line class="disease-only" x1={outerFluid} y1="44" x2={column - 6} y2="44"></line>
+    <line x1="286" y1="146" x2={column - 6} y2="146"></line>
+    <line class="disease-only" x1="312" y1="186" x2={column - 6} y2="186"></line>
+    <line class="disease-only" x1="282" y1="222" x2={column - 6} y2="232"></line>
+  </g>
+
+  <!-- Labels: the valve top left, the endocardium bottom left, the other layers on the right -->
+  <text x="12" y="34">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="12" y="54">
+    {t['diagram.label.thin-leaflet']}
+  </text>
+  <text class="diagram-small disease-only" x="12" y="54">
+    {swollenLines[0]}
+  </text>
+  <text class="diagram-small disease-only" x="12" y="70">
+    {swollenLines[1]}
+  </text>
+  <text x="184" y="305" text-anchor="end">
+    {t['diagram.label.endocardium']}
+  </text>
+  <text x={column} y="49">
+    {t['diagram.label.pericardium']}
+  </text>
+  <text x={column} y="151">
+    {t['diagram.label.heart-muscle']}
+  </text>
+  <text class="diagram-small disease-only" x={column} y="190">
+    {t['diagram.label.effusion']}
+  </text>
+  <text class="diagram-small disease-only" x={column} y="236">
+    {t['diagram.label.inflammation-foci']}
+  </text>
+</svg>
+
+<style is:global>
+  /* Foci of inflammation glow softly; without motion they stay visible at full colour. */
+  .diagram .arf-focus {
+    opacity: 0.6;
+    animation: arf-glow 2.4s ease-in-out infinite;
+  }
+
+  .diagram:has(.diagram-pause :checked) .arf-focus {
+    animation: none;
+  }
+
+  @keyframes arf-glow {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
+  }
+</style>
