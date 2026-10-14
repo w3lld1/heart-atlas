@@ -72,6 +72,11 @@
   fill: currentcolor;
 }
 
+/* The speaker faces the reading direction. */
+.sound .icon:dir(rtl) {
+  transform: scaleX(-1);
+}
+
 .wave {
   fill: none;
   stroke: currentcolor;
@@ -123,7 +128,9 @@
   flex-wrap: wrap;
   justify-self: start;
   max-inline-size: 100%;
-  border: 1px solid var(--color-border);
+
+  /* Muted, not the border colour: a control outline needs 3:1 against the page. */
+  border: 1px solid var(--color-muted);
 
   /* Half a row: a second row on a narrow screen keeps its corners instead of being clipped. */
   border-radius: 1.125rem;
@@ -161,6 +168,12 @@
     outline: 2px solid Highlight;
     outline-offset: -4px;
   }
+
+  /* The focused radio is the checked one, so focus needs its own, heavier outline. */
+  .segments label:has(:focus-visible) {
+    outline: 4px double Highlight;
+    outline-offset: -6px;
+  }
 }
 
 /* The long list of states: a native select, grouped, full width on a phone. */
@@ -174,7 +187,7 @@
   inline-size: min(100%, 28rem);
   padding-block: 0.5rem;
   padding-inline: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-muted);
   border-radius: 0.5rem;
   background: var(--color-bg);
   color: var(--color-text);

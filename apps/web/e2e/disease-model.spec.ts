@@ -198,13 +198,13 @@ test.describe('disease signs on the 3D model', () => {
     await page.goto('en/heart-clock/');
     // The clock island must have hydrated, or React never sees the choice.
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
+    const condition = page.getByRole('combobox', { name: en['heartClock.condition'] });
+    await condition.selectOption('stemi');
     const caption = page.getByText(en['viewer.disease.coronary-heart-disease'], { exact: true });
     await expect(caption).toHaveCount(0);
     await loadModel(page);
     await expect(caption).toBeVisible(LOAD);
-    // A click event without scrolling the page up to the clock and back.
-    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).dispatchEvent('click');
+    await condition.selectOption('normal');
     await expect(caption).toHaveCount(0, LOAD);
   });
 });
