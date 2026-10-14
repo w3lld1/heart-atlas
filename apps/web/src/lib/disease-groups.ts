@@ -116,6 +116,7 @@ export const diseaseGroups = {
     'mesenteric-ischemia',
     'peripheral-artery-disease',
     'popliteal-artery-aneurysm',
+    'raynaud-phenomenon',
     'renal-artery-stenosis',
     'subclavian-artery-stenosis',
     'takayasu-arteritis',
