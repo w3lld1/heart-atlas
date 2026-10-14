@@ -19,11 +19,15 @@ reportUrl.searchParams.set('template', 'content-error.yml');
 reportUrl.searchParams.set('page', String(pageUrl));
 ---
 
-{review === null && (
+{review === null ? (
   <div class="review-notice" role="note" data-pagefind-ignore>
     <p>{t['review.notice']}</p>
     <a href={reportUrl.href}>{t['review.report']}</a>
   </div>
+) : (
+  <p class="review-report" data-pagefind-ignore>
+    <a href={reportUrl.href}>{t['review.report']}</a>
+  </p>
 )}
 
 <style>
@@ -43,5 +47,10 @@ reportUrl.searchParams.set('page', String(pageUrl));
 
   .review-notice p {
     margin: 0;
+  }
+
+  /* A reviewed article keeps the way to report an error. */
+  .review-report {
+    margin-block: 1rem;
   }
 </style>

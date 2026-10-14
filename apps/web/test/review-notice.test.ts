@@ -24,11 +24,13 @@ describe('ReviewNotice', () => {
     expect(await render({ locale: 'ru', review: null })).toContain('Врачом не проверено.');
   });
 
-  it('renders nothing once a physician has reviewed the article', async () => {
+  it('keeps only the error report link once a physician has reviewed the article', async () => {
     const html = await render({
       locale: 'en',
       review: { reviewer: 'Fixture Reviewer', date: new Date('2026-10-11') },
     });
     expect(html).not.toContain('review-notice');
+    expect(html).not.toContain('Not reviewed');
+    expect(html).toContain('template=content-error.yml');
   });
 });

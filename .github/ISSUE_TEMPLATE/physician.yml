@@ -35,11 +35,11 @@ body:
   - type: dropdown
     id: credit
     attributes:
-      label: Your name on the site / Ваше имя на сайте
-      description: A reviewed article can show the reviewer's name / У проверенной статьи можно указать имя рецензента
+      label: Your name / Ваше имя
+      description: A review is recorded in the article's public source file, with your name or without it / Проверка записывается в публичный файл статьи, с вашим именем или без него
       options:
-        - Show my name / Указывать моё имя
-        - Do not show my name / Не указывать имя
+        - Record my name / Указывать моё имя
+        - Do not record my name / Не указывать имя
     validations:
       required: true
   - type: textarea
