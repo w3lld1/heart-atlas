@@ -32,7 +32,8 @@ const lines = (key: MessageKey) => wrap(t[key], 20);
 
 // A coronary artery cut lengthwise: upper wall (y 70–104), its inner lining (y 104–110), the lumen
 // with blood (y 110–180), the lower inner lining (y 180–186) and the lower wall (y 186–220). The
-// inner lining is drawn as a pale band so that its state is the point of the picture.
+// inner lining is drawn as a pale band (see the style below for the dark theme) so that its state
+// is the point of the picture.
 // Normal: both linings are smooth and whole, there is no plaque or clot, blood flows freely.
 // Disease: a stretch of the upper lining is torn into fragments (wall damage); in the lower wall a
 // plaque bulges into the lumen and a clot sits on it, so blood squeezes past in a thin stream.
@@ -107,9 +108,9 @@ const plaqueLabelY = 258;
     fill="var(--diagram-muscle)"
   ></rect>
 
-  <!-- Inner lining. Normal: whole and smooth along both walls. The outline keeps the pale band
-       visible on the page background in both themes. -->
-  <g fill="var(--color-bg)" stroke="var(--color-muted)" stroke-width="1">
+  <!-- Inner lining. Normal: whole and smooth along both walls. The fill is a pale band in both
+       themes; the outline keeps it visible on the page background. -->
+  <g class="smk-lining" stroke="var(--color-muted)" stroke-width="1">
     <rect class="normal-only" x="0" y={liningTop} width="400" height={lining}></rect>
     <rect class="normal-only" x="0" y={liningBottom - lining} width="400" height={lining}></rect>
     <!-- Disease: the upper lining is torn on one stretch; the lower one is broken by the plaque -->
@@ -233,3 +234,17 @@ const plaqueLabelY = 258;
     </text>
   </g>
 </svg>
+
+<style is:global>
+  /* The pale inner lining: the page background in the light theme, the light muted colour in the
+     dark one, where the background would turn the band dark. */
+  .diagram .smk-lining {
+    fill: var(--color-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .diagram .smk-lining {
+      fill: var(--color-muted);
+    }
+  }
+</style>

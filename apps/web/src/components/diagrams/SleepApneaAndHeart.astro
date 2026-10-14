@@ -30,17 +30,21 @@ function wrap(label: string, max: number): string[] {
 const lineHeight = 15;
 const lines = (key: MessageKey, max: number) => wrap(t[key], max);
 
-// A sleeping person in profile on the left (closed eye), with the airway drawn inside: the nose,
+// A sleeping person in profile on the left, with the airway drawn inside: the nose,
 // the throat (pharynx), the windpipe and the two lungs in the chest. The heart is on the right,
 // with a bar for the oxygen in the blood above it. Normal: the throat is open, air flows in, the
 // bar is full and the heart beats at its usual rhythm. Obstructive sleep apnoea: the soft walls of
 // the throat bulge in and close it, so the air stops at the closure while the lungs keep moving
 // (the efforts to breathe in continue); the bar is low (less oxygen in the blood), the pause ends
-// with a brief awakening, and the heart beats more slowly (the pulse may slow). Two states only:
+// with a brief awakening (the eye is closed normally and open in apnoea, with a leader from the
+// label), and the heart beats more slowly (the pulse may slow). Two states only:
 // no CPAP mask, no numbers, no enlarged chambers and no fibrillation waves.
 const head = { cx: 110, cy: 88, rx: 56, ry: 62 };
 const nose = 'M162,70 L184,98 L164,104';
 const eye = 'M128,70 q9,7 18,0';
+// Disease: the eye opens for the brief awakening.
+const openEye = 'M128,71 q9,-9 18,0 q-9,9 -18,0 Z';
+const pupil = { cx: 137, cy: 71 };
 const torso = 'M92,186 C44,190 30,212 30,240 V370 H250 V240 C250,212 200,190 152,186';
 
 // The airway: a channel 20 wide (x 118–138) from the nose down to the windpipe.
@@ -69,6 +73,14 @@ const leaderStart = { x: throatX - 4, y: throatY - 4 };
 const leaderEnd = { x: 140, y: 138 };
 
 const awakeningLines = lines('diagram.label.brief-awakening', 22);
+const awakeningX = 176;
+const awakeningY = 30;
+// The leader runs from just below the label's last line to the open eye.
+const awakeningLeaderStart = {
+  x: awakeningX + 2,
+  y: awakeningY + (awakeningLines.length - 1) * lineHeight + 6,
+};
+const awakeningLeaderEnd = { x: 150, y: 68 };
 const effortLines = lines('diagram.label.breathing-efforts-continue', 30);
 const lungsLabelY = 364;
 const effortY = 394;
@@ -109,7 +121,7 @@ const slowLines = lines('diagram.label.pulse-may-slow', 24);
     </marker>
   </defs>
 
-  <!-- The sleeping person: head with a closed eye, neck and chest -->
+  <!-- The sleeping person: head, neck and chest -->
   <g fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linejoin="round">
     <ellipse cx={head.cx} cy={head.cy} rx={head.rx} ry={head.ry}></ellipse>
     <path d={nose}></path>
@@ -117,13 +129,25 @@ const slowLines = lines('diagram.label.pulse-may-slow', 24);
     <line x1="92" y1="146" x2="92" y2="186"></line>
     <line x1="152" y1="129" x2="152" y2="186"></line>
   </g>
+  <!-- The eye: closed in sleep normally, open for the brief awakening in apnoea -->
   <path
+    class="normal-only"
     d={eye}
     fill="none"
     stroke="var(--color-text)"
     stroke-width="2"
     stroke-linecap="round"
   ></path>
+  <g class="disease-only">
+    <path
+      d={openEye}
+      fill="var(--color-bg)"
+      stroke="var(--color-text)"
+      stroke-width="2"
+      stroke-linejoin="round"
+    ></path>
+    <circle cx={pupil.cx} cy={pupil.cy} r="3" fill="var(--color-text)"></circle>
+  </g>
 
   <!-- Lungs: they keep moving in both states, as the efforts to breathe continue -->
   <g class="osa-breathe">
@@ -271,9 +295,17 @@ const slowLines = lines('diagram.label.pulse-may-slow', 24);
         </tspan>
       ))}
     </text>
-    <text class="diagram-small" x="176" y="30">
+    <line
+      x1={awakeningLeaderStart.x}
+      y1={awakeningLeaderStart.y}
+      x2={awakeningLeaderEnd.x}
+      y2={awakeningLeaderEnd.y}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={awakeningX} y={awakeningY}>
       {awakeningLines.map((line, index) => (
-        <tspan x="176" dy={index === 0 ? 0 : lineHeight}>
+        <tspan x={awakeningX} dy={index === 0 ? 0 : lineHeight}>
           {line}
         </tspan>
       ))}

@@ -54,7 +54,11 @@ const fat = [
 // The three risk factors: boxes in a column, centred on `y`.
 const box = { x: 232, width: 160, height: 42 };
 const factors: { y: number; normal: MessageKey; disease: MessageKey }[] = [
-  { y: 110, normal: 'diagram.label.blood-pressure-normal', disease: 'diagram.label.high-pressure' },
+  {
+    y: 110,
+    normal: 'diagram.label.blood-pressure-normal',
+    disease: 'diagram.label.blood-pressure-raised',
+  },
   {
     y: 190,
     normal: 'diagram.label.blood-lipids-normal',
