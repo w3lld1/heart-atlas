@@ -1,0 +1,196 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-imh-lumen`;
+// Long labels do not fit the label column on one line: split them in two at the word boundary
+// that gives the shortest longer line, never leaving a one- or two-letter word (a preposition) at
+// the end of the first line.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  let bestScore = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const first = words.slice(0, i).join(' ');
+    const second = words.slice(i).join(' ');
+    const score =
+      Math.max(first.length, second.length) + ((words[i - 1]?.length ?? 0) <= 2 ? 100 : 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = [first, second];
+    }
+  }
+  return best;
+}
+const hematomaLines = twoLines(t['diagram.label.wall-hematoma']);
+const noFlapLines = twoLines(t['diagram.label.no-intimal-flap']);
+const lumenLines = twoLines(t['diagram.label.lumen-nearly-normal']);
+// The aorta cut across, centred at (130, 140): adventitia (r 100-110), media (r 72-100), the
+// intima lining it (a line at r 70.5) and the round lumen (r 69). The lumen is the same in both
+// states.
+const cx = 130;
+const cy = 140;
+// Disease: clotted blood inside the media forms a crescent, thickest at the top and tapering to
+// nothing at the bottom (circle A centred at (130, 126), r 94, minus circle B, the normal centre,
+// r 80: the two touch at the bottom). The media and adventitia outside it are pushed outward
+// (centre (130, 132), r 108 and 118, touching the normal outline at the bottom); the intima and
+// the lumen stay as they are.
+const bulgeCy = 132;
+const hematoma =
+  'M36,126 A94,94 0 1,0 224,126 A94,94 0 1,0 36,126 Z M50,140 A80,80 0 1,0 210,140 A80,80 0 1,0 50,140 Z';
+// Blood moving through the lumen towards the viewer: dots that pulse in place.
+const dots = [
+  { x: 130, y: 140, delay: 0 },
+  { x: 102, y: 117, delay: -0.4 },
+  { x: 158, y: 117, delay: -0.8 },
+  { x: 102, y: 163, delay: -1.2 },
+  { x: 158, y: 163, delay: -0.6 },
+];
+// Label column on the right; each label has a leader line to the point it names.
+const labelX = 254;
+const leaderX = 250;
+---
+
+<svg
+  viewBox="0 0 416 268"
+  role="img"
+  aria-label={t['diagram.intramural-hematoma.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <circle cx={cx} cy={cy} r="69"></circle>
+    </clipPath>
+  </defs>
+
+  <!-- Adventitia, the outer layer; in disease it is pushed outward over the haematoma -->
+  <g
+    fill="var(--diagram-muscle)"
+    fill-opacity="0.45"
+    stroke="var(--diagram-muscle)"
+    stroke-width="1.5"
+  >
+    <circle class="normal-only" cx={cx} cy={cy} r="110"></circle>
+    <circle class="disease-only" cx={cx} cy={bulgeCy} r="118"></circle>
+  </g>
+
+  <!-- Media -->
+  <circle cx={cx} cy={cy} r="100" fill="var(--diagram-muscle)"></circle>
+  <circle class="disease-only" cx={cx} cy={bulgeCy} r="108" fill="var(--diagram-muscle)"></circle>
+
+  <!-- Disease: the haematoma, clotted blood inside the media with no flow through it -->
+  <path
+    class="disease-only"
+    d={hematoma}
+    fill="var(--diagram-arterial)"
+    fill-opacity="0.85"
+    fill-rule="evenodd"
+    stroke="var(--diagram-arterial)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- The lumen and the intima: whole and round in both states, no tear and no flap -->
+  <circle cx={cx} cy={cy} r="69" fill="var(--diagram-arterial-fill)"></circle>
+  <circle cx={cx} cy={cy} r="70.5" fill="none" stroke="var(--color-text)" stroke-width="3"></circle>
+
+  <!-- Moving blood in the lumen only -->
+  <g class="flow" fill="var(--diagram-arterial)" clip-path={`url(#${clipId})`}>
+    {dots.map(({ x, y, delay }) => (
+      <circle class="imh-pulse" cx={x} cy={y} r="6" style={`animation-delay: ${delay}s`} />
+    ))}
+  </g>
+
+  <!-- Labels -->
+  <text x="8" y="262">
+    {t['diagram.label.aorta']}
+  </text>
+
+  <g class="normal-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1={leaderX} y1="76" x2="221" y2="87.5"></line>
+      <line x1={leaderX} y1="121" x2="215" y2="125"></line>
+      <line x1={leaderX} y1="166" x2="198" y2="158"></line>
+      <line x1={leaderX} y1="211" x2="152" y2="180"></line>
+    </g>
+    <g fill="var(--color-muted)">
+      <circle cx="221" cy="87.5" r="2.5"></circle>
+      <circle cx="215" cy="125" r="2.5"></circle>
+      <circle cx="198" cy="158" r="2.5"></circle>
+      <circle cx="152" cy="180" r="2.5"></circle>
+    </g>
+    <text class="diagram-small" x={labelX} y="80">
+      {t['diagram.label.adventitia']}
+    </text>
+    <text class="diagram-small" x={labelX} y="125">
+      {t['diagram.label.media']}
+    </text>
+    <text class="diagram-small" x={labelX} y="170">
+      {t['diagram.label.intima']}
+    </text>
+    <text x={labelX} y="216">
+      {t['diagram.label.aortic-lumen']}
+    </text>
+  </g>
+
+  <g class="disease-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1={leaderX} y1="48" x2="175" y2="62"></line>
+      <line x1={leaderX} y1="136" x2="201" y2="140"></line>
+      <line x1={leaderX} y1="207" x2="152" y2="180"></line>
+    </g>
+    <g fill="var(--color-muted)">
+      <circle cx="175" cy="62" r="2.5"></circle>
+      <circle cx="201" cy="140" r="2.5"></circle>
+      <circle cx="152" cy="180" r="2.5"></circle>
+    </g>
+    <text x={labelX} y="44">
+      <tspan x={labelX}>{hematomaLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {hematomaLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x={labelX} y="83">
+      {t['diagram.label.no-blood-flow']}
+    </text>
+    <text x={labelX} y="133">
+      <tspan x={labelX}>{noFlapLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {noFlapLines[1]}
+      </tspan>
+    </text>
+    <text x={labelX} y="204">
+      <tspan x={labelX}>{lumenLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {lumenLines[1]}
+      </tspan>
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .imh-pulse {
+    animation: imh-pulse 1.8s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @keyframes imh-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scale(0.6);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

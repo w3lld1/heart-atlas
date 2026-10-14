@@ -111,6 +111,7 @@ export const diseaseGroups = {
     'carotid-artery-stenosis',
     'fibromuscular-dysplasia',
     'giant-cell-arteritis',
+    'intramural-hematoma',
     'loeys-dietz-syndrome',
     'marfan-syndrome',
     'mesenteric-ischemia',
