@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is pre-eclampsia?
+    options:
+      - text: A heart muscle disease that can be linked to pregnancy
+      - text: Raised blood pressure plus protein in the urine or organ damage
+        correct: true
+      - text: Narrowing of a kidney artery that raises a pregnant woman's blood pressure
+    explanation: In pre-eclampsia, raised blood pressure is joined by protein in the urine or by signs of damage to the mother's other organs or to the placenta.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: What is gestational hypertension?
+    options:
+      - text: Blood pressure that a woman already had raised before pregnancy
+      - text: Blood pressure that is high at the doctor's but stays normal at home
+      - text: Blood pressure first raised in the second half of pregnancy
+        correct: true
+    explanation: Gestational hypertension is blood pressure that rises for the first time in the second half of pregnancy. If blood pressure was already raised before pregnancy or in its first half, it is chronic hypertension.
+    cite: [1, 2]
+  - level: patient
+    prompt: Why is a pregnant woman's blood pressure measured at every visit to the doctor?
+    options:
+      - text: Pre-eclampsia may give no symptoms for long, then, untreated, become eclampsia
+        correct: true
+      - text: It is how the doctor checks the amount of amniotic fluid and how the baby grows
+      - text: Raised blood pressure in pregnancy at once causes severe pain in the abdomen
+    explanation: Pre-eclampsia may cause no symptoms for a long time and, without treatment, suddenly progress to eclampsia. That is why blood pressure is measured at every visit to the doctor. The baby's growth, the placenta and the amniotic fluid are checked with ultrasound.
+    cite: [1, 4, 6]
+  - level: patient
+    prompt: According to the article, what is true of pre-eclampsia and giving birth?
+    options:
+      - text: Giving birth has no effect on it, and afterwards it stays just as it was
+      - text: It goes away on its own well before the birth, so it needs no treatment
+      - text: Only giving birth cures it, though it can also appear after the birth
+        correct: true
+    explanation: Pre-eclampsia can be cured only by giving birth, although it sometimes appears after the birth.
+    cite: [1, 4]
+  - level: student
+    prompt: According to the Russian Ministry of Health guideline, what is required for a diagnosis of HELLP syndrome?
+    options:
+      - text: Arterial hypertension
+      - text: Thrombocytopenia
+        correct: true
+      - text: Proteinuria
+    explanation: The Russian Ministry of Health guideline makes thrombocytopenia required for the diagnosis of HELLP syndrome, whereas hypertension is not required. According to MSD, some women with HELLP syndrome have neither hypertension nor proteinuria.
+    cite: [1, 4]
+  - level: student
+    prompt: In the Russian Ministry of Health two-stage theory, what starts pre-eclampsia?
+    options:
+      - text: Shallow trophoblast invasion
+        correct: true
+      - text: Primary inflammation of the renal glomeruli
+      - text: A congenital defect of the heart valves
+    explanation: In the two-stage theory, shallow trophoblast invasion leads to inadequate remodelling of the spiral arteries, followed by maternal endothelial dysfunction and an imbalance between angiogenic and antiangiogenic factors.
+    cite: [1]

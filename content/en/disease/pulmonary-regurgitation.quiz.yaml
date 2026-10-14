@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: The pulmonary valve does not close completely. What happens in diastole?
+    options:
+      - text: Blood passes from the left ventricle into the right through a hole in the septum
+      - text: Some blood flows back from the pulmonary artery into the right ventricle
+        correct: true
+      - text: The valve stays shut, so blood cannot pass from the right ventricle into the pulmonary artery
+    explanation: In pulmonary regurgitation the pulmonary valve does not close completely, and during diastole some blood flows back from the pulmonary artery into the right ventricle.
+    cite: [4, 5]
+  - level: patient
+    prompt: How can pulmonary hypertension lead to pulmonary regurgitation?
+    options:
+      - text: High pressure squeezes the right atrium, so it stops filling with blood
+      - text: High pressure glues the leaflets together, so the valve stops opening
+      - text: High pressure strains the valve, and it starts to let blood leak back
+        correct: true
+    explanation: 'High pressure in the pulmonary arteries strains the valve, and it starts to let blood leak back.'
+    cite: [4, 5]
+  - level: patient
+    prompt: Which test confirms pulmonary regurgitation?
+    options:
+      - text: A heart ultrasound (echocardiography)
+        correct: true
+      - text: A urine test for protein and for sugar
+      - text: A skin allergy test done on the forearm
+    explanation: It is confirmed with a heart ultrasound (echocardiography), which shows the leaking valve and how much blood flows back, and this is used to judge its severity.
+    cite: [5]
+  - level: patient
+    prompt: How can the pulmonary valve be replaced?
+    options:
+      - text: With a laser applied to the skin over the heart through a special cooling gel
+      - text: With tablets that make the valve slowly grow new leaflets to take the place of the old ones
+      - text: By open surgery or through a catheter passed through a large vein
+        correct: true
+    explanation: The valve is replaced in one of two ways, by open surgery or through a catheter passed through a large vein, usually the femoral vein.
+    cite: [4, 8]
+  - level: student
+    prompt: How does the murmur of pulmonary regurgitation usually differ from that of aortic regurgitation?
+    options:
+      - text: It gets louder on inspiration
+        correct: true
+      - text: It begins at the same time as the first heart sound
+      - text: It becomes systolic when the breath is held
+    explanation: The murmur of pulmonary regurgitation resembles the murmur of aortic regurgitation, but it usually gets louder on inspiration.
+    cite: [4]
+  - level: student
+    prompt: Which complication can right ventricular dilation cause in pulmonary regurgitation?
+    options:
+      - text: Significant mitral stenosis, which narrows the path from the left atrium into the left ventricle
+      - text: Significant tricuspid regurgitation, which dilates the RV further
+        correct: true
+      - text: Aortic valve calcification, which makes the right ventricle shrink in size
+    explanation: Dilation of the right ventricle can cause significant tricuspid regurgitation, which dilates it further.
+    cite: [1]

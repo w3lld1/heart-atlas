@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is cardiotoxicity?
+    options:
+      - text: A tumour that grows in the heart muscle from the very start
+      - text: Poisoning of the heart by spoiled food during a hospital stay
+      - text: Heart and blood vessel complications of cancer treatment
+        correct: true
+    explanation: Some cancer treatments can increase the risk of heart and blood vessel problems; these complications are called cardiotoxicity, or cardiovascular toxicity.
+    cite: [1]
+  - level: patient
+    prompt: When can valve disease appear after chest radiotherapy?
+    options:
+      - text: Months to years after treatment
+        correct: true
+      - text: During the radiotherapy session itself
+      - text: Within the first day after a session
+    explanation: The late effects of chest radiotherapy — coronary heart disease, valve disease and heart failure — can appear months to years later.
+    cite: [5]
+  - level: patient
+    prompt: Why is the heart checked during cancer treatment even if a person feels well?
+    options:
+      - text: The heart check is needed to find out the blood group
+      - text: Heart weakening may cause no symptoms
+        correct: true
+      - text: Reading glasses cannot be chosen without such a check
+    explanation: Heart weakening may cause no symptoms, and it is important to find signs of cardiotoxicity early, before they turn into a serious complication.
+    cite: [1, 2]
+  - level: patient
+    prompt: Why may a heart ultrasound be done before cancer treatment starts?
+    options:
+      - text: To measure how fast the tumour is growing inside the body
+      - text: To warm up the heart muscle before the very first treatment
+      - text: So that results during treatment can be compared with it
+        correct: true
+    explanation: If cancer treatment may harm the heart, baseline tests may be done before it starts, for example a heart ultrasound (echocardiography); it shows how well the heart is working, and results during treatment are later compared with it.
+    cite: [1]
+  - level: student
+    prompt: How does the ESC divide cancer therapy-related cardiac dysfunction?
+    options:
+      - text: Into morning and evening types by time of onset
+      - text: Into symptomatic and asymptomatic
+        correct: true
+      - text: Into right-sided and left-sided by the side of the heart
+    explanation: The ESC divides cardiac dysfunction into symptomatic, heart failure from mild to very severe, and asymptomatic, which is mild, moderate or severe.
+    cite: [1]
+  - level: student
+    prompt: When is cardiac MRI recommended in assessing the heart?
+    options:
+      - text: If echocardiography is non-diagnostic
+        correct: true
+      - text: Instead of echocardiography as the first-line method
+      - text: To monitor the heart rhythm during radiotherapy sessions
+    explanation: Echocardiography is the first-line method; GLS is recommended to detect early, asymptomatic LV dysfunction, and cardiac MRI if echocardiography is non-diagnostic.
+    cite: [1, 2]
