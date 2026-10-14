@@ -1,0 +1,181 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// The left heart only: the left atrium on top, the left ventricle below, and the blood that fills
+// the ventricle from the atrium. Normal: a ventricle wall of usual thickness, an atrium of usual
+// size and a wide stream of filling. Hypertensive heart: the ventricle wall thickened evenly all
+// around (concentric) with a cavity that is not larger, an enlarged atrium and a thinner, slower
+// stream, because the stiff ventricle fills less easily. No numbers, no thick septum alone (that
+// is hypertrophic cardiomyopathy), no coronary arteries, no fibrillation, no dilated ventricle.
+const cx = 170;
+
+// A ventricle outline: a rounded top, straight sides down to `mid`, then a curve to the apex.
+function ventricle(halfWidth: number, top: number, mid: number, apex: number): string {
+  const left = cx - halfWidth;
+  const right = cx + halfWidth;
+  return [
+    `M${left},${top + 14}`,
+    `Q${left},${top} ${left + 14},${top}`,
+    `L${right - 14},${top}`,
+    `Q${right},${top} ${right},${top + 14}`,
+    `L${right},${mid}`,
+    `Q${right},${apex - 8} ${cx},${apex}`,
+    `Q${left},${apex - 8} ${left},${mid}`,
+    'Z',
+  ].join(' ');
+}
+
+// Callouts sit in the free column on the right. Each leader starts within a few pixels of the
+// first line of its label and ends on the part it names.
+const labelX = 292;
+// Right edge of the chamber names, just left of the widest (disease) ventricle wall.
+const nameX = 84;
+const callout = (key: MessageKey, y: number) => ({ lines: lines(key, 22), y, leaderY: y - 4 });
+
+const states = [
+  {
+    state: 'normal-only',
+    wall: ventricle(62, 140, 230, 318),
+    cavity: ventricle(50, 152, 230, 304),
+    wallRight: cx + 62,
+    atrium: { cy: 110, rx: 50, ry: 32 },
+    // The mitral opening: a gap through the top wall from the atrium into the cavity.
+    opening: { top: 136, bottom: 156 },
+    flowWidth: 6,
+    flowClass: 'dash-flow',
+    atriumLabel: callout('diagram.label.la-usual-size', 104),
+    flowLabel: callout('diagram.label.lv-fills-easily', 182),
+    wallLabel: callout('diagram.label.normal-thickness', 262),
+  },
+  {
+    state: 'disease-only',
+    wall: ventricle(80, 128, 230, 328),
+    cavity: ventricle(48, 158, 230, 298),
+    wallRight: cx + 80,
+    atrium: { cy: 96, rx: 68, ry: 46 },
+    opening: { top: 136, bottom: 162 },
+    flowWidth: 3,
+    flowClass: 'dash-flow hhd-slow',
+    atriumLabel: callout('diagram.label.la-enlarged-contracts-harder', 82),
+    flowLabel: callout('diagram.label.stiff-lv-fills-less-easily', 182),
+    wallLabel: callout('diagram.label.lv-wall-thickened-all-around', 262),
+  },
+];
+
+// Filling: from the middle of the atrium down into the ventricle cavity.
+const flow = `M${cx},104 L${cx},210`;
+---
+
+<svg
+  viewBox="0 0 520 340"
+  role="img"
+  aria-label={t['diagram.hypertensive-heart-disease.title']}
+  lang={locale}
+>
+  {states.map(({ state, wall, cavity, atrium, opening, flowWidth, flowClass }) => (
+    <g class={state}>
+      <!-- Left ventricle: muscle wall with the cavity on top of it -->
+      <path
+        d={wall}
+        fill="var(--diagram-muscle)"
+        stroke="var(--color-muted)"
+        stroke-width="1"
+      ></path>
+      <path
+        d={cavity}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></path>
+      <rect
+        x={cx - 14}
+        y={opening.top}
+        width="28"
+        height={opening.bottom - opening.top}
+        fill="var(--diagram-arterial-fill)"
+      ></rect>
+      <!-- Left atrium, drawn over the top of the ventricle and the opening -->
+      <ellipse
+        cx={cx}
+        cy={atrium.cy}
+        rx={atrium.rx}
+        ry={atrium.ry}
+        fill="var(--diagram-arterial-fill)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      ></ellipse>
+      <!-- Blood filling the ventricle: wide normally, thin and slower into the stiff ventricle -->
+      <path
+        class={flowClass}
+        d={flow}
+        stroke="var(--diagram-arterial)"
+        stroke-width={flowWidth}
+      ></path>
+    </g>
+  ))}
+
+  <!-- Chamber names, shared by both states: in the free column left of the chambers, so that
+       they cover neither the stream nor the walls -->
+  <text x={nameX} y="102" text-anchor="end">
+    {t['diagram.label.la']}
+  </text>
+  <text x={nameX} y="246" text-anchor="end">
+    {t['diagram.label.lv']}
+  </text>
+
+  {states.map(({ state, atrium, wallRight, atriumLabel, flowLabel, wallLabel }) => (
+    <g class={state}>
+      <g stroke="var(--color-text)" stroke-width="1.5">
+        <line x1={labelX - 6} y1={atriumLabel.leaderY} x2={cx + atrium.rx} y2={atrium.cy}></line>
+        <line x1={labelX - 6} y1={flowLabel.leaderY} x2={cx + 4} y2="196"></line>
+        <line x1={labelX - 6} y1={wallLabel.leaderY} x2={wallRight - 6} y2="250"></line>
+      </g>
+      {[atriumLabel, flowLabel, wallLabel].map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* The filling stream moves; into the stiff ventricle it is thinner and slower. Without motion
+     the dashes stand still: the stream's width, the wall thickness, the atrium's size and the
+     labels carry the difference. */
+  .diagram .hhd-slow {
+    animation-duration: 2.8s;
+  }
+</style>

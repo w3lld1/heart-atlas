@@ -45,6 +45,7 @@
 | esc | guideline | 2022 ESC Guidelines for the management of patients with ventricular arrhythmias and the prevention of sudden cardiac death | 2022 | [10.1093/eurheartj/ehac262](https://doi.org/10.1093/eurheartj/ehac262) | Только официальный набор слайдов (рекомендации по ER) |
 | minzdrav-rf | guideline | Желудочковые нарушения ритма сердца. Внезапная сердечная смерть (ID 569_2) | 2025 | [10.15829/1560-4071-2025-6670](https://doi.org/10.15829/1560-4071-2025-6670) | Классификация, экстренные состояния |
 | msd-manuals | reference | Early Repolarization Syndrome; Athlete's Heart; Overview of Channelopathies | 2026 | msdmanuals.com | Целиком |
+| statpearls | reference | ST Segment | 2023 | PMID 29083566 | Только аннотация в PubMed |
 
 Паттерн и синдром разделяем в каждом разделе. Признаки высокого риска — со ссылкой на MSD. Препараты — только как «лекарственное лечение», без названий. Экстренно: обморок без предвестников, остановка сердца — «103 или 112», реанимация.
 
@@ -58,7 +59,7 @@
 | minzdrav-rf | guideline | Брадиаритмии и нарушения проводимости (ID 160_2) | 2025 | [10.15829/1560-4071-2025-6669](https://doi.org/10.15829/1560-4071-2025-6669) | Фрагменты об обратимых причинах |
 | msd-manuals | reference | Hypothyroidism (professional и consumer) | 2026 | msdmanuals.com | Целиком (английский текст) |
 
-Экстренно: микседематозная кома по MSD; спутанность, сонливость, переохлаждение, очень редкий пульс — «103 или 112».
+Экстренно: микседематозная кома по MSD — только признаки, которые MSD называет; при редком пульсе — ссылка на статью о синдроме слабости синусового узла. «103 или 112».
 
 ### 3. Гипертоническое сердце (`hypertensive-heart-disease`)
 
@@ -68,7 +69,7 @@
 | minzdrav-rf | guideline | Хроническая сердечная недостаточность (ID 156_2) | 2024 | [10.15829/1560-4071-2024-6162](https://doi.org/10.15829/1560-4071-2024-6162) | Разделы 1.2, 1.6 |
 | esc | guideline | 2026 ESC Guidelines for the management of heart failure | 2026 | [10.1093/eurheartj/ehag100](https://doi.org/10.1093/eurheartj/ehag100) | Только официальный набор слайдов |
 | esc | guideline | 2024 ESC Guidelines for the management of elevated blood pressure and hypertension | 2024 | [10.1093/eurheartj/ehae178](https://doi.org/10.1093/eurheartj/ehae178) | Только «Essential Messages» |
-| msd-manuals | reference | Hypertension; Heart Failure; Atrial Fibrillation | 2026 | msdmanuals.com | Целиком |
+| msd-manuals | reference | Hypertension (professional) и High Blood Pressure (consumer); Heart Failure | 2025–2026 | msdmanuals.com | Целиком |
 
 Критерии ГЛЖ (ЭКГ, ЭхоКГ) и диастолические пороги — только для студента, каждый со своим источником, без смешивания наборов Минздрава и ESC. Категории фракции выброса — по Минздраву с оговоркой, что ESC 2026 их изменил. Пороги давления США из MSD не используем. Экстренно: признаки острой сердечной недостаточности, боль в груди — «103 или 112»; гипертонический криз — ссылкой на статью.
 
