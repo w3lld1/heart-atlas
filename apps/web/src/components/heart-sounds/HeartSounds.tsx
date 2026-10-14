@@ -7,12 +7,9 @@ import {
   type Tone,
 } from './auscultation.ts';
 import type { HeartSoundsPlayer } from './player.ts';
+import type { HeartSoundsMessages } from './messages.ts';
 import { playerClock } from './player-clock.ts';
 import styles from './HeartSounds.module.css';
-
-import type { HeartSoundsMessages } from './messages.ts';
-
-export type { HeartSoundsMessages };
 
 export interface HeartSoundsProps {
   messages: HeartSoundsMessages;

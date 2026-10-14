@@ -35,8 +35,6 @@ import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts'
 import type { HeartClockMessages } from './messages.ts';
 import styles from './HeartClockDemo.module.css';
 
-export type { HeartClockMessages };
-
 export interface HeartClockDemoProps {
   /** Locale code from the registry, for number formatting. */
   locale: string;
