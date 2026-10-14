@@ -80,8 +80,8 @@ export function drawWiggers(
   const pressureY = (p: number) =>
     panels.pressure.top + panels.pressure.height * (1 - p / maxPressure);
   const volumeY = (v: number) => panels.volume.top + panels.volume.height * (1 - v / 100);
-  // −0.8 mV (deep negative waves: Brugada V1, inverted VT beats) still lands inside the canvas.
-  const ecgY = (mv: number) => panels.ecg.top + panels.ecg.height * (0.68 - mv * 0.6);
+  // −1 to +1.2 mV fits the panel: Brugada V1 goes down to −1 mV, inverted VT beats to −0.8.
+  const ecgY = (mv: number) => panels.ecg.top + panels.ecg.height * (0.53 - mv * 0.45);
 
   // Axes and grid lines with values.
   context.font = '11px system-ui, sans-serif';

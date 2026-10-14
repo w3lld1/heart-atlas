@@ -19,7 +19,7 @@
 - При 1 у каждого второго удара (нечётный индекс) QRS, ST и T рисуются с обратным знаком во всех отведениях модели. Источник описывает фронтальную ось, поэтому показывать пресет нужно в отведениях от конечностей, не в V1. Первый удар направлен вверх.
 - Ось в модели — прямая (спека блокад ножек), поэтому смена знака и есть поворот фронтальной оси на 180°. Этим знак отличается от смены оси: оси −15…135 этого не дают.
 - Знак хранится в `Beat.inverted` и применяется в `ecgFrom`. Тайминг и гемодинамика удара не меняются.
-- Перекрёстная проверка: `bidirectional` требует `pAmplitude` 0 (иначе перевернулся бы и P) и нулей у `fWaveAmplitude`, `flutterConduction`, `rrIrregularity`, `pauseEvery`, `atrialRate`, `atrialPacing`, `ventricularPacing`, `prematureEvery` и `deltaWave`.
+- Перекрёстная проверка: `bidirectional` требует `pAmplitude` 0 (иначе перевернулся бы и P) и нулей у `fWaveAmplitude`, `flutterConduction`, `rrIrregularity`, `pauseEvery`, `atrialRate`, `atrialPacing`, `ventricularPacing`, `prematureEvery` и `deltaWave`. С #389 она требует `ventricularRhythm` 1 (который сам требует эти нули, кроме `rrIrregularity`) и `rrIrregularity` 0.
 
 ## Пресет `bidirectional-ventricular-tachycardia`
 

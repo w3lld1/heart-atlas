@@ -38,12 +38,17 @@ describe('ventricularRhythm', () => {
       { atrialContribution: 0.2 },
       { fWaveAmplitude: 0.05, rrIrregularity: 0.1 },
       { ventricularPacing: 1 },
+      { atrialPacing: 1 },
+      { atrialRate: 120 },
       { prematureEvery: 3 },
       { deltaWave: 20 },
     ]) {
       expect(() => resolveParams({ ...vt, ...patch })).toThrow(/^ventricularRhythm needs/);
     }
     expect(() => resolveParams({ ventricularRhythm: 0.5 })).toThrow(/ventricularRhythm must be/);
+    expect(() => resolveParams({ ...vt, bidirectional: 1, ventricularRhythm: 0 })).toThrow(
+      /^bidirectional needs ventricularRhythm/,
+    );
   });
 
   it('keeps the AV node in supraventricular tachycardia, which has no P wave either', () => {

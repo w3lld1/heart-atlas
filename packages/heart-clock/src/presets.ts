@@ -226,8 +226,8 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     pAmplitude: 0,
     // The ventricles fire on their own, not through the AV node (`ventricularRhythm`); the ECG of
     // VT can show dissociated P-wave activity (MSD Manuals, Ventricular Tachycardia, 2024).
-    // assumption: averaged as no atrial share of filling, as in AF; the model does not draw the
-    // dissociated P waves.
+    // assumption: the atria beat on their own, sometimes against closed valves; the model leaves
+    // out their P waves, their contraction and their share of filling.
     ventricularRhythm: 1,
     atrialContribution: 0,
     // The model's QRS is mainly positive (R 1 mV, ecg.ts), so a negative T is discordant to it.
@@ -256,7 +256,8 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     qrsDuration: 130,
     pAmplitude: 0,
     tAmplitude: -0.3,
-    // A rhythm from the ventricles with no atrial share of filling, as in the monomorphic VT preset.
+    // A rhythm from the ventricles (`bidirectional` needs it). assumption: as in the monomorphic VT
+    // preset, no atrial contraction or share of filling.
     ventricularRhythm: 1,
     atrialContribution: 0,
     // assumption: an R of 0.8 mV, so the inverted complexes stay inside the 1 mV below the

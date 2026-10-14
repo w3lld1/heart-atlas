@@ -51,6 +51,7 @@ describe('bidirectional ventricular tachycardia', () => {
       { rrIrregularity: 0.2 },
       { pauseEvery: 3, pauseDuration: 1000 },
       { ventricularPacing: 1 },
+      { ventricularRhythm: 0 },
     ]) {
       expect(() => checkParams(resolveParams(patch, base)), JSON.stringify(patch)).toThrow(
         RangeError,

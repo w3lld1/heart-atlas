@@ -357,6 +357,29 @@ export function resolveParams(
       'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, ventricularRhythm, prematureEvery, deltaWave, bidirectional and s2Split at 0',
     );
   }
+  if (!Number.isInteger(params.ventricularRhythm)) {
+    throw new RangeError(`ventricularRhythm must be 0 or 1, got ${params.ventricularRhythm}`);
+  }
+  // A rhythm from the ventricles has no P wave or atrial kick of its own in front of each QRS, and
+  // none of the modes that conduct from the atria, pace or pre-excite. Checked early, so the
+  // atrial modes' own checks do not ask for a P wave first.
+  if (
+    params.ventricularRhythm === 1 &&
+    (params.pAmplitude > 0 ||
+      params.atrialContribution > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.pauseEvery > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.prematureEvery > 0 ||
+      params.deltaWave > 0)
+  ) {
+    throw new RangeError(
+      'ventricularRhythm needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
+    );
+  }
   if (!Number.isInteger(params.pauseEvery) || params.pauseEvery === 1) {
     throw new RangeError(
       `pauseEvery must be 0 or an integer from 2 to 20, got ${params.pauseEvery}`,
@@ -451,49 +474,14 @@ export function resolveParams(
       'ventricularPacing needs fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery and deltaWave at 0',
     );
   }
-  if (!Number.isInteger(params.ventricularRhythm)) {
-    throw new RangeError(`ventricularRhythm must be 0 or 1, got ${params.ventricularRhythm}`);
-  }
-  // A rhythm from the ventricles has no P wave or atrial kick of its own in front of each QRS, and
-  // none of the modes that conduct from the atria, pace or pre-excite.
-  if (
-    params.ventricularRhythm === 1 &&
-    (params.pAmplitude > 0 ||
-      params.atrialContribution > 0 ||
-      params.fWaveAmplitude > 0 ||
-      params.flutterConduction > 0 ||
-      params.pauseEvery > 0 ||
-      params.atrialRate > 0 ||
-      params.atrialPacing > 0 ||
-      params.ventricularPacing > 0 ||
-      params.prematureEvery > 0 ||
-      params.deltaWave > 0)
-  ) {
-    throw new RangeError(
-      'ventricularRhythm needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
-    );
-  }
   if (!Number.isInteger(params.bidirectional)) {
     throw new RangeError(`bidirectional must be 0 or 1, got ${params.bidirectional}`);
   }
-  // Alternating complexes need a regular ventricular rhythm whose beats all come from the same
-  // place: no P waves, which would flip with them, and none of the modes that add or drop beats.
-  if (
-    params.bidirectional === 1 &&
-    (params.pAmplitude > 0 ||
-      params.fWaveAmplitude > 0 ||
-      params.flutterConduction > 0 ||
-      params.rrIrregularity > 0 ||
-      params.pauseEvery > 0 ||
-      params.atrialRate > 0 ||
-      params.atrialPacing > 0 ||
-      params.ventricularPacing > 0 ||
-      params.prematureEvery > 0 ||
-      params.deltaWave > 0)
-  ) {
-    throw new RangeError(
-      'bidirectional needs pAmplitude, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
-    );
+  // Alternating complexes need a regular rhythm from the ventricles whose beats all come from the
+  // same place: `ventricularRhythm` already rules out P waves, which would flip with them, and the
+  // modes that add or drop beats.
+  if (params.bidirectional === 1 && (params.ventricularRhythm !== 1 || params.rrIrregularity > 0)) {
+    throw new RangeError('bidirectional needs ventricularRhythm at 1 and rrIrregularity at 0');
   }
   if (!Number.isInteger(params.blockedP)) {
     throw new RangeError(`blockedP must be 0 or 1, got ${params.blockedP}`);
