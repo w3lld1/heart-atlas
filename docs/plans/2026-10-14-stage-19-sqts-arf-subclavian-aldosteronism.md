@@ -41,7 +41,7 @@
 | minzdrav-rf | guideline | Желудочковые нарушения ритма сердца. Внезапная сердечная смерть (ID 569_2) | 2025 | [cr.minzdrav.gov.ru/view-cr/569_2](https://cr.minzdrav.gov.ru/view-cr/569_2) | Разделы о коротком QT целиком через API |
 | esc | guideline | 2022 ESC Guidelines for the management of patients with ventricular arrhythmias and the prevention of sudden cardiac death | 2022 | [10.1093/eurheartj/ehac262](https://doi.org/10.1093/eurheartj/ehac262) | Только набор слайдов |
 | nice | guideline | Transient loss of consciousness ('blackouts') in over 16s (CG109) | 2010, обновлено 2023 | [nice.org.uk/guidance/cg109](https://www.nice.org.uk/guidance/cg109) | Разделы 1.1.2 и 1.1.4 |
-| msd-manuals | reference | Short QT Interval Syndromes (professional) | 2026 | msdmanuals.com | Целиком |
+| msd-manuals | reference | Short QT Interval Syndromes; Overview of Channelopathies; Cardiopulmonary Resuscitation (CPR) in Adults (professional) | 2026 | msdmanuals.com | Целиком; две последние — для доли каналопатий и раздела о реанимации |
 
 Лекарство при отказе от ИКД не называем: ESC и MSD называют один препарат, Минздрав другой. Пороги QTc — только в блоке для студента и только с источником каждого числа. Красные флаги: обморок, особенно при нагрузке; внезапная остановка сердца — «103 или 112» и сердечно-лёгочная реанимация, как в статье о фибрилляции желудочков.
 
