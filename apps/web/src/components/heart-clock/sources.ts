@@ -202,6 +202,23 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/catecholaminergic-polymorphic-ventricular-tachycardia',
     lang: 'en',
   },
+  // Short QT syndrome: docs/plans/2026-10-14-heart-clock-short-qt.md. Minzdrav 569_2 is listed
+  // above with long QT syndrome.
+  {
+    text: '2022 ESC Guidelines for the management of patients with ventricular arrhythmias and the prevention of sudden cardiac death. Eur Heart J. 2022;43(40):3997–4126.',
+    href: 'https://doi.org/10.1093/eurheartj/ehac262',
+    lang: 'en',
+  },
+  {
+    text: 'MSD Manuals, Professional Version. Short QT Interval Syndromes. 2026.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/short-qt-interval-syndromes',
+    lang: 'en',
+  },
+  {
+    text: "NICE. Transient loss of consciousness ('blackouts') in over 16s (CG109). 2023.",
+    href: 'https://www.nice.org.uk/guidance/cg109',
+    lang: 'en',
+  },
   // Sick sinus syndrome after treatment (pacemaker): docs/plans/2026-10-13-heart-clock-after-treatment.md.
   // The ESC 2021 pacing translation and the Bradyarrhythmias guideline (160_2) are listed above.
   {

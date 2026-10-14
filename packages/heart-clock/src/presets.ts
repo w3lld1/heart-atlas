@@ -23,6 +23,7 @@ export const presetIds = [
   'sinus-tachycardia',
   'supraventricular-tachycardia',
   'long-qt-syndrome',
+  'short-qt-syndrome',
   'ventricular-tachycardia',
   'bidirectional-ventricular-tachycardia',
   'atrial-flutter',
@@ -197,6 +198,15 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // fits the beat up to 137 bpm, so the preset allows 40–137 bpm. The heart rate stays the reader's.
     // Spec: docs/plans/2026-10-12-more-ecg-presets.md.
     qtc: 500,
+  }),
+  'short-qt-syndrome': Object.freeze({
+    // Short QT syndrome: ESC 2022 (ventricular arrhythmias, source 2 of our short QT article)
+    // recommends considering the diagnosis at a QTc of 320 ms or less; the Gollob score in Minzdrav
+    // 2025 (569_2, source 1) gives points below 330 ms, and NICE CG109 calls a QTc under 350 ms short.
+    // assumption: 320 ms, at the ESC level. Like long QT syndrome, `qtc` is the Bazett QTc at every
+    // heart rate, which stays the reader's; the T wave keeps its default shape, for which the
+    // sources give no numbers. Spec: docs/plans/2026-10-14-heart-clock-short-qt.md.
+    qtc: 320,
   }),
   'ventricular-tachycardia': Object.freeze({
     // Monomorphic ventricular tachycardia. The rate is the sign, so this preset sets it: VT is ≥3

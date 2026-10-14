@@ -367,6 +367,27 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       157,
     ],
   },
+  "short-qt-syndrome": {
+    "curves": [
+      "40:ddecf1b",
+      "40:ddecf1b",
+      "47:fc306ffa",
+      "60:d243571e",
+      "75:b38eeb4c",
+      "100:a2b33e51",
+      "137:3005a17",
+      "170:33a5d2b7",
+      "180:135c0022",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
   "sick-sinus-syndrome": {
     "curves": [
       "30:1464d54d",
