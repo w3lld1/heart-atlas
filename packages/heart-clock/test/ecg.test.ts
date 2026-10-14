@@ -160,6 +160,68 @@ describe('QRS amplitudes and ST shape', () => {
   });
 });
 
+describe('S wave width and R notch', () => {
+  /** Local maxima of `values` above `floor`. */
+  function tops(values: number[], floor: number): number[] {
+    return values.flatMap((v, k) =>
+      k > 0 &&
+      k < values.length - 1 &&
+      v > floor &&
+      v > (values[k - 1] ?? 0) &&
+      v >= (values[k + 1] ?? 0)
+        ? [k]
+        : [],
+    );
+  }
+
+  it('keeps a broad S after the R peak and inside the QRS', () => {
+    const params = resolveParams({ qrsDuration: 140, sAmplitude: -0.5, sWidth: 0.1 });
+    const wide = beatTiming(800, params);
+    const values: number[] = [];
+    for (let t = 0; t < wide.rr; t += 1) values.push(beatWaves(t, wide, params));
+    const sLow = Math.min(...values.slice(Math.round(wide.rPeak), Math.round(wide.jPoint)));
+    const sAt = values.indexOf(sLow);
+    expect(sAt).toBeGreaterThan(wide.rPeak);
+    // ±2.5σ of the S wave ends at the J point; the tail of R moves the lowest point a little later.
+    expect(sAt + 2.5 * 0.1 * 140).toBeLessThanOrEqual(wide.jPoint + 3);
+    // Broader than the default S: below −0.05 mV for longer.
+    const narrowParams = resolveParams({ qrsDuration: 140, sAmplitude: -0.5 });
+    const narrow = beatTiming(800, narrowParams);
+    const below = (p: typeof params, tm: typeof wide) => {
+      let n = 0;
+      for (let t = tm.rPeak; t < tm.jPoint + 20; t += 1) if (beatWaves(t, tm, p) < -0.05) n += 1;
+      return n;
+    };
+    expect(below(params, wide)).toBeGreaterThan(below(narrowParams, narrow));
+    expect(() => resolveParams({ sWidth: 0.2 })).toThrow(RangeError);
+  });
+
+  it('notches R into two tops with a dip of about rNotch', () => {
+    const params = resolveParams({
+      qrsDuration: 150,
+      qAmplitude: 0,
+      sAmplitude: 0,
+      rAmplitude: 0.6,
+      rNotch: 0.3,
+    });
+    const wide = beatTiming(800, params);
+    const qrs: number[] = [];
+    for (let t = wide.qOnset; t <= wide.jPoint; t += 1) qrs.push(beatWaves(t, wide, params));
+    const peaks = tops(qrs, 0.3);
+    expect(peaks).toHaveLength(2);
+    // In the middle R drops by rNotch; the tops stay just below rAmplitude.
+    const dip = Math.min(...qrs.slice(peaks[0], peaks[1]));
+    expect(dip / 0.6).toBeCloseTo(0.7, 2);
+    expect(Math.max(...qrs)).toBeLessThanOrEqual(0.6);
+    expect(Math.max(...qrs)).toBeGreaterThan(0.45);
+    // Without a notch R has one top.
+    const plain = resolveParams({ ...params, rNotch: 0 });
+    const one: number[] = [];
+    for (let t = wide.qOnset; t <= wide.jPoint; t += 1) one.push(beatWaves(t, wide, plain));
+    expect(tops(one, 0.3)).toHaveLength(1);
+  });
+});
+
 describe('atrial flutter', () => {
   const flutter = { heartRate: 75, pAmplitude: 0, flutterConduction: 4, flutterAmplitude: 0.2 };
 

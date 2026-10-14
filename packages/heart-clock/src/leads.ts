@@ -15,15 +15,17 @@ export const limbLeadAngles: Readonly<Record<LimbLead, number>> = Object.freeze(
 export interface LeadGains {
   /** P waves, also blocked and dissociated ones. */
   readonly p: number;
-  /** Q, R, S and the delta wave. */
-  readonly qrs: number;
+  /** Q, R and the delta wave. */
+  readonly qr: number;
+  /** The S wave. */
+  readonly s: number;
   readonly t: number;
   readonly st: number;
   /** f and F waves. */
   readonly f: number;
 }
 
-export const unitGains: LeadGains = Object.freeze({ p: 1, qrs: 1, t: 1, st: 1, f: 1 });
+export const unitGains: LeadGains = Object.freeze({ p: 1, qr: 1, s: 1, t: 1, st: 1, f: 1 });
 
 const radians = Math.PI / 180;
 // Lead II always has unit gains, so only I and III are cached.
@@ -48,7 +50,8 @@ export function leadGains(params: Readonly<HeartParams>, lead: LimbLead): LeadGa
     Math.cos((axis - angle) * radians) / Math.cos((axis - limbLeadAngles.II) * radians);
   const gains = Object.freeze({
     p: gain(params.pAxis),
-    qrs: gain(params.qrsAxis),
+    qr: gain(params.qrsAxis),
+    s: gain(params.sAxis),
     t: gain(params.tAxis),
     st: gain(params.stAxis),
     f: gain(params.fAxis),

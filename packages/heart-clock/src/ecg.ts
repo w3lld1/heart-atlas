@@ -56,24 +56,33 @@ export function beatWaves(
   // the rest of the complex. Spec: docs/plans/2026-10-13-heart-clock-rhythms.md, section 3.
   const delta = params.deltaWave;
   const rest = qrs - delta;
-  const sCentre = qOnset + delta + (delta > 0 ? 0.75 : 0.8) * rest;
+  const sSigma = params.sWidth * rest;
+  // A broad S moves later so that ±2.5σ stays inside the QRS; it stays after the R peak.
+  const sCentre = qOnset + delta + Math.min((delta > 0 ? 0.75 : 0.8) * rest, rest - 2.5 * sSigma);
   const q = delta > 0 ? 0 : wave(t, qOnset + 0.15 * qrs, qAmplitude, 0.06 * qrs, 0.06 * qrs);
   // A QRS without Q and S waves (a ventricle excited through the muscle: pacing, a ventricular
   // premature beat) is one R wave across the whole complex: σ is chosen so that about 0.9 of it
   // stays above 0.05 mV whatever the R amplitude of the lead.
   const rSigma =
     qAmplitude === 0 && sAmplitude === 0 && delta === 0 ? wideRSigma(rAmplitude, rest) : 0.1 * rest;
-  const r = wave(t, timing.rPeak, rAmplitude, rSigma, rSigma);
+  // A notch is a dip in the middle of R, a quarter of its width: R keeps two tops,
+  // lower than rAmplitude because a wide R is not flat.
+  const notch =
+    params.rNotch === 0
+      ? 1
+      : 1 - params.rNotch * Math.exp(-0.5 * ((t - timing.rPeak) / (rSigma / 4)) ** 2);
+  const r = wave(t, timing.rPeak, rAmplitude, rSigma, rSigma) * notch;
   // The slow rise goes on at the same slope until the steep R upstroke overtakes it, so the two
   // join without a step and R keeps its amplitude.
   const deltaRise = delta > 0 ? (deltaShare * rAmplitude * Math.max(0, t - qOnset)) / delta : 0;
   const rWithDelta = t < timing.rPeak ? Math.max(deltaRise, r) : r;
   // With P waves on their own clock (`atrialRate`, `dissociatedP`) the beat has no P wave.
   const p = params.atrialRate > 0 ? 0 : pWave(t, pDuration, params);
-  const s = wave(t, sCentre, sAmplitude, 0.07 * rest, 0.07 * rest);
+  const s = wave(t, sCentre, sAmplitude, sSigma, sSigma);
   return (
     gains.p * p +
-    gains.qrs * (q + rWithDelta + s) +
+    gains.qr * (q + rWithDelta) +
+    gains.s * s +
     gains.t * wave(t, tCentre, params.tAmplitude, 0.12 * qt, tAfter) +
     gains.st * st
   );

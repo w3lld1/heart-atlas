@@ -5,7 +5,7 @@ import { defaultParams, resolveParams } from '../src/params.ts';
 import { presetIds, presetLead, presetParams } from '../src/presets.ts';
 
 const limbPresets = presetIds.filter((id) => presetLead(id) === 'II');
-const oddAxes = { pAxis: 100, qrsAxis: -10, tAxis: 130, stAxis: 110, fAxis: 90 };
+const oddAxes = { pAxis: 100, qrsAxis: 0, sAxis: -10, tAxis: 130, stAxis: 110, fAxis: 90 };
 
 /** Checks I + III = II at every point of [from, to]. */
 function expectEinthoven(clock: ReturnType<typeof createHeartClock>, from: number, to: number) {
@@ -33,12 +33,22 @@ describe('leadGains', () => {
   it('projects a wave on the lead axes', () => {
     // At +90° lead I is perpendicular to the wave and lead III sees what lead II sees.
     const vertical = resolveParams({ qrsAxis: 90 });
-    expect(leadGains(vertical, 'I').qrs).toBeCloseTo(0, 12);
-    expect(leadGains(vertical, 'III').qrs).toBeCloseTo(1, 12);
+    expect(leadGains(vertical, 'I').qr).toBeCloseTo(0, 12);
+    expect(leadGains(vertical, 'III').qr).toBeCloseTo(1, 12);
     // At 0° lead I sees twice lead II (cos 0 / cos 60°) and lead III sees it the other way.
     const horizontal = resolveParams({ tAxis: 0 });
     expect(leadGains(horizontal, 'I').t).toBeCloseTo(2, 12);
     expect(leadGains(horizontal, 'III').t).toBeCloseTo(-1, 12);
+    // The S wave has its own axis: a negative S on 0° points right, deep in I and up in III.
+    const lateS = resolveParams({ sAxis: 0 });
+    expect(leadGains(lateS, 'I').s).toBeCloseTo(2, 12);
+    expect(leadGains(lateS, 'III').s).toBeCloseTo(-1, 12);
+    expect(leadGains(lateS, 'I').qr).toBeCloseTo(0.5, 12);
+    // An axis is a line: θ and θ + 180° give the same gains.
+    expect(leadGains(resolveParams({ qrsAxis: 120 }), 'I').qr).toBeCloseTo(
+      Math.cos((300 * Math.PI) / 180) / Math.cos((240 * Math.PI) / 180),
+      12,
+    );
     // Past +90° lead I sees the wave the other way.
     expect(leadGains(resolveParams({ stAxis: 120 }), 'I').st).toBeCloseTo(-1, 12);
   });

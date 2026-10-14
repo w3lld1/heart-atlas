@@ -91,7 +91,9 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // and Left Axis Deviation, 2024); a primum one turns the axis superiorly, left or northwest (MSD,
     // Atrioventricular Septal Defect), which the model cannot draw. assumption: +100°, a mild right axis that keeps
     // lead III inside the strip; the T wave follows the QRS (MSD, Electrocardiography).
+    // The S wave keeps the QRS axis (docs/plans/2026-10-14-heart-clock-bundle-branch-block.md).
     qrsAxis: 100,
+    sAxis: 100,
     tAxis: 100,
   }),
   'av-block-first-degree': Object.freeze({
@@ -205,6 +207,7 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // +85°, so lead I keeps a small QRS (about a tenth of II) rather than a flat line, and the
     // discordant T on the same axis. Other VTs turn the axis elsewhere (MSD, same).
     qrsAxis: 85,
+    sAxis: 85,
     tAxis: 85,
   }),
   'atrial-flutter': Object.freeze({

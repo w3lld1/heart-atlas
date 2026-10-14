@@ -73,6 +73,17 @@ export interface HeartParams {
   /** S wave amplitude, mV (0 or negative). */
   sAmplitude: number;
   /**
+   * Width of the S wave: its σ as a share of the QRS without the delta wave. 0.07 draws a narrow S;
+   * up to 0.1 draws the broad S of a right bundle branch block. The S wave stays after the R peak
+   * and inside the QRS.
+   */
+  sWidth: number;
+  /**
+   * Notch in the R wave: depth of a dip in the middle of R as a share of R, 0 to 0.5. A notched
+   * R has two tops below `rAmplitude` (left bundle branch block).
+   */
+  rNotch: number;
+  /**
    * Shape of `stShift`: 0 keeps the shift as a plateau up to the T wave; 1 makes it highest at the
    * J point and lets it fall in a convex (coved) curve to nothing at the T wave's centre.
    */
@@ -132,8 +143,16 @@ export interface HeartParams {
    * docs/plans/2026-10-13-heart-clock-three-leads.md.
    */
   pAxis: number;
-  /** Axis of Q, R, S and the delta wave, degrees. */
+  /**
+   * Axis of Q, R and the delta wave, degrees. An axis is a line: θ and θ + 180° give the same
+   * curves, and the sign of a wave's lead II amplitude sets which way along the line it points.
+   */
   qrsAxis: number;
+  /**
+   * Axis of the S wave, degrees. A late S on its own axis draws a right bundle branch block. Spec:
+   * docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
+   */
+  sAxis: number;
   /** Axis of the T wave, degrees. */
   tAxis: number;
   /** Axis of `stShift`, degrees. */
@@ -175,6 +194,9 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   qAmplitude: -0.1,
   rAmplitude: 1,
   sAmplitude: -0.25,
+  // assumption: an S wave about 0.35 of a 90 ms QRS wide (±2.5σ) and an R wave without a notch.
+  sWidth: 0.07,
+  rNotch: 0,
   stSlope: 0,
   flutterConduction: 0,
   flutterAmplitude: 0,
@@ -194,6 +216,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   // ST axis in degrees. Leads I and III then show half of what lead II shows.
   pAxis: 60,
   qrsAxis: 60,
+  sAxis: 60,
   tAxis: 60,
   stAxis: 60,
   fAxis: 60,
@@ -228,6 +251,8 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   qAmplitude: [-0.5, 0],
   rAmplitude: [0.1, 2],
   sAmplitude: [-2, 0],
+  sWidth: [0.07, 0.1],
+  rNotch: [0, 0.5],
   stSlope: [0, 1],
   flutterConduction: [0, 4],
   flutterAmplitude: [0, 0.3],
@@ -241,6 +266,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   prematureCoupling: [0.5, 0.9],
   pAxis: [-15, 135],
   qrsAxis: [-15, 135],
+  sAxis: [-15, 135],
   tAxis: [-15, 135],
   stAxis: [-15, 135],
   fAxis: [-15, 135],
