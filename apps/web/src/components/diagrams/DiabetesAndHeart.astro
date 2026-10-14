@@ -1,0 +1,143 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-dah-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const diabetesLines = wrap(t['diagram.label.plaques-more-often-and-earlier-in-diabetes'], 34);
+
+// A coronary artery cut lengthwise: upper wall (y 60–96), lumen with blood (y 96–164), lower wall
+// (y 164–200). Normal: both walls are smooth and blood flows freely along the whole lumen.
+// Disease: two plaques in the wall, one in the lower wall and one further along in the upper
+// wall, narrow the lumen; blood squeezes past them in a thinner stream. Drawn without numbers,
+// nerves or a clot: only plaques in the wall, as the captions say.
+const lowerPlaque =
+  'M84,164 C104,164 112,126 140,126 C168,126 176,164 196,164 C190,194 90,194 84,164 Z';
+const upperPlaque =
+  'M214,96 C234,96 242,134 268,134 C294,134 302,96 322,96 C316,66 220,66 214,96 Z';
+// The path of the blood between the plaques.
+const narrowFlow =
+  'M0,130 C60,130 90,111 140,111 C190,111 214,149 268,149 C318,149 330,130 360,130';
+const flowRows = [112, 130, 148];
+const plaqueLabelY = 236;
+---
+
+<svg
+  viewBox="0 0 360 300"
+  role="img"
+  aria-label={t['diagram.diabetes-and-heart.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Walls and the lumen with blood -->
+  <rect x="0" y="96" width="360" height="68" fill="var(--diagram-arterial-fill)"></rect>
+  <rect x="0" y="60" width="360" height="36" fill="var(--diagram-muscle)"></rect>
+  <rect x="0" y="164" width="360" height="36" fill="var(--diagram-muscle)"></rect>
+  <g stroke="var(--diagram-arterial)" stroke-width="2">
+    <line x1="0" y1="96" x2="360" y2="96"></line>
+    <line x1="0" y1="164" x2="360" y2="164"></line>
+  </g>
+
+  <!-- Disease: plaques in the wall bulge into the lumen and narrow it -->
+  <g
+    class="disease-only"
+    fill="var(--diagram-plaque)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  >
+    <path d={lowerPlaque}></path>
+    <path d={upperPlaque}></path>
+  </g>
+
+  <!-- Blood flow along the artery, visible with and without motion -->
+  <path
+    d="M10,150 H74"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrow})`}
+  ></path>
+
+  <!-- Moving blood: dashes along the lumen; past the plaques only a thin stream -->
+  <g class="flow" stroke="var(--diagram-arterial)">
+    <g class="normal-only">
+      {flowRows.map((y) => (
+        <path class="dash-flow" d={`M0,${y} H360`} stroke-width="2" />
+      ))}
+    </g>
+    <path class="dash-flow disease-only" d={narrowFlow} stroke-width="1.5"></path>
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text x="8" y="40">
+    {t['diagram.label.coronary-artery']}
+  </text>
+  <line x1="340" y1="46" x2="340" y2="66" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="352" y="40" text-anchor="end">
+    {t['diagram.label.wall']}
+  </text>
+
+  <!-- Normal label -->
+  <text class="normal-only" x="180" y={plaqueLabelY} text-anchor="middle">
+    {t['diagram.label.no-plaques']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line
+      x1="140"
+      y1="188"
+      x2="140"
+      y2={plaqueLabelY - 18}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text x="140" y={plaqueLabelY} text-anchor="middle">
+      {t['diagram.label.plaque']}
+    </text>
+    <text class="diagram-small" x="180" y={plaqueLabelY + 30} text-anchor="middle">
+      {diabetesLines.map((line, index) => (
+        <tspan x="180" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>

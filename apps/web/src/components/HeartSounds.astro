@@ -1,9 +1,7 @@
 ---
 import { isHeartSoundId, type HeartSoundId } from './heart-sounds/auscultation.ts';
-import HeartSoundsPlayer, {
-  heartSoundsMessageKeys,
-  type HeartSoundsMessages,
-} from './heart-sounds/HeartSounds.tsx';
+import HeartSoundsPlayer from './heart-sounds/HeartSounds.tsx';
+import { heartSoundsMessageKeys, type HeartSoundsMessages } from './heart-sounds/messages.ts';
 import { heartSoundSources } from './heart-sounds/sources.ts';
 import { defaultLocale } from '../i18n/locales.ts';
 import { getMessages } from '../i18n/messages.ts';

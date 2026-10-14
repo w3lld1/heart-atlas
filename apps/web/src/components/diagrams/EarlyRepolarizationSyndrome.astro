@@ -1,0 +1,211 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+// The wave letters P, QRS, ST and T are international ECG notation, the same in every locale, so
+// they are not in messages.
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 18;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const notchLines = lines('diagram.label.notch-at-end-of-qrs', 16);
+const harmlessLines = lines('diagram.label.usually-harmless-finding', 34);
+
+/*
+ * An ECG-like trace, not a measured one: there is no millimetre grid and no lead name. One beat,
+ * enlarged. Normally the QRS complex returns to the baseline at the J point and the ST segment runs
+ * along the baseline into the T wave. In the early repolarization pattern the downstroke of the R
+ * wave ends with a notch and the J point stays above the baseline; the ST segment rises from there
+ * into a T wave of the usual height. The normal ST segment and T wave stay as a dashed outline for comparison. The
+ * high-risk shapes (tall J waves, a flat or descending ST segment) are not drawn: a reader should not
+ * judge their own ECG by them. Without motion the trace, the outline and the labels all stay.
+ */
+const start = 24;
+const end = 376;
+const base = 150;
+// The J point: on the baseline normally, raised in the pattern. The T wave peaks at the same
+// height in both states (tHeight): the pattern changes the end of QRS and the J point, not T.
+const jNormalX = 150;
+const tHeight = 21;
+const jRaisedX = 158;
+const jRaisedY = base - 10;
+// The notch at the end of QRS in the pattern.
+const notchX = 151;
+const notchY = base - 21;
+
+const beat = (pattern: boolean) =>
+  [
+    `M${start},${base} L60,${base}`,
+    // P wave
+    `C66,${base - 12} 82,${base - 12} 88,${base} L108,${base}`,
+    // QRS: small q, tall R
+    `L114,${base + 8} L128,${base - 92}`,
+    pattern
+      ? // Down the R wave to a notch, then to a raised J point; the ST segment rises into the T wave.
+        `L142,${base - 6} C${notchX - 5},${notchY} ${notchX + 1},${notchY} ${jRaisedX - 2},${jRaisedY + 2} L${jRaisedX},${jRaisedY} C176,${jRaisedY - 6} 208,${base - tHeight} 228,${base - tHeight} C242,${base - tHeight} 248,${base - 10} 252,${base}`
+      : // Down through a small S wave back to the baseline at the J point, a flat ST segment and a T wave.
+        `L140,${base + 16} L${jNormalX},${base} L190,${base} C204,${base - 28} 236,${base - 28} 252,${base}`,
+    `L${end},${base}`,
+  ].join(' ');
+const ghostStT = `M${jNormalX},${base} L190,${base} C204,${base - 28} 236,${base - 28} 252,${base}`;
+
+// Labels under the baseline with a leader up to the J point.
+const jLabelY = 196;
+const leaderEndY = jLabelY - 18;
+// The notch label above the T wave, with a leader that starts at its first line.
+const notchLabelX = 180;
+const notchLabelY = 36;
+const harmlessY = 236;
+---
+
+<svg
+  viewBox="0 0 400 260"
+  role="img"
+  aria-label={t['diagram.early-repolarization-syndrome.title']}
+  lang={locale}
+>
+  <!-- Baseline -->
+  <line class="erp-base" x1={start} y1={base} x2={end} y2={base}></line>
+
+  <!-- The beat -->
+  <path class="erp-trace normal-only" d={beat(false)}></path>
+  <path class="erp-ghost disease-only" d={ghostStT}></path>
+  <path class="erp-trace disease-only" d={beat(true)}></path>
+
+  <!-- A bright mark runs along the trace, like the sweep of a monitor -->
+  <g class="flow">
+    <path class="erp-run normal-only" d={beat(false)} pathLength="100"></path>
+    <path class="erp-run disease-only" d={beat(true)} pathLength="100"></path>
+  </g>
+
+  <!-- Wave letters -->
+  <text class="diagram-small" x="74" y={base - 18} text-anchor="middle">
+    P
+  </text>
+  <text class="diagram-small" x="128" y={base - 100} text-anchor="middle">
+    QRS
+  </text>
+  <g class="normal-only">
+    <text class="diagram-small" x="170" y={base - 8} text-anchor="middle">
+      ST
+    </text>
+    <text class="diagram-small" x="228" y={base - 26} text-anchor="middle">
+      T
+    </text>
+  </g>
+
+  <!-- Normal: the J point on the baseline -->
+  <g class="normal-only">
+    <path class="erp-leader" d={`M${jNormalX},${base + 6} L${jNormalX},${leaderEndY}`}></path>
+    <text x={jNormalX} y={jLabelY} text-anchor="middle">
+      {t['diagram.label.j-point-on-baseline']}
+    </text>
+  </g>
+
+  <!-- Early repolarization pattern: the raised J point, the notch, and what it usually means -->
+  <g class="disease-only">
+    <circle class="erp-dot" cx={jRaisedX} cy={jRaisedY} r="4"></circle>
+    <path class="erp-leader" d={`M${jRaisedX},${jRaisedY + 6} L${jRaisedX},${leaderEndY}`}></path>
+    <text x={jRaisedX} y={jLabelY} text-anchor="middle">
+      {t['diagram.label.j-point-raised']}
+    </text>
+
+    <path
+      class="erp-leader"
+      d={`M${notchX + 3},${notchY - 2} L${notchLabelX - 6},${notchLabelY - 4}`}
+    ></path>
+    <text x={notchLabelX} y={notchLabelY}>
+      {notchLines.map((line, index) => (
+        <tspan x={notchLabelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+
+    <text class="diagram-small" x="200" y={harmlessY} text-anchor="middle">
+      {harmlessLines.map((line, index) => (
+        <tspan x="200" dy={index === 0 ? 0 : 15}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .erp-base {
+    stroke: var(--color-muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 5;
+  }
+
+  .diagram .erp-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* The normal ST segment and T wave, kept as an outline next to the pattern. */
+  .diagram .erp-ghost {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+  }
+
+  .diagram .erp-leader {
+    fill: none;
+    stroke: var(--diagram-arterial);
+    stroke-width: 1.5;
+  }
+
+  .diagram .erp-dot {
+    fill: var(--diagram-arterial);
+  }
+
+  /* The sweep: a short bright dash along the trace (pathLength is 100). */
+  .diagram .erp-run {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 5 95;
+    opacity: 0.85;
+    animation: erp-sweep 3s linear infinite;
+  }
+
+  @keyframes erp-sweep {
+    from {
+      stroke-dashoffset: 5;
+    }
+
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+</style>

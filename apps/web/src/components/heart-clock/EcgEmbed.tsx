@@ -8,7 +8,8 @@ import {
 } from '@heart-atlas/heart-clock';
 import { useEffect, useMemo, useState } from 'react';
 import { integerIn, parseEmbedParams } from '../../lib/embed.ts';
-import HeartClockDemo, { type HeartClockMessages } from './HeartClockDemo.tsx';
+import HeartClockDemo from './HeartClockDemo.tsx';
+import type { HeartClockMessages } from './messages.ts';
 
 /** Query parameters the ECG embed accepts; everything else is ignored. */
 export const ecgEmbedParams = {

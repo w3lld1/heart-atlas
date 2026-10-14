@@ -4,10 +4,11 @@
 // without the Wiggers diagram (frontmatter `wiggers: false`), and limb leads I, II and III next to
 // a V1 preset (docs/plans/2026-10-13-heart-clock-three-leads.md). Other builds make no page here.
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
-import HeartClockDemo, {
+import HeartClockDemo from '../../../components/heart-clock/HeartClockDemo.tsx';
+import {
   heartClockMessageKeys,
   type HeartClockMessages,
-} from '../../../components/heart-clock/HeartClockDemo.tsx';
+} from '../../../components/heart-clock/messages.ts';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { localeCodes } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
