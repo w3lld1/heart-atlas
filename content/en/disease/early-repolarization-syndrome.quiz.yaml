@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is early repolarisation syndrome?
+    options:
+      - text: An inflammation of the outer lining of the lungs
+      - text: A genetic disorder of the ion channels of heart cells
+        correct: true
+      - text: A blockage of the large arteries in both legs by fatty plaque
+    explanation: Early repolarisation syndrome is a genetic disorder of the ion channels of heart cells (a channelopathy).
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: Which dangerous arrhythmias is the heart prone to in this syndrome?
+    options:
+      - text: Ventricular tachycardia and ventricular fibrillation
+        correct: true
+      - text: 'None: the heart rhythm does not change in this syndrome'
+      - text: A slowing of the heart that happens during deep sleep at night
+    explanation: Because of the ion channel disorder, the heart is prone to dangerous arrhythmias, ventricular tachycardia and ventricular fibrillation.
+    cite: [3]
+  - level: patient
+    prompt: According to the Russian guideline, an arrhythmia episode needs an ambulance if it comes with what?
+    options:
+      - text: A short bout of hiccups after a meal
+      - text: Mild itching of the skin on the hands
+      - text: Loss of consciousness
+        correct: true
+    explanation: The Russian Ministry of Health guideline advises calling an ambulance if an arrhythmia episode comes with dizziness, weakness, feeling faint, loss of consciousness or a fast heartbeat.
+    cite: [2]
+  - level: patient
+    prompt: What are people nearby recommended to do in cardiac arrest outside hospital?
+    options:
+      - text: Wait quietly for the person to wake up on their own
+      - text: Give the person a glass of water to drink first of all
+      - text: Start cardiopulmonary resuscitation straight away
+        correct: true
+    explanation: In cardiac arrest outside hospital, people nearby are recommended to start cardiopulmonary resuscitation straight away.
+    cite: [1]
+  - level: student
+    prompt: Where does the Russian guideline place early repolarisation syndrome?
+    options:
+      - text: Among acquired heart valve diseases that follow an infection
+      - text: Among congenital channelopathies without overt structural heart disease
+        correct: true
+      - text: Among inflammatory diseases of the pericardium that follow a viral illness
+    explanation: The Russian Ministry of Health guideline lists early repolarisation syndrome among the congenital syndromes (channelopathies) in which ventricular arrhythmias occur without overt structural heart disease.
+    cite: [2]
+  - level: student
+    prompt: Which group are early repolarisation syndrome and Brugada syndrome both placed in?
+    options:
+      - text: Disorders of the aortic valve leaflets
+      - text: Diseases of the pericardial sac
+      - text: J-wave syndromes
+        correct: true
+    explanation: Early repolarisation syndrome and Brugada syndrome are both grouped as J-wave syndromes.
+    cite: [3]

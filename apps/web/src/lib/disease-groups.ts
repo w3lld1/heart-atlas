@@ -137,6 +137,7 @@ export const diseaseGroups = {
     'thoracic-aortic-aneurysm',
     'thromboangiitis-obliterans',
     'vascular-ehlers-danlos-syndrome',
+    'vertebral-artery-stenosis',
   ],
   veins: [
     'deep-vein-thrombosis',

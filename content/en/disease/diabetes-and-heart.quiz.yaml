@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What does the article call atherosclerosis?
+    options:
+      - text: Inflammation of the heart valves caused by an infection
+      - text: The build-up of plaques in the artery wall
+        correct: true
+      - text: Stretching of the heart muscle after physical effort
+    explanation: Atherosclerosis is the build-up of plaques in the artery wall; in diabetes it starts at a younger age than in people without diabetes.
+    cite: [5]
+  - level: patient
+    prompt: What happens to blood vessels when blood sugar stays high for a long time?
+    options:
+      - text: The vessels widen and blood flows through them faster
+      - text: The vessels become see-through and very soft
+      - text: The vessels narrow and blood flow through them falls
+        correct: true
+    explanation: When blood sugar stays high for a long time, both small and large blood vessels narrow and blood flow through them falls.
+    cite: [5]
+  - level: patient
+    prompt: How is a "silent" heart attack in a person with diabetes sometimes found?
+    options:
+      - text: Later, on a routine ECG
+        correct: true
+      - text: From changes in the voice and handwriting
+      - text: From the colour of the fingernails
+    explanation: In people with diabetes, a heart attack can happen with no chest pain at all, and such a "silent" heart attack is sometimes found only later, on a routine ECG.
+    cite: [7]
+  - level: patient
+    prompt: Which of these signs does the article name as a reason to call an emergency number at once?
+    options:
+      - text: Mild itching of the skin on the back of the hand
+      - text: A blocked nose after a walk out in the cold
+      - text: Pain, pressure or discomfort in the chest
+        correct: true
+    explanation: Call your local emergency number at once if you have pain, pressure or discomfort in the chest, especially spreading to the back, jaw or left arm.
+    cite: [7]
+  - level: student
+    prompt: According to MSD, what does large-vessel atherosclerosis in diabetes result from?
+    options:
+      - text: Hypocalcaemia, hyponatraemia and marked hyperuricaemia
+      - text: Hyperinsulinaemia, dyslipidaemia and hyperglycaemia
+        correct: true
+      - text: Hypothyroidism, hypoalbuminaemia and severe anaemia
+    explanation: 'MSD: large-vessel atherosclerosis results from the hyperinsulinaemia, dyslipidaemia and hyperglycaemia characteristic of diabetes.'
+    cite: [4]
+  - level: student
+    prompt: What pattern of coronary disease is typical of diabetes?
+    options:
+      - text: An isolated short stenosis of one artery without calcification
+      - text: A congenital anomaly of the coronary artery origins
+      - text: Multivessel, diffuse disease with marked calcification
+        correct: true
+    explanation: Multivessel, diffuse coronary disease and marked coronary artery calcification are typical of diabetes.
+    cite: [2]

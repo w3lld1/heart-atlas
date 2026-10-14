@@ -7,17 +7,14 @@ import {
   diseaseIds,
   diseaseShapes,
   diseaseView,
-  GROW_WITH,
   hasStillSigns,
   isDiseaseId,
   queryWithDisease,
   shownDisease,
   shownOnAnatomy,
-  ZONE_FADE,
-  nearestDistances,
   presetShape,
-  zoneWeight,
 } from '../src/disease.ts';
+import { GROW_WITH, nearestDistances, ZONE_FADE, zoneWeight } from '../src/disease-geometry.ts';
 
 describe('zoneWeight', () => {
   it('is 1 near, 0 far and falls smoothly in between', () => {

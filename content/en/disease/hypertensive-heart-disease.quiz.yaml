@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the left ventricular wall when blood pressure stays high for a long time?
+    options:
+      - text: It gradually thickens
+        correct: true
+      - text: It is replaced by fat tissue
+      - text: It develops a hole between chambers
+    explanation: With long-standing high blood pressure the heart has to work harder, and the wall of the left ventricle thickens; this is left ventricular hypertrophy.
+    cite: [5, 6]
+  - level: patient
+    prompt: What can the thickening and stiffening of the heart walls lead to?
+    options:
+      - text: Hay fever and itchy eyes in the spring
+      - text: Abnormal heart rhythms and heart failure
+        correct: true
+      - text: Stomach ulcers and stones in the gallbladder
+    explanation: Thickened walls are stiffer than normal and harder to fill with blood; these changes can lead to abnormal heart rhythms and heart failure.
+    cite: [6]
+  - level: patient
+    prompt: How does high blood pressure affect atherosclerosis?
+    options:
+      - text: It slows it down
+      - text: It has no effect on it
+      - text: It speeds it up
+        correct: true
+    explanation: High blood pressure speeds up atherosclerosis, and severe or long-standing hypertension increases the risk of coronary heart disease and heart attack.
+    cite: [5]
+  - level: patient
+    prompt: Which change in breathing is a reason to call an ambulance, according to the article?
+    options:
+      - text: A single sneeze after dusting the shelves
+      - text: Breathlessness suddenly gets much worse
+        correct: true
+      - text: Yawning more in the late evening
+    explanation: If breathlessness suddenly gets much worse, especially at rest or lying down, or attacks of severe breathlessness start, call an ambulance.
+    cite: [2]
+  - level: student
+    prompt: According to MSD, what can eventually happen to the hypertrophied left ventricle?
+    options:
+      - text: It may dilate, with dilated cardiomyopathy and heart failure
+        correct: true
+      - text: The valves may fuse over time into a single solid plate of cartilage
+      - text: Muscle tissue is replaced by tissue of both atria over time
+    explanation: Increased afterload leads to gradual left ventricular hypertrophy and diastolic dysfunction; the ventricle may eventually dilate, causing dilated cardiomyopathy and heart failure.
+    cite: [5]
+  - level: student
+    prompt: According to ESC, what does hypertension-mediated organ damage suggest?
+    options:
+      - text: A recent viral infection of the heart muscle and pericardium
+      - text: An inherited disorder of the ion channels of heart cells
+      - text: Long-standing or severe hypertension, with higher risk
+        correct: true
+    explanation: ESC states that hypertension-mediated organ damage suggests long-standing or severe hypertension and is associated with increased cardiovascular risk.
+    cite: [4]

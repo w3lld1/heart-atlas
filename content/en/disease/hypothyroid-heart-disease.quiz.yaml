@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is hypothyroidism?
+    options:
+      - text: A narrowing of the main artery in the neck
+      - text: The thyroid gland makes too little hormone
+        correct: true
+      - text: An infection of the heart valves by bacteria from the mouth
+    explanation: Hypothyroidism is a condition in which the thyroid gland makes too little hormone, so the body is short of thyroid hormones.
+    cite: [1, 5]
+  - level: patient
+    prompt: What happens to body functions when thyroid hormones are lacking?
+    options:
+      - text: They speed up, and the heart beats faster
+      - text: 'Nothing changes: these hormones do not affect the heart'
+      - text: They slow down, and the heart's work is disturbed too
+        correct: true
+    explanation: When thyroid hormones are lacking, body functions slow down and metabolism is disturbed, including the work of the heart.
+    cite: [1, 6]
+  - level: patient
+    prompt: What can untreated hypothyroidism lead to over time?
+    options:
+      - text: Heart failure
+        correct: true
+      - text: Allergy to tree pollen
+      - text: Night blindness
+    explanation: If hypothyroidism is not treated, over time it can lead to heart failure.
+    cite: [6]
+  - level: patient
+    prompt: What is the life-threatening complication of hypothyroidism described in the emergency section called?
+    options:
+      - text: Altitude sickness
+      - text: Myxoedema coma
+        correct: true
+      - text: Heat stroke from sun
+    explanation: A life-threatening complication of hypothyroidism is myxoedema coma.
+    cite: [5]
+  - level: student
+    prompt: What is the main change at the cellular level in hypothyroidism?
+    options:
+      - text: Faster cell division that creates a surplus of energy in the cell
+      - text: Reduced oxygen use and ATP synthesis, so the cell lacks energy
+        correct: true
+      - text: Build-up of crystals inside the cell nucleus that blocks protein synthesis
+    explanation: The main change at the cellular level is reduced oxygen consumption, oxidative phosphorylation and ATP synthesis, so the cell runs short of energy.
+    cite: [1]
+  - level: student
+    prompt: How does the ESC classify hypothyroidism among the causes of bradycardia?
+    options:
+      - text: As an inherited ion channel disease
+      - text: As an inborn heart valve defect
+      - text: As an extrinsic (metabolic) cause
+        correct: true
+    explanation: ESC lists hypothyroidism among the extrinsic (metabolic) causes of both sinus bradycardia or sinus node dysfunction and atrioventricular junction disturbances.
+    cite: [3]

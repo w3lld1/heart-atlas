@@ -1,0 +1,269 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-vas-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const rightSubclavianLines = lines('diagram.label.right-subclavian', 20);
+const leftSubclavianLines = lines('diagram.label.left-subclavian', 20);
+const lessBloodLines = lines('diagram.label.back-of-brain-may-get-too-little-blood', 18);
+const reducedFlowLines = lines('diagram.label.reduced-blood-flow', 14);
+const fragmentLines = lines('diagram.label.fragment-may-break-off', 14);
+
+// Front view, so the right side of the body is on the left of the picture. The aortic arch runs
+// along y = 290; the subclavian arteries run out to the arms at y = 220. A vertebral artery leaves
+// each subclavian artery (x = 150 and x = 390), rises and bends inwards; the two join at the top
+// into the basilar artery, which goes up to the back of the brain. Only these vessels are drawn: no
+// carotid arteries, no spine, no numbers, no stent. Vessels are wide strokes: the wall, then the
+// lumen on top of it.
+const aorta = 'M170,460 V350 Q170,290 230,290 H310 Q370,290 370,350 V460';
+const rightSubclavian = 'M215,290 V250 Q215,220 185,220 H16';
+const leftSubclavian = 'M325,290 V250 Q325,220 355,220 H504';
+const rightVertebral = 'M150,220 V140 C150,104 262,112 270,90';
+const leftVertebral = 'M390,220 V140 C390,104 278,112 270,90';
+const basilar = 'M270,98 V8';
+// Lumens of the subclavian arteries open into the lumen of the aorta (they start inside it).
+const rightSubclavianLumen = 'M215,300 V250 Q215,220 185,220 H16';
+const leftSubclavianLumen = 'M325,300 V250 Q325,220 355,220 H504';
+// Disease: a plaque narrows the start of the left vertebral artery, just above the subclavian.
+const plaques = [
+  { x: 385.5, y: 198 },
+  { x: 394.5, y: 198 },
+];
+// Flow arrows, visible with and without motion. In both states blood goes up both vertebral
+// arteries; past the narrowing the flow is weaker.
+const flow = {
+  main: 'M170,450 V350 Q170,290 230,290 H310 Q370,290 370,350 V444',
+  rightArm: 'M215,284 V250 Q215,220 185,220 H24',
+  leftArm: 'M325,284 V250 Q325,220 355,220 H496',
+  rightVertebralUp: 'M150,212 V146',
+  leftVertebralUp: 'M390,212 V146',
+  leftVertebralWeak: 'M390,184 V146',
+  basilarUp: 'M270,84 V16',
+};
+// Routes of the moving dashes, up each vertebral artery into the basilar artery.
+const routes = {
+  right: 'M150,212 V140 C150,104 262,112 270,90 V16',
+  left: 'M390,212 V140 C390,104 278,112 270,90 V16',
+  leftWeak: 'M390,184 V140 C390,104 278,112 270,90',
+};
+// A fragment that can break off the plaque and travel up to the basilar artery.
+const fragmentRoute = 'M390,186 V140 C390,104 278,112 270,90 V12';
+const columnRight = 512;
+---
+
+<svg
+  viewBox="0 0 520 460"
+  role="img"
+  aria-label={t['diagram.vertebral-artery-stenosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Vessel walls -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    <path d={rightVertebral} stroke-width="16"></path>
+    <path d={leftVertebral} stroke-width="16"></path>
+    <path d={basilar} stroke-width="16"></path>
+    <path d={rightSubclavian} stroke-width="16"></path>
+    <path d={leftSubclavian} stroke-width="16"></path>
+    <path d={aorta} stroke-width="34"></path>
+  </g>
+
+  <!-- Lumens on top of the walls, opening into each other -->
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    <path d={rightVertebral} stroke-width="10"></path>
+    <path d={leftVertebral} stroke-width="10"></path>
+    <path d={basilar} stroke-width="10"></path>
+    <path d={rightSubclavianLumen} stroke-width="10"></path>
+    <path d={leftSubclavianLumen} stroke-width="10"></path>
+    <path d={aorta} stroke-width="26"></path>
+  </g>
+
+  <!-- Disease: the plaque at the start of the left vertebral artery leaves a narrow channel. The
+       outline keeps its edges visible against the lumen in the light theme. -->
+  <g class="disease-only" fill="var(--diagram-plaque)" stroke="var(--color-text)" stroke-width="1">
+    {plaques.map((p) => (
+      <ellipse cx={p.x} cy={p.y} rx="3.5" ry="11" />
+    ))}
+  </g>
+
+  <!-- Disease: a fragment above the plaque on its way up, visible with and without motion -->
+  <circle
+    class="disease-only"
+    cx="333"
+    cy="110"
+    r="3.5"
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-text)"
+    stroke-width="1"
+  ></circle>
+
+  <!-- Flow arrows: up both vertebral arteries into the basilar artery and out to both arms -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={flow.main} stroke-width="4" marker-end={`url(#${arrow})`}></path>
+    <path d={flow.rightArm} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+    <path d={flow.leftArm} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+    <path d={flow.rightVertebralUp} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+    <path d={flow.basilarUp} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+    <path
+      class="normal-only"
+      d={flow.leftVertebralUp}
+      stroke-width="3"
+      marker-end={`url(#${arrow})`}
+    ></path>
+    <path
+      class="disease-only"
+      d={flow.leftVertebralWeak}
+      stroke-width="1.5"
+      marker-end={`url(#${arrow})`}
+    ></path>
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows; in the disease state a fragment travels up -->
+  <g class="flow">
+    <g stroke="var(--color-bg)">
+      <path class="dash-flow" d={flow.main} stroke-width="2"></path>
+      <path class="dash-flow" d={flow.rightArm} stroke-width="1.5"></path>
+      <path class="dash-flow" d={flow.leftArm} stroke-width="1.5"></path>
+      <path class="dash-flow" d={routes.right} stroke-width="1.5"></path>
+      <path class="dash-flow normal-only" d={routes.left} stroke-width="1.5"></path>
+      <path class="dash-flow disease-only" d={routes.leftWeak} stroke-width="0.75"></path>
+    </g>
+    <circle
+      class="vas-run disease-only"
+      r="3.5"
+      fill="var(--diagram-plaque)"
+      stroke="var(--color-text)"
+      stroke-width="1"
+      style={`offset-path: path('${fragmentRoute}'); animation-duration: 4s`}
+    ></circle>
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="284" y="20">
+    {t['diagram.label.to-back-of-brain']}
+  </text>
+  <text class="diagram-small" x="284" y="60">
+    {t['diagram.label.basilar-artery']}
+  </text>
+  <text class="diagram-small" x="270" y="202" text-anchor="middle">
+    {t['diagram.label.vertebral-arteries']}
+  </text>
+  <text class="diagram-small" x="8" y="250">
+    {rightSubclavianLines.map((line, index) => (
+      <tspan x="8" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={columnRight} y="250" text-anchor="end">
+    {leftSubclavianLines.map((line, index) => (
+      <tspan x={columnRight} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x="270" y="340" text-anchor="middle">
+    {t['diagram.label.aortic-arch']}
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <text class="diagram-small" x="8" y="24">
+      {lessBloodLines.map((line, index) => (
+        <tspan x="8" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="320" y="134" text-anchor="end">
+      {fragmentLines.map((line, index) => (
+        <tspan x="320" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="406" y="150">
+      {reducedFlowLines.map((line, index) => (
+        <tspan x="406" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="406" y="202">
+      {t['diagram.label.plaque']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .vas-run {
+    offset-rotate: 0deg;
+    animation-name: vas-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Without offset-path the fragment would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .vas-run {
+      display: none;
+    }
+  }
+
+  /* The fragment leaves the plaque and travels up into the basilar artery. */
+  @keyframes vas-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    6%,
+    88% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
