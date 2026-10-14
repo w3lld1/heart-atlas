@@ -11,8 +11,11 @@ const serviceWorkerSource = new URL('./service-worker.js', import.meta.url);
 /** Above this the precache stops being a cheap first install; see the stage 4 spec. */
 const precacheBudget = 5 * 1024 * 1024;
 
-/** Lazy chunk with the 3D scene (packages/viewer Scene.tsx); left to the runtime cache. */
-const threeDCode = /[\\/]Scene\.[\w-]+\.js$/;
+/**
+ * The lazy 3D scene chunk (packages/viewer Scene.tsx). It also holds three.js for the home page
+ * hero (HeroScene imports it), so offline the hero keeps its poster unless the chunk is cached.
+ */
+export const threeDCode = /[\\/]Scene\.[\w-]+\.js$/;
 
 async function messages(code: string): Promise<Record<string, string>> {
   for (const dir of [productionMessages, testMessages]) {
@@ -84,7 +87,8 @@ export async function writeServiceWorker(
   );
   const assets = [
     // The 3D scene code (three.js, about 1 MB) is not shell and does nothing without a model, and
-    // models are never precached; the asset cache keeps it once a model has opened.
+    // models are never precached; the asset cache keeps it once a model has opened on a page the
+    // worker controls, like the media cache keeps the model.
     ...(await filesUnder(join(site, '_astro'))).filter((file) => !threeDCode.test(file)),
     // Only what the search page loads: the default UI, the search API, the index itself.
     ...(await filesUnder(join(site, 'pagefind'))).filter(
