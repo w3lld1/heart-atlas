@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is an aortopulmonary window?
+    options:
+      - text: A hole in the wall between the right and left ventricles
+      - text: An opening between the aorta and the pulmonary trunk
+        correct: true
+      - text: A narrowed aortic valve that makes it hard for blood to leave the heart
+    explanation: In this congenital defect there is an opening, a "window", between adjacent parts of the ascending aorta and the pulmonary trunk.
+    cite: [1]
+  - level: patient
+    prompt: Why does blood from the aorta flow through the window into the pulmonary artery?
+    options:
+      - text: The pressure in the pulmonary artery is higher than in the aorta
+      - text: The two vessels leave the heart through a single valve that they share
+      - text: The pressure in the aorta is higher than in the pulmonary artery
+        correct: true
+    explanation: 'The pressure in the aorta is higher than in the pulmonary artery, so with each heartbeat some of the blood from the aorta flows through the window into the pulmonary artery: this is a "left-to-right" shunt.'
+    cite: [1]
+  - level: patient
+    prompt: A child with an unclosed window gets ill less often and seems better. What does the article say about this?
+    options:
+      - text: This improvement may be false
+        correct: true
+      - text: The window has closed by itself and surgery is no longer needed
+      - text: The defect no longer strains the heart and the lung vessels
+    explanation: As the pressure in the lung vessels rises, the child may get ill less often and seem better, but this improvement is false, and the time for surgery may be lost. Spontaneous closure of the window has not been described.
+    cite: [1]
+  - level: patient
+    prompt: Which of these signs in a baby means you should call an ambulance?
+    options:
+      - text: Sneezed a couple of times from dust
+      - text: The lips or skin have turned blue
+        correct: true
+      - text: Likes to fall asleep on their side to a lullaby
+    explanation: Call your local emergency number if a baby's lips or skin turn blue, if the baby breathes fast and with effort or grunts while breathing, struggles for breath during feeds and cannot feed, or has become unusually irritable.
+    cite: [4]
+  - level: student
+    prompt: What distinguishes APSD from type I–II truncus arteriosus?
+    options:
+      - text: A single common semilunar valve over both vessels
+      - text: A large ventricular septal defect that is always present
+      - text: No VSD, and separate aortic and PA valves
+        correct: true
+    explanation: The absence of a ventricular septal defect and the separate aortic and pulmonary artery valves distinguish APSD from type I–II truncus arteriosus.
+    cite: [1]
+  - level: student
+    prompt: When does the APSD shunt occur, and which structures are volume-overloaded?
+    options:
+      - text: In systole and diastole; the PA, LA and LV
+        correct: true
+      - text: In systole only; the right atrium and right ventricle
+      - text: In diastole only; the right atrium and the venae cavae
+    explanation: The shunt from the aorta to the PA occurs in both systole and diastole; the PA, left atrium and left ventricle are volume-overloaded and dilate.
+    cite: [1]
