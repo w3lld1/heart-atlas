@@ -1,0 +1,243 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-lds-arrow`;
+// Long labels do not fit their free space on one line: wrap them at word boundaries so that no
+// line is longer than `max` characters (a single longer word keeps its own line).
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  for (const word of label.split(' ')) {
+    const last = lines.length - 1;
+    if (last >= 0 && `${lines[last]} ${word}`.length <= max) lines[last] = `${lines[last]} ${word}`;
+    else lines.push(word);
+  }
+  return lines;
+}
+const ascendingLines = wrap(t['diagram.label.ascending-aorta'], 12);
+const descendingLines = wrap(t['diagram.label.descending-aorta'], 12);
+const dilatedLines = wrap(t['diagram.label.root-ascending-dilated'], 16);
+const graftLines = wrap(t['diagram.label.root-ascending-graft'], 16);
+// The same thoracic aorta as in the thoracic aortic aneurysm diagram: it leaves the left ventricle
+// (the root), runs up (the ascending aorta), turns in the arch with its three branches and runs
+// down (the descending thoracic aorta). Vessels are wide strokes: the wall, then the lumen on top.
+const arch = 'L170,120 Q170,70 220,70 L300,70 Q350,70 350,120 L350,355';
+const aortaWall = `M170,250 ${arch}`;
+const aortaLumen = `M170,266 ${arch}`;
+const branches = [226, 262, 298];
+// Arterial tortuosity: the branches wind as a gentle wave between y = 54 and y = 6 (one and a
+// half waves). The amplitude is kept small enough that neighbouring branches never touch.
+function branchPath(x: number, from: number, to: number, tortuous: boolean): string {
+  if (!tortuous) return `M${x},${from} L${x},${to}`;
+  const points: string[] = [];
+  for (let y = from; y >= to; y -= 2) {
+    const dx = y <= 54 && y >= 6 ? 7 * Math.sin(((54 - y) / 32) * 2 * Math.PI) : 0;
+    points.push(`${(x + dx).toFixed(1)},${y}`);
+  }
+  return `M${points.join(' L')}`;
+}
+// Elements shown with the disease and after treatment: the operation replaces the root and the
+// ascending aorta only, so the tortuous branches stay (ACC/AHA 2022, Минздрав 919_1).
+const tortuousStates: { class?: string; 'data-only'?: string }[] = [
+  { class: 'disease-only' },
+  { 'data-only': 'treated' },
+];
+// Disease: the root widens like a pear from the sinuses and the ascending aorta above it is wider
+// too, narrowing back where the arch begins. Outer edge of the wall, then the lumen 4 units inside.
+const dilatedWall =
+  'M153,250 C134,244 138,212 145,198 C147,190 146,180 146,170 L146,140 C146,130 153,126 153,118 L187,118 C187,126 194,130 194,140 L194,170 C194,180 193,190 195,198 C202,212 206,244 187,250 Z';
+const dilatedLumen =
+  'M157,250 C139,244 142,212 149,198 C151,190 150,180 150,170 L150,140 C150,131 157,127 157,118 L183,118 C183,127 190,131 190,140 L190,170 C190,180 189,190 191,198 C198,212 201,244 183,250 Z';
+// After treatment: a tube graft of normal width replaces the root and the whole ascending aorta,
+// up to where the arch begins. Its wall is drawn crimped, like a woven graft; no valve, coronary
+// arteries or technique is drawn, so no method (valve-sparing or with a valve prosthesis) is
+// preferred.
+const graftTop = 122;
+const graftBottom = 248;
+const crimps = Array.from(
+  { length: Math.floor((graftBottom - graftTop) / 6) + 1 },
+  (_, i) => graftTop + i * 6,
+);
+const flowMain = 'M170,240 L170,120 Q170,70 220,70 L300,70 Q350,70 350,120 L350,322';
+---
+
+<svg
+  viewBox="0 0 490 365"
+  role="img"
+  aria-label={t['diagram.loeys-dietz-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle -->
+  <path
+    d="M115,250 L225,250 L225,292 Q225,345 170,352 Q115,345 115,292 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Vessel walls: straight branches normally, winding branches with the disease -->
+  <g fill="none" stroke="var(--diagram-arterial)">
+    {branches.map((x) => (
+      <path class="normal-only" d={branchPath(x, 62, 4, false)} stroke-width="16" />
+    ))}
+    {tortuousStates.map((only) =>
+      branches.map((x) => <path {...only} d={branchPath(x, 62, 4, true)} stroke-width="16" />),
+    )}
+    <path d={aortaWall} stroke-width="34"></path>
+  </g>
+  <path class="disease-only" d={dilatedWall} fill="var(--diagram-arterial)"></path>
+
+  <!-- After treatment: the graft wall over the root and the ascending aorta -->
+  <path
+    data-only="treated"
+    d={`M170,${graftBottom} L170,${graftTop}`}
+    stroke="var(--color-muted)"
+    stroke-width="34"
+  ></path>
+
+  <path
+    d="M130,262 L210,262 L210,292 Q210,330 170,336 Q130,330 130,292 Z"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Vessel lumens on top of the walls, opening into each other and into the ventricle -->
+  <g fill="none" stroke="var(--diagram-arterial-fill)">
+    {branches.map((x) => (
+      <path class="normal-only" d={branchPath(x, 72, 4, false)} stroke-width="10" />
+    ))}
+    {tortuousStates.map((only) =>
+      branches.map((x) => <path {...only} d={branchPath(x, 72, 4, true)} stroke-width="10" />),
+    )}
+    <path d={aortaLumen} stroke-width="26"></path>
+  </g>
+  <path class="disease-only" d={dilatedLumen} fill="var(--diagram-arterial-fill)"></path>
+
+  <!-- Crimps of the graft wall on both sides of the lumen -->
+  <g data-only="treated" stroke="var(--color-bg)" stroke-width="1.5">
+    {crimps.map((y) => (
+      <path d={`M153,${y} L157,${y} M183,${y} L187,${y}`} />
+    ))}
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    {branches.map((x) => (
+      <path
+        class="normal-only"
+        d={branchPath(x, 58, 16, false)}
+        stroke-width="3"
+        marker-end={`url(#${arrow})`}
+      />
+    ))}
+    {tortuousStates.map((only) =>
+      branches.map((x) => (
+        <path
+          {...only}
+          d={branchPath(x, 58, 16, true)}
+          stroke-width="3"
+          marker-end={`url(#${arrow})`}
+        />
+      )),
+    )}
+    <path d={flowMain} stroke-width="4" marker-end={`url(#${arrow})`}></path>
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows -->
+  <g class="flow" stroke="var(--color-bg)" fill="none">
+    {branches.map((x) => (
+      <path class="dash-flow normal-only" d={branchPath(x, 58, 16, false)} stroke-width="1.5" />
+    ))}
+    {tortuousStates.map((only) =>
+      branches.map((x) => (
+        <path
+          {...{ ...only, class: `dash-flow ${only.class ?? ''}`.trim() }}
+          d={branchPath(x, 58, 16, true)}
+          stroke-width="1.5"
+        />
+      )),
+    )}
+    <path class="dash-flow" d={flowMain} stroke-width="2"></path>
+  </g>
+
+  <!-- Labels: the segments of the thoracic aorta, the same in every state -->
+  <text x="170" y="306" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+  <text class="diagram-small" x="130" y="236" text-anchor="end">
+    {t['diagram.label.aortic-root']}
+  </text>
+  <text class="diagram-small" x="130" y="162" text-anchor="end">
+    {ascendingLines.map((line, i) => (
+      <tspan x="130" dy={i === 0 ? 0 : 15}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x="262" y="112" text-anchor="middle">
+    {t['diagram.label.aortic-arch']}
+  </text>
+  <text class="diagram-small" x="376" y="230">
+    {descendingLines.map((line, i) => (
+      <tspan x="376" dy={i === 0 ? 0 : 15}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Winding branch arteries: with the disease and after treatment -->
+  {tortuousStates.map((only) => (
+    <g {...only}>
+      <line x1="313" y1="46" x2="320" y2="40" stroke="var(--color-text)" stroke-width="1.5"></line>
+      <text class="diagram-small" x="322" y="38">
+        {t['diagram.label.tortuous-arteries']}
+      </text>
+    </g>
+  ))}
+
+  <!-- Widened root and ascending aorta -->
+  <g class="disease-only">
+    <line x1="194" y1="150" x2="208" y2="150" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <circle cx="194" cy="150" r="2.5" fill="var(--color-text)"></circle>
+    <text class="diagram-small" x="212" y="154">
+      {dilatedLines.map((line, i) => (
+        <tspan x="212" dy={i === 0 ? 0 : 15}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Graft in place of the root and the ascending aorta -->
+  <g data-only="treated">
+    <line x1="187" y1="150" x2="208" y2="150" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <circle cx="187" cy="150" r="2.5" fill="var(--color-text)"></circle>
+    <text class="diagram-small" x="212" y="154">
+      {graftLines.map((line, i) => (
+        <tspan x="212" dy={i === 0 ? 0 : 15}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>

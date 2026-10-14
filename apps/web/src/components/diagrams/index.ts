@@ -73,6 +73,7 @@ const customStates: Partial<Record<DiagramName, StateSpec>> = {
   'heart-chambers': cycle,
   'heart-valves': cycle,
   'holter-monitor': { states: ['recording', 'symptom'], initial: 'recording' },
+  'loeys-dietz-syndrome': withTreatment,
   'natriuretic-peptides': single,
   'patent-ductus-arteriosus': withTreatment,
   'tetralogy-of-fallot': withTreatment,
