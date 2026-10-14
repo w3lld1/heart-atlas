@@ -1,0 +1,347 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+/*
+ * A four-chamber section of the heart with the conduction system drawn over it, as in the
+ * conduction system diagram. Normal: chambers of normal size, the pathway intact. Chronic Chagas
+ * cardiomyopathy (MSD, the caption): all chambers enlarged, an apical aneurysm of the left
+ * ventricle, and a block in the right bundle branch and in the left anterior fascicle (MSD names
+ * either; the caption says both are marked). No thrombus, no parasites, no numbers.
+ *
+ * The heart is drawn once in normal coordinates; the disease state is the same drawing with the
+ * chamber centres and the outline moved out from the middle and the chambers made larger.
+ */
+type Point = readonly [x: number, y: number];
+interface Chamber {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+}
+const centre: Point = [200, 215];
+const spread = 1.2;
+const grow = 1.2;
+const out = ([x, y]: Point): Point => [
+  centre[0] + (x - centre[0]) * spread,
+  centre[1] + (y - centre[1]) * spread,
+];
+const fmt = (n: number) => Number(n.toFixed(1));
+const pt = (p: Point) => `${fmt(p[0])},${fmt(p[1])}`;
+
+// A path given as commands with points; the disease version moves every point out.
+type Cmd = readonly [cmd: string, ...points: Point[]];
+const pathOf = (cmds: readonly Cmd[], map: (p: Point) => Point) =>
+  cmds.map(([cmd, ...points]) => `${cmd}${points.map((p) => pt(map(p))).join(' ')}`).join(' ');
+
+const outline: Cmd[] = [
+  ['M', [80, 102]],
+  ['Q', [200, 60], [320, 102]],
+  ['Q', [352, 180], [318, 270]],
+  ['Q', [270, 342], [200, 348]],
+  ['Q', [130, 342], [82, 270]],
+  ['Q', [48, 180], [80, 102]],
+  ['Z'],
+];
+
+const chambers: Record<'ra' | 'la' | 'rv' | 'lv', Chamber> = {
+  ra: { cx: 140, cy: 142, rx: 50, ry: 40 },
+  la: { cx: 260, cy: 142, rx: 50, ry: 40 },
+  rv: { cx: 145, cy: 252, rx: 46, ry: 58 },
+  lv: { cx: 255, cy: 252, rx: 48, ry: 62 },
+};
+const dilated = (c: Chamber): Chamber => {
+  const [cx, cy] = out([c.cx, c.cy]);
+  return { cx, cy, rx: c.rx * grow, ry: c.ry * grow };
+};
+
+// Conduction pathway in normal coordinates. Blocked branches are split at the block.
+const saNode: Point = [150, 106];
+const avNode: Point = [195, 193];
+const atrial: Cmd[] = [
+  ['M', saNode],
+  ['Q', [170, 150], [193, 188]],
+];
+const his: Cmd[] = [
+  ['M', [196, 198]],
+  ['L', [200, 212]],
+];
+const rightBlock: Point = [192, 238];
+const rightProximal: Cmd[] = [
+  ['M', [198, 214]],
+  ['L', rightBlock],
+];
+const rightDistal: Cmd[] = [
+  ['M', rightBlock],
+  ['Q', [184, 270], [162, 298]],
+];
+const leftSplit: Point = [212, 228];
+const leftStem: Cmd[] = [
+  ['M', [202, 214]],
+  ['L', leftSplit],
+];
+const anteriorBlock: Point = [234, 220];
+const anteriorProximal: Cmd[] = [
+  ['M', leftSplit],
+  ['L', anteriorBlock],
+];
+const anteriorDistal: Cmd[] = [
+  ['M', anteriorBlock],
+  ['Q', [258, 212], [286, 222]],
+];
+const posterior: Cmd[] = [
+  ['M', leftSplit],
+  ['Q', [226, 276], [250, 308]],
+];
+
+const blocks: { at: Point; angle: number }[] = [
+  { at: rightBlock, angle: -14 },
+  { at: anteriorBlock, angle: -70 },
+];
+const badges: { n: number; at: Point; label: string }[] = [
+  { n: 1, at: [130, 100], label: t['diagram.label.sa-node'] },
+  { n: 2, at: [176, 200], label: t['diagram.label.av-node'] },
+  { n: 3, at: [162, 262], label: t['diagram.label.right-bundle-branch'] },
+  { n: 4, at: [286, 200], label: t['diagram.label.left-anterior-fascicle'] },
+];
+const chamberLabels: { key: 'ra' | 'la' | 'rv' | 'lv'; at: Point }[] = [
+  { key: 'ra', at: [114, 152] },
+  { key: 'la', at: [262, 150] },
+  { key: 'rv', at: [120, 240] },
+  { key: 'lv', at: [282, 262] },
+];
+
+const states = [
+  { state: 'normal-only', map: (p: Point) => p, chamber: (c: Chamber) => c },
+  { state: 'disease-only', map: out, chamber: dilated },
+] as const;
+
+// Apical aneurysm: a thin-walled pouch at the apex of the dilated left ventricle. Its cavity
+// opens into the ventricle and covers the chamber's border there. Beyond a block (dashed) the
+// branch carries no impulse, and the flash of the impulse stops at the block.
+const apex = out([252, 330]);
+const aneurysm = { cx: apex[0], cy: apex[1] - 6, rx: 30, ry: 26, rim: 3 };
+const aneurysmLabel: Point = [aneurysm.cx - 10, aneurysm.cy + aneurysm.ry + 26];
+---
+
+<svg
+  viewBox="0 0 400 520"
+  role="img"
+  aria-label={t['diagram.chagas-cardiomyopathy.title']}
+  lang={locale}
+>
+  {states.map(({ state, map, chamber }) => (
+    <g class={state}>
+      <path d={pathOf(outline, map)} fill="var(--diagram-muscle)" />
+      {state === 'disease-only' && (
+        <ellipse
+          cx={aneurysm.cx}
+          cy={aneurysm.cy}
+          rx={aneurysm.rx + aneurysm.rim}
+          ry={aneurysm.ry + aneurysm.rim}
+          fill="var(--diagram-muscle)"
+        />
+      )}
+      <g fill="var(--color-bg)" stroke="var(--color-border)" stroke-width="2">
+        {Object.values(chambers).map((c) => {
+          const d = chamber(c);
+          return <ellipse cx={fmt(d.cx)} cy={fmt(d.cy)} rx={fmt(d.rx)} ry={fmt(d.ry)} />;
+        })}
+      </g>
+      {state === 'disease-only' && (
+        <g>
+          <ellipse
+            cx={aneurysm.cx}
+            cy={aneurysm.cy}
+            rx={aneurysm.rx}
+            ry={aneurysm.ry}
+            fill="var(--color-bg)"
+          />
+          <path
+            d={`M${pt([aneurysm.cx - aneurysm.rx, aneurysm.cy])} A${aneurysm.rx},${aneurysm.ry} 0 0 0 ${pt([aneurysm.cx + aneurysm.rx, aneurysm.cy])}`}
+            fill="none"
+            stroke="var(--color-border)"
+            stroke-width="2"
+          />
+        </g>
+      )}
+
+      <!-- The pathway, visible without motion -->
+      <g fill="none" stroke="var(--diagram-impulse)" stroke-width="4" stroke-linecap="round">
+        <circle
+          cx={fmt(map(saNode)[0])}
+          cy={fmt(map(saNode)[1])}
+          r="7"
+          fill="var(--diagram-impulse)"
+        />
+        <circle
+          cx={fmt(map(avNode)[0])}
+          cy={fmt(map(avNode)[1])}
+          r="6"
+          fill="var(--diagram-impulse)"
+        />
+        <path d={pathOf(atrial, map)} />
+        <path d={pathOf(his, map)} />
+        <path d={pathOf(rightProximal, map)} />
+        <path d={pathOf(leftStem, map)} />
+        <path d={pathOf(anteriorProximal, map)} />
+        <path d={pathOf(posterior, map)} />
+        {state === 'normal-only' && (
+          <g>
+            <path d={pathOf(rightDistal, map)} />
+            <path d={pathOf(anteriorDistal, map)} />
+          </g>
+        )}
+      </g>
+      {state === 'disease-only' && (
+        <g>
+          <g
+            fill="none"
+            stroke="var(--color-muted)"
+            stroke-width="3"
+            stroke-dasharray="4 5"
+            stroke-linecap="round"
+          >
+            <path d={pathOf(rightDistal, map)} />
+            <path d={pathOf(anteriorDistal, map)} />
+          </g>
+          {blocks.map(({ at, angle }) => {
+            const [x, y] = map(at);
+            return (
+              <line
+                class="chagas-block"
+                x1={fmt(x - 11)}
+                y1={fmt(y)}
+                x2={fmt(x + 11)}
+                y2={fmt(y)}
+                transform={`rotate(${angle} ${fmt(x)} ${fmt(y)})`}
+              />
+            );
+          })}
+        </g>
+      )}
+
+      <!-- The impulse: each part flashes when it gets there; in disease, not past a block -->
+      <g
+        class="flow"
+        fill="none"
+        stroke="var(--color-text)"
+        stroke-width="5"
+        stroke-linecap="round"
+      >
+        {[
+          { d: pathOf(atrial, map), delay: 0.1 },
+          { d: pathOf(his, map), delay: 0.95 },
+          { d: pathOf(rightProximal, map), delay: 1.1 },
+          { d: pathOf(leftStem, map), delay: 1.1 },
+          { d: pathOf(anteriorProximal, map), delay: 1.2 },
+          { d: pathOf(posterior, map), delay: 1.25 },
+          ...(state === 'normal-only'
+            ? [
+                { d: pathOf(rightDistal, map), delay: 1.25 },
+                { d: pathOf(anteriorDistal, map), delay: 1.3 },
+              ]
+            : []),
+        ].map(({ d, delay }) => (
+          <path class="chagas-flash" d={d} style={`animation-delay: ${delay}s`} />
+        ))}
+      </g>
+
+      {chamberLabels.map(({ key, at }) => {
+        const [x, y] = map(at);
+        return (
+          <text x={fmt(x)} y={fmt(y)} text-anchor="middle">
+            {t[`diagram.label.${key}`]}
+          </text>
+        );
+      })}
+      {badges.map(({ n, at }) => {
+        const [x, y] = map(at);
+        return (
+          <g>
+            <circle cx={fmt(x)} cy={fmt(y)} r="10" fill="var(--color-text)" />
+            <text
+              class="diagram-small"
+              x={fmt(x)}
+              y={fmt(y + 4)}
+              text-anchor="middle"
+              style="fill: var(--color-bg)"
+            >
+              {n}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  ))}
+
+  <!-- State labels -->
+  <text class="normal-only" x="200" y="24" text-anchor="middle">
+    {t['diagram.label.chambers-normal-size']}
+  </text>
+  <text class="disease-only" x="200" y="24" text-anchor="middle">
+    {t['diagram.label.all-chambers-dilated']}
+  </text>
+  <g class="disease-only">
+    <line
+      x1={fmt(aneurysm.cx)}
+      y1={fmt(aneurysm.cy + aneurysm.ry + 4)}
+      x2={fmt(aneurysmLabel[0] + 10)}
+      y2={fmt(aneurysmLabel[1] - 16)}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text x={fmt(aneurysmLabel[0])} y={fmt(aneurysmLabel[1])} text-anchor="middle">
+      {t['diagram.label.lv-apical-aneurysm']}
+    </text>
+  </g>
+
+  <!-- Legend: the numbers on the pathway, and the block mark in disease -->
+  {badges.map(({ n, label }, i) => (
+    <text class="diagram-small" x="20" y={436 + i * 18}>
+      {`${n}. ${label}`}
+    </text>
+  ))}
+  <g class="disease-only">
+    <line class="chagas-block" x1="22" y1="504" x2="44" y2="504"></line>
+    <text class="diagram-small" x="54" y="508">
+      {t['diagram.label.conduction-block']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .chagas-block {
+    stroke: var(--color-text);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .diagram .chagas-flash {
+    animation: chagas-flash 2.4s linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes chagas-flash {
+    0% {
+      opacity: 0;
+    }
+
+    4% {
+      opacity: 0.9;
+    }
+
+    16%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

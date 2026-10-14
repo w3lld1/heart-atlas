@@ -1,0 +1,183 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-pots-body`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const labelX = 206;
+const maxChars = 30;
+
+// A label in the right column with a leader line to the part of the figure it describes. No
+// numbers: no heart rate, blood pressure or minutes, so nothing reads as a self-test.
+interface Label {
+  y: number;
+  toX: number;
+  lines: string[];
+}
+function label(key: MessageKey, y: number, toX: number): Label {
+  return { y, toX, lines: wrap(t[key], maxChars) };
+}
+
+// After standing up. Normal: some blood shifts into the leg veins, the heart rate rises a little,
+// blood pressure holds and there are no symptoms. POTS: more blood pools in the veins of the legs
+// and belly, the heart rate rises markedly, blood pressure barely changes, and light-headedness
+// and weakness appear. The cause is not drawn as a single mechanism and anxiety is not shown.
+const normalLabels = [
+  label('diagram.label.no-symptoms', 52, 126),
+  label('diagram.label.pressure-holds', 104, 110),
+  label('diagram.label.heart-rate-rises-slightly', 158, 126),
+  label('diagram.label.some-blood-shifts-to-leg-veins', 330, 124),
+];
+const diseaseLabels = [
+  label('diagram.label.lightheaded-weak', 52, 126),
+  label('diagram.label.pressure-barely-changes', 104, 110),
+  label('diagram.label.heart-rate-rises-markedly', 158, 126),
+  label('diagram.label.more-blood-pools-in-belly-veins', 232, 134),
+  label('diagram.label.more-blood-pools-in-leg-veins', 330, 124),
+];
+
+// The standing figure: head, torso, arms and legs as plain outlines. The heart sits in the chest,
+// an artery runs from it up to the head, a vein runs up each leg to the heart, and a winding vein
+// in the belly stands for the veins of the abdomen.
+const heart =
+  'M108,180 C90,166 86,151 98,145 C104,142 108,147 108,151 C108,147 112,142 118,145 C130,151 126,166 108,180 Z';
+const artery = 'M104,146 V76';
+const leftVein = 'M81,410 V252 Q81,214 106,182';
+const rightVein = 'M119,410 V252 Q119,214 110,182';
+const bellyVein = 'M72,232 C80,220 88,244 96,232 C104,220 112,244 120,232 C124,226 128,228 130,232';
+---
+
+<svg
+  viewBox="0 0 480 440"
+  role="img"
+  aria-label={t['diagram.postural-orthostatic-tachycardia-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <rect x="62" y="108" width="76" height="148" rx="18"></rect>
+    </clipPath>
+  </defs>
+
+  <!-- The figure -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="2.5">
+    <circle cx="100" cy="60" r="36"></circle>
+    <path d="M92,96 V108 M108,96 V108"></path>
+    <rect x="62" y="108" width="76" height="148" rx="18"></rect>
+    <rect x="42" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="142" y="114" width="16" height="122" rx="8"></rect>
+    <rect x="66" y="260" width="30" height="160" rx="12"></rect>
+    <rect x="104" y="260" width="30" height="160" rx="12"></rect>
+  </g>
+
+  <!-- Veins of the legs and belly: a little blood shifts into them normally, more pools in POTS -->
+  <g fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="5">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+      <path d={bellyVein} clip-path={`url(#${clipId})`} stroke-width="3"></path>
+    </g>
+    <g class="disease-only" stroke-width="12">
+      <path d={leftVein}></path>
+      <path d={rightVein}></path>
+      <path d={bellyVein} clip-path={`url(#${clipId})`} stroke-width="8"></path>
+    </g>
+  </g>
+
+  <!-- Artery from the heart to the head: the same in both states, blood pressure holds -->
+  <path d={artery} stroke="var(--diagram-arterial)" stroke-width="7" stroke-linecap="round"></path>
+
+  <!-- Moving blood: slower through the pooled veins in POTS; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--color-bg)" stroke-width="2">
+    <path class="dash-flow" d={artery}></path>
+    <g class="normal-only">
+      <path class="dash-flow" d={leftVein}></path>
+      <path class="dash-flow" d={rightVein}></path>
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow pots-slow" d={leftVein}></path>
+      <path class="dash-flow pots-slow" d={rightVein}></path>
+    </g>
+  </g>
+
+  <!-- Heart: beats a little faster than at rest normally, markedly faster in POTS -->
+  <path class="pots-beat normal-only" d={heart} fill="var(--diagram-muscle)"></path>
+  <path class="pots-beat pots-beat-fast disease-only" d={heart} fill="var(--diagram-muscle)"></path>
+
+  <!-- Labels with leader lines, one set per state -->
+  {[
+    { state: 'normal-only', labels: normalLabels },
+    { state: 'disease-only', labels: diseaseLabels },
+  ].map((group) => (
+    <g class={group.state}>
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        {group.labels.map((item) => (
+          <line x1="200" y1={item.y - 4} x2={item.toX} y2={item.y - 4} />
+        ))}
+      </g>
+      {group.labels.map((item) => (
+        <text class="diagram-small" x={labelX} y={item.y}>
+          {item.lines.map((line, index) => (
+            <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* Heartbeat: a little faster than at rest in the normal state, markedly faster in POTS. Without
+     motion the heart stands still and the labels and the wider veins carry the difference. */
+  .diagram .pots-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pots-beat 0.9s ease-in-out infinite;
+  }
+
+  .diagram .pots-beat-fast {
+    animation-duration: 0.45s;
+  }
+
+  .diagram .pots-slow {
+    animation-duration: 4s;
+  }
+
+  @keyframes pots-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.15);
+    }
+  }
+</style>
