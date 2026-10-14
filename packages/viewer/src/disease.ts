@@ -46,8 +46,8 @@ export interface DiseaseShape {
   zone?: { kind: ZoneKind; motion: number };
   /**
    * Chambers that grow about their own centres by these factors; what each carries moves along
-   * (GROW_WITH in disease-geometry.ts). The vessels on the ventricles grow about their common centre by the mean of the
-   * two ventricles (growOnVentricles), so they stay on the surface.
+   * (GROW_WITH in disease-geometry.ts). The vessels on the ventricles grow about their common
+   * centre by the mean of the two ventricles (growOnVentricles), so they stay on the surface.
    */
   grow?: Partial<Record<ChamberId, number>>;
   /** Multiplies how far a valve opens. */
