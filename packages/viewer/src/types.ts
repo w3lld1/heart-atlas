@@ -57,6 +57,7 @@ export const viewerMessageKeys = [
   'viewer.disease.pulmonary-hypertension',
   'viewer.disease.ventricular-septal-defect',
   'viewer.disease.restrictive-cardiomyopathy',
+  'viewer.disease.thoracic-aortic-aneurysm',
   'viewer.disease.coronary-heart-disease',
   'viewer.disease.hypertension',
   'viewer.disease.hypertrophic-cardiomyopathy',

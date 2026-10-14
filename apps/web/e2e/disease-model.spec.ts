@@ -183,6 +183,10 @@ test.describe('disease signs on the 3D model', () => {
     await expect(
       page.getByText(en['viewer.disease.restrictive-cardiomyopathy'], { exact: true }),
     ).toBeVisible();
+    await page.getByLabel(en['viewer.disease.pick']).selectOption('thoracic-aortic-aneurysm');
+    await expect(
+      page.getByText(en['viewer.disease.thoracic-aortic-aneurysm'], { exact: true }),
+    ).toBeVisible();
     await page.getByLabel(en['viewer.disease.pick']).selectOption('mitral-regurgitation');
     await expect(
       page.getByText(en['viewer.disease.mitral-regurgitation'], { exact: true }),

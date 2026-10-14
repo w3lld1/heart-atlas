@@ -17,6 +17,7 @@ import {
   MeshStandardMaterial,
   Plane,
   Vector2,
+  Vector4,
   Vector3,
   type Intersection,
   type Object3D,
@@ -44,6 +45,7 @@ import {
 } from './cycle.ts';
 import type { PresetId } from '@heart-atlas/heart-clock';
 import {
+  AORTA_BULGE,
   growOnVentricles,
   growOwner,
   nearestDistances,
@@ -99,6 +101,7 @@ const DISEASE_INTENSITY = 0.35;
 const ZONE = new Color('#5b1780');
 const ZONE_MIX = 0.9;
 const LV = 'left-ventricle';
+const AORTA = 'aorta';
 const GHOST_GROUPS = new Set(['chamber']);
 /**
  * Layers of congenital models that turn see-through: the muscle shows the blood cast of the
@@ -153,6 +156,11 @@ interface DeformUniforms {
   uRadius: { value: number };
   uEnlarge: { value: number };
   uEnlargeCenter: { value: Vector3 };
+  uBulge: { value: number };
+  uBulgeCenter: { value: Vector3 };
+  uBulgeAxis: { value: Vector3 };
+  uBulgeRange: { value: Vector4 };
+  uBulgeReach: { value: Vector2 };
   uZoneSelect: { value: Vector2 };
   uZoneMotion: { value: number };
   uZoneColor: { value: Color };
@@ -226,6 +234,11 @@ function newUniforms(): DeformUniforms {
     uRadius: { value: 0 },
     uEnlarge: { value: 1 },
     uEnlargeCenter: { value: new Vector3() },
+    uBulge: { value: 0 },
+    uBulgeCenter: { value: new Vector3() },
+    uBulgeAxis: { value: new Vector3(0, 1, 0) },
+    uBulgeRange: { value: new Vector4(...AORTA_BULGE.range) },
+    uBulgeReach: { value: new Vector2(...AORTA_BULGE.reach) },
     uZoneSelect: { value: new Vector2() },
     uZoneMotion: { value: 1 },
     uZoneColor: { value: ZONE },
@@ -266,6 +279,28 @@ function addDeformation(material: MeshStandardMaterial, uniforms: DeformUniforms
         `#include <emissivemap_fragment>\n${ZONE_EMISSIVE}`,
       );
   };
+}
+
+/**
+ * The aorta bulges along the aortic valve axis, from the valve centre towards the aorta: the
+ * frame is found in model space and mapped into the aorta's geometry space, where the shader works.
+ */
+function setBulgeFrame(aorta: Mesh, scene: Object3D, uniforms: DeformUniforms) {
+  const valve = scene.getObjectByName('aortic-valve');
+  if (!(valve instanceof Mesh)) return;
+  const frame = valveFrame(worldPositions(valve));
+  const centre = new Vector3(...frame.center);
+  const axis = new Vector3(...frame.normal);
+  const toAorta = new Box3().setFromObject(aorta).getCenter(new Vector3()).sub(centre);
+  if (axis.dot(toAorta) < 0) axis.negate();
+  const localCentre = aorta.worldToLocal(centre.clone());
+  const localTip = aorta.worldToLocal(centre.clone().add(axis));
+  // Quantization scales the node uniformly, so distances map by one factor too.
+  const perMetre = localTip.distanceTo(localCentre);
+  uniforms.uBulgeCenter.value.copy(localCentre);
+  uniforms.uBulgeAxis.value.copy(localTip.sub(localCentre).normalize());
+  uniforms.uBulgeRange.value.set(...AORTA_BULGE.range).multiplyScalar(perMetre);
+  uniforms.uBulgeReach.value.set(...AORTA_BULGE.reach).multiplyScalar(perMetre);
 }
 
 /** Positions of a mesh in model space, undoing quantization and node transforms. */
@@ -352,7 +387,7 @@ export function Model({ onLoaded, ...props }: ModelProps) {
         : onVentricles(group)
           ? ventricles
           : undefined;
-      if (follows || isValve(o.name) || growCentre) {
+      if (follows || isValve(o.name) || growCentre || o.name === AORTA) {
         deform = newUniforms();
         // The shader works in the mesh's geometry space; quantization scales nodes uniformly,
         // so squeezing there about the mapped centre equals squeezing in model space.
@@ -372,6 +407,7 @@ export function Model({ onLoaded, ...props }: ModelProps) {
             : undefined;
         setValveFrame(o, deform, axis);
       }
+      if (deform && o.name === AORTA) setBulgeFrame(o, copy, deform);
       if (deform) addDeformation(material, deform, zone);
       list.push({
         mesh: o,
@@ -439,6 +475,7 @@ export function Model({ onLoaded, ...props }: ModelProps) {
         : onVentricles(group)
           ? growOnVentricles(shape)
           : 1;
+      if (mesh.name === AORTA) deform.uBulge.value = shape?.aortaBulge ?? 0;
       if (mesh.name !== LV) continue;
       const kind = shape?.zone?.kind;
       deform.uZoneSelect.value.set(kind === 'inferior' ? 1 : 0, kind === 'septal' ? 1 : 0);

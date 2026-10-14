@@ -179,7 +179,7 @@ export function openValvePoint(p: Vec3, frame: ValveFrame, amount: number): Vec3
 
 /**
  * GLSL for the deformation; `transformed` is three's local vertex position. A valve first opens
- * in its own frame, a diseased left ventricle and what it carries grow, then every deformed mesh
+ * in its own frame, a diseased vessel bulges, a diseased chamber and what it carries grow, then every deformed mesh
  * is squeezed with the chambers it follows. A mesh with zone weights (HAS_ZONE, the left
  * ventricle) squeezes less inside its zone by `uZoneMotion` and tints it in the fragment shader.
  */
@@ -193,6 +193,11 @@ uniform vec3 uNormal;
 uniform float uRadius;
 uniform float uEnlarge;
 uniform vec3 uEnlargeCenter;
+uniform float uBulge;
+uniform vec3 uBulgeCenter;
+uniform vec3 uBulgeAxis;
+uniform vec4 uBulgeRange;
+uniform vec2 uBulgeReach;
 #ifdef HAS_ZONE
 attribute float zoneInferior;
 attribute float zoneSeptal;
@@ -211,6 +216,16 @@ if (uValve == 1) {
   if (r > 1e-9 && r < uRadius) {
     transformed = uCenter + h * uNormal + inPlane * ((r + uOpen * (uRadius - r)) / r);
   }
+}
+if (uBulge > 0.0) {
+  // A vessel widens across its axis between uBulgeRange.x..y (rising) and .z..w (falling);
+  // points beyond uBulgeReach from the axis (another part of the vessel) stay.
+  vec3 d = transformed - uBulgeCenter;
+  float h = dot(d, uBulgeAxis);
+  vec3 across = d - h * uBulgeAxis;
+  float w = smoothstep(uBulgeRange.x, uBulgeRange.y, h) * (1.0 - smoothstep(uBulgeRange.z, uBulgeRange.w, h));
+  w *= 1.0 - smoothstep(uBulgeReach.x, uBulgeReach.y, length(across));
+  transformed += across * (uBulge * w);
 }
 transformed = uEnlargeCenter + (transformed - uEnlargeCenter) * uEnlarge;
 float squeeze = uSqueeze;
