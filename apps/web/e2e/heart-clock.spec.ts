@@ -377,6 +377,30 @@ test.describe('disease presets', () => {
     expect((await axe(page).analyze()).violations).toEqual([]);
   });
 
+  test('show focal atrial tachycardia at its own rate, with a floor of 100', async ({ page }) => {
+    // docs/plans/2026-10-14-heart-clock-focal-atrial-tachycardia.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    await expect(
+      conditions.locator(
+        `optgroup[label="${en['heartClock.group.rhythm']}"] option[value="focal-atrial-tachycardia"]`,
+      ),
+    ).toHaveCount(1);
+    await choose(page, 'focal-atrial-tachycardia');
+    await expect(slider).toHaveValue('150');
+    await expect(slider).toHaveAttribute('min', '100');
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.focal-atrial-tachycardia.summary'],
+    );
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.focal-atrial-tachycardia.ecg'].replace('{rate}', '150'),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
   test("show short QT syndrome at the reader's rate", async ({ page }) => {
     // docs/plans/2026-10-14-heart-clock-short-qt.md
     await page.goto('en/heart-clock/');
