@@ -31,7 +31,7 @@ const lines = (key: MessageKey, max = 26) => wrap(t[key], max);
 const keepsSodiumLines = lines('diagram.label.kidney-keeps-sodium-water-removes-potassium');
 const feedbackLines = lines('diagram.label.enough-fluid-less-renin-less-aldosterone');
 const usualPressureLines = lines('diagram.label.blood-pressure-usual-range');
-const adenomaLines = lines('diagram.label.adenoma-makes-aldosterone-without-signal', 26);
+const adenomaLines = lines('diagram.label.adenoma-makes-aldosterone-without-signal', 30);
 const suppressedLines = lines('diagram.label.renin-suppressed', 12);
 const morePressureLines = lines('diagram.label.more-sodium-water-pressure-higher');
 const potassiumLines = lines('diagram.label.potassium-lost-in-urine-lower-in-blood');
@@ -100,12 +100,7 @@ const heartLabelX = 364;
     <path d={reninPath} fill="none" stroke-width="3"></path>
     <path d={reninHead} stroke-width="1"></path>
   </g>
-  <g
-    class="disease-only"
-    fill="var(--diagram-venous)"
-    stroke="var(--diagram-venous)"
-    opacity="0.45"
-  >
+  <g class="disease-only" fill="var(--diagram-venous)" stroke="var(--diagram-venous)" opacity="0.6">
     <path d={reninPath} fill="none" stroke-width="2" stroke-dasharray="5 5"></path>
     <path d={reninHead} stroke-width="1"></path>
   </g>
@@ -178,7 +173,7 @@ const heartLabelX = 364;
   <g class="disease-only">
     <line
       x1="150"
-      y1="80"
+      y1={30 + adenomaLines.length * lineHeight - 4}
       x2={adenoma.x - 6}
       y2={adenoma.y - 10}
       stroke="var(--color-text)"
@@ -227,10 +222,6 @@ const heartLabelX = 364;
      and the labels carry the meaning. */
   .diagram .praldo-pulse {
     animation: praldo-pulse 1.6s ease-in-out infinite;
-  }
-
-  .diagram:has(.diagram-pause :checked) .praldo-pulse {
-    animation: none;
   }
 
   @keyframes praldo-pulse {

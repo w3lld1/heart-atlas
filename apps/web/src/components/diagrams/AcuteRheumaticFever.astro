@@ -193,14 +193,10 @@ const column = 340;
 </svg>
 
 <style is:global>
-  /* Foci of inflammation glow softly; without motion they stay visible at full colour. */
+  /* Foci of inflammation glow softly; without motion they stay visible at 60% opacity. */
   .diagram .arf-focus {
     opacity: 0.6;
     animation: arf-glow 2.4s ease-in-out infinite;
-  }
-
-  .diagram:has(.diagram-pause :checked) .arf-focus {
-    animation: none;
   }
 
   @keyframes arf-glow {
