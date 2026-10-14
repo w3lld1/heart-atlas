@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is a patent foramen ovale (PFO)?
+    options:
+      - text: Thickening of the left ventricle wall after long strain
+      - text: Narrowing of the pulmonary valve that first appears in an adult
+      - text: A slit between the atria left from circulation before birth
+        correct: true
+    explanation: A patent foramen ovale is a slit in the wall between the atria left over from the circulation before birth.
+    cite: [3, 7]
+  - level: patient
+    prompt: According to the article, what danger can a patent foramen ovale pose?
+    options:
+      - text: A clot from the veins can pass into the arteries and cause a stroke
+        correct: true
+      - text: Over time the opening wears away the aortic valve
+      - text: Because of the opening, eyesight slowly gets much weaker in adulthood
+    explanation: A blood clot from the veins can pass through the opening into the arteries and cause a stroke.
+    cite: [3]
+  - level: patient
+    prompt: What must the bubble test for a PFO always include?
+    options:
+      - text: Deep sleep the night before the test
+      - text: Straining (the Valsalva manoeuvre)
+        correct: true
+      - text: A cold shower just before the test starts
+    explanation: The bubble test must always include straining (the Valsalva manoeuvre).
+    cite: [1]
+  - level: patient
+    prompt: Which signs does the article say mean calling an ambulance straight away?
+    options:
+      - text: Fingernails have started growing noticeably faster than usual
+      - text: Freckles on the nose and cheeks look more visible after a long sunny summer
+      - text: Sudden weakness of the face muscles or limbs, difficulty speaking
+        correct: true
+    explanation: Call your local emergency number straight away if there is sudden weakness of the face muscles or limbs, especially on one side of the body, numbness, difficulty speaking or understanding speech, or loss of consciousness.
+    cite: [1]
+  - level: student
+    prompt: What is ESUS according to the Russian Ministry of Health guideline?
+    options:
+      - text: Temporary visual disturbance in migraine with aura
+      - text: A non-lacunar stroke with no obvious embolic source after work-up
+        correct: true
+      - text: A brain haemorrhage from a ruptured vessel aneurysm in an older person
+    explanation: ESUS is a non-lacunar stroke with no obvious source of embolism after work-up and exclusion of known causes, in particular cardioembolism and atherosclerosis proximal to the stroke territory.
+    cite: [1]
+  - level: student
+    prompt: On echocardiography, what tells a PFO apart from a secundum ASD?
+    options:
+      - text: A septum primum flap and flow at a slant
+        correct: true
+      - text: Thickened tricuspid valve leaflets
+      - text: A dilated aortic root and pericardial effusion
+    explanation: On echocardiography a secundum ASD is distinguished from a PFO — with a PFO a flap of the septum primum is seen next to the opening, and the colour Doppler flow runs at a slant.
+    cite: [2]

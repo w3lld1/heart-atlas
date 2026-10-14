@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is renal artery stenosis?
+    options:
+      - text: A tear in the renal artery wall with bleeding around the kidney
+      - text: Reduced blood flow through the renal arteries or their branches
+        correct: true
+      - text: A stone in the renal pelvis that blocks the normal outflow of urine
+    explanation: Renal artery stenosis is a decrease in blood flow through one or both renal arteries or their branches.
+    cite: [5]
+  - level: patient
+    prompt: What does duplex ultrasound show when stenosis is suspected?
+    options:
+      - text: The size of the kidneys and blood flow in the arteries
+        correct: true
+      - text: The levels of sugar and cholesterol in the blood plasma
+      - text: The electrical activity of the heart muscle over a day
+    explanation: An ultrasound of the kidneys with duplex scanning of the renal arteries shows the size of the kidneys and the blood flow in the arteries.
+    cite: [1, 2, 4]
+  - level: patient
+    prompt: What are the two main causes of renal artery narrowing?
+    options:
+      - text: Migraine headaches and bronchial asthma
+      - text: Chronic gastritis and varicose veins of the legs
+      - text: Atherosclerosis and fibromuscular dysplasia
+        correct: true
+    explanation: The two main causes of renal artery narrowing are atherosclerosis and fibromuscular dysplasia (FMD).
+    cite: [4, 5, 7]
+  - level: patient
+    prompt: Which sign can point to a blocked renal artery?
+    options:
+      - text: Mild nasal stuffiness after a walk in the frost
+      - text: Sudden, steady pain in the side or abdomen
+        correct: true
+      - text: A small blister on the heel from tight new shoes
+    explanation: Sudden, steady, aching pain in the side or abdomen, especially with fever, nausea and vomiting, blood in the urine or a sharp fall in the amount of urine, can mean a sudden blockage of the renal artery.
+    cite: [5]
+  - level: student
+    prompt: How does renal artery stenosis cause renovascular hypertension?
+    options:
+      - text: It stimulates renin release from juxtaglomerular cells
+        correct: true
+      - text: It stimulates insulin release from pancreatic beta cells
+      - text: It stimulates melatonin release from pineal gland cells
+    explanation: The stenosis causes renovascular hypertension by stimulating release of renin from the juxtaglomerular cells of the affected kidney.
+    cite: [1, 4]
+  - level: student
+    prompt: Which renal artery stenosis, as a rule, raises blood pressure?
+    options:
+      - text: Only one located in the right renal artery
+      - text: Only one that occurs together with kidney stones
+      - text: Only a haemodynamically significant one
+        correct: true
+    explanation: As a rule, only a haemodynamically significant renal artery stenosis raises blood pressure.
+    cite: [3, 4]

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What does a doctor do first before diagnosing IST?
+    options:
+      - text: Rules out other causes of a fast heart rate
+        correct: true
+      - text: Checks the patient's eyesight with a letter chart
+      - text: Gives a vaccination against seasonal flu
+    explanation: Only a doctor can make this diagnosis after an assessment. First they rule out other causes of a fast heart rate.
+    cite: [1, 3]
+  - level: patient
+    prompt: What may underlie IST?
+    options:
+      - text: Inflammation of the gallbladder and bile ducts
+      - text: Damage to the retina in short-sightedness
+      - text: Overactivity of the sinus node itself
+        correct: true
+    explanation: The sinus node itself may be overactive, or its control by the autonomic nervous system may be disturbed, with stronger sympathetic and weaker parasympathetic influence.
+    cite: [1]
+  - level: patient
+    prompt: What is tried in IST before medicines?
+    options:
+      - text: Wearing a warm woollen scarf even in the summer
+      - text: More physical activity and avoiding caffeine
+        correct: true
+      - text: Sleeping in glasses with dark blue lenses at night
+    explanation: 'Before medicines, lifestyle changes are tried: more physical activity and avoiding substances that stimulate the heart, such as caffeine.'
+    cite: [2, 3]
+  - level: patient
+    prompt: When should you call an ambulance for a racing heart?
+    options:
+      - text: If the skin on your hands feels a little dry in winter
+      - text: If your nose is slightly blocked after a walk in the frost
+      - text: If it comes with fainting or feeling close to fainting
+        correct: true
+    explanation: 'Call your local emergency number (112 in the EU, 911 in the US and Canada, 999 in the UK) if a racing heart comes with fainting or feeling close to fainting: sudden darkening of vision, weakness, dizziness or a cold sweat.'
+    cite: [1]
+  - level: student
+    prompt: What does a 12-lead ECG show in IST?
+    options:
+      - text: The usual shape of the P wave
+        correct: true
+      - text: Sawtooth flutter waves instead of P waves
+      - text: Small fibrillatory f waves instead of P waves
+    explanation: 'In IST, the 12-lead ECG shows the usual P-wave morphology: positive in I, II and aVF, biphasic or negative in V1.'
+    cite: [1, 2]
+  - level: student
+    prompt: When, according to the ESC, is an electrophysiological study done in IST?
+    options:
+      - text: Only to check for bundle branch block
+      - text: Only to exclude sinus nodal re-entrant tachycardia
+        correct: true
+      - text: Only to measure pressure in the pulmonary artery and the aorta
+    explanation: An electrophysiological study is done only when sinus nodal re-entrant tachycardia needs to be excluded.
+    cite: [2]
