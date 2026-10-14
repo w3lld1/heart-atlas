@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Which parts of the brain do the vertebral arteries supply?
+    options:
+      - text: The kidneys, the liver and other abdominal organs
+      - text: The brainstem, cerebellum and posterior cortex
+        correct: true
+      - text: The heart muscle
+    explanation: The vertebral arteries supply the back of the brain - the brainstem, the cerebellum and the posterior part of the cerebral cortex.
+    cite: [4]
+  - level: patient
+    prompt: What do the vertebral arteries join to form inside the skull?
+    options:
+      - text: The portal vein of the liver
+      - text: The pulmonary trunk
+      - text: The basilar artery
+        correct: true
+    explanation: The vertebral arteries carry blood along the back of the neck, and inside the skull they join to form the basilar artery.
+    cite: [5]
+  - level: patient
+    prompt: What can a blood clot that forms on a plaque do?
+    options:
+      - text: Break off and block an artery in the brain
+        correct: true
+      - text: Strengthen the artery wall and widen the artery
+      - text: Turn into a new branch of the artery
+    explanation: A blood clot can form on a plaque - it may block the artery, or break off and block an artery in the brain.
+    cite: [6]
+  - level: patient
+    prompt: Which sudden symptom is a reason to call an ambulance straight away?
+    options:
+      - text: Sneezing and a blocked, runny nose
+      - text: Double vision or loss of vision
+        correct: true
+      - text: Itchy skin on the arms
+    explanation: Call an ambulance straight away if there is sudden double vision or loss of vision (or the other signs in the ambulance section), even if the symptom goes away quickly.
+    cite: [5]
+  - level: student
+    prompt: What does the Russian guideline name as the main mechanisms of atherothrombotic stroke?
+    options:
+      - text: Rupture of a cerebral aneurysm with bleeding into brain tissue
+      - text: Inflammation of the brain membranes
+      - text: Artery-to-artery embolism, hypoperfusion or both
+        correct: true
+    explanation: The Russian Ministry of Health guideline names the main mechanisms of atherothrombotic stroke as artery-to-artery embolism (by a thrombus or a fragment of atheroma), hypoperfusion or a combination of the two.
+    cite: [1]
+  - level: student
+    prompt: Via which artery does the posterior circulation communicate with the anterior one?
+    options:
+      - text: The inferior mesenteric artery of the gut
+      - text: The posterior communicating artery
+        correct: true
+      - text: The renal artery
+    explanation: The vertebral and basilar arteries form the posterior (vertebrobasilar) circulation; it communicates with the anterior circulation in the circle of Willis via the posterior communicating artery.
+    cite: [4]

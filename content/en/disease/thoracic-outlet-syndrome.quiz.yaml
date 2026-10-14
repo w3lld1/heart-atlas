@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is compressed in thoracic outlet syndrome?
+    options:
+      - text: The windpipe and gullet in the lower neck
+      - text: Nerves, arteries or large veins on the way from the neck to the arm
+        correct: true
+      - text: The bile ducts and blood vessels of the liver in the abdomen, below the ribs
+    explanation: It is a group of conditions in which nerves, arteries or large veins are compressed where they pass from the neck into the chest and on to the arm.
+    cite: [1, 4]
+  - level: patient
+    prompt: Which three forms are told apart by what is compressed?
+    options:
+      - text: Neurogenic, venous and arterial
+        correct: true
+      - text: Cardiac, pulmonary and gastrointestinal
+      - text: Renal, hepatic and intestinal
+    explanation: There are three forms, depending on what is compressed - neurogenic (the nerves of the brachial plexus), venous (the subclavian vein) and arterial (the subclavian artery).
+    cite: [1, 3]
+  - level: patient
+    prompt: What can blood vessels or nerves be squeezed between in the passage from the neck to the arm?
+    options:
+      - text: Between the kidney and the liver in the abdomen
+      - text: Between the kneecap and the thigh bone of the leg
+      - text: Between a rib, the collarbone or a muscle
+        correct: true
+    explanation: The passage from the neck to the arm is crowded, so blood vessels or nerves can be squeezed between a rib, the collarbone or a muscle.
+    cite: [4]
+  - level: patient
+    prompt: Which sudden symptom is a reason to call an emergency number?
+    options:
+      - text: Sneezing and a runny nose
+      - text: Coughing up blood
+        correct: true
+      - text: Itchy skin on the shoulder
+    explanation: Call your local emergency number if you suddenly develop shortness of breath, chest pain, feeling faint or fainting, or coughing up blood - these may be signs of PE.
+    cite: [1]
+  - level: student
+    prompt: Compression of which structures does the Russian guideline name in its definition?
+    options:
+      - text: The spinal cord and the vertebral arteries in the spinal canal
+      - text: The brachial plexus or the subclavian vessels
+        correct: true
+      - text: The vagus nerve and the carotid arteries
+    explanation: The Russian Ministry of Health guideline defines superior thoracic aperture syndrome as a group of clinical syndromes caused by congenital or acquired compression of the brachial plexus or subclavian vessels as they pass through the superior thoracic aperture.
+    cite: [1]
+  - level: student
+    prompt: According to MSD, what is compressed in the neurogenic form?
+    options:
+      - text: The sciatic nerve in the buttock region
+      - text: The facial nerve
+      - text: The lower trunk of the brachial plexus
+        correct: true
+    explanation: According to MSD, the neurogenic form involves compression of the lower trunk of the brachial plexus, although the nature of this involvement is unclear.
+    cite: [3]
