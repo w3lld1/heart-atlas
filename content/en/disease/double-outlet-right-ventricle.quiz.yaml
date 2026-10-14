@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: How does blood get out of the left ventricle with this defect?
+    options:
+      - text: Through a vessel that leaves the left ventricle for the lungs
+      - text: Through a hole in the wall between the ventricles
+        correct: true
+      - text: Through an open foramen ovale into the right atrium
+    explanation: There is almost always a ventricular septal defect, and it is the only way blood can get out of the left ventricle.
+    cite: [2, 3]
+  - level: patient
+    prompt: Which signs in a baby with this defect does the article describe?
+    options:
+      - text: Yellow skin and pale stools after feeds
+      - text: A rash on the cheeks and swollen finger joints
+      - text: Fast breathing and bluish lips
+        correct: true
+    explanation: A baby may breathe fast, feed poorly and tire easily, and the lips, nail beds and skin may turn bluish.
+    cite: [3]
+  - level: patient
+    prompt: Which test confirms the diagnosis of this defect?
+    options:
+      - text: Ultrasound scan of the heart (echocardiography)
+        correct: true
+      - text: A blood test for cholesterol level
+      - text: Round-the-clock monitoring of blood pressure at home
+    explanation: The diagnosis is confirmed with an ultrasound scan of the heart (echocardiography).
+    cite: [3]
+  - level: patient
+    prompt: According to the article, how is this defect repaired?
+    options:
+      - text: With breathing exercises and chest massage
+      - text: Surgically, with an operation
+        correct: true
+      - text: By changing the baby's feeding and sleep routine
+    explanation: 'Medicines help with this defect, but surgery cannot be avoided: the defect is repaired with an operation.'
+    cite: [2, 3]
+  - level: student
+    prompt: What is the variant called in which the pulmonary valve lies next to the VSD or overrides it?
+    options:
+      - text: Hypoplastic left heart syndrome
+      - text: Ebstein anomaly
+      - text: Taussig-Bing anomaly
+        correct: true
+    explanation: When the pulmonary valve lies immediately next to the defect or partially overrides it, the defect is called the Taussig-Bing anomaly.
+    cite: [2]
+  - level: student
+    prompt: Per the MSD Manual, a subaortic VSD with pulmonary stenosis gives a picture similar to what?
+    options:
+      - text: Tetralogy of Fallot
+        correct: true
+      - text: Atrial septal defect
+      - text: Hypertrophic cardiomyopathy
+    explanation: If pulmonary stenosis is also present, more desaturated blood from the RV is directed to the aorta, leading to cyanosis and a picture similar to tetralogy of Fallot.
+    cite: [2]
