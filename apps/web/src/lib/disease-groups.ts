@@ -120,6 +120,7 @@ export const diseaseGroups = {
     'subclavian-artery-stenosis',
     'takayasu-arteritis',
     'thoracic-aortic-aneurysm',
+    'thromboangiitis-obliterans',
     'vascular-ehlers-danlos-syndrome',
   ],
   veins: ['deep-vein-thrombosis', 'superficial-thrombophlebitis', 'varicose-veins'],

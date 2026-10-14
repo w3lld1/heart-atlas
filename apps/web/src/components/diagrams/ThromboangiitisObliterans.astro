@@ -1,0 +1,294 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-tao-arrow`;
+const toesClip = `${uid}-tao-toes`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+// `shortFirst` puts the extra word of an odd count on the second line.
+function twoLines(label: string, shortFirst = false): [string, string] {
+  const words = label.split(' ');
+  const split = (shortFirst ? Math.floor : Math.ceil)(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const blockedLines = twoLines(t['diagram.label.short-blocked-segments']);
+const corkscrewLines = twoLines(t['diagram.label.corkscrew-collateral-vessels'], true);
+const toesLines = twoLines(t['diagram.label.cold-bluish-toes']);
+// The lower leg seen from the front, from just below the knee (top) to the ankle, and the foot
+// pointing right with the toes at the right end. The drawing is shifted right inside the viewBox
+// to leave a column for labels on the left.
+const leg =
+  'M130,0 L270,0 C276,70 262,160 248,226 C256,248 300,254 344,262 L394,270 C418,274 420,330 396,332 L176,334 C146,334 140,292 158,248 C146,170 124,80 130,0 Z';
+// Two arteries of the lower leg leave the artery behind the knee: one runs onto the top of the
+// foot, the other into the sole. The curves are nested so they do not cross. Thin branches carry
+// blood on to the toes. Vessels are wide strokes: the wall, then the lumen on top of it.
+const trunk = 'M200,0 V22';
+const legArteries = [
+  'M200,20 C200,32 222,34 222,50 V218 Q222,272 262,274 H330',
+  'M200,20 C200,32 178,34 178,50 V228 Q178,308 244,310 H330',
+];
+const toeArteries = [
+  'M328,274 C350,274 364,282 394,284',
+  'M328,310 C350,310 364,302 396,300',
+  'M328,310 C350,312 364,320 392,320',
+];
+// Routes of the moving blood. Normally down both arteries to the toes; in disease only as far as
+// the first blocked segment of each artery.
+const normalRoutes = [
+  'M200,4 V20 C200,32 222,34 222,50 V218 Q222,272 262,274 H328 C350,274 364,282 390,284',
+  'M200,4 V20 C200,32 178,34 178,50 V228 Q178,308 244,310 H328 C350,310 364,302 392,300',
+];
+const diseaseRoutes = [
+  'M200,4 V20 C200,32 222,34 222,50 V190',
+  'M200,4 V20 C200,32 178,34 178,50 V146',
+];
+// Short blocked segments (a clot in the inflamed wall) in the small distal arteries, with open
+// stretches between them. The large artery above stays free: no plaque is drawn anywhere.
+const blocks = [
+  { x: 172, y: 150, width: 12, height: 16 },
+  { x: 216, y: 196, width: 12, height: 16 },
+  { x: 290, y: 269, width: 14, height: 10 },
+  { x: 296, y: 305, width: 14, height: 10 },
+];
+// Thin tortuous ("corkscrew") collateral vessels around each blocked segment: a bow from the open
+// artery above the block to the open artery below it, wound into tight turns.
+function corkscrew(ax: number, ay: number, bx: number, by: number, bulge: number): string {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const length = Math.hypot(dx, dy);
+  const nx = -dy / length;
+  const ny = dx / length;
+  const steps = 48;
+  const turns = 4;
+  const points: string[] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const s = i / steps;
+    const envelope = Math.sin(Math.PI * s);
+    const offset = bulge * envelope + 3 * envelope * Math.sin(2 * Math.PI * turns * s);
+    const x = ax + dx * s + nx * offset;
+    const y = ay + dy * s + ny * offset;
+    points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  return `M${points.join(' L')}`;
+}
+const collaterals = [
+  corkscrew(173, 136, 173, 180, 12),
+  corkscrew(227, 222, 227, 182, 12),
+  corkscrew(280, 279, 314, 279, 10),
+  corkscrew(286, 315, 320, 315, 8),
+];
+// Negative delays so the flow is already running when the page opens.
+const normalRun = [0, -1.5];
+const diseaseRun = [0, -1.5];
+---
+
+<svg
+  viewBox="0 0 480 390"
+  role="img"
+  aria-label={t['diagram.thromboangiitis-obliterans.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <clipPath id={toesClip}>
+      <rect x="352" y="250" width="80" height="100"></rect>
+    </clipPath>
+  </defs>
+
+  <g transform="translate(40,0)">
+    <!-- The leg. The outline keeps it visible on the page background in both themes. -->
+    <path
+      d={leg}
+      fill="var(--diagram-muscle)"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></path>
+
+    <!-- In disease the toes get little blood: cold and bluish -->
+    <path class="disease-only tao-bluish" d={leg} clip-path={`url(#${toesClip})`}></path>
+
+    <!-- Corkscrew collateral vessels around the blocked segments -->
+    <g
+      class="disease-only"
+      fill="none"
+      stroke="var(--diagram-arterial)"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      {collaterals.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+
+    <!-- Artery walls, then the lumens on top of them -->
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-linejoin="round">
+      <path d={trunk} stroke-width="16"></path>
+      {legArteries.map((d) => (
+        <path d={d} stroke-width="12" />
+      ))}
+      {toeArteries.map((d) => (
+        <path d={d} stroke-width="6" />
+      ))}
+    </g>
+    <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linejoin="round">
+      <path d={trunk} stroke-width="10"></path>
+      {legArteries.map((d) => (
+        <path d={d} stroke-width="6" />
+      ))}
+      {toeArteries.map((d) => (
+        <path d={d} stroke-width="2.5" />
+      ))}
+    </g>
+
+    <!-- Short blocked segments. The outline keeps their edge visible against the wall. -->
+    <g
+      class="disease-only"
+      fill="var(--diagram-arterial)"
+      stroke="var(--color-text)"
+      stroke-width="1"
+    >
+      {blocks.map((b) => (
+        <rect x={b.x} y={b.y} width={b.width} height={b.height} rx="3" />
+      ))}
+    </g>
+
+    <!-- Flow arrows, visible with and without motion; in disease thin and only above the blocks -->
+    <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+      <g class="normal-only" stroke-width="3">
+        <path d="M222,60 V160" marker-end={`url(#${arrow})`}></path>
+        <path d="M178,60 V160" marker-end={`url(#${arrow})`}></path>
+      </g>
+      <g class="disease-only" stroke-width="1.5">
+        <path d="M222,60 V160" marker-end={`url(#${arrow})`}></path>
+        <path d="M178,60 V124" marker-end={`url(#${arrow})`}></path>
+      </g>
+    </g>
+
+    <!-- Moving blood: in disease fewer, smaller particles that stop at the first block -->
+    <g class="flow" fill="var(--diagram-arterial)">
+      <g class="normal-only">
+        {normalRoutes.map((route) =>
+          normalRun.map((delay) => (
+            <circle
+              class="tao-run"
+              r="3"
+              style={`offset-path: path('${route}'); animation-duration: 3.5s; animation-delay: ${delay}s`}
+            />
+          )),
+        )}
+      </g>
+      <g class="disease-only">
+        {diseaseRoutes.map((route) =>
+          diseaseRun.map((delay) => (
+            <circle
+              class="tao-run"
+              r="2"
+              style={`offset-path: path('${route}'); animation-duration: 3s; animation-delay: ${delay}s`}
+            />
+          )),
+        )}
+      </g>
+    </g>
+
+    <!-- Labels in both states -->
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="126" y1="80" x2="170" y2="80"></line>
+      <line x1="268" y1="317" x2="268" y2="346"></line>
+    </g>
+    <text class="diagram-small" x="122" y="84" text-anchor="end">
+      {t['diagram.label.lower-leg-arteries']}
+    </text>
+    <text class="diagram-small" x="268" y="362" text-anchor="middle">
+      {t['diagram.label.foot-and-toe-arteries']}
+    </text>
+
+    <!-- Disease labels -->
+    <g class="disease-only">
+      <g stroke="var(--color-text)" stroke-width="1.5">
+        <line x1="230" y1="56" x2="284" y2="56"></line>
+        <line x1="126" y1="158" x2="170" y2="158"></line>
+        <line x1="241" y1="196" x2="262" y2="196"></line>
+        <line x1="380" y1="266" x2="380" y2="246"></line>
+      </g>
+      <text x="288" y="61">
+        {t['diagram.label.no-plaques']}
+      </text>
+      <text class="diagram-small" x="122" y="154" text-anchor="end">
+        <tspan x="122">{blockedLines[0]}</tspan>
+        <tspan x="122" dy="15">
+          {blockedLines[1]}
+        </tspan>
+      </text>
+      <text class="diagram-small" x="266" y="192">
+        <tspan x="266">{corkscrewLines[0]}</tspan>
+        <tspan x="266" dy="15">
+          {corkscrewLines[1]}
+        </tspan>
+      </text>
+      <text class="diagram-small" x="436" y="225" text-anchor="end">
+        <tspan x="436">{toesLines[0]}</tspan>
+        <tspan x="436" dy="15">
+          {toesLines[1]}
+        </tspan>
+      </text>
+    </g>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .tao-run {
+    offset-rotate: 0deg;
+    animation-name: tao-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* A bluish veil over the toes below the blocked arteries. */
+  .diagram .tao-bluish {
+    fill: var(--diagram-venous);
+    fill-opacity: 0.4;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .tao-run {
+      display: none;
+    }
+  }
+
+  /* Blood runs down the arteries: to the toes in the normal state, to the first block in disease. */
+  @keyframes tao-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>
