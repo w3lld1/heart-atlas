@@ -73,6 +73,42 @@ test('plays only on request, and the cursor follows the sound', async ({ page })
   await expect(cursor).toHaveAttribute('visibility', 'hidden');
 });
 
+test('stays stopped when stopped while the player loads', async ({ page }) => {
+  // docs/plans/2026-10-14-lazy-sound-players.md: the player's code loads on the first "Listen".
+  await page.addInitScript(() => {
+    const counter = window as unknown as { startedOscillators: number };
+    counter.startedOscillators = 0;
+    const start = OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start = function (...args: Parameters<OscillatorNode['start']>) {
+      counter.startedOscillators += 1;
+      return start.apply(this, args);
+    };
+  });
+  let requested = false;
+  let release = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/\/player\.[\w-]+\.js$/, async (route) => {
+    requested = true;
+    await held;
+    await route.continue();
+  });
+  await page.goto('en/heart-sounds/');
+  await hydrated(page);
+  const listen = page.getByRole('button', { name: en['heartSounds.listen'] });
+  await listen.click();
+  await page.getByRole('button', { name: en['heartSounds.stop'] }).click();
+  await expect(listen).toBeVisible();
+  expect(requested).toBe(true);
+  release();
+  await page.waitForTimeout(1500);
+  await expect(listen).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { startedOscillators: number }).startedOscillators,
+    ),
+  ).toBe(0);
+});
+
 test('keeps the cursor still with reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('en/heart-sounds/');

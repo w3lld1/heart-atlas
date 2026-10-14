@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fontUrls, jsReferences, onDemandEntry } from '../scripts/js-budget.ts';
+import { counted, fontUrls, jsImports, jsReferences, onDemandEntry } from '../scripts/js-budget.ts';
 
 describe('jsReferences', () => {
   it('finds script, island and preload URLs in HTML', () => {
@@ -20,6 +20,20 @@ describe('jsReferences', () => {
       'import{a as b}from"./e.js";import"./f.js";const g=()=>import("./g.js");' +
       'const h=()=>import(`./h.js`);';
     expect(jsReferences(js).sort()).toEqual(['./e.js', './f.js', './g.js', './h.js']);
+    expect(jsImports(js).filter((reference) => reference.dynamic)).toEqual([
+      { url: './g.js', dynamic: true },
+      { url: './h.js', dynamic: true },
+    ]);
+  });
+});
+
+describe('counted', () => {
+  it('leaves out an on-demand entry only when it is loaded with import()', () => {
+    expect(counted('_astro/player.C9dE8fGh.js', true, 'a.js')).toBe('');
+    expect(() => counted('_astro/player.C9dE8fGh.js', false, 'a.js')).toThrow(/up front/);
+    expect(counted('_astro/HeartSounds.xA7Uo7RQ.js', false, 'a.js')).toBe(
+      '_astro/HeartSounds.xA7Uo7RQ.js',
+    );
   });
 });
 

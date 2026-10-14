@@ -203,6 +203,7 @@ export default function HeartClockDemo({
   const playerRef = useRef<HeartSoundPlayer | null>(null);
   /** Counts sound on/off clicks, so a player that finishes loading after sound went off is dropped. */
   const soundToken = useRef(0);
+  const soundOnRef = useRef(false);
 
   const wiggersLabels = useMemo(
     () => ({
@@ -365,10 +366,11 @@ export default function HeartClockDemo({
   }
 
   // The audio context is created only here, on a click: browsers block sound before a gesture.
-  // Everything up to resume() runs synchronously inside the click, so a quick second click
-  // sees the player and turns sound off instead of starting a second one.
+  // `soundOnRef` changes synchronously inside the click, so a quick second click turns sound off
+  // instead of starting a second player.
   function toggleSound() {
-    if (soundOn) {
+    if (soundOnRef.current) {
+      soundOnRef.current = false;
       // Turning sound off while the player's code loads drops the load too (`soundToken`).
       soundToken.current += 1;
       playerRef.current?.cancel();
@@ -390,14 +392,18 @@ export default function HeartClockDemo({
     // The context was created above, inside the click, so the sound may start after the import.
     const context = audioRef.current;
     const token = (soundToken.current += 1);
-    void import('./heart-sounds.ts').then(
-      ({ HeartSoundPlayer }) => {
+    void import('./heart-sounds.ts')
+      .then(({ HeartSoundPlayer }) => {
         if (soundToken.current === token) playerRef.current = new HeartSoundPlayer(context);
-      },
-      () => {
-        if (soundToken.current === token) setSoundOn(false);
-      },
-    );
+      })
+      .catch(() => {
+        if (soundToken.current !== token) return;
+        soundToken.current += 1;
+        soundOnRef.current = false;
+        setSoundOn(false);
+        void context.suspend().catch(() => undefined);
+      });
+    soundOnRef.current = true;
     setSoundOn(true);
     // Sound follows the trace, so turning it on also starts the trace.
     setPlaying(true);

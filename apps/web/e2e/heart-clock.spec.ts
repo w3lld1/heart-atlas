@@ -552,7 +552,9 @@ test.describe('heart sounds', () => {
     });
     let release = () => {};
     const held = new Promise<void>((resolve) => (release = resolve));
+    let requested = false;
     await page.route(/\/heart-sounds\.[\w-]+\.js$/, async (route) => {
+      requested = true;
       await held;
       await route.continue();
     });
@@ -560,6 +562,7 @@ test.describe('heart sounds', () => {
     await page.getByRole('button', { name: en['heartClock.soundOn'] }).click();
     await page.getByRole('button', { name: en['heartClock.soundOff'] }).click();
     await expect(page.getByRole('button', { name: en['heartClock.soundOn'] })).toBeVisible();
+    expect(requested).toBe(true);
     release();
     await page.waitForTimeout(1500);
     expect(
