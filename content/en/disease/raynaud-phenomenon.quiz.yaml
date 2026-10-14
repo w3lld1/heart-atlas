@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the small arteries of the fingers during an attack of Raynaud phenomenon?
+    options:
+      - text: Calcium crystals build up in their walls
+      - text: They suddenly narrow (spasm)
+        correct: true
+      - text: They stretch and burst open
+    explanation: During an attack of Raynaud phenomenon, the small arteries of the fingers suddenly narrow; this is a spasm.
+    cite: [1, 2, 4]
+  - level: patient
+    prompt: According to MSD, the finger vessels probably respond too strongly to signals from which system?
+    options:
+      - text: The sympathetic nervous system
+        correct: true
+      - text: The urinary system of the kidneys
+      - text: The respiratory system of the lungs
+    explanation: According to the MSD Manuals, the mechanism is not fully understood; the blood vessels of the fingers probably respond too strongly to signals from the sympathetic nervous system.
+    cite: [4, 5]
+  - level: patient
+    prompt: What is the main thing in treating secondary Raynaud phenomenon?
+    options:
+      - text: Eating more sweets
+      - text: Switching from glasses to contact lenses
+      - text: Treating the underlying disease
+        correct: true
+    explanation: In secondary Raynaud phenomenon, the main thing is to treat the underlying disease.
+    cite: [4, 5]
+  - level: patient
+    prompt: Which of these in an arm or a leg is a reason to call an ambulance straight away?
+    options:
+      - text: It itches mildly after a hot shower
+      - text: It suddenly becomes very painful
+        correct: true
+      - text: It gets a small blister from tight new shoes
+    explanation: Call your local emergency number straight away if an arm or a leg suddenly becomes very painful.
+    cite: [3]
+  - level: student
+    prompt: How does the Russian guideline on systemic sclerosis in children define Raynaud phenomenon?
+    options:
+      - text: As chronic inflammation of the finger joints
+      - text: As persistent widening of the superficial hand veins
+      - text: As episodes of transient digital ischaemia
+        correct: true
+    explanation: The Russian Ministry of Health guideline on systemic sclerosis in children defines Raynaud phenomenon as episodes of transient digital ischaemia.
+    cite: [2]
+  - level: student
+    prompt: Which test does the Russian guideline on systemic sclerosis in children recommend for all patients?
+    options:
+      - text: Nailfold capillaroscopy
+        correct: true
+      - text: Ultrasound-guided liver biopsy
+      - text: Coronary angiography with contrast
+    explanation: The Russian Ministry of Health guideline on systemic sclerosis in children recommends nailfold capillaroscopy for all patients.
+    cite: [2]
