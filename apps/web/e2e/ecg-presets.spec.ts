@@ -544,3 +544,23 @@ test('the CPVT article shows bidirectional ventricular tachycardia', async ({ pa
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
   expect((await axe(page).analyze()).violations).toEqual([]);
 });
+
+test('the short QT syndrome article shows the short QT preset', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/short-qt-syndrome/');
+  // Normal (to compare the QT interval) and short QT syndrome (`preset`), drawn in the limb leads.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', {
+      name: en['heartClock.preset.short-qt-syndrome'],
+    }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.short-qt-syndrome.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  expect((await axe(page).analyze()).violations).toEqual([]);
+});
