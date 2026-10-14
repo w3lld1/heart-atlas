@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What causes Chagas disease?
+    options:
+      - text: A virus spread by coughing and sneezing
+      - text: A parasite, a single-celled protozoan
+        correct: true
+      - text: A bacterium that enters a wound from soil
+    explanation: Chagas disease, or American trypanosomiasis, is an infection caused by the parasite Trypanosoma cruzi, a single-celled protozoan.
+    cite: [1, 5]
+  - level: patient
+    prompt: How does the parasite enter the body after a bug bite?
+    options:
+      - text: Through the bug's saliva injected during the bite
+      - text: Through eggs the bug lays under the skin
+      - text: Through the bug's droppings rubbed into the bite
+        correct: true
+    explanation: A bug usually bites an exposed area of skin and leaves its droppings close to the bite. The parasites enter the body when the person rubs the droppings into the itchy bite, other breaks in the skin, the eyes or the mouth.
+    cite: [1]
+  - level: patient
+    prompt: What happens to the heart in Chagas cardiomyopathy?
+    options:
+      - text: It becomes enlarged and weak
+        correct: true
+      - text: It shrinks and contracts more strongly than usual
+      - text: It does not change; only the leg vessels are affected
+    explanation: 'Years or decades after infection, some people develop cardiomyopathy: the heart becomes enlarged and weak, impulse conduction is disturbed and dangerous heart rhythm disorders appear.'
+    cite: [1, 2, 6]
+  - level: patient
+    prompt: According to the article, which of these is a reason to call an ambulance?
+    options:
+      - text: A small bruise on the knee after a minor bump
+      - text: An arrhythmia episode with loss of consciousness
+        correct: true
+      - text: A mild runny nose after an afternoon walk in the rain
+    explanation: The Russian Ministry of Health guideline advises calling an ambulance if an episode of arrhythmia comes with dizziness, weakness, feeling faint, loss of consciousness or a fast heartbeat.
+    cite: [2]
+  - level: student
+    prompt: How does heart involvement in Chagas disease usually begin?
+    options:
+      - text: With narrowing of the aortic valve and thickening of the left ventricular wall
+      - text: With blockage of the coronary arteries by atherosclerotic plaques
+      - text: With conduction abnormalities, such as right bundle branch block
+        correct: true
+    explanation: 'Cardiac disease usually starts with conduction abnormalities: right bundle branch block or left anterior fascicular block. Chronic cardiomyopathy often follows, with enlargement of all chambers, apical aneurysms and progression of conduction system lesions.'
+    cite: [5]
+  - level: student
+    prompt: Among which causes of dilated cardiomyopathy do the 2023 ESC guidelines list Chagas disease?
+    options:
+      - text: 'Non-genetic: infectious, after myocarditis'
+        correct: true
+      - text: 'Genetic: inherited mutations in sarcomere proteins'
+      - text: 'Toxic: heart damage caused by alcohol'
+    explanation: 'The 2023 ESC guidelines list Chagas disease among the non-genetic causes of dilated cardiomyopathy: an infectious cause, after parasitic myocarditis.'
+    cite: [4]

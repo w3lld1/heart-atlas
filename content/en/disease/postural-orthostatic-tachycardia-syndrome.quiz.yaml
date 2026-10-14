@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens in postural orthostatic tachycardia syndrome?
+    options:
+      - text: On standing, the heart rate slows sharply and the person faints at once
+      - text: On standing, the heart rate rises markedly but blood pressure hardly falls
+        correct: true
+      - text: On standing, blood pressure falls sharply and the heart rate does not change
+    explanation: POTS is a condition in which, on standing up, the heart rate rises markedly and light-headedness, palpitations, weakness and other symptoms appear, while blood pressure hardly falls.
+    cite: [5, 7, 8]
+  - level: patient
+    prompt: What eases the symptoms of POTS?
+    options:
+      - text: Getting up quickly and walking around
+      - text: Standing still for a longer time
+      - text: Sitting or lying down
+        correct: true
+    explanation: Sitting or lying down eases the symptoms, although it does not always relieve them completely.
+    cite: [3, 6]
+  - level: patient
+    prompt: According to the studies cited by HRS, what makes the heart rate rise on standing in POTS?
+    options:
+      - text: A problem in how the body works rather than anxiety
+        correct: true
+      - text: Anxiety rather than a problem in how the body works
+      - text: A habit of standing up too quickly rather than a problem in how the body works
+    explanation: Anxiety is common in POTS, but according to the studies cited by HRS, it is not anxiety that makes the heart rate rise on standing, but an underlying problem in how the body works.
+    cite: [8]
+  - level: patient
+    prompt: According to the article, which of these is a reason to call an ambulance?
+    options:
+      - text: A few sneezes because of dust
+      - text: A small scratch on the arm after playing with a cat
+      - text: A faint during physical exertion
+        correct: true
+    explanation: Call your local emergency number if the faint happened during physical exertion or while lying down.
+    cite: [1, 4]
+  - level: student
+    prompt: What kind of tachycardia occurs in POTS?
+    options:
+      - text: Ventricular tachycardia
+      - text: Sinus tachycardia
+        correct: true
+      - text: Atrial flutter
+    explanation: The tachycardia of POTS is sinus tachycardia.
+    cite: [8]
+  - level: student
+    prompt: Among which group of causes does the ESC list POTS?
+    options:
+      - text: Cardiovascular causes of orthostatic intolerance
+        correct: true
+      - text: Congenital heart defects affecting blood flow to the lungs
+      - text: Endocrine diseases of the thyroid gland
+    explanation: The ESC lists POTS, together with classical, initial and delayed orthostatic hypotension and orthostatic vasovagal syncope, among the cardiovascular causes of orthostatic intolerance.
+    cite: [1]

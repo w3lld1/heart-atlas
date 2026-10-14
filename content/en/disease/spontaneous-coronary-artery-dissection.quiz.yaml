@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is spontaneous coronary artery dissection (SCAD)?
+    options:
+      - text: Narrowing of a heart artery by an atherosclerotic plaque
+      - text: A sudden splitting of the wall of a heart artery
+        correct: true
+      - text: Blockage of a heart artery by a clot from a ruptured plaque
+    explanation: SCAD is a sudden splitting (dissection) of the wall of an artery that supplies the heart, not associated with atherosclerosis, trauma or a medical procedure.
+    cite: [1, 5]
+  - level: patient
+    prompt: Why does less blood reach the heart muscle in SCAD?
+    options:
+      - text: Blood inside the artery wall presses on the lumen
+        correct: true
+      - text: A ruptured plaque blocks the artery with a clot
+      - text: Cholesterol deposits clog the channel of the artery
+    explanation: Blood collects inside the artery wall, presses on the channel the blood flows through (the lumen), and less blood reaches the heart muscle.
+    cite: [4, 6]
+  - level: patient
+    prompt: What is true about the dissection coming back after SCAD?
+    options:
+      - text: It can come back, but a stent placed the first time prevents this
+      - text: It can come back, usually at the same spot in the same artery
+      - text: It can come back, usually in another artery
+        correct: true
+    explanation: The dissection can come back, usually in another, previously healthy artery; a stent placed the first time does not appear to protect against this.
+    cite: [4, 5]
+  - level: patient
+    prompt: Which sign means you should call an ambulance straight away?
+    options:
+      - text: A mild runny or blocked nose without a fever
+      - text: Pressing pain behind the breastbone that persists at rest
+        correct: true
+      - text: Dry skin on the hands after washing a lot of dishes by hand
+    explanation: Call an ambulance if pressing pain or discomfort behind the breastbone does not go away at rest, or spreads to the neck, lower jaw, left arm, below the left shoulder blade or to the upper abdomen.
+    cite: [1, 2]
+  - level: student
+    prompt: What is the predominant mechanism of ischaemia in SCAD?
+    options:
+      - text: Atherosclerotic plaque rupture with thrombosis
+      - text: Intraluminal thrombus on an eroded plaque surface
+      - text: Intramural haematoma or intimal tear
+        correct: true
+    explanation: The predominant mechanism of ischaemia is obstruction by the intramural haematoma or intimal disruption, rather than plaque rupture or intraluminal thrombus.
+    cite: [5]
+  - level: student
+    prompt: In the Russian Ministry of Health classification, what is angiographic type 2 SCAD?
+    options:
+      - text: A long smooth narrowing due to a haematoma
+        correct: true
+      - text: Multiple visible lumens in the artery
+      - text: A focal stenosis that looks like an atherosclerotic plaque
+    explanation: 'The Russian Ministry of Health guideline describes three angiographic types: 1, multiple visible lumens; 2, a long smooth narrowing due to an intramural haematoma; 3, a focal stenosis that looks like an atherosclerotic plaque.'
+    cite: [1, 2]
