@@ -187,6 +187,21 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       100,
     ],
   },
+  "bidirectional-ventricular-tachycardia": {
+    "curves": [
+      "101:35c4b57",
+      "137:953b0115",
+      "169:1843a39c",
+    ],
+    "limits": [
+      40,
+      169,
+    ],
+    "presetLimits": [
+      101,
+      169,
+    ],
+  },
   "brugada-syndrome": {
     "curves": [
       "40:d3067f32",

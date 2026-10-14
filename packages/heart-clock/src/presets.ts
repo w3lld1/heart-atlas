@@ -24,6 +24,7 @@ export const presetIds = [
   'supraventricular-tachycardia',
   'long-qt-syndrome',
   'ventricular-tachycardia',
+  'bidirectional-ventricular-tachycardia',
   'atrial-flutter',
   'atrial-premature-beats',
   'ventricular-premature-beats',
@@ -223,6 +224,25 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     sAxis: 85,
     tAxis: 85,
   }),
+  'bidirectional-ventricular-tachycardia': Object.freeze({
+    // Bidirectional VT: QRS complexes of opposite polarity in an alternating pattern (MSD Manuals,
+    // Catecholaminergic Polymorphic Ventricular Tachycardia, 2026); the frontal QRS axis alternates from beat to beat
+    // (Minzdrav 2025, Ventricular arrhythmias, terms). `bidirectional` flips every second beat.
+    // Spec: docs/plans/2026-10-14-heart-clock-bidirectional-vt.md.
+    bidirectional: 1,
+    // A VT runs at more than 100 per minute (Minzdrav 2025, same). assumption: 150, the rate of the
+    // monomorphic VT preset; no source gives a rate for bidirectional VT.
+    heartRate: 150,
+    // Ventricular arrhythmias have a wide QRS (≥120 ms), no preceding P wave and a T wave
+    // discordant to the QRS (Minzdrav 2025, same). assumption: 130 ms and a T of −0.3 mV, as in
+    // the monomorphic VT preset.
+    qrsDuration: 130,
+    pAmplitude: 0,
+    tAmplitude: -0.3,
+    // assumption: an R of 0.8 mV, so the inverted complexes stay inside the 1 mV below the
+    // baseline that the strip shows. The axes stay at 60°, so all three limb leads alternate.
+    rAmplitude: 0.8,
+  }),
   'atrial-flutter': Object.freeze({
     // Typical atrial flutter with 2:1 conduction. The rate is the sign, so this preset sets it: the
     // atria depolarize at 250–350 per minute, typically 300, and typically half of the impulses get
@@ -399,6 +419,8 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   // VT runs at more than 100 per minute (Minzdrav 2025, Ventricular arrhythmias): 101 is the lowest
   // whole rate above that, so the slider never shows a rate below the VT definition.
   'ventricular-tachycardia': 101,
+  // A VT runs at more than 100 per minute (same source).
+  'bidirectional-ventricular-tachycardia': 101,
   // Atrial flutter: atrial rate 250–350 per minute with F waves of a cycle under 240 ms (Minzdrav
   // 2025, Atrial fibrillation and flutter, §2). At 2:1 the F waves run at twice the ventricular
   // rate; at 125 bpm their cycle is exactly 240 ms, so 126 (F waves at 252, cycle 238 ms) is the

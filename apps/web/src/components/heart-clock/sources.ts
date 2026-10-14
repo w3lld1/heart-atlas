@@ -195,6 +195,13 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/bundle-branch-block-and-fascicular-block',
     lang: 'en',
   },
+  // Bidirectional VT: docs/plans/2026-10-14-heart-clock-bidirectional-vt.md. The ventricular
+  // arrhythmias guideline (569_2) is listed above with long QT syndrome and VT.
+  {
+    text: 'MSD Manuals, Professional Version. Catecholaminergic Polymorphic Ventricular Tachycardia. 2026.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/catecholaminergic-polymorphic-ventricular-tachycardia',
+    lang: 'en',
+  },
   // Sick sinus syndrome after treatment (pacemaker): docs/plans/2026-10-13-heart-clock-after-treatment.md.
   // The ESC 2021 pacing translation and the Bradyarrhythmias guideline (160_2) are listed above.
   {

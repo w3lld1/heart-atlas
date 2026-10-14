@@ -82,6 +82,14 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "II:a17cc9d4",
     "III:39b67b88",
   ],
+  "bidirectional-ventricular-tachycardia": [
+    "I:a3fe109",
+    "II:2a563f6f",
+    "III:a3fe109",
+    "I:3ed36a6c",
+    "II:2a563f6f",
+    "III:973f2405",
+  ],
   "heart-failure": [
     "I:ae086",
     "II:77093f68",

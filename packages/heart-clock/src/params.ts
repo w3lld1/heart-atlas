@@ -114,6 +114,13 @@ export interface HeartParams {
    */
   ventricularPacing: number;
   /**
+   * Bidirectional ventricular tachycardia: 1 draws the QRS, ST and T of every second beat (odd beat
+   * index) in opposite polarity, in every lead, so the complexes alternate up and down; 0 keeps
+   * every beat the same. Needs a rhythm without P waves of its own (VT).
+   * Spec: docs/plans/2026-10-14-heart-clock-bidirectional-vt.md.
+   */
+  bidirectional: number;
+  /**
    * Second-degree AV block: 1 makes the pause after every `pauseEvery`-th beat one rhythm RR long,
    * with a P wave at its start and no QRS. 0 keeps pauses silent (sinus pauses).
    * Spec: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md.
@@ -203,6 +210,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   atrialPacing: 0,
   atrialRate: 0,
   ventricularPacing: 0,
+  bidirectional: 0,
   blockedP: 0,
   prStep: 0,
   prematureEvery: 0,
@@ -259,6 +267,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   atrialPacing: [0, 1],
   atrialRate: [0, 150],
   ventricularPacing: [0, 1],
+  bidirectional: [0, 1],
   blockedP: [0, 1],
   prStep: [0, 100],
   prematureEvery: [0, 20],
@@ -392,6 +401,28 @@ export function resolveParams(
   ) {
     throw new RangeError(
       'ventricularPacing needs fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery and deltaWave at 0',
+    );
+  }
+  if (!Number.isInteger(params.bidirectional)) {
+    throw new RangeError(`bidirectional must be 0 or 1, got ${params.bidirectional}`);
+  }
+  // Alternating complexes need a regular ventricular rhythm whose beats all come from the same
+  // place: no P waves, which would flip with them, and none of the modes that add or drop beats.
+  if (
+    params.bidirectional === 1 &&
+    (params.pAmplitude > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.prematureEvery > 0 ||
+      params.deltaWave > 0)
+  ) {
+    throw new RangeError(
+      'bidirectional needs pAmplitude, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
     );
   }
   if (!Number.isInteger(params.blockedP)) {

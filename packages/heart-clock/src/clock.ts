@@ -21,6 +21,8 @@ export interface Beat {
   premature: 0 | 1 | 2;
   /** Whether this beat is cut short because the next one is premature. */
   beforePremature: boolean;
+  /** Whether the QRS, ST and T of this beat are drawn upside down (`bidirectional`). */
+  inverted: boolean;
   timing: BeatTiming;
   /** Parameters this beat was built with; `setParams` affects only later beats. */
   params: Readonly<HeartParams>;
@@ -272,6 +274,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
         pause,
         premature: 2,
         beforePremature: false,
+        inverted: false,
         timing: ventricularPrematureTiming(rhythmRr, prematureParams),
         params: prematureParams,
       };
@@ -290,6 +293,8 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       // An atrial premature beat resets the sinus node: the next beat comes one rhythm RR after it.
       premature: origin === 1 ? 1 : 0,
       beforePremature,
+      // Bidirectional VT: every second complex points the other way (index 0 is upright).
+      inverted: beatParams.bidirectional === 1 && index % 2 === 1,
       timing,
       params: beatParams,
     };
@@ -373,7 +378,8 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
     for (const b of [previous, beat, beats[i + 1]]) {
       if (!b) continue;
       const gains = gainsOf(b);
-      value += beatWaves(t - b.start, b.timing, b.params, gains);
+      // An inverted beat has no P wave (`bidirectional` needs pAmplitude 0), so the whole beat flips.
+      value += (b.inverted ? -1 : 1) * beatWaves(t - b.start, b.timing, b.params, gains);
       // Second-degree AV block: the P wave at the start of the pause has no QRS after it.
       if (b.pause > 0 && b.params.blockedP === 1) {
         value += gains.p * pWave(t - b.start - b.timing.rr, b.timing.pDuration, b.params);

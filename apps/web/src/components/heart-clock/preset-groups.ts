@@ -25,6 +25,7 @@ export const presetGroup: Readonly<Record<PresetId, PresetGroup | null>> = {
   'supraventricular-tachycardia': 'rhythm',
   'long-qt-syndrome': 'rhythm',
   'ventricular-tachycardia': 'rhythm',
+  'bidirectional-ventricular-tachycardia': 'rhythm',
   'atrial-flutter': 'rhythm',
   'atrial-premature-beats': 'rhythm',
   'ventricular-premature-beats': 'rhythm',
