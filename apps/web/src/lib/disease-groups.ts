@@ -78,6 +78,7 @@ export const diseaseGroups = {
     'congenitally-corrected-transposition',
     'cor-triatriatum',
     'double-chambered-right-ventricle',
+    'double-outlet-right-ventricle',
     'ebstein-anomaly',
     'eisenmenger-syndrome',
     'hypoplastic-left-heart-syndrome',
