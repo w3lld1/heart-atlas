@@ -111,6 +111,7 @@ export const diseaseGroups = {
     'renal-artery-stenosis',
     'takayasu-arteritis',
     'thoracic-aortic-aneurysm',
+    'vascular-ehlers-danlos-syndrome',
   ],
   veins: ['deep-vein-thrombosis', 'superficial-thrombophlebitis', 'varicose-veins'],
   pulmonary: [

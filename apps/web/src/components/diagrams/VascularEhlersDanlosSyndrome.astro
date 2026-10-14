@@ -1,0 +1,249 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-veds-arrow`;
+// A segment of an artery cut lengthwise, blood moving left to right. The artery keeps the same
+// width in both states: the sources say that in this syndrome the aorta and its branches can tear
+// or split without being widened. The wall keeps its thickness too (no source gives a thinner
+// wall); fragility is drawn as cracks and, in the disease state, a tear through the top wall.
+const x0 = 16;
+const x1 = 340;
+const topWall = { y: 56, h: 22 };
+const lumen = { y: 78, h: 74 };
+const bottomWall = { y: 152, h: 22 };
+// The tear in the top wall, with ragged edges, from x = 194 to x = 224.
+const topLeft = `M${x0},56 H198 L192,62 L199,69 L193,78 H${x0} Z`;
+const topRight = `M${x1},56 H220 L226,63 L219,70 L225,78 H${x1} Z`;
+// Blood escaping through the tear, outside the artery.
+const leak = 'M194,78 C192,62 186,48 196,38 C204,30 218,30 226,38 C234,48 228,62 224,78 Z';
+// Cracks in the fragile wall: short zigzags across the wall thickness.
+const cracks = [
+  `M64,56 l4,6 l-4,6 l4,6`,
+  `M132,56 l-4,7 l4,6 l-3,5`,
+  `M286,56 l4,6 l-4,6 l3,6`,
+  `M92,174 l-4,-6 l4,-6 l-4,-6`,
+  `M196,174 l4,-7 l-4,-6 l3,-5`,
+  `M272,174 l-4,-6 l4,-6 l-3,-6`,
+];
+// Particles: negative delays so the flow is already running.
+const forward = [0, -0.7, -1.4, -2.1];
+const leakDots = [0, -0.8, -1.6];
+// Dimension line on the right: the outer width of the artery, the same in both states.
+const dimX = 362;
+---
+
+<svg
+  viewBox="0 0 400 222"
+  role="img"
+  aria-label={t['diagram.vascular-ehlers-danlos-syndrome.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lumen: the same width in both states -->
+  <rect
+    x={x0}
+    y={lumen.y}
+    width={x1 - x0}
+    height={lumen.h}
+    fill="var(--diagram-arterial-fill)"
+  ></rect>
+
+  <!-- Normal: a strong, intact wall -->
+  <g
+    class="normal-only"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  >
+    <rect x={x0} y={topWall.y} width={x1 - x0} height={topWall.h}></rect>
+    <rect x={x0} y={bottomWall.y} width={x1 - x0} height={bottomWall.h}></rect>
+  </g>
+
+  <!-- Disease: a fragile, cracked wall, torn through at the top; blood leaves the artery -->
+  <g class="disease-only">
+    <path d={leak} fill="var(--diagram-arterial)" fill-opacity="0.85"></path>
+    <g
+      fill="var(--diagram-muscle)"
+      fill-opacity="0.6"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    >
+      <path d={topLeft}></path>
+      <path d={topRight}></path>
+      <rect x={x0} y={bottomWall.y} width={x1 - x0} height={bottomWall.h}></rect>
+    </g>
+    <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+      {cracks.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <path
+    class="normal-only"
+    d="M40,115 L320,115"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    <path d="M40,132 L320,132" marker-end={`url(#${arrowId})`}></path>
+    <!-- Blood leaves through the tear -->
+    <path d="M150,124 C178,116 204,104 209,64" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Moving blood -->
+  <g class="flow">
+    <g class="normal-only">
+      {forward.map((delay) => (
+        <circle
+          class="veds-forward"
+          cx="40"
+          cy="115"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {forward.map((delay) => (
+        <circle
+          class="veds-forward"
+          cx="40"
+          cy="132"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+      {leakDots.map((delay) => (
+        <circle
+          class="veds-leak"
+          cx="190"
+          cy="112"
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Outer width of the artery: the same in both states -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1={dimX} y1={topWall.y} x2={dimX} y2={bottomWall.y + bottomWall.h}></line>
+    <line x1={dimX - 6} y1={topWall.y} x2={dimX + 6} y2={topWall.y}></line>
+    <line
+      x1={dimX - 6}
+      y1={bottomWall.y + bottomWall.h}
+      x2={dimX + 6}
+      y2={bottomWall.y + bottomWall.h}
+    ></line>
+  </g>
+
+  <!-- Labels -->
+  <text x="8" y="24">
+    {t['diagram.label.artery']}
+  </text>
+
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="60" y1="174" x2="60" y2="192"></line>
+  </g>
+  <text class="normal-only" x={x0} y="210">
+    {t['diagram.label.strong-wall']}
+  </text>
+
+  <g class="disease-only">
+    <text x={x0} y="210">
+      {t['diagram.label.fragile-wall']}
+    </text>
+    <line x1="240" y1="28" x2="226" y2="38" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text x="244" y="30">
+      {t['diagram.label.wall-rupture']}
+    </text>
+    <line
+      x1={dimX}
+      y1={bottomWall.y + bottomWall.h}
+      x2={dimX}
+      y2="192"
+      stroke="var(--color-muted)"
+      stroke-width="1.5"
+    ></line>
+    <text x="392" y="210" text-anchor="end">
+      {t['diagram.label.not-dilated']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .veds-forward {
+    animation: veds-forward 2.8s linear infinite;
+  }
+
+  .diagram .veds-leak {
+    animation: veds-leak 2.4s ease-out infinite;
+  }
+
+  @keyframes veds-forward {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(280px, 0);
+    }
+  }
+
+  /* Blood leaves the lumen through the tear and gathers outside the artery. */
+  @keyframes veds-leak {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    80% {
+      opacity: 1;
+      transform: translate(19px, -66px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(20px, -72px);
+    }
+  }
+</style>
