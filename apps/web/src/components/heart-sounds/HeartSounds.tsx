@@ -2,7 +2,6 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
 import {
   auscultationEvents,
-  heartSoundIds,
   type HeartSoundId,
   type MurmurEvent,
   type Tone,
@@ -11,22 +10,9 @@ import type { HeartSoundsPlayer } from './player.ts';
 import { playerClock } from './player-clock.ts';
 import styles from './HeartSounds.module.css';
 
-export const heartSoundsMessageKeys = [
-  'heartSounds.choose',
-  'heartSounds.listen',
-  'heartSounds.stop',
-  'heartSounds.diagramLabel',
-  'heartSounds.systole',
-  'heartSounds.diastole',
-  'heartSounds.click',
-  'heartSounds.openingSnap',
-  'sources.cite',
-  ...heartSoundIds.flatMap(
-    (id) => [`heartSounds.sound.${id}`, `heartSounds.sound.${id}.description`] as const,
-  ),
-] as const;
+import type { HeartSoundsMessages } from './messages.ts';
 
-export type HeartSoundsMessages = Record<(typeof heartSoundsMessageKeys)[number], string>;
+export type { HeartSoundsMessages };
 
 export interface HeartSoundsProps {
   messages: HeartSoundsMessages;

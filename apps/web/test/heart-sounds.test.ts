@@ -3,7 +3,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import HeartSounds from '../src/components/HeartSounds.astro';
 import { heartSoundIds } from '../src/components/heart-sounds/auscultation.ts';
-import { heartSoundsMessageKeys } from '../src/components/heart-sounds/HeartSounds.tsx';
+import { heartSoundsMessageKeys } from '../src/components/heart-sounds/messages.ts';
 import { heartSoundSources } from '../src/components/heart-sounds/sources.ts';
 import { localeCodes } from '../src/i18n/locales.ts';
 import { getMessages, type MessageKey } from '../src/i18n/messages.ts';

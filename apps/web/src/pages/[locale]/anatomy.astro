@@ -1,7 +1,8 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { HeartViewer, isDiseaseId, shownOnAnatomy, type DiseaseChoice } from '@heart-atlas/viewer';
+import HeartViewer from '@heart-atlas/viewer/island';
+import { isDiseaseId, shownOnAnatomy, type DiseaseChoice } from '@heart-atlas/viewer';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';

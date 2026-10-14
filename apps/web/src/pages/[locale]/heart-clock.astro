@@ -1,11 +1,12 @@
 ---
 import { presetIds } from '@heart-atlas/heart-clock';
-import { HeartViewer } from '@heart-atlas/viewer';
+import HeartViewer from '@heart-atlas/viewer/island';
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
-import HeartClockDemo, {
+import HeartClockDemo from '../../components/heart-clock/HeartClockDemo.tsx';
+import {
   heartClockMessageKeys,
   type HeartClockMessages,
-} from '../../components/heart-clock/HeartClockDemo.tsx';
+} from '../../components/heart-clock/messages.ts';
 import { modelSources, presetSources } from '../../components/heart-clock/sources.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes } from '../../i18n/locales.ts';

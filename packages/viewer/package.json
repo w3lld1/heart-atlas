@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./camera": "./src/camera.ts",
     "./events": "./src/events.ts",
-    "./hero": "./src/hero.tsx"
+    "./hero": "./src/hero.tsx",
+    "./island": "./src/HeartViewer.tsx"
   },
   "scripts": {
     "test": "vitest run",

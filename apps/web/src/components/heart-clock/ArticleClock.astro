@@ -5,10 +5,8 @@ import { getMessages } from '../../i18n/messages.ts';
 import type { CongenitalModelId } from '../../lib/heart-model.ts';
 import CongenitalModel from '../viewer/CongenitalModel.astro';
 import HeartModel from '../viewer/HeartModel.astro';
-import HeartClockDemo, {
-  heartClockMessageKeys,
-  type HeartClockMessages,
-} from './HeartClockDemo.tsx';
+import HeartClockDemo from './HeartClockDemo.tsx';
+import { heartClockMessageKeys, type HeartClockMessages } from './messages.ts';
 
 // The article's heart in models: the heart clock with its preset, and the 3D model with the
 // disease signs, beating with that clock when there is one (docs/plans/2026-10-12-disease-signs-3d.md).

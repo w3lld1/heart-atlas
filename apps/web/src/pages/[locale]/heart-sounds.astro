@@ -1,10 +1,11 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { heartSoundIds } from '../../components/heart-sounds/auscultation.ts';
-import HeartSounds, {
+import HeartSounds from '../../components/heart-sounds/HeartSounds.tsx';
+import {
   heartSoundsMessageKeys,
   type HeartSoundsMessages,
-} from '../../components/heart-sounds/HeartSounds.tsx';
+} from '../../components/heart-sounds/messages.ts';
 import { heartSoundSources } from '../../components/heart-sounds/sources.ts';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes } from '../../i18n/locales.ts';
