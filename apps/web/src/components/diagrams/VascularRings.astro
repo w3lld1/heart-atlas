@@ -1,0 +1,219 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowA = `${uid}-vr-arrow-a`;
+const arrowText = `${uid}-vr-arrow-text`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const rightArchLines = twoLines(t['diagram.label.right-aortic-arch']);
+const leftArchLines = twoLines(t['diagram.label.left-aortic-arch']);
+// A cross-section through the chest at the level of the aortic arch, front at the top. As in the
+// other diagrams, the right side of the body is on the viewer's left. The trachea lies in front of
+// the oesophagus. The ascending aorta is in front, the descending aorta behind.
+// Normal: one arch passes beside the trachea and oesophagus and does not encircle them.
+// Double aortic arch (Минздрав 830_1, 1.1 and 1.5): both arches persist and form a complete ring
+// around the trachea and the oesophagus, the right arch is more often the larger one, and the ring
+// squeezes both from the sides (two indentations on a barium swallow, 2.4).
+const asc = { x: 200, y: 82, r: 28 };
+const desc = { x: 322, y: 350, r: 26 };
+const arch = {
+  left: 'M200,82 C300,58 350,110 350,200 C350,290 345,320 322,350',
+  right: 'M200,82 C165,92 165,150 167,205 C168,330 205,358 322,350',
+};
+// The same paths, ending at the edge of the descending aorta so that the arrowhead shows.
+const flow = {
+  left: 'M200,82 C300,58 350,110 350,200 C350,280 346,305 336,327',
+  right: 'M200,82 C165,92 165,150 167,205 C168,318 200,354 295,353',
+};
+// Disease: short arrows from the ring towards the trachea and the oesophagus.
+const squeeze = [
+  'M188,185 L228,185',
+  'M332,185 L292,185',
+  'M190,262 L232,262',
+  'M330,262 L288,262',
+];
+---
+
+<svg viewBox="0 0 520 420" role="img" aria-label={t['diagram.vascular-rings.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowText}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Arches: each tube is a wide stroke in the wall colour under a narrower one in the blood
+       colour. Normal: one arch. Disease: a larger right arch and a smaller left one. -->
+  <g fill="none">
+    <g class="normal-only">
+      <path d={arch.left} stroke="var(--diagram-arterial)" stroke-width="30"></path>
+      <path d={arch.left} stroke="var(--diagram-arterial-fill)" stroke-width="22"></path>
+    </g>
+    <g class="disease-only">
+      <path d={arch.right} stroke="var(--diagram-arterial)" stroke-width="30"></path>
+      <path d={arch.right} stroke="var(--diagram-arterial-fill)" stroke-width="22"></path>
+      <path d={arch.left} stroke="var(--diagram-arterial)" stroke-width="22"></path>
+      <path d={arch.left} stroke="var(--diagram-arterial-fill)" stroke-width="15"></path>
+    </g>
+  </g>
+
+  <!-- Blood flow along the arches, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path class="normal-only" d={flow.left} stroke-width="3" marker-end={`url(#${arrowA})`}></path>
+    <g class="disease-only">
+      <path d={flow.right} stroke-width="3" marker-end={`url(#${arrowA})`}></path>
+      <path d={flow.left} stroke-width="2.5" marker-end={`url(#${arrowA})`}></path>
+    </g>
+  </g>
+  <g class="flow" fill="none" stroke="var(--color-bg)">
+    <path class="dash-flow normal-only" d={flow.left} stroke-width="1.5"></path>
+    <g class="disease-only">
+      <path class="dash-flow" d={flow.right} stroke-width="1.5"></path>
+      <path class="dash-flow" d={flow.left} stroke-width="1.5"></path>
+    </g>
+  </g>
+
+  <!-- Ascending and descending aorta in cross-section, over the ends of the arches -->
+  <circle
+    cx={asc.x}
+    cy={asc.y}
+    r={asc.r}
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="4"
+  ></circle>
+  <circle
+    cx={desc.x}
+    cy={desc.y}
+    r={desc.r}
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="4"
+  ></circle>
+
+  <!-- Trachea (front) and oesophagus (behind it): round when free, narrowed from the sides when the
+       ring squeezes them -->
+  <g stroke="var(--color-muted)">
+    <ellipse
+      class="normal-only"
+      cx="260"
+      cy="185"
+      rx="38"
+      ry="38"
+      fill="var(--color-bg)"
+      stroke-width="6"
+    ></ellipse>
+    <ellipse
+      class="disease-only"
+      cx="260"
+      cy="185"
+      rx="26"
+      ry="38"
+      fill="var(--color-bg)"
+      stroke-width="6"
+    ></ellipse>
+    <ellipse
+      class="normal-only"
+      cx="260"
+      cy="262"
+      rx="34"
+      ry="22"
+      fill="var(--diagram-muscle)"
+      stroke-width="2"
+    ></ellipse>
+    <ellipse
+      class="disease-only"
+      cx="260"
+      cy="262"
+      rx="22"
+      ry="22"
+      fill="var(--diagram-muscle)"
+      stroke-width="2"
+    ></ellipse>
+    <line class="normal-only" x1="242" y1="262" x2="278" y2="262" stroke-width="2"></line>
+    <line class="disease-only" x1="252" y1="262" x2="268" y2="262" stroke-width="2"></line>
+  </g>
+
+  <!-- Disease: the ring squeezes the trachea and the oesophagus from both sides -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+    {squeeze.map((d) => (
+      <path d={d} marker-end={`url(#${arrowText})`} />
+    ))}
+  </g>
+
+  <!-- Labels -->
+  <text class="diagram-small" x="260" y="22" text-anchor="middle">
+    {t['diagram.label.front']}
+  </text>
+  <text class="diagram-small" x="260" y="410" text-anchor="middle">
+    {t['diagram.label.back']}
+  </text>
+  <text class="diagram-small" x="164" y="72" text-anchor="end">
+    {t['diagram.label.ascending-aorta']}
+  </text>
+  <text class="diagram-small" x="356" y="378">
+    {t['diagram.label.descending-aorta']}
+  </text>
+  <text class="diagram-small" x="260" y="135" text-anchor="middle">
+    {t['diagram.label.trachea']}
+  </text>
+  <text class="diagram-small" x="260" y="301" text-anchor="middle">
+    {t['diagram.label.esophagus']}
+  </text>
+  <text class="diagram-small normal-only" x="374" y="204">
+    {t['diagram.label.aortic-arch']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="374" y="178">
+      <tspan x="374">{leftArchLines[0]}</tspan>
+      <tspan x="374" dy="14">
+        {leftArchLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="146" y="198" text-anchor="end">
+      <tspan x="146">{rightArchLines[0]}</tspan>
+      <tspan x="146" dy="14">
+        {rightArchLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="374" y="266">
+      {t['diagram.label.compression']}
+    </text>
+  </g>
+</svg>

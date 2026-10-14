@@ -101,6 +101,7 @@ export const diseaseGroups = {
     'total-anomalous-pulmonary-venous-return',
     'transposition-of-the-great-arteries',
     'truncus-arteriosus',
+    'vascular-rings',
     'ventricular-septal-defect',
   ],
   arteries: [
