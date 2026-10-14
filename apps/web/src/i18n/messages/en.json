@@ -532,6 +532,7 @@
   "footer.license": "Code: MIT. Content: CC BY-SA 4.0.",
   "footer.project": "Project",
   "footer.source": "Source code",
+  "header.settings": "Settings",
   "header.tools": "Search and settings",
   "heartClock.condition": "Condition",
   "heartClock.ecgDescription": "Sinus rhythm at {rate} beats per minute. Each beat has a P wave, then a narrow QRS complex, then a T wave, and the intervals between beats are equal.",

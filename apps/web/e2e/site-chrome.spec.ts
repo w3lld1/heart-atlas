@@ -166,7 +166,9 @@ test('on a phone the header folds search, motion and language behind one button'
 
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(search).toBeFocused();
+  // A disclosure keeps focus on its button; the phone keyboard stays closed.
+  await expect(toggle).toBeFocused();
+  await expect(search).toBeVisible();
   await expect(search).toHaveAttribute('placeholder', text(defaultLocale, 'search.placeholder'));
   await expect(
     header.getByRole('group', { name: text(defaultLocale, 'motion.label') }),
@@ -178,6 +180,19 @@ test('on a phone the header folds search, motion and language behind one button'
 
   await toggle.click();
   await expect(search).toBeHidden();
+
+  // The search page has its own search box: the button opens only the settings.
+  await page.goto(`${defaultLocale}/search/`);
+  await expect(
+    header.getByRole('button', { name: text(defaultLocale, 'header.settings'), exact: true }),
+  ).toBeVisible();
+
+  // Back to a wide screen: the tools show without the button.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(toggle).toBeHidden();
+  await expect(
+    header.getByRole('navigation', { name: text(defaultLocale, 'nav.language') }),
+  ).toBeVisible();
 });
 
 test('without JavaScript the phone header keeps search in view', async ({ browser }) => {

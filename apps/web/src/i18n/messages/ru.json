@@ -532,6 +532,7 @@
   "footer.license": "Код: MIT. Контент: CC BY-SA 4.0.",
   "footer.project": "О проекте",
   "footer.source": "Исходный код",
+  "header.settings": "Настройки",
   "header.tools": "Поиск и настройки",
   "heartClock.condition": "Состояние",
   "heartClock.ecgDescription": "Синусовый ритм, {rate} ударов в минуту. В каждом ударе зубец P, затем узкий комплекс QRS, затем зубец T; промежутки между ударами одинаковые.",

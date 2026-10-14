@@ -19,6 +19,8 @@ interface Props {
 const { locale, nav, pagePath, pageLocales, hideSearch } = Astro.props;
 const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
+// The search page has its own search box, so its panel holds only the settings.
+const toolsLabel = hideSearch ? t['header.settings'] : t['header.tools'];
 ---
 
 <header class="site-header">
@@ -41,13 +43,19 @@ const base = import.meta.env.BASE_URL;
       class="tools-toggle"
       aria-expanded="false"
       aria-controls="site-tools"
-      aria-label={t['header.tools']}
-      title={t['header.tools']}
+      aria-label={toolsLabel}
+      title={toolsLabel}
       data-tools-toggle
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="10" cy="10" r="6"></circle>
-        <path d="m14.5 14.5 5 5"></path>
+        {hideSearch ? (
+          <path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4.5v5M8 14.5v5" />
+        ) : (
+          <>
+            <circle cx="10" cy="10" r="6" />
+            <path d="m14.5 14.5 5 5" />
+          </>
+        )}
       </svg>
     </button>
     <div class="tools" id="site-tools">
@@ -81,7 +89,6 @@ const base = import.meta.env.BASE_URL;
     const open = toggle.getAttribute('aria-expanded') !== 'true';
     toggle.setAttribute('aria-expanded', String(open));
     header?.toggleAttribute('data-tools-open', open);
-    if (open) header?.querySelector<HTMLInputElement>('#site-search')?.focus();
   });
 </script>
 
@@ -274,7 +281,7 @@ const base = import.meta.env.BASE_URL;
       display: none;
     }
 
-    .tools :global(.motion-switch .hint) {
+    .tools :global(.motion-switch .hint:not(:empty)) {
       display: block;
     }
 
