@@ -1,0 +1,195 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-fmd-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const beadsLines = lines('diagram.label.string-of-beads', 30);
+
+// One artery cut lengthwise, blood moving left to right: its initial part on the left, its middle
+// and far parts on the right. Normal: an even lumen all along. Disease (multifocal fibromuscular
+// dysplasia): in the middle and far parts narrowings alternate with widenings, a "string of
+// beads"; the initial part is unchanged. No plaque (it is not atherosclerosis), no stent, no
+// aneurysm and no numbers.
+const axis = 110;
+const x0 = 20;
+const x1 = 380;
+// Where the middle part begins.
+const xMid = 150;
+const lumenNormal = 18;
+// The wall is drawn at one thickness so the beaded lumen reads clearly; the captions make no claim about wall thickness.
+const wallNormal = 8;
+// Beads in the middle and far parts: narrowings at the ends of each period, widenings between.
+const period = 46;
+const narrow = 8;
+const wide = 24;
+// Over this distance before xMid the lumen eases from normal into the first narrowing.
+const ease = 24;
+
+function lumenAt(x: number): number {
+  if (x <= xMid - ease) return lumenNormal;
+  if (x < xMid) {
+    const k = (1 - Math.cos((Math.PI * (x - (xMid - ease))) / ease)) / 2;
+    return lumenNormal + (narrow - lumenNormal) * k;
+  }
+  const s = Math.sin((Math.PI * (x - xMid)) / period) ** 2;
+  return narrow + (wide - narrow) * s;
+}
+
+const step = 2;
+const xs: number[] = [];
+for (let x = x0; x <= x1; x += step) xs.push(x);
+const round = (n: number) => Math.round(n * 10) / 10;
+// A closed outline symmetric about the axis for a radius function.
+function tube(radius: (x: number) => number): string {
+  const top = xs.map((x) => `${x},${round(axis - radius(x))}`);
+  const bottom = [...xs].reverse().map((x) => `${x},${round(axis + radius(x))}`);
+  return `M${top.join(' L')} L${bottom.join(' L')} Z`;
+}
+const normalOuter = tube(() => lumenNormal + wallNormal);
+const normalLumen = tube(() => lumenNormal);
+const diseaseOuter = tube((x) => lumenAt(x) + wallNormal);
+const diseaseLumen = tube(lumenAt);
+// The upper and lower edges of a lumen, open at both ends.
+function edges(radius: (x: number) => number): string {
+  const side = (sign: number) => xs.map((x) => `${x},${round(axis + sign * radius(x))}`).join(' L');
+  return `M${side(-1)} M${side(1)}`;
+}
+const normalEdges = edges(() => lumenNormal);
+const diseaseEdges = edges(lumenAt);
+
+// Label positions.
+const beadX = xMid + period * 2.5;
+const beadTop = axis - wide - wallNormal;
+const bracketY = 152;
+---
+
+<svg
+  viewBox="0 0 400 200"
+  role="img"
+  aria-label={t['diagram.fibromuscular-dysplasia.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Wall, then lumen on top -->
+  <g fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5">
+    <path class="normal-only" d={normalOuter}></path>
+    <path class="disease-only" d={diseaseOuter}></path>
+  </g>
+  <g fill="var(--diagram-arterial-fill)">
+    <path class="normal-only" d={normalLumen}></path>
+    <path class="disease-only" d={diseaseLumen}></path>
+  </g>
+
+  <!-- The lumen edge keeps the narrowings visible against the wall in both themes. -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="1.5">
+    <path class="normal-only" d={normalEdges}></path>
+    <path class="disease-only" d={diseaseEdges}></path>
+  </g>
+
+  <!-- Direction of blood flow, visible with and without motion -->
+  <path
+    d={`M${x0 + 12},${axis} L${xMid - 40},${axis}`}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+
+  <!-- Moving blood along the axis; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path class="dash-flow" d={`M${xMid - 30},${axis} H${x1}`}></path>
+  </g>
+
+  <!-- Parts of the artery, the same in both states -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+    <path d={`M${x0},${bracketY - 6} V${bracketY} H${xMid - ease - 4} V${bracketY - 6}`}></path>
+    <path d={`M${xMid - ease + 4},${bracketY - 6} V${bracketY} H${x1} V${bracketY - 6}`}></path>
+  </g>
+  <text class="diagram-small" x={(x0 + xMid - ease) / 2} y={bracketY + 20} text-anchor="middle">
+    {t['diagram.label.initial-part']}
+  </text>
+  <text class="diagram-small" x={(xMid - ease + x1) / 2} y={bracketY + 20} text-anchor="middle">
+    {t['diagram.label.middle-and-far-parts']}
+  </text>
+
+  <text x={x0} y="30">
+    {t['diagram.label.artery']}
+  </text>
+
+  <!-- Normal: an even lumen -->
+  <g class="normal-only">
+    <line
+      x1={beadX}
+      y1="56"
+      x2={beadX}
+      y2={axis - lumenNormal + 4}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={beadX} y="48" text-anchor="middle">
+      {t['diagram.label.even-lumen']}
+    </text>
+  </g>
+
+  <!-- Disease: a string of beads in the middle and far parts -->
+  <g class="disease-only">
+    <line
+      x1={beadX}
+      y1="56"
+      x2={beadX}
+      y2={beadTop - 2}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text
+      class="diagram-small"
+      x={beadX}
+      y={48 - lineHeight * (beadsLines.length - 1)}
+      text-anchor="middle"
+    >
+      {beadsLines.map((line, index) => (
+        <tspan x={beadX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
