@@ -23,6 +23,7 @@ import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
 import { drawEcg, ecgHeight, limbStrip, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
 import { HeartSoundPlayer } from './heart-sounds.ts';
 import { drawWiggers, readWiggersColors, wiggersHeight } from './wiggers-canvas.ts';
+import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts';
 import styles from './HeartClockDemo.module.css';
 
 export const heartClockMessageKeys = [
@@ -52,6 +53,7 @@ export const heartClockMessageKeys = [
   'heartClock.wiggers.lvVolume',
   'heartClock.wiggers.systole',
   'heartClock.condition',
+  ...presetGroups.map((group) => `heartClock.group.${group}` as const),
   ...presetIds.flatMap(
     (id) =>
       [
@@ -392,22 +394,58 @@ export default function HeartClockDemo({
 
   return (
     <div className={styles['demo']}>
-      {choices.length > 1 && (
-        <fieldset className={styles['presets']} aria-describedby={`${id}-summary`}>
-          <legend>{t['heartClock.condition']}</legend>
-          {choices.map((choice) => (
-            <label key={choice.id}>
-              <input
-                type="radio"
-                name={`${id}-preset`}
-                value={choice.id}
-                checked={presetId === choice.id}
-                onChange={() => changePreset(choice.id)}
-              />
-              {t[`heartClock.preset.${choice.id}`]}
-            </label>
-          ))}
-        </fieldset>
+      {choices.length > maxSwitchChoices ? (
+        <div className={styles['picker']}>
+          <label htmlFor={`${id}-preset`}>{t['heartClock.condition']}</label>
+          <select
+            id={`${id}-preset`}
+            value={presetId}
+            aria-describedby={`${id}-summary`}
+            onChange={(event) => changePreset(event.currentTarget.value as PresetId)}
+          >
+            {choices
+              .filter((choice) => presetGroup[choice.id] === null)
+              .map((choice) => (
+                <option key={choice.id} value={choice.id}>
+                  {t[`heartClock.preset.${choice.id}`]}
+                </option>
+              ))}
+            {presetGroups.map((group) => {
+              const members = choices.filter((choice) => presetGroup[choice.id] === group);
+              return (
+                members.length > 0 && (
+                  <optgroup key={group} label={t[`heartClock.group.${group}`]}>
+                    {members.map((choice) => (
+                      <option key={choice.id} value={choice.id}>
+                        {t[`heartClock.preset.${choice.id}`]}
+                      </option>
+                    ))}
+                  </optgroup>
+                )
+              );
+            })}
+          </select>
+        </div>
+      ) : (
+        choices.length > 1 && (
+          <fieldset className={styles['presets']} aria-describedby={`${id}-summary`}>
+            <legend>{t['heartClock.condition']}</legend>
+            <div className={styles['segments']}>
+              {choices.map((choice) => (
+                <label key={choice.id}>
+                  <input
+                    type="radio"
+                    name={`${id}-preset`}
+                    value={choice.id}
+                    checked={presetId === choice.id}
+                    onChange={() => changePreset(choice.id)}
+                  />
+                  {t[`heartClock.preset.${choice.id}`]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )
       )}
       {choices.length > 1 && (
         <p id={`${id}-summary`} className={styles['summary']}>
@@ -420,9 +458,20 @@ export default function HeartClockDemo({
           className={styles['play']}
           onClick={() => setPlaying((value) => !value)}
         >
+          <svg className={styles['icon']} viewBox="0 0 16 16" aria-hidden="true">
+            {playing ? <path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" /> : <path d="M4 2.5v11l9.5-5.5z" />}
+          </svg>
           {playing ? t['heartClock.pause'] : t['heartClock.play']}
         </button>
-        <button type="button" className={styles['play']} onClick={toggleSound}>
+        <button type="button" className={styles['sound']} onClick={toggleSound}>
+          <svg className={styles['icon']} viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M2 6h3l4-3.5v11L5 10H2z" />
+            {soundOn ? (
+              <path d="M11 5.5q1.5 2.5 0 5M12.5 4q3 4 0 8" className={styles['wave']} />
+            ) : (
+              <path d="M11 6l4 4M15 6l-4 4" className={styles['wave']} />
+            )}
+          </svg>
           {soundOn ? t['heartClock.soundOff'] : t['heartClock.soundOn']}
         </button>
         <div className={styles['rate']}>
@@ -440,18 +489,20 @@ export default function HeartClockDemo({
         </div>
         <fieldset className={styles['speed']}>
           <legend>{t['heartClock.speed']}</legend>
-          {speeds.map((value) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name={`${id}-speed`}
-                value={value}
-                checked={speed === value}
-                onChange={() => changeSpeed(value)}
-              />
-              ×{speedFormat.format(value)}
-            </label>
-          ))}
+          <div className={styles['segments']}>
+            {speeds.map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name={`${id}-speed`}
+                  value={value}
+                  checked={speed === value}
+                  onChange={() => changeSpeed(value)}
+                />
+                ×{speedFormat.format(value)}
+              </label>
+            ))}
+          </div>
         </fieldset>
       </div>
       <p className={styles['phase']}>

@@ -4,8 +4,9 @@ import {
   heartRateLimits,
   presetParams,
   presetRateLimits,
+  type PresetId,
 } from '@heart-atlas/heart-clock';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { productionLocales } from '../src/i18n/locales.ts';
 import { MOTION_STORAGE_KEY } from '../src/lib/motion.ts';
 import en from '../src/i18n/messages/en.json' with { type: 'json' };
@@ -23,6 +24,10 @@ test.use({
 });
 
 const messages: Record<string, typeof en> = { en, ru };
+
+/** The heart clock page lists every state in a select (issue #317). */
+const choose = (page: Page, id: PresetId) =>
+  page.getByRole('combobox', { name: en['heartClock.condition'] }).selectOption(id);
 
 for (const locale of Object.keys(productionLocales)) {
   const t = messages[locale] ?? en;
@@ -163,37 +168,57 @@ test.describe('disease presets', () => {
   test('switch the description and the summary, and switch back', async ({ page }) => {
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
     await expect(conditions).toHaveAccessibleDescription(en['heartClock.preset.normal.summary']);
+    // Normal first, then the states in their groups (issue #317).
+    await expect(conditions.locator('option').first()).toHaveText(en['heartClock.preset.normal']);
+    await expect(conditions.locator('optgroup')).toHaveCount(4);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.av-block-first-degree'] }),
-    ).toHaveCount(1);
+      conditions.locator(`optgroup[label="${en['heartClock.group.conduction']}"] option`),
+    ).toHaveCount(7);
     await expect(
-      conditions.getByRole('radio', {
-        name: en['heartClock.preset.supraventricular-tachycardia'],
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.av-block-first-degree'],
+        exact: true,
       }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }),
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.supraventricular-tachycardia'],
+        exact: true,
+      }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] }),
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.long-qt-syndrome'],
+        exact: true,
+      }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] }),
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.ventricular-tachycardia'],
+        exact: true,
+      }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }),
+      conditions.getByRole('option', { name: en['heartClock.preset.atrial-flutter'], exact: true }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] }),
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.sick-sinus-syndrome'],
+        exact: true,
+      }),
     ).toHaveCount(1);
     await expect(
-      conditions.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }),
+      conditions.getByRole('option', { name: en['heartClock.preset.wpw-syndrome'], exact: true }),
     ).toHaveCount(1);
-    await conditions
-      .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
-      .check();
+    await expect(
+      conditions.getByRole('option', {
+        name: en['heartClock.preset.brugada-syndrome'],
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    await choose(page, 'atrial-fibrillation');
     await expect(conditions).toHaveAccessibleDescription(
       en['heartClock.preset.atrial-fibrillation.summary'],
     );
@@ -202,7 +227,7 @@ test.describe('disease presets', () => {
     const results = await axe(page).analyze();
     expect(results.violations).toEqual([]);
 
-    await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await choose(page, 'normal');
     await expect(ecg).toHaveAccessibleDescription(/^Sinus rhythm at 75 /);
   });
 
@@ -210,12 +235,10 @@ test.describe('disease presets', () => {
     // docs/plans/2026-10-13-heart-clock-av-block.md
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
-    await conditions
-      .getByRole('radio', { name: en['heartClock.preset.av-block-third-degree'], exact: true })
-      .check();
+    await choose(page, 'av-block-third-degree');
     await expect(slider).toHaveValue('40');
     await expect(slider).toHaveAttribute('min', '35');
     await expect(slider).toHaveAttribute('max', '50');
@@ -227,9 +250,7 @@ test.describe('disease presets', () => {
     );
     expect((await axe(page).analyze()).violations).toEqual([]);
 
-    await conditions
-      .getByRole('radio', { name: en['heartClock.preset.av-block-third-degree-paced'] })
-      .check();
+    await choose(page, 'av-block-third-degree-paced');
     await expect(slider).toHaveValue('75');
     await expect(slider).toHaveAttribute('min', '60');
     await expect(slider).toHaveAttribute('max', '100');
@@ -242,13 +263,11 @@ test.describe('disease presets', () => {
     // docs/plans/2026-10-13-heart-clock-premature-beats.md
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
     for (const id of ['atrial-premature-beats', 'ventricular-premature-beats'] as const) {
-      await conditions
-        .getByRole('radio', { name: en[`heartClock.preset.${id}`], exact: true })
-        .check();
+      await choose(page, id);
       await expect(conditions).toHaveAccessibleDescription(en[`heartClock.preset.${id}.summary`]);
       await expect(slider).toHaveAttribute('min', '40');
       await expect(slider).toHaveAttribute('max', '86');
@@ -265,15 +284,10 @@ test.describe('disease presets', () => {
     // docs/plans/2026-10-13-heart-clock-second-degree-av-block.md
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
-    await conditions
-      .getByRole('radio', {
-        name: en['heartClock.preset.av-block-second-degree-mobitz-1'],
-        exact: true,
-      })
-      .check();
+    await choose(page, 'av-block-second-degree-mobitz-1');
     await expect(slider).toHaveValue('60');
     await expect(slider).toHaveAttribute('min', '40');
     await expect(slider).toHaveAttribute('max', '70');
@@ -285,12 +299,7 @@ test.describe('disease presets', () => {
     );
     expect((await axe(page).analyze()).violations).toEqual([]);
 
-    await conditions
-      .getByRole('radio', {
-        name: en['heartClock.preset.av-block-second-degree-mobitz-2'],
-        exact: true,
-      })
-      .check();
+    await choose(page, 'av-block-second-degree-mobitz-2');
     await expect(slider).toHaveValue('75');
     await expect(ecg).toHaveAccessibleDescription(
       en['heartClock.preset.av-block-second-degree-mobitz-2.ecg'].replace('{rate}', '75'),
@@ -326,13 +335,13 @@ test.describe('disease presets', () => {
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     await slider.fill('180');
-    await page.getByRole('radio', { name: en['heartClock.preset.atrial-septal-defect'] }).check();
+    await choose(page, 'atrial-septal-defect');
     const [, max] = heartRateLimits(presetParams('atrial-septal-defect'));
     await expect(slider).toHaveAttribute('max', String(max));
     await expect(slider).toHaveValue(String(max));
     await expect(page.locator('output')).toHaveText(String(max));
 
-    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await choose(page, 'normal');
     await expect(slider).toHaveAttribute('max', '180');
   });
 
@@ -343,9 +352,7 @@ test.describe('disease presets', () => {
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     await slider.fill('90');
-    await page
-      .getByRole('radio', { name: en['heartClock.preset.supraventricular-tachycardia'] })
-      .check();
+    await choose(page, 'supraventricular-tachycardia');
     const [min] = presetRateLimits('supraventricular-tachycardia');
     await expect(slider).toHaveValue(
       String(presetParams('supraventricular-tachycardia').heartRate),
@@ -353,39 +360,37 @@ test.describe('disease presets', () => {
     await expect(slider).toHaveAttribute('min', String(min));
 
     // Other presets keep the reader's rate; leaving SVT goes back to the default rate.
-    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await choose(page, 'normal');
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
     await expect(slider).toHaveAttribute('min', String(defaultRateLimits[0]));
     await slider.fill('90');
-    await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
+    await choose(page, 'stemi');
     await expect(slider).toHaveValue('90');
 
     // VT sets its own rate and floor too; leaving it for long QT goes back to the default rate,
     // under the long QT's upper limit.
-    await page
-      .getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] })
-      .check();
+    await choose(page, 'ventricular-tachycardia');
     const [vtMin, vtMax] = presetRateLimits('ventricular-tachycardia');
     await expect(slider).toHaveValue(String(presetParams('ventricular-tachycardia').heartRate));
     await expect(slider).toHaveAttribute('min', String(vtMin));
     await expect(slider).toHaveAttribute('max', String(vtMax));
-    await page.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }).check();
+    await choose(page, 'long-qt-syndrome');
     const [, longQtMax] = presetRateLimits('long-qt-syndrome');
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
     await expect(slider).toHaveAttribute('max', String(longQtMax));
 
     // Atrial flutter has a floor and a ceiling; sick sinus syndrome goes below 40 and stays there.
-    await page.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] }).check();
+    await choose(page, 'atrial-flutter');
     const [flutterMin, flutterMax] = presetRateLimits('atrial-flutter');
     await expect(slider).toHaveValue(String(presetParams('atrial-flutter').heartRate));
     await expect(slider).toHaveAttribute('min', String(flutterMin));
     await expect(slider).toHaveAttribute('max', String(flutterMax));
-    await page.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] }).check();
+    await choose(page, 'sick-sinus-syndrome');
     const [sssMin, sssMax] = presetRateLimits('sick-sinus-syndrome');
     await expect(slider).toHaveValue(String(presetParams('sick-sinus-syndrome').heartRate));
     await expect(slider).toHaveAttribute('min', String(sssMin));
     await expect(slider).toHaveAttribute('max', String(sssMax));
-    await page.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await choose(page, 'normal');
     await expect(slider).toHaveValue(String(defaultParams.heartRate));
     await expect(slider).toHaveAttribute('min', String(defaultRateLimits[0]));
   });
@@ -395,13 +400,13 @@ test.describe('disease presets', () => {
   }) => {
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
-    const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
     const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
     const ecgLabel = (lead: string) => en['heartClock.ecgLabel'].replace('{lead}', lead);
     await slider.fill('90');
 
     // WPW keeps the reader's rate; its delta wave narrows the upper limit.
-    await conditions.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] }).check();
+    await choose(page, 'wpw-syndrome');
     const [, wpwMax] = presetRateLimits('wpw-syndrome');
     await expect(slider).toHaveValue('90');
     await expect(slider).toHaveAttribute('max', String(wpwMax));
@@ -413,7 +418,7 @@ test.describe('disease presets', () => {
     );
 
     // Brugada syndrome is drawn in V1, and the strip label says so.
-    await conditions.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }).check();
+    await choose(page, 'brugada-syndrome');
     await expect(slider).toHaveValue('90');
     await expect(slider).toHaveAttribute('max', String(defaultRateLimits[1]));
     const v1 = page.getByRole('img', { name: ecgLabel('V1') });
@@ -424,7 +429,7 @@ test.describe('disease presets', () => {
     expect((await axe(page).analyze()).violations).toEqual([]);
 
     // Back to normal: lead II again.
-    await conditions.getByRole('radio', { name: en['heartClock.preset.normal'] }).check();
+    await choose(page, 'normal');
     await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveAccessibleDescription(
       /^Sinus rhythm at 90 /,
     );
@@ -438,9 +443,9 @@ test.describe('disease presets', () => {
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
     // Long enough for the clock to drop the beats it started with.
     await page.waitForTimeout(3000);
-    await page.getByRole('radio', { name: en['heartClock.preset.aortic-stenosis'] }).check();
+    await choose(page, 'aortic-stenosis');
     await page.waitForTimeout(500);
-    await page.getByRole('radio', { name: en['heartClock.preset.stemi'] }).check();
+    await choose(page, 'stemi');
     await page.waitForTimeout(500);
     expect(errors).toEqual([]);
     await expect(page.locator('[data-phase]')).toBeVisible();

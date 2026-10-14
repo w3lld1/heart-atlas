@@ -101,6 +101,9 @@ for (const locale of Object.keys(productionLocales)) {
 
 test.describe('embed parameters', () => {
   const slider = (page: Page) => page.getByRole('slider', { name: en['heartClock.heartRate'] });
+  // The embed lists every state in a select (issue #317).
+  const condition = (page: Page) =>
+    page.getByRole('combobox', { name: en['heartClock.condition'] });
   // The build renders the monitor with defaults; URL parameters apply only after hydration.
   const hydrated = (page: Page) => expect(page.locator('astro-island[ssr]')).toHaveCount(0);
 
@@ -111,50 +114,43 @@ test.describe('embed parameters', () => {
   });
 
   test('starts from the preset in the URL and ignores an unknown one', async ({ page }) => {
-    const condition = (id: string) =>
-      page.getByRole('radio', { name: en[`heartClock.preset.${id}` as keyof typeof en] });
     await page.goto('en/embed/ecg/?preset=atrial-fibrillation&rate=90');
-    await expect(condition('atrial-fibrillation')).toBeChecked();
+    await expect(condition(page)).toHaveValue('atrial-fibrillation');
     await expect(slider(page)).toHaveValue('90');
 
     await page.goto('en/embed/ecg/?preset=not-a-preset');
     await hydrated(page);
-    await expect(condition('normal')).toBeChecked();
+    await expect(condition(page)).toHaveValue('normal');
   });
 
   test('keeps a rate from the URL inside the preset limits', async ({ page }) => {
     const [, max] = heartRateLimits(presetParams('atrial-septal-defect'));
     await page.goto(`en/embed/ecg/?preset=atrial-septal-defect&rate=${max + 1}`);
     await hydrated(page);
-    await expect(
-      page.getByRole('radio', { name: en['heartClock.preset.atrial-septal-defect'] }),
-    ).toBeChecked();
+    await expect(condition(page)).toHaveValue('atrial-septal-defect');
     await expect(slider(page)).toHaveValue(String(max));
   });
 
   test('starts SVT at its own heart rate and keeps a URL rate above its floor', async ({
     page,
   }) => {
-    const svt = page.getByRole('radio', {
-      name: en['heartClock.preset.supraventricular-tachycardia'],
-    });
     await page.goto('en/embed/ecg/?preset=supraventricular-tachycardia');
     await hydrated(page);
-    await expect(svt).toBeChecked();
+    await expect(condition(page)).toHaveValue('supraventricular-tachycardia');
     await expect(slider(page)).toHaveValue(
       String(presetParams('supraventricular-tachycardia').heartRate),
     );
     const [min] = presetRateLimits('supraventricular-tachycardia');
     await page.goto('en/embed/ecg/?preset=supraventricular-tachycardia&rate=90');
     await hydrated(page);
-    await expect(svt).toBeChecked();
+    await expect(condition(page)).toHaveValue('supraventricular-tachycardia');
     await expect(slider(page)).toHaveValue(String(min));
 
     // A URL rate belongs to the preset the embed starts with; switching to SVT sets its own rate.
     await page.goto('en/embed/ecg/?rate=90');
     await hydrated(page);
     await expect(slider(page)).toHaveValue('90');
-    await svt.check();
+    await condition(page).selectOption('supraventricular-tachycardia');
     await expect(slider(page)).toHaveValue(
       String(presetParams('supraventricular-tachycardia').heartRate),
     );
@@ -163,17 +159,14 @@ test.describe('embed parameters', () => {
   test('keeps a URL rate inside the complete AV block escape range', async ({ page }) => {
     await page.goto('en/embed/ecg/?preset=av-block-third-degree&rate=120');
     await hydrated(page);
-    await expect(
-      page.getByRole('radio', { name: en['heartClock.preset.av-block-third-degree'], exact: true }),
-    ).toBeChecked();
+    await expect(condition(page)).toHaveValue('av-block-third-degree');
     await expect(slider(page)).toHaveValue('50');
   });
 
   test('keeps a URL rate inside the VT range and the long QT upper limit', async ({ page }) => {
-    const vt = page.getByRole('radio', { name: en['heartClock.preset.ventricular-tachycardia'] });
     await page.goto('en/embed/ecg/?preset=ventricular-tachycardia');
     await hydrated(page);
-    await expect(vt).toBeChecked();
+    await expect(condition(page)).toHaveValue('ventricular-tachycardia');
     await expect(slider(page)).toHaveValue(
       String(presetParams('ventricular-tachycardia').heartRate),
     );
@@ -188,19 +181,16 @@ test.describe('embed parameters', () => {
     const [, longQtMax] = presetRateLimits('long-qt-syndrome');
     await page.goto(`en/embed/ecg/?preset=long-qt-syndrome&rate=${longQtMax + 1}`);
     await hydrated(page);
-    await expect(
-      page.getByRole('radio', { name: en['heartClock.preset.long-qt-syndrome'] }),
-    ).toBeChecked();
+    await expect(condition(page)).toHaveValue('long-qt-syndrome');
     await expect(slider(page)).toHaveValue(String(longQtMax));
   });
 
   test('keeps a URL rate inside the atrial flutter and sick sinus syndrome ranges', async ({
     page,
   }) => {
-    const flutter = page.getByRole('radio', { name: en['heartClock.preset.atrial-flutter'] });
     await page.goto('en/embed/ecg/?preset=atrial-flutter');
     await hydrated(page);
-    await expect(flutter).toBeChecked();
+    await expect(condition(page)).toHaveValue('atrial-flutter');
     await expect(slider(page)).toHaveValue(String(presetParams('atrial-flutter').heartRate));
     const [flutterMin, flutterMax] = presetRateLimits('atrial-flutter');
     await page.goto(`en/embed/ecg/?preset=atrial-flutter&rate=${flutterMin - 1}`);
@@ -209,11 +199,9 @@ test.describe('embed parameters', () => {
     await page.goto(`en/embed/ecg/?preset=atrial-flutter&rate=${flutterMax + 1}`);
     await hydrated(page);
     await expect(slider(page)).toHaveValue(String(flutterMax));
-
-    const sss = page.getByRole('radio', { name: en['heartClock.preset.sick-sinus-syndrome'] });
     await page.goto('en/embed/ecg/?preset=sick-sinus-syndrome');
     await hydrated(page);
-    await expect(sss).toBeChecked();
+    await expect(condition(page)).toHaveValue('sick-sinus-syndrome');
     await expect(slider(page)).toHaveValue(String(presetParams('sick-sinus-syndrome').heartRate));
     // Below 40 only for this preset: the model's lowest rate is accepted, 40 is not.
     const [sssMin, sssMax] = presetRateLimits('sick-sinus-syndrome');
@@ -222,7 +210,7 @@ test.describe('embed parameters', () => {
     await expect(slider(page)).toHaveValue(String(sssMin));
     await page.goto(`en/embed/ecg/?preset=sick-sinus-syndrome&rate=${sssMax + 1}`);
     await hydrated(page);
-    await expect(sss).toBeChecked();
+    await expect(condition(page)).toHaveValue('sick-sinus-syndrome');
     await expect(slider(page)).toHaveValue(String(sssMax));
   });
 
@@ -232,9 +220,7 @@ test.describe('embed parameters', () => {
     const ecgLabel = (lead: string) => en['heartClock.ecgLabel'].replace('{lead}', lead);
     await page.goto('en/embed/ecg/?preset=brugada-syndrome&rate=90');
     await hydrated(page);
-    await expect(
-      page.getByRole('radio', { name: en['heartClock.preset.brugada-syndrome'] }),
-    ).toBeChecked();
+    await expect(condition(page)).toHaveValue('brugada-syndrome');
     await expect(slider(page)).toHaveValue('90');
     await expect(page.getByRole('img', { name: ecgLabel('V1') })).toHaveAccessibleDescription(
       en['heartClock.preset.brugada-syndrome.ecg'].replace('{rate}', '90'),
@@ -242,11 +228,10 @@ test.describe('embed parameters', () => {
     await expect(page.getByRole('img', { name: ecgLabel('II') })).toHaveCount(0);
 
     // The delta wave of WPW narrows the upper limit; the preset keeps lead II.
-    const wpw = page.getByRole('radio', { name: en['heartClock.preset.wpw-syndrome'] });
     const [, wpwMax] = presetRateLimits('wpw-syndrome');
     await page.goto(`en/embed/ecg/?preset=wpw-syndrome&rate=${wpwMax + 1}`);
     await hydrated(page);
-    await expect(wpw).toBeChecked();
+    await expect(condition(page)).toHaveValue('wpw-syndrome');
     await expect(slider(page)).toHaveValue(String(wpwMax));
     await expect(page.getByRole('img', { name: ecgLabel('II') })).toBeVisible();
   });

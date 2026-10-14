@@ -32,22 +32,67 @@
   align-items: center;
 }
 
-.play {
-  min-inline-size: 6rem;
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--color-accent);
-  border-radius: 0.375rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+/* Play: an accent pill; sound: the same pill outlined. Both keep their width when the label switches. */
+.play,
+.sound {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 8.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 1rem 1.25rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
   font: inherit;
   cursor: pointer;
 }
 
+.play {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.sound {
+  min-inline-size: 11rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.play:focus-visible,
+.sound:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.icon {
+  flex: none;
+  inline-size: 1rem;
+  block-size: 1rem;
+  fill: currentcolor;
+}
+
+.wave {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* The label above, the slider and its value on one line, so the value never wraps alone. */
 .rate {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) auto;
+  gap: 0.25rem 0.5rem;
   align-items: center;
+}
+
+.rate label {
+  grid-column: 1 / -1;
+}
+
+.rate input {
+  accent-color: var(--color-accent);
 }
 
 .rate output {
@@ -56,35 +101,89 @@
   font-weight: 700;
 }
 
-.speed {
-  display: flex;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0.25rem 0.75rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-}
-
-.speed label {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-}
-
+/* Fieldsets without a frame: the legend sits above a segmented switch. */
+.speed,
 .presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
+  display: grid;
+  gap: 0.375rem;
+  min-inline-size: 0;
   margin: 0;
-  padding: 0.25rem 0.75rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  padding: 0;
+  border: 0;
 }
 
-.presets label {
-  display: flex;
+.speed legend,
+.presets legend {
+  padding: 0;
+  margin-block-end: 0.375rem;
+}
+
+.segments {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-self: start;
+  max-inline-size: 100%;
+  border: 1px solid var(--color-border);
+
+  /* Half a row: a second row on a narrow screen keeps its corners instead of being clipped. */
+  border-radius: 1.125rem;
+  overflow: hidden;
+}
+
+.segments label {
+  position: relative;
+  flex: 1 1 auto;
+  padding-block: 0.375rem;
+  padding-inline: clamp(0.625rem, 3vw, 1rem);
+  text-align: center;
+  cursor: pointer;
+}
+
+.segments label:has(:checked) {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* Inside the label: the rounded switch clips anything drawn outside it. */
+.segments label:has(:focus-visible) {
+  outline: 2px solid currentcolor;
+  outline-offset: -4px;
+}
+
+.segments input {
+  position: absolute;
+  opacity: 0;
+}
+
+/* Forced colours drop the background, so the chosen item gets an outline instead. */
+@media (forced-colors: active) {
+  .segments label:has(:checked) {
+    outline: 2px solid Highlight;
+    outline-offset: -4px;
+  }
+}
+
+/* The long list of states: a native select, grouped, full width on a phone. */
+.picker {
+  display: grid;
   gap: 0.375rem;
-  align-items: center;
+  justify-items: start;
+}
+
+.picker select {
+  inline-size: min(100%, 28rem);
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.picker select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .summary,
