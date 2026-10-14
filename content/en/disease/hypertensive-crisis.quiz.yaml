@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: In the Russian guideline, what sets a hypertensive crisis apart from very high blood pressure?
+    options:
+      - text: The person being over fifty
+      - text: Acute damage to target organs
+        correct: true
+      - text: The time of day of the reading
+    explanation: A hypertensive crisis is a marked rise in blood pressure with acute damage to target organs. The Russian guideline does not call very high blood pressure without organ damage a crisis.
+    cite: [1]
+  - level: patient
+    prompt: Which organs are mainly affected in a hypertensive crisis?
+    options:
+      - text: Joints, ligaments, muscles and skeletal bones
+      - text: Skin, hair, nails and sweat glands
+      - text: Brain, heart, vessels, kidneys, retina
+        correct: true
+    explanation: The organs mainly affected in a hypertensive crisis are the brain, the heart and blood vessels, the kidneys and the retina of the eye.
+    cite: [3, 4]
+  - level: patient
+    prompt: Where is a hypertensive crisis with organ damage treated?
+    options:
+      - text: In hospital, usually in intensive care
+        correct: true
+      - text: At a spa, with a course of baths and massage
+      - text: At a dental clinic
+    explanation: A crisis with organ damage is treated in hospital, usually in an intensive care unit.
+    cite: [3, 4]
+  - level: patient
+    prompt: With high blood pressure, which sign means calling the emergency number at once?
+    options:
+      - text: Feeling thirsty after a walk
+      - text: An itchy mosquito bite on the arm
+      - text: New chest pain
+        correct: true
+    explanation: Call your local emergency number if, with high blood pressure, you develop chest pain or severe shortness of breath, confusion, seizures, sudden loss of sight, or weakness or numbness of one side of the body.
+    cite: [1, 2, 3]
+  - level: student
+    prompt: In the English-language literature, what is a severe acute rise in BP without acute HMOD called?
+    options:
+      - text: Hypertensive emergency
+      - text: Hypertensive urgency
+        correct: true
+      - text: Hypertensive encephalopathy
+    explanation: Hypertensive crisis is the umbrella term for a severe, acute elevation in BP. With acute HMOD it is a hypertensive emergency, without it a hypertensive urgency.
+    cite: [4]
+  - level: student
+    prompt: According to MSD, what do focal neurological deficits with a normal mental state suggest?
+    options:
+      - text: Stroke
+        correct: true
+      - text: Encephalopathy
+      - text: Kidney damage
+    explanation: Global cerebral deficits (confusion, obtundation, coma) suggest encephalopathy, whereas focal deficits with a normal mental state suggest stroke.
+    cite: [3]

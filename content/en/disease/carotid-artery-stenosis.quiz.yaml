@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is the main danger of carotid artery narrowing?
+    options:
+      - text: A fracture of the neck vertebrae
+      - text: Ischaemic stroke
+        correct: true
+      - text: Inflammation of the thyroid gland
+    explanation: The main danger of the narrowing is ischaemic stroke.
+    cite: [7]
+  - level: patient
+    prompt: Which sign is typical of carotid artery narrowing?
+    options:
+      - text: Itching and redness of the skin on the front of the neck in the evening
+      - text: Knee pain when climbing stairs
+      - text: Sudden, painless loss of vision in one eye
+        correct: true
+    explanation: A typical sign of carotid narrowing is sudden, painless loss of vision in one eye.
+    cite: [2, 4]
+  - level: patient
+    prompt: Why does the report state how the narrowing was calculated?
+    options:
+      - text: The two methods give different figures for the same narrowing
+        correct: true
+      - text: The insurance company needs the method to pay for the test
+      - text: One of the methods measures the pulse, not the width of the artery
+    explanation: There are two ways of calculating the narrowing, NASCET and ECST, which give different figures for the same narrowing, so the report must state which method was used.
+    cite: [2, 3]
+  - level: patient
+    prompt: In which situation should you call an ambulance straight away?
+    options:
+      - text: Someone sneezed a couple of times while dusting a shelf in the room
+      - text: An arm suddenly went numb, even if this passed quickly
+        correct: true
+      - text: Feeling thirsty after a long walk
+    explanation: Call an ambulance straight away if there is sudden weakness or numbness of one side of the face, an arm or a leg, difficulty speaking, a problem with vision or loss of balance, even if the symptom goes away quickly.
+    cite: [7]
+  - level: student
+    prompt: Involvement of which artery causes retinal TIA (amaurosis fugax)?
+    options:
+      - text: The right coronary artery
+      - text: The renal artery
+      - text: The ophthalmic artery
+        correct: true
+    explanation: Retinal TIA is transient, painless monocular blindness without residual visual impairment; it occurs when the ophthalmic artery is affected.
+    cite: [2, 4]
+  - level: student
+    prompt: What shows the posterior (vertebrobasilar) circulation of the brain better than ultrasound?
+    options:
+      - text: MR and CT angiography
+        correct: true
+      - text: 24-hour ECG monitoring
+      - text: Blood pressure measurement on the arm
+    explanation: MRA and CTA show the posterior (vertebrobasilar) circulation better than ultrasound.
+    cite: [5]

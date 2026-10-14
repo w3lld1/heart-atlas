@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is orthostatic hypotension?
+    options:
+      - text: Inflammation of the vein walls in the legs
+      - text: Congenital narrowing of the aortic valve
+      - text: Too great a fall in pressure on standing
+        correct: true
+    explanation: Orthostatic hypotension is an excessive fall in blood pressure when a person stands up or sits up.
+    cite: [5, 6]
+  - level: patient
+    prompt: After what can orthostatic hypotension appear?
+    options:
+      - text: After a haircut at the hairdresser's
+      - text: After a long period of bed rest
+        correct: true
+      - text: After reading books aloud for a long time
+    explanation: Orthostatic hypotension can also appear after prolonged bed rest.
+    cite: [5]
+  - level: patient
+    prompt: In orthostatic hypotension, what usually happens to faintness on lying down?
+    options:
+      - text: It passes quickly
+        correct: true
+      - text: It becomes a coughing fit
+      - text: It turns into toothache
+    explanation: Faintness, dizziness, muddled thinking and blurred vision come on within seconds to a few minutes of standing and pass quickly on lying down.
+    cite: [5]
+  - level: patient
+    prompt: Dizziness on standing together with what is a reason to call the emergency number?
+    options:
+      - text: Sleepiness late in the evening
+      - text: Chest pain or discomfort
+        correct: true
+      - text: Flaky dry skin on the elbows
+    explanation: Call your local emergency number if dizziness on standing comes with blood in the stool or black, tarry stool, difficulty walking or poor balance, a fall or a faint, or chest pain or discomfort.
+    cite: [6]
+  - level: student
+    prompt: Which group of causes does the ESC classification of OH list besides drug-induced and neurogenic?
+    options:
+      - text: Volume depletion
+        correct: true
+      - text: Allergy to pollen
+      - text: Inherited colour blindness
+    explanation: In the ESC classification, OH may be drug-induced, due to volume depletion (haemorrhage, diarrhoea, vomiting), or neurogenic.
+    cite: [1]
+  - level: student
+    prompt: Why does the ESC recommend ABPM in patients with autonomic failure?
+    options:
+      - text: To choose reading and writing glasses
+      - text: To check hearing sharpness
+      - text: To detect nocturnal hypertension
+        correct: true
+    explanation: ABPM is recommended to detect nocturnal hypertension in patients with autonomic failure, because in them OH is often combined with an insufficient nocturnal fall in BP.
+    cite: [1]

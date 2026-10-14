@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is a pericardial effusion?
+    options:
+      - text: A build-up of fat in the walls of the coronary arteries
+      - text: A build-up of air in the chest cavity
+      - text: A build-up of fluid in the sac around the heart
+        correct: true
+    explanation: A pericardial effusion is a build-up of fluid in the pericardium, the sac around the heart.
+    cite: [1, 3]
+  - level: patient
+    prompt: How does a small effusion usually show itself?
+    options:
+      - text: It usually causes no symptoms
+        correct: true
+      - text: It usually causes a high temperature and a rash
+      - text: It usually causes loss of vision in one eye
+    explanation: A small effusion usually causes no symptoms.
+    cite: [1]
+  - level: patient
+    prompt: What is the main test for a pericardial effusion?
+    options:
+      - text: An eyesight test with a letter chart
+      - text: Heart ultrasound (echocardiography)
+        correct: true
+      - text: A urine test for sugar
+    explanation: The main test is a heart ultrasound (echocardiography); it confirms the effusion, shows its size and helps to detect tamponade.
+    cite: [3]
+  - level: patient
+    prompt: When should an ambulance be called for a person with an effusion?
+    options:
+      - text: They feel sleepy after a big lunch at the weekend
+      - text: Their nose itches a little from dust in the room
+      - text: They faint or their breathlessness gets worse
+        correct: true
+    explanation: Call an ambulance if a person who has an effusion develops bouts of sudden severe weakness, dizziness, fainting or worsening breathlessness.
+    cite: [1, 3]
+  - level: student
+    prompt: If the effusion is not very large, what determines whether tamponade develops?
+    options:
+      - text: How fast the fluid accumulates
+        correct: true
+      - text: The total amount of fluid
+      - text: The time of day the heart ultrasound is done
+    explanation: If the effusion is not very large, whether tamponade develops depends on how fast the fluid accumulates, not on how much there is.
+    cite: [1]
+  - level: student
+    prompt: How is the amount of an effusion assessed on echocardiography?
+    options:
+      - text: By the heart rate recorded during the ultrasound scan
+      - text: By the distance between the pericardial layers in diastole
+        correct: true
+      - text: By the thickness of the left ventricular muscle wall in systole
+    explanation: The amount of fluid is assessed on echocardiography in diastole by the distance between the layers.
+    cite: [1]
