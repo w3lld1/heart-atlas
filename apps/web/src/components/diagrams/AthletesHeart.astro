@@ -1,0 +1,259 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// A four-chamber heart in section: the atria on top, the ventricles below. Normal: the heart of an
+// untrained person at its usual size, beating at a usual rate. Athlete: the same heart drawn
+// slightly larger as a whole (all four chambers a little larger, the walls a little thicker,
+// evenly), beating more slowly, with a dashed outline of the usual size for comparison and a note
+// that this is an adaptation, not a disease. No numbers, no scar, no ECG, no cardiomyopathy.
+const centre = { x: 171, y: 190 };
+const athleteScale = 1.14;
+const athleteTransform = `translate(${centre.x} ${centre.y}) scale(${athleteScale}) translate(${-centre.x} ${-centre.y})`;
+// A point of the normal heart as it lies in the larger athlete's heart.
+const scaled = (x: number, y: number) => ({
+  x: centre.x + (x - centre.x) * athleteScale,
+  y: centre.y + (y - centre.y) * athleteScale,
+});
+
+const muscle = 'M90,128 C80,205 128,282 171,302 C214,282 262,205 252,128 C230,112 112,112 90,128 Z';
+const atria = [
+  {
+    cx: 128,
+    label: 'diagram.label.ra' as const,
+    fill: 'var(--diagram-venous-fill)',
+    stroke: 'var(--diagram-venous)',
+  },
+  {
+    cx: 214,
+    label: 'diagram.label.la' as const,
+    fill: 'var(--diagram-arterial-fill)',
+    stroke: 'var(--diagram-arterial)',
+  },
+];
+const atriumY = 94;
+// Ventricle cavities; the muscle between them is the septum.
+const rightCavity = 'M106,142 C102,196 128,246 158,266 L161,142 Z';
+const leftCavity = 'M181,142 L184,266 C216,246 240,196 236,142 Z';
+
+// Points the leaders end at: the left atrium and the outer wall of the left ventricle.
+const chambersTarget = { normal: { x: 252, y: 92 }, athlete: scaled(252, 92) };
+const wallTarget = { normal: { x: 250, y: 196 }, athlete: scaled(250, 196) };
+
+// The label column on the right; each leader starts just left of its label's first line.
+const columnX = 300;
+const leaderX = columnX - 6;
+const titleY = 26;
+const chambersY = 78;
+const wallY = 178;
+const pulseY = 262;
+const noteY = 304;
+const chambersNormalLines = lines('diagram.label.chambers-normal-size', 22);
+const chambersAthleteLines = lines('diagram.label.all-chambers-slightly-larger', 22);
+const wallNormalLines = lines('diagram.label.normal-thickness', 22);
+const wallAthleteLines = lines('diagram.label.wall-slightly-thicker-evenly', 22);
+const pulseAthleteLines = lines('diagram.label.slower-resting-pulse', 22);
+const noteLines = lines('diagram.label.adaptation-not-disease', 26);
+---
+
+<svg viewBox="0 0 520 340" role="img" aria-label={t['diagram.athletes-heart.title']} lang={locale}>
+  <!-- Normal: the heart of an untrained person, beating at a usual rate.
+       Athlete: the same heart drawn larger as a whole, beating more slowly. -->
+  {[
+    { state: 'normal', transform: undefined, beat: 'athl-beat' },
+    { state: 'athlete', transform: athleteTransform, beat: 'athl-beat athl-slow' },
+  ].map(({ state, transform, beat }) => (
+    <g data-only={state} transform={transform}>
+      <g class={beat}>
+        <path
+          d={muscle}
+          fill="var(--diagram-muscle)"
+          stroke="var(--diagram-arterial)"
+          stroke-width="2"
+        />
+        {atria.map((atrium) => (
+          <ellipse
+            cx={atrium.cx}
+            cy={atriumY}
+            rx="40"
+            ry="30"
+            fill={atrium.fill}
+            stroke={atrium.stroke}
+            stroke-width="2"
+          />
+        ))}
+        <path
+          d={rightCavity}
+          fill="var(--diagram-venous-fill)"
+          stroke="var(--diagram-venous)"
+          stroke-width="1.5"
+        />
+        <path
+          d={leftCavity}
+          fill="var(--diagram-arterial-fill)"
+          stroke="var(--diagram-arterial)"
+          stroke-width="1.5"
+        />
+        {atria.map((atrium) => (
+          <text x={atrium.cx} y={atriumY + 6} text-anchor="middle">
+            {t[atrium.label]}
+          </text>
+        ))}
+        <text x="138" y="206" text-anchor="middle">
+          {t['diagram.label.rv']}
+        </text>
+        <text x="206" y="206" text-anchor="middle">
+          {t['diagram.label.lv']}
+        </text>
+      </g>
+    </g>
+  ))}
+
+  <!-- Athlete: a dashed outline of the usual size, for comparison -->
+  <path
+    data-only="athlete"
+    d={muscle}
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  ></path>
+
+  <!-- Titles over the heart -->
+  <text data-only="normal" x={centre.x} y={titleY} text-anchor="middle">
+    {t['diagram.label.untrained-heart']}
+  </text>
+  <text data-only="athlete" x={centre.x} y={titleY} text-anchor="middle">
+    {t['diagram.label.athletes-heart']}
+  </text>
+
+  <!-- Normal labels -->
+  <g data-only="normal">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line
+        x1={leaderX}
+        y1={chambersY - 4}
+        x2={chambersTarget.normal.x}
+        y2={chambersTarget.normal.y}
+      ></line>
+      <line x1={leaderX} y1={wallY - 4} x2={wallTarget.normal.x} y2={wallTarget.normal.y}></line>
+    </g>
+    <text class="diagram-small" x={columnX} y={chambersY}>
+      {chambersNormalLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y={wallY}>
+      {wallNormalLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y={pulseY}>
+      {t['diagram.label.pulse-normal']}
+    </text>
+  </g>
+
+  <!-- Athlete labels -->
+  <g data-only="athlete">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line
+        x1={leaderX}
+        y1={chambersY - 4}
+        x2={chambersTarget.athlete.x}
+        y2={chambersTarget.athlete.y}
+      ></line>
+      <line x1={leaderX} y1={wallY - 4} x2={wallTarget.athlete.x} y2={wallTarget.athlete.y}></line>
+    </g>
+    <text class="diagram-small" x={columnX} y={chambersY}>
+      {chambersAthleteLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y={wallY}>
+      {wallAthleteLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y={pulseY}>
+      {pulseAthleteLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small athl-note" x={columnX} y={noteY}>
+      {noteLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The heart beats at a usual rate normally and more slowly in the athlete. Without motion it
+     stands still: the size, the dashed outline of the usual heart and the labels carry the
+     difference, and the pulse labels say how the rate differs. */
+  .diagram .athl-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: athl-beat 1s ease-in-out infinite;
+  }
+
+  /* The note that this is an adaptation, not a disease, stands out from the other labels. */
+  .diagram svg text.diagram-small.athl-note {
+    font-weight: 700;
+  }
+
+  .diagram .athl-slow {
+    animation-duration: 1.6s;
+  }
+
+  @keyframes athl-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(0.96);
+    }
+  }
+</style>

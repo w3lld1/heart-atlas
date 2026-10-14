@@ -1,0 +1,312 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-fat-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+
+/*
+ * A flat pathway scheme, not a heart outline: the atria on top, the AV node between and the
+ * ventricles below. Normal: every impulse starts in the SA node and goes across the atria to the AV
+ * node and down to the ventricles. Disease (focal atrial tachycardia): the impulses come from one
+ * focus in the atria, apart from the SA node, and the wave spreads from it in all directions
+ * (centrifugally); one of these directions leads to the AV node and on to the ventricles, which
+ * usually beat fast and evenly. The focus is placed generically in the atria, not at a specific
+ * site: it can arise anywhere in them. No re-entry loop (that is flutter or AV nodal re-entry), no focus at
+ * the AV node, no rate numbers.
+ */
+const sa = { x: 70, y: 44 };
+const av = { x: 220, y: 152 };
+const focus = { x: 300, y: 84 };
+// Normal route: SA node across the atria, through the AV node to the top of the ventricles.
+const sinusRoute = `M${sa.x},${sa.y} Q180,56 ${av.x},${av.y} L${av.x},196`;
+// Disease route: from the focus to the AV node and down; the rest of the wave spreads around.
+const focusRoute = `M${focus.x},${focus.y} Q244,104 ${av.x},${av.y} L${av.x},196`;
+// Into both sides of the ventricles, in both states.
+const spreadLeft = 'M220,196 Q170,214 120,258';
+const spreadRight = 'M220,196 Q262,212 290,244';
+// Short arrows out of the focus in every other direction (degrees, y down); the route to the AV
+// node is the one that points down and to the left.
+const spreadAngles = [0, 50, 90, 180, 230, 270, 320];
+const spreadArrows = spreadAngles.map((deg) => {
+  const rad = (deg * Math.PI) / 180;
+  const from = 14;
+  const to = 34;
+  return `M${(focus.x + from * Math.cos(rad)).toFixed(1)},${(focus.y + from * Math.sin(rad)).toFixed(1)} L${(focus.x + to * Math.cos(rad)).toFixed(1)},${(focus.y + to * Math.sin(rad)).toFixed(1)}`;
+});
+
+// The focus label sits right of the focus, centred on it, inside the atria band.
+const focusLines = wrap(t['diagram.label.atrial-focus'], 10);
+const focusLabelX = 344;
+const focusLabelY = focus.y + 4 - ((focusLines.length - 1) * lineHeight) / 2;
+---
+
+<svg
+  viewBox="0 0 440 300"
+  role="img"
+  aria-label={t['diagram.focal-atrial-tachycardia.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Atria on top, ventricles below, the AV node between them -->
+  <rect x="16" y="16" width="408" height="120" rx="16" fill="var(--diagram-muscle)"></rect>
+  <rect x="16" y="172" width="408" height="112" rx="16" fill="var(--diagram-muscle)"></rect>
+
+  <!-- The ventricles light up on each beat: at the usual pace normally, fast in tachycardia -->
+  <g class="flow">
+    <rect class="fat-beat normal-only" x="16" y="172" width="408" height="112" rx="16"></rect>
+    <rect
+      class="fat-beat fat-fast disease-only"
+      x="16"
+      y="172"
+      width="408"
+      height="112"
+      rx="16"
+    ></rect>
+  </g>
+
+  <!-- Into the ventricles, in both states -->
+  <path class="fat-mark" d={spreadLeft} marker-end={`url(#${arrowId})`}></path>
+  <path class="fat-mark" d={spreadRight} marker-end={`url(#${arrowId})`}></path>
+
+  <!-- Normal: from the SA node across the atria and down -->
+  <g class="normal-only">
+    <path class="fat-mark" d={sinusRoute}></path>
+    <g class="flow">
+      <path class="fat-run fat-run-route" d={sinusRoute} pathLength="100"></path>
+      <path class="fat-run fat-run-spread" d={spreadLeft} pathLength="100"></path>
+      <path class="fat-run fat-run-spread" d={spreadRight} pathLength="100"></path>
+    </g>
+  </g>
+
+  <!-- Disease: the focus fires fast; its wave spreads in all directions, one of them to the AV
+       node and down -->
+  <g class="disease-only">
+    <path class="fat-mark" d={focusRoute}></path>
+    {spreadArrows.map((d) => (
+      <path class="fat-mark fat-mark-thin" d={d} marker-end={`url(#${arrowId})`}></path>
+    ))}
+    <g class="flow">
+      <circle class="fat-wave fat-fast" cx={focus.x} cy={focus.y} r="12"></circle>
+      <path class="fat-run fat-run-route fat-fast" d={focusRoute} pathLength="100"></path>
+      <path class="fat-run fat-run-spread fat-fast" d={spreadLeft} pathLength="100"></path>
+      <path class="fat-run fat-run-spread fat-fast" d={spreadRight} pathLength="100"></path>
+    </g>
+    <circle class="fat-focus" cx={focus.x} cy={focus.y} r="9"></circle>
+  </g>
+
+  <!-- Nodes: the SA node is drawn in both states; in tachycardia it no longer sets the rhythm -->
+  <circle class="fat-node" cx={sa.x} cy={sa.y} r="7"></circle>
+  <ellipse class="fat-node" cx={av.x} cy={av.y} rx="14" ry="9"></ellipse>
+
+  <!-- Labels -->
+  <text x="86" y="36">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="30" y="124">
+    {t['diagram.label.atria']}
+  </text>
+  <text x={av.x - 20} y={av.y + 6} text-anchor="end">
+    {t['diagram.label.av-node']}
+  </text>
+  <text x="30" y="200">
+    {t['diagram.label.ventricles']}
+  </text>
+  <text class="diagram-small disease-only" x={focusLabelX} y={focusLabelY}>
+    {focusLines.map((line, index) => (
+      <tspan x={focusLabelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small normal-only" x="412" y="272" text-anchor="end">
+    {t['diagram.label.normal-rhythm']}
+  </text>
+  <text class="diagram-small disease-only" x="412" y="272" text-anchor="end">
+    {t['diagram.label.fast-regular-rhythm']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .fat-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .fat-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .diagram .fat-mark-thin {
+    stroke-width: 3;
+  }
+
+  /* The ectopic focus: outlined and set apart from the SA and AV nodes. */
+  .diagram .fat-focus {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 3 2;
+  }
+
+  /* The wave leaving the focus: a ring that grows and fades, once per beat. */
+  .diagram .fat-wave {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: fat-wave 1.2s ease-out infinite;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .fat-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  .diagram .fat-run-route {
+    animation: fat-run-route 1.2s linear infinite;
+  }
+
+  .diagram .fat-run-spread {
+    animation: fat-run-spread 1.2s linear infinite;
+  }
+
+  .diagram .fat-beat {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    animation: fat-beat 1.2s linear infinite;
+  }
+
+  /* Tachycardia: the same beat, twice as often. */
+  .diagram .fat-fast {
+    animation-duration: 0.6s;
+  }
+
+  @keyframes fat-wave {
+    0% {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+
+    60%,
+    100% {
+      opacity: 0;
+      transform: scale(3.2);
+    }
+  }
+
+  /* To the AV node and down (first 45 %), then into the ventricles (45–75 %). */
+  @keyframes fat-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    45% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    46%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes fat-run-spread {
+    0%,
+    45% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    46% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    75% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    76%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes fat-beat {
+    0%,
+    72% {
+      opacity: 0;
+    }
+
+    78% {
+      opacity: 0.45;
+    }
+
+    95%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

@@ -1,0 +1,316 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowFlow = `${uid}-lpa-arrow-flow`;
+const arrowInto = `${uid}-lpa-arrow-into`;
+/*
+ * A straight artery cut lengthwise: upper wall, lumen (y 82–176), lower wall. Only the lower wall
+ * changes. Two kinds of particles move with the blood: LDL (a plain ball) and Lp(a) (the same ball
+ * with a short chain of loops, the apo(a) protein with its kringles). LDL is the same in both
+ * states. In disease there are more Lp(a) particles, some go into the lower wall and stay there,
+ * and an early plaque forms that holds both kinds. No numbers, no clot, no valve, no treatment.
+ */
+const ball = {
+  r: 5,
+  stroke: 'var(--color-text)',
+  'stroke-width': 1,
+  fill: 'var(--diagram-plaque)',
+};
+const kringle = {
+  r: 2.2,
+  stroke: 'var(--color-text)',
+  'stroke-width': 1.2,
+  fill: 'none',
+};
+// The apo(a) chain trails to the left of the ball (the blood flows to the right).
+const kringles = [
+  { dx: -7.5, dy: 1 },
+  { dx: -11.5, dy: -1 },
+  { dx: -15.5, dy: 1 },
+];
+// Still particles, visible with and without motion. The labelled ones sit at the top of the lumen
+// (LDL at 70,92; Lp(a) at 305,96), above every moving row (rows start at y 110), so the flow never
+// crosses them or their leaders.
+const ldlStill = [
+  { x: 165, y: 142 },
+  { x: 330, y: 154 },
+];
+const lpaNormalStill = [{ x: 175, y: 116 }];
+const lpaDiseaseStill = [
+  { x: 50, y: 140 },
+  { x: 128, y: 118 },
+  { x: 175, y: 116 },
+  { x: 290, y: 150 },
+  { x: 345, y: 124 },
+];
+// Particles held in the wall inside the plaque: both kinds.
+const ldlRetained = [
+  { x: 170, y: 194 },
+  { x: 250, y: 203 },
+];
+const lpaRetained = [
+  { x: 222, y: 201 },
+  { x: 275, y: 195 },
+];
+// Moving particles along the lumen: row and a negative delay so the flow is already running.
+const ldlFlow = [{ y: 134, delay: -2.1 }];
+const lpaNormalFlow = [{ y: 158, delay: -0.6 }];
+const lpaDiseaseFlow = [
+  { y: 112, delay: 0 },
+  { y: 158, delay: -0.9 },
+  { y: 146, delay: -1.8 },
+  { y: 122, delay: -2.9 },
+  { y: 150, delay: -3.8 },
+];
+// Lp(a) particles that leave the lumen, enter the lower wall and stay. They start at y 120 and
+// stop at y 188 (keyframe translate 68px), in free space of the plaque between the retained ones.
+const entering = [
+  { x: 200, delay: 0 },
+  { x: 240, delay: -1.6 },
+];
+const lowerWallTop = 'M0,176 H130 C165,176 175,168 215,168 C255,168 265,176 300,176 H360';
+---
+
+<svg viewBox="0 0 360 268" role="img" aria-label={t['diagram.lipoprotein-a.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowFlow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowInto}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Lumen with blood, then the upper wall and its smooth inner surface -->
+  <rect x="0" y="82" width="360" height="94" fill="var(--diagram-arterial-fill)"></rect>
+  <rect x="0" y="36" width="360" height="46" fill="var(--diagram-muscle)"></rect>
+  <line x1="0" y1="82" x2="360" y2="82" stroke="var(--diagram-arterial)" stroke-width="2"></line>
+
+  <!-- Lower wall: smooth in normal; in disease it rises slightly over the plaque -->
+  <g class="normal-only">
+    <rect x="0" y="176" width="360" height="50" fill="var(--diagram-muscle)"></rect>
+    <line
+      x1="0"
+      y1="176"
+      x2="360"
+      y2="176"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></line>
+  </g>
+  <g class="disease-only">
+    <path d={`${lowerWallTop} V226 H0 Z`} fill="var(--diagram-muscle)"></path>
+    <path d={lowerWallTop} fill="none" stroke="var(--diagram-arterial)" stroke-width="2"></path>
+    <!-- Particles held in the wall: the early plaque -->
+    <ellipse
+      cx="215"
+      cy="193"
+      rx="70"
+      ry="18"
+      fill="var(--diagram-plaque)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></ellipse>
+    {ldlRetained.map(({ x, y }) => (
+      <circle cx={x} cy={y} {...ball} />
+    ))}
+    {lpaRetained.map(({ x, y }) => (
+      <g transform={`translate(${x},${y})`}>
+        {kringles.map(({ dx, dy }) => (
+          <circle cx={dx} cy={dy} {...kringle} />
+        ))}
+        <circle cx="0" cy="0" {...ball} />
+      </g>
+    ))}
+  </g>
+
+  <!-- Blood flow along the artery, visible with and without motion -->
+  <path
+    d="M12,168 H104"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    fill="none"
+    marker-end={`url(#${arrowFlow})`}
+  ></path>
+
+  <!-- LDL particles: the same in both states -->
+  <circle cx="70" cy="92" {...ball} />
+  {ldlStill.map(({ x, y }) => (
+    <circle cx={x} cy={y} {...ball} />
+  ))}
+
+  <!-- Lp(a) particles: a few in normal, more in disease -->
+  <g transform="translate(305,96)">
+    {kringles.map(({ dx, dy }) => (
+      <circle cx={dx} cy={dy} {...kringle} />
+    ))}
+    <circle cx="0" cy="0" {...ball} />
+  </g>
+  <g class="normal-only">
+    {lpaNormalStill.map(({ x, y }) => (
+      <g transform={`translate(${x},${y})`}>
+        {kringles.map(({ dx, dy }) => (
+          <circle cx={dx} cy={dy} {...kringle} />
+        ))}
+        <circle cx="0" cy="0" {...ball} />
+      </g>
+    ))}
+  </g>
+  <g class="disease-only">
+    {lpaDiseaseStill.map(({ x, y }) => (
+      <g transform={`translate(${x},${y})`}>
+        {kringles.map(({ dx, dy }) => (
+          <circle cx={dx} cy={dy} {...kringle} />
+        ))}
+        <circle cx="0" cy="0" {...ball} />
+      </g>
+    ))}
+    <!-- Lp(a) goes from the blood into the wall: the arrows carry this without motion -->
+    {entering.map(({ x }) => (
+      <path
+        d={`M${x},136 V171`}
+        stroke="var(--color-text)"
+        stroke-width="2"
+        stroke-dasharray="4 3"
+        fill="none"
+        marker-end={`url(#${arrowInto})`}
+      />
+    ))}
+  </g>
+
+  <!-- Moving particles; hidden without motion -->
+  <g class="flow">
+    {ldlFlow.map(({ y, delay }) => (
+      <circle class="lpa-flow" cx="-10" cy={y} {...ball} style={`animation-delay: ${delay}s`} />
+    ))}
+    <g class="normal-only">
+      {lpaNormalFlow.map(({ y, delay }) => (
+        <g class="lpa-flow" style={`animation-delay: ${delay}s`}>
+          <g transform={`translate(-10,${y})`}>
+            {kringles.map(({ dx, dy }) => (
+              <circle cx={dx} cy={dy} {...kringle} />
+            ))}
+            <circle cx="0" cy="0" {...ball} />
+          </g>
+        </g>
+      ))}
+    </g>
+    <g class="disease-only">
+      {lpaDiseaseFlow.map(({ y, delay }) => (
+        <g class="lpa-flow" style={`animation-delay: ${delay}s`}>
+          <g transform={`translate(-10,${y})`}>
+            {kringles.map(({ dx, dy }) => (
+              <circle cx={dx} cy={dy} {...kringle} />
+            ))}
+            <circle cx="0" cy="0" {...ball} />
+          </g>
+        </g>
+      ))}
+      {entering.map(({ x, delay }) => (
+        <g class="lpa-enter" style={`animation-delay: ${delay}s`}>
+          <g transform={`translate(${x},120)`}>
+            {kringles.map(({ dx, dy }) => (
+              <circle cx={dx} cy={dy} {...kringle} />
+            ))}
+            <circle cx="0" cy="0" {...ball} />
+          </g>
+        </g>
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <line x1="70" y1="28" x2="70" y2="85" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="8" y="22">
+    {t['diagram.label.ldl-particles']}
+  </text>
+  <line x1="305" y1="28" x2="305" y2="89" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="352" y="22" text-anchor="end">
+    {t['diagram.label.lpa-particles']}
+  </text>
+  <line x1="40" y1="212" x2="40" y2="240" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text x="8" y="258">
+    {t['diagram.label.wall']}
+  </text>
+  <g class="disease-only">
+    <line x1="215" y1="213" x2="215" y2="240" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text x="215" y="258" text-anchor="middle">
+      {t['diagram.label.early-plaque']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .lpa-flow {
+    animation: lpa-flow 5s linear infinite;
+  }
+
+  .diagram .lpa-enter {
+    animation: lpa-enter 3.2s ease-in-out infinite;
+  }
+
+  @keyframes lpa-flow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    6%,
+    92% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(390px, 0);
+    }
+  }
+
+  /* An Lp(a) particle leaves the blood, goes into the wall and stays there for a while. */
+  @keyframes lpa-enter {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    12% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    55%,
+    85% {
+      opacity: 1;
+      transform: translate(0, 68px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(0, 68px);
+    }
+  }
+</style>
