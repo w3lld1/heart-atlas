@@ -43,7 +43,14 @@ import {
   type ValveId,
 } from './cycle.ts';
 import type { PresetId } from '@heart-atlas/heart-clock';
-import { nearestDistances, ZONE_FADE, zoneWeight, type DiseaseShape } from './disease.ts';
+import {
+  growOnVentricles,
+  growOwner,
+  nearestDistances,
+  ZONE_FADE,
+  zoneWeight,
+  type DiseaseShape,
+} from './disease.ts';
 import type { SectionAxis } from './types.ts';
 
 export interface SceneProps {
@@ -163,6 +170,9 @@ interface MeshState {
   /** Eased heartbeat value: valve opening or conduction glow. */
   level: number;
 }
+
+/** Vessels lying on the ventricles, which grow with them. */
+const onVentricles = (group: string) => group === 'coronary-artery' || group === 'cardiac-vein';
 
 const isChamber = (name: string): name is ChamberId =>
   (CHAMBERS as readonly string[]).includes(name);
@@ -324,7 +334,8 @@ export function Model({ onLoaded, ...props }: ModelProps) {
     };
     const atria = centreOf(ATRIA);
     const ventricles = centreOf(VENTRICLES);
-    const leftVentricle = centreOf([LV]);
+    // Each chamber grows about its own centre in a disease shape (GROW_WITH).
+    const chamberCentres = new Map(CHAMBERS.map((c) => [c, centreOf([c])]));
     const list: MeshState[] = [];
     copy.traverse((o: Object3D) => {
       if (!(o instanceof Mesh) || !(o.material instanceof MeshStandardMaterial)) return;
@@ -335,13 +346,19 @@ export function Model({ onLoaded, ...props }: ModelProps) {
       const found = followsFor(o.name, group);
       const follows = found?.every((c) => centre(c)) ? found : undefined;
       let deform: DeformUniforms | undefined;
-      if (follows || isValve(o.name)) {
+      const owner = growOwner(o.name);
+      const growCentre = owner
+        ? chamberCentres.get(owner)
+        : onVentricles(group)
+          ? ventricles
+          : undefined;
+      if (follows || isValve(o.name) || growCentre) {
         deform = newUniforms();
         // The shader works in the mesh's geometry space; quantization scales nodes uniformly,
         // so squeezing there about the mapped centre equals squeezing in model space.
         const squeezeCentre = follows?.[0] ? centre(follows[0]) : null;
         if (squeezeCentre) deform.uSqueezeCenter.value.copy(o.worldToLocal(squeezeCentre.clone()));
-        if (leftVentricle) deform.uEnlargeCenter.value.copy(o.worldToLocal(leftVentricle.clone()));
+        if (growCentre) deform.uEnlargeCenter.value.copy(o.worldToLocal(growCentre.clone()));
       }
       const zone = o.name === LV && deform !== undefined;
       if (zone) addZoneWeights(o, copy);
@@ -414,10 +431,14 @@ export function Model({ onLoaded, ...props }: ModelProps) {
   // Static signs of a disease: they hold at rest, the heartbeat only adds to them.
   useLayoutEffect(() => {
     const shape = props.disease;
-    const growing = new Set(shape?.enlarge ? [LV, ...shape.enlarge.with] : []);
-    for (const { mesh, deform } of meshes) {
+    for (const { mesh, deform, group } of meshes) {
       if (!deform) continue;
-      deform.uEnlarge.value = growing.has(mesh.name) ? (shape?.enlarge?.scale ?? 1) : 1;
+      const owner = growOwner(mesh.name);
+      deform.uEnlarge.value = owner
+        ? (shape?.grow?.[owner] ?? 1)
+        : onVentricles(group)
+          ? growOnVentricles(shape)
+          : 1;
       if (mesh.name !== LV) continue;
       const kind = shape?.zone?.kind;
       deform.uZoneSelect.value.set(kind === 'inferior' ? 1 : 0, kind === 'septal' ? 1 : 0);
@@ -471,8 +492,10 @@ export function Model({ onLoaded, ...props }: ModelProps) {
       if (m.deform && isValve(name)) {
         const target = cycle?.valveOpen[name] ?? 0;
         m.level = ease(m.level, target, dt, VALVE_EASE_MS);
-        const narrowed = name === 'aortic-valve' ? (props.disease?.aorticOpening ?? 1) : 1;
-        m.deform.uOpen.value = m.level * VALVE_SPREAD * narrowed;
+        const narrowed = props.disease?.narrow?.[name] ?? 1;
+        // A leaking valve keeps part of its opening when shut, at rest as well.
+        const leak = (props.disease?.leak?.[name] ?? 0) * VALVE_SPREAD;
+        m.deform.uOpen.value = Math.max(m.level * VALVE_SPREAD * narrowed, leak);
         if (Math.abs(m.level - target) > 1e-4) moving = true;
       } else if (m.group === 'conduction') {
         const target = cycle?.excited.includes(name) ? 1 : 0;

@@ -1,5 +1,6 @@
 import type { PresetId } from '@heart-atlas/heart-clock';
 import type { Vec3 } from './camera.ts';
+import type { ChamberId, ValveId } from './cycle.ts';
 
 // Shapes of disease on the normal heart model: docs/plans/2026-10-12-disease-signs-3d.md. Every
 // sign comes from a source already checked in the disease article (`article`, its Cite number) or
@@ -14,6 +15,14 @@ export const diseaseIds = [
   'hypertrophic-cardiomyopathy',
   'dilated-cardiomyopathy',
   'atrial-septal-defect',
+  'mitral-stenosis',
+  'mitral-regurgitation',
+  'aortic-regurgitation',
+  'tricuspid-regurgitation',
+  'pulmonary-valve-stenosis',
+  'pulmonary-hypertension',
+  'ventricular-septal-defect',
+  'restrictive-cardiomyopathy',
 ] as const;
 
 export type DiseaseId = (typeof diseaseIds)[number];
@@ -34,10 +43,16 @@ export interface DiseaseShape {
   tint?: string[];
   /** A coloured zone of the left ventricle; `motion` scales its contraction (1 = normal). */
   zone?: { kind: ZoneKind; motion: number };
-  /** The left ventricle grows about its own centre by `scale`; `with` meshes move along. */
-  enlarge?: { scale: number; with: string[] };
-  /** Multiplies how far the aortic valve opens. */
-  aorticOpening?: number;
+  /**
+   * Chambers that grow about their own centres by these factors; what each carries moves along
+   * (GROW_WITH). The vessels on the ventricles grow about their common centre by the mean of the
+   * two ventricles (growOnVentricles), so they stay on the surface.
+   */
+  grow?: Partial<Record<ChamberId, number>>;
+  /** Multiplies how far a valve opens. */
+  narrow?: Partial<Record<ValveId, number>>;
+  /** A valve that does not close: the share of its full opening that stays open when shut. */
+  leak?: Partial<Record<ValveId, number>>;
   /** Zone id that gets a marker next to it. */
   marker?: string;
   /**
@@ -76,7 +91,7 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
   // The model's ventricles are cavity surfaces, so a thick wall is shown by colour, not by shape.
   hypertension: { tint: [LV], sources: { article: [2] } },
   // assumption: the share of the normal opening; the model does not compute the valve area.
-  'aortic-stenosis': { aorticOpening: 0.4, beat: true, sources: { article: [3] } },
+  'aortic-stenosis': { narrow: { 'aortic-valve': 0.4 }, beat: true, sources: { article: [3] } },
   'hypertrophic-cardiomyopathy': {
     tint: [LV],
     zone: { kind: 'septal', motion: 1 },
@@ -84,17 +99,89 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
   },
   'dilated-cardiomyopathy': {
     // assumption: the size, kept small enough not to cut into the right ventricle.
-    enlarge: { scale: 1.15, with: ['left-papillary-muscles', 'mitral-valve'] },
+    grow: { 'left-ventricle': 1.15 },
     tint: [LV],
     beat: 'heart-failure',
     sources: { article: [1, 2] },
   },
   'atrial-septal-defect': { marker: 'interatrial-septum', sources: { article: [1] } },
+  // Shapes added by docs/plans/2026-10-13-disease-picker-3d.md; quotes for each sign in
+  // /mnt/project-files/evidence/disease-shapes-3d.md. Sizes no source gives: assumptions, kept
+  // small enough that a grown chamber does not cut deep into its neighbours.
+  'mitral-stenosis': {
+    // assumption: share of the normal opening; assumption: atrium size.
+    narrow: { 'mitral-valve': 0.4 },
+    grow: { 'left-atrium': 1.2 },
+    beat: true,
+    sources: { article: [2, 4] },
+  },
+  'mitral-regurgitation': {
+    // assumption: width of the gap; assumption: atrium size.
+    leak: { 'mitral-valve': 0.25 },
+    grow: { 'left-atrium': 1.2 },
+    sources: { article: [2, 4] },
+  },
+  'aortic-regurgitation': {
+    // assumption: width of the gap; assumption: ventricle size, as in dilated cardiomyopathy.
+    leak: { 'aortic-valve': 0.25 },
+    grow: { 'left-ventricle': 1.15 },
+    sources: { article: [2, 4] },
+  },
+  'tricuspid-regurgitation': {
+    // assumption: width of the gap; assumption: chamber sizes.
+    leak: { 'tricuspid-valve': 0.25 },
+    grow: { 'right-atrium': 1.2, 'right-ventricle': 1.12 },
+    sources: { article: [3, 4] },
+  },
+  // assumption: share of the normal opening. The right ventricle is not enlarged: its wall thickens.
+  'pulmonary-valve-stenosis': {
+    narrow: { 'pulmonary-valve': 0.4 },
+    beat: true,
+    sources: { article: [1, 3] },
+  },
+  'pulmonary-hypertension': {
+    tint: ['right-ventricle'],
+    // assumption: ventricle size.
+    grow: { 'right-ventricle': 1.12 },
+    sources: { article: [1, 3] },
+  },
+  'ventricular-septal-defect': {
+    marker: 'interventricular-septum',
+    // assumption: chamber sizes; they grow only with a large shunt, which the caption says.
+    grow: { 'left-atrium': 1.15, 'left-ventricle': 1.1 },
+    sources: { article: [1] },
+  },
+  'restrictive-cardiomyopathy': {
+    // assumption: atrium sizes. The left ventricle is usually not enlarged; the source says nothing of the right.
+    grow: { 'left-atrium': 1.25, 'right-atrium': 1.25 },
+    sources: { article: [3, 4] },
+  },
 };
 
 /** Whether the shape changes the model at rest, so its still caption applies without a heartbeat. */
 export const hasStillSigns = (shape: DiseaseShape): boolean =>
-  Boolean(shape.tint ?? shape.zone ?? shape.enlarge ?? shape.marker);
+  Boolean(shape.tint ?? shape.zone ?? shape.grow ?? shape.leak ?? shape.marker);
+
+/** Meshes that grow with a chamber besides the chamber itself. */
+export const GROW_WITH: Record<ChamberId, string[]> = {
+  'left-ventricle': ['left-papillary-muscles', 'mitral-valve'],
+  'right-ventricle': ['right-papillary-muscles', 'tricuspid-valve'],
+  // Veins stay as they are: scaled with an atrium they would only turn thicker.
+  'left-atrium': [],
+  'right-atrium': ['sa-node', 'av-node'],
+};
+
+/** Growth of the vessels lying on the ventricles: the mean of the two ventricles. */
+export const growOnVentricles = (shape: DiseaseShape | null | undefined): number =>
+  ((shape?.grow?.['left-ventricle'] ?? 1) + (shape?.grow?.['right-ventricle'] ?? 1)) / 2;
+
+/** The chamber a mesh grows with, if any. */
+export function growOwner(name: string): ChamberId | undefined {
+  for (const [chamber, meshes] of Object.entries(GROW_WITH) as [ChamberId, string[]][]) {
+    if (chamber === name || meshes.includes(name)) return chamber;
+  }
+  return undefined;
+}
 
 /** Shape shown for each heart clock preset on a page that follows the clock. */
 export const presetShape: Record<PresetId, DiseaseId | null> = {

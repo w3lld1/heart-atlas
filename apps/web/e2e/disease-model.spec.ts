@@ -151,6 +151,44 @@ test.describe('disease signs on the 3D model', () => {
     await expect(caption).toHaveCount(0, LOAD);
   });
 
+  test('a model in the article text shows the disease, and the page adds no second one', async ({
+    page,
+  }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('en/disease/ventricular-septal-defect/');
+    await expect(page.getByRole('button', { name: en['viewer.load'] })).toHaveCount(1);
+    await expect(page.getByText(en['viewer.disease.ventricular-septal-defect'])).toBeVisible();
+    const model = await loadModel(page);
+    // The article highlights the septum, so its name stands where the marker would.
+    await expect(model).toHaveAccessibleDescription(
+      new RegExp(en['viewer.disease.ventricular-septal-defect'].slice(0, 40)),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
+  test('a valve narrowed only in motion shows once the article model beats', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('en/disease/pulmonary-valve-stenosis/');
+    await loadModel(page);
+    await expect(page.getByText(en['viewer.disease.startBeat'])).toBeVisible();
+    await page.getByRole('button', { name: en['viewer.heartbeat.start'] }).click();
+    await expect(page.getByText(en['viewer.disease.pulmonary-valve-stenosis.beat'])).toBeVisible(
+      LOAD,
+    );
+  });
+
+  test('the anatomy page shows the new chamber and valve shapes', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('en/anatomy/?disease=restrictive-cardiomyopathy');
+    await expect(
+      page.getByText(en['viewer.disease.restrictive-cardiomyopathy'], { exact: true }),
+    ).toBeVisible();
+    await page.getByLabel(en['viewer.disease.pick']).selectOption('mitral-regurgitation');
+    await expect(
+      page.getByText(en['viewer.disease.mitral-regurgitation'], { exact: true }),
+    ).toBeVisible();
+  });
+
   test('the heart clock page model follows the chosen preset', async ({ page }) => {
     test.slow();
     await page.goto('en/heart-clock/');

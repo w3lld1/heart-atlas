@@ -7,6 +7,7 @@ import {
   diseaseIds,
   diseaseShapes,
   diseaseView,
+  GROW_WITH,
   hasStillSigns,
   isDiseaseId,
   queryWithDisease,
@@ -65,7 +66,7 @@ describe('disease shapes', () => {
     );
     const lines = block.split('\n');
     // A number other than a plain 1 (normal), so 1.15 counts.
-    const number = /\b(motion|scale|aorticOpening): (?!1(?![\d.]))[\d.]+/;
+    const number = /: (?!1(?![\d.]))\d*\.\d+/;
     const hits = lines.flatMap((line, i) => (number.test(line) ? [i] : []));
     expect(hits.length).toBeGreaterThanOrEqual(3);
     for (const i of hits) {
@@ -80,9 +81,16 @@ describe('disease shapes', () => {
     const names = [
       ...diseaseIds.flatMap((id) => {
         const shape = diseaseShapes[id];
-        return [...(shape.tint ?? []), ...(shape.enlarge?.with ?? []), shape.marker ?? []].flat();
+        return [
+          ...(shape.tint ?? []),
+          ...Object.keys(shape.grow ?? {}),
+          ...Object.keys(shape.narrow ?? {}),
+          ...Object.keys(shape.leak ?? {}),
+          shape.marker ?? [],
+        ].flat();
       }),
       ...Object.values(ZONE_FADE).map((z) => z.near),
+      ...Object.values(GROW_WITH).flat(),
       'left-ventricle',
     ];
     for (const name of names) expect(ids, name).toContain(name);

@@ -49,8 +49,14 @@ const canonical = new URL(
   Astro.site,
 );
 const { Content } = await render(entry);
-// Disease articles with a shape on the 3D model show it next to the heart clock.
-const disease = type === 'disease' && isDiseaseId(slug) ? slug : undefined;
+// Disease articles with a shape on the 3D model show it next to the heart clock. Without a clock,
+// a <HeartModel> already in the text shows the shape itself.
+const disease =
+  type === 'disease' &&
+  isDiseaseId(slug) &&
+  (article.preset || !entry.body?.includes('<HeartModel'))
+    ? slug
+    : undefined;
 // Congenital defect articles with a patient model from the NIH 3D Heart Library show it there too.
 const congenital = type === 'disease' && isCongenitalModelId(slug) ? slug : undefined;
 ---

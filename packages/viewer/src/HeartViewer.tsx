@@ -107,6 +107,7 @@ type Phase = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported';
 /** Marker text for the shapes that have a marker. */
 const MARKER_KEY: Partial<Record<DiseaseId, ViewerMessageKey>> = {
   'atrial-septal-defect': 'viewer.disease.marker.atrial-septal-defect',
+  'ventricular-septal-defect': 'viewer.disease.marker.ventricular-septal-defect',
 };
 
 const STATUS: Partial<Record<Phase, ViewerMessageKey>> = {
