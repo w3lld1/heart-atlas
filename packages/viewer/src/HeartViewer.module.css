@@ -1,5 +1,6 @@
 .viewer {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -103,6 +104,7 @@
 
 .panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   font-size: 0.9375rem;
 }
@@ -205,11 +207,18 @@
 
 .pick {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.25rem;
 }
 
 .pick p {
   margin: 0;
+}
+
+/* Long disease names must not widen a phone screen. */
+.pick select {
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 .view {
