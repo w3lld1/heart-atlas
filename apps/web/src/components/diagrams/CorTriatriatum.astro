@@ -1,0 +1,195 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-cort-arrow`;
+// Both states show the left atrium and left ventricle while the ventricle fills: the mitral
+// leaflets are open and normal in both. The atrium is an ellipse (centre 150,100; radii 100 × 60);
+// the mitral annulus spans x = 120–180 at y = 177.
+// Four pulmonary veins enter the top of the atrium; each ends at the atrial wall.
+const veins = [
+  { x: 95, end: 52 },
+  { x: 120, end: 45 },
+  { x: 180, end: 45 },
+  { x: 205, end: 52 },
+];
+const openLeaflets = ['M120,177 Q123,202 127,226', 'M180,177 Q177,202 173,226'];
+// Normal: one chamber; blood goes straight down through the open mitral valve.
+const normalColumns = [130, 150, 170];
+// Cor triatriatum: an oblique membrane from wall to wall below the vein openings, with one narrow
+// opening (x 143–157). The veins drain into the upper chamber; blood converges on the opening and
+// passes into the lower chamber, which leads to the mitral valve. The veins are not dilated.
+const membrane = ['M54,107.8 L143,100.6', 'M157,99.4 L246,92.2'];
+const converging = [
+  'M95,58 C95,84 140,86 148,96',
+  'M120,52 C120,80 146,86 149,96',
+  'M180,52 C180,80 154,86 151,96',
+  'M205,58 C205,84 160,86 152,96',
+];
+const jet = 'M150,98 L150,256';
+---
+
+<svg viewBox="0 0 420 330" role="img" aria-label={t['diagram.cor-triatriatum.title']} lang={locale}>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle wall: the same in both states -->
+  <path
+    d="M64,170 L236,170 C250,217 232,300 150,318 C68,300 50,217 64,170 Z"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Left atrium: the same outline in both states -->
+  <ellipse
+    cx="150"
+    cy="100"
+    rx="100"
+    ry="60"
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- Left ventricle cavity and the opening to the atrium as one lumen -->
+  <path
+    d="M80,177 L120,177 L120,150 L180,150 L180,177 L220,177 C232,217 216,280 150,300 C84,280 68,217 80,177 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <path
+    d="M120,177 L80,177 C68,217 84,280 150,300 C216,280 232,217 220,177 L180,177 M120,156 L120,177 M180,156 L180,177"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Pulmonary veins: they enter the atrium normally and the upper chamber in the disease -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    {veins.map((v) => (
+      <path d={`M${v.x},6 V${v.end}`} marker-end={`url(#${arrowId})`} />
+    ))}
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g
+    class="normal-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  >
+    {normalColumns.map((x) => (
+      <path d={`M${x},62 L${x},256`} marker-end={`url(#${arrowId})`} />
+    ))}
+  </g>
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <!-- Blood from the veins converges on the narrow opening -->
+    {converging.map((d) => (
+      <path d={d} stroke-width="3" />
+    ))}
+    <!-- A narrow stream leaves the opening into the lower chamber and on through the mitral valve -->
+    <path
+      d="M147,104 L153,104 L162,160 L138,160 Z"
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d={jet} stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Disease: the membrane across the atrium, with one narrow opening -->
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="6"
+    stroke-linecap="round"
+  >
+    {membrane.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+
+  <!-- Mitral leaflets: thin and open in both states -->
+  <g fill="none" stroke="var(--color-text)" stroke-linecap="round" stroke-width="4">
+    {openLeaflets.map((d) => (
+      <path d={d} />
+    ))}
+  </g>
+  <circle cx="120" cy="177" r="3.5" fill="var(--color-text)"></circle>
+  <circle cx="180" cy="177" r="3.5" fill="var(--color-text)"></circle>
+
+  <!-- Moving blood -->
+  <g class="flow" stroke="var(--color-bg)" stroke-width="2">
+    {veins.map((v) => (
+      <path class="dash-flow" d={`M${v.x},6 V${v.end}`} />
+    ))}
+    <g class="normal-only">
+      {normalColumns.map((x) => (
+        <path class="dash-flow" d={`M${x},62 L${x},250`} />
+      ))}
+    </g>
+    <g class="disease-only">
+      {converging.map((d) => (
+        <path class="dash-flow" d={d} />
+      ))}
+      <path class="dash-flow" d="M150,100 L150,250"></path>
+    </g>
+  </g>
+
+  <!-- Labels in the column on the right, with leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="232" y1="74" x2="256" y2="74"></line>
+    <line class="disease-only" x1="222" y1="66" x2="256" y2="66"></line>
+    <line class="disease-only" x1="243" y1="96" x2="256" y2="100"></line>
+    <line class="disease-only" x1="226" y1="128" x2="256" y2="132"></line>
+    <line class="disease-only" x1="159" y1="104" x2="256" y2="160"></line>
+    <line x1="184" y1="179" x2="256" y2="184"></line>
+    <line x1="196" y1="274" x2="256" y2="288"></line>
+  </g>
+  <text class="diagram-small" x="214" y="18">
+    {t['diagram.label.pulmonaryVeins']}
+  </text>
+  <text class="normal-only" x="262" y="80">
+    {t['diagram.label.la']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="262" y="70">
+      {t['diagram.label.upper-chamber']}
+    </text>
+    <text class="diagram-small" x="262" y="104">
+      {t['diagram.label.membrane']}
+    </text>
+    <text class="diagram-small" x="262" y="136">
+      {t['diagram.label.lower-chamber']}
+    </text>
+    <text class="diagram-small" x="262" y="164">
+      {t['diagram.label.narrow-opening']}
+    </text>
+  </g>
+  <text class="diagram-small" x="262" y="188">
+    {t['diagram.label.mitral-valve']}
+  </text>
+  <text x="262" y="294">
+    {t['diagram.label.lv']}
+  </text>
+</svg>
