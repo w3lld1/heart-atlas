@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Which blood vessels does polyarteritis nodosa affect?
+    options:
+      - text: Only veins, while the arteries stay healthy
+      - text: Arteries; it does not affect veins
+        correct: true
+      - text: Only the lymphatic vessels
+    explanation: The disease affects arteries; it does not affect veins.
+    cite: [1]
+  - level: patient
+    prompt: What happens if a blood clot closes an affected branch of an artery?
+    options:
+      - text: The organ beyond it starts to get much more blood than before
+      - text: The artery beyond it turns into a vein
+      - text: The part of the organ beyond it dies (infarction)
+        correct: true
+    explanation: If a blood clot forms in an affected branch and closes it, the part of the organ beyond it dies (infarction).
+    cite: [1]
+  - level: patient
+    prompt: What is the goal of treating polyarteritis nodosa?
+    options:
+      - text: A period without signs of the disease (remission)
+        correct: true
+      - text: Moving the inflammation from the artery walls to the veins
+      - text: Making the inflammation in the artery walls stronger
+    explanation: The goal of treatment is a period without signs of the disease (remission).
+    cite: [2]
+  - level: patient
+    prompt: For which of these signs does the article say to call an ambulance?
+    options:
+      - text: A mild runny nose that cleared up within a day
+      - text: Dry skin on the hands in cold weather
+      - text: Sudden severe abdominal pain
+        correct: true
+    explanation: Call your local emergency number for sudden severe abdominal pain and for severe pain in the lower back with blood in the urine.
+    cite: [1]
+  - level: student
+    prompt: What does angiography show in polyarteritis nodosa?
+    options:
+      - text: Clots only in the superficial veins of the lower legs
+      - text: Saccular or fusiform aneurysms and stenoses
+        correct: true
+      - text: Calcium deposits in the leaflets of the heart valves and aorta
+    explanation: Angiography shows saccular or fusiform aneurysms and stenoses of the mesenteric, hepatic and renal arteries and their branches.
+    cite: [6]
+  - level: student
+    prompt: What can mesenteric vasculitis cause?
+    options:
+      - text: Overgrowth of bone in the skull and spine
+      - text: Clouding of the lens of the eye
+      - text: Malabsorption and intestinal perforation
+        correct: true
+    explanation: Mesenteric vasculitis can cause malabsorption and intestinal perforation.
+    cite: [1]
