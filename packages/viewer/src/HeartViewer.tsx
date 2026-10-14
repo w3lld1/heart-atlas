@@ -13,7 +13,14 @@ import {
 } from 'react';
 import { subscribeCycleSource, type CycleSource } from '@heart-atlas/heart-clock/cycle-source';
 import type { PresetId } from '@heart-atlas/heart-clock';
-import { diseaseShapes, diseaseView, type DiseaseId } from './disease.ts';
+import {
+  diseaseFromQuery,
+  diseaseShapes,
+  diseaseView,
+  queryWithDisease,
+  shownDisease,
+  type DiseaseId,
+} from './disease.ts';
 import {
   HIGHLIGHT_EVENT,
   HIGHLIGHT_READY_ATTR,
@@ -117,7 +124,8 @@ export default function HeartViewer({
   loadOn = 'visible',
   headingLevel = 2,
   cycle: cycleMode,
-  disease,
+  disease: ownDisease,
+  diseases: choices,
   attribution,
   section: initialSection = 'off',
 }: HeartViewerProps) {
@@ -137,6 +145,9 @@ export default function HeartViewer({
   // Preset of the page's heart clock, as the model last read it.
   const [cyclePreset, setCyclePreset] = useState<PresetId | null>(null);
   const [rate, setRate] = useState<number>(RATE.initial);
+  // The reader's pick from `diseases`, and the normal / disease switch of a viewer with its own.
+  const [picked, setPicked] = useState<DiseaseId | null>(null);
+  const [showOwn, setShowOwn] = useState(true);
   const rateRef = useRef<number>(RATE.initial);
   const [startingClock, setStartingClock] = useState(false);
   const ownClock = useRef<OwnClock | null>(null);
@@ -177,6 +188,28 @@ export default function HeartViewer({
     observer.observe(rootRef.current);
     return () => observer.disconnect();
   }, [loadOn, start]);
+
+  // A shared link opens with its disease picked. Read after mount: the build cannot know the address.
+  useEffect(() => {
+    if (!choices) return;
+    setPicked(
+      diseaseFromQuery(
+        window.location.search,
+        choices.map((c) => c.id),
+      ),
+    );
+  }, [choices]);
+
+  const pick = useCallback((next: DiseaseId | null) => {
+    setPicked(next);
+    const { pathname, search, hash } = window.location;
+    // replaceState: each pick is not a page of its own for the back button.
+    window.history.replaceState(
+      window.history.state,
+      '',
+      pathname + queryWithDisease(search, next) + hash,
+    );
+  }, []);
 
   // Follow the heart clock island on the page; a viewer that loads later gets its source at once.
   useEffect(() => {
@@ -258,15 +291,32 @@ export default function HeartViewer({
   const showSchematic = active.some(
     (a) => structures.find((s) => s.id === a)?.group === 'conduction',
   );
-  // The scene draws the disease at once; captions wait until the model is on screen, so they never
-  // describe a poster or a model that failed to load.
-  const sceneView = diseaseView(disease, cyclePreset, cycle !== null);
+  const shown = shownDisease({
+    picker: choices !== undefined,
+    picked,
+    own: ownDisease,
+    followsClock: cycleMode === 'page',
+    showOwn,
+    preset: cyclePreset,
+  });
+  const { disease, ownSwitch } = shown;
+  const followPreset = shown.preset;
+  const pickedChoice = choices?.find((c) => c.id === picked);
+  const sceneView = diseaseView(disease, followPreset, cycle !== null);
   const view = phase === 'ready' ? sceneView : diseaseView(disease, null, false);
   const shape = sceneView ? diseaseShapes[sceneView.id] : null;
   const markerKey = sceneView && MARKER_KEY[sceneView.id];
   const captions: string[] = [];
   if (view?.still) captions.push(t[`viewer.disease.${view.id}` as ViewerMessageKey]);
   if (view?.beat) captions.push(t[`viewer.disease.${view.id}.beat` as ViewerMessageKey]);
+  // Signs the viewer draws only while beating: a viewer with its own clock says how to see them.
+  const beatHint =
+    phase === 'ready' &&
+    cycleMode === 'own' &&
+    cycle === null &&
+    view !== null &&
+    diseaseShapes[view.id].beat === true;
+  if (beatHint) captions.push(t['viewer.disease.startBeat']);
   const extraSources = view ? diseaseShapes[view.id].sources.extra : undefined;
   const status = STATUS[phase];
   const rateText = t['viewer.heartbeat.rateValue'].replace('{rate}', () => String(rate));
@@ -331,6 +381,64 @@ export default function HeartViewer({
       </div>
 
       <div className={styles.panel}>
+        {choices && (
+          <div className={styles.pick}>
+            <div className={styles.field}>
+              <label htmlFor={`${id}-disease-pick`}>{t['viewer.disease.pick']}</label>
+              <select
+                id={`${id}-disease-pick`}
+                value={picked ?? ''}
+                onChange={(e) => pick(choices.find((c) => c.id === e.target.value)?.id ?? null)}
+              >
+                <option value="">{t['viewer.disease.pick.normal']}</option>
+                {choices.map((c) => (
+                  <option key={c.id} value={c.id} lang={c.lang} dir={c.dir}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {pickedChoice && (
+              <p>
+                <a href={pickedChoice.href}>
+                  {t['viewer.disease.article'].split('{title}').map((piece, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && (
+                        <span lang={pickedChoice.lang} dir={pickedChoice.dir}>
+                          {pickedChoice.label}
+                        </span>
+                      )}
+                      {piece}
+                    </Fragment>
+                  ))}
+                </a>
+              </p>
+            )}
+          </div>
+        )}
+        {ownSwitch && (
+          <fieldset className={styles.view}>
+            <legend>{t['viewer.disease.view']}</legend>
+            <label>
+              <input
+                type="radio"
+                name={`${id}-view`}
+                checked={!showOwn}
+                onChange={() => setShowOwn(false)}
+              />
+              {t['viewer.disease.view.normal']}
+            </label>
+            <label>
+              <input
+                type="radio"
+                name={`${id}-view`}
+                checked={showOwn}
+                onChange={() => setShowOwn(true)}
+              />
+              {t['viewer.disease.view.disease']}
+            </label>
+          </fieldset>
+        )}
         <p id={`${id}-help`} className={styles.help}>
           {t['viewer.keyboardHelp']}
         </p>
@@ -352,33 +460,31 @@ export default function HeartViewer({
           )}
         </div>
         {showSchematic && <p className={styles.note}>{t['viewer.schematic']}</p>}
-        {captions.length > 0 && (
-          <div className={styles.disease}>
-            {/* Polite, so a preset switched on the clock is read out. */}
-            <div id={`${id}-disease`} aria-live="polite">
-              {captions.map((caption) => (
-                <p key={caption}>{caption}</p>
-              ))}
-            </div>
-            <p className={styles.note}>{t['viewer.disease.note']}</p>
-            {extraSources && (
-              <>
-                <p id={`${id}-disease-sources`} className={styles.note}>
-                  {t['viewer.disease.sources']}
-                </p>
-                <ul className={styles.note} aria-labelledby={`${id}-disease-sources`}>
-                  {extraSources.map((source) => (
-                    <li key={source.url}>
-                      <a href={source.url} rel="noopener">
-                        {source.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+        <div className={captions.length > 0 ? styles.disease : undefined}>
+          {/* Polite and always present, so a disease picked or a preset switched is read out. */}
+          <div id={`${id}-disease`} aria-live="polite">
+            {captions.map((caption) => (
+              <p key={caption}>{caption}</p>
+            ))}
           </div>
-        )}
+          {captions.length > 0 && <p className={styles.note}>{t['viewer.disease.note']}</p>}
+          {captions.length > 0 && extraSources && (
+            <>
+              <p id={`${id}-disease-sources`} className={styles.note}>
+                {t['viewer.disease.sources']}
+              </p>
+              <ul className={styles.note} aria-labelledby={`${id}-disease-sources`}>
+                {extraSources.map((source) => (
+                  <li key={source.url}>
+                    <a href={source.url} rel="noopener">
+                      {source.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
 
         {phase === 'ready' && (
           <div className={styles.options}>

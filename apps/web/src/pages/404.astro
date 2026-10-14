@@ -1,0 +1,42 @@
+---
+// GitHub Pages serves this page for every address the site does not have. The address says
+// nothing reliable about the reader's language, so the page speaks every language in the registry,
+// the default one first. The language switcher links every language to its home page: no
+// language has this page under its own path.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { defaultLocale, localeCodes, locales } from '../i18n/locales.ts';
+import { getMessages } from '../i18n/messages.ts';
+import { localePath } from '../i18n/paths.ts';
+
+const base = import.meta.env.BASE_URL;
+const t = getMessages(defaultLocale);
+const others = localeCodes.filter((code) => code !== defaultLocale);
+---
+
+<BaseLayout
+  locale={defaultLocale}
+  title={t['notFound.title']}
+  pageLocales={[]}
+  translatedLocales={[]}
+>
+  <meta slot="head" name="robots" content="noindex" />
+  <h1>{t['notFound.title']}</h1>
+  <p>{t['notFound.text']}</p>
+  <p>
+    <a href={localePath(base, defaultLocale)}>{t['notFound.home']}</a>·{' '}
+    <a href={localePath(base, defaultLocale, 'search/')}>{t['notFound.search']}</a>
+  </p>
+  {others.map((code) => {
+    const m = getMessages(code);
+    return (
+      <section lang={code} dir={locales[code]?.dir ?? 'ltr'} aria-labelledby={`not-found-${code}`}>
+        <h2 id={`not-found-${code}`}>{m['notFound.title']}</h2>
+        <p>{m['notFound.text']}</p>
+        <p>
+          <a href={localePath(base, code)}>{m['notFound.home']}</a>·{' '}
+          <a href={localePath(base, code, 'search/')}>{m['notFound.search']}</a>
+        </p>
+      </section>
+    );
+  })}
+</BaseLayout>

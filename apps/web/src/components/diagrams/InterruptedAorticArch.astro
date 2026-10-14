@@ -1,0 +1,392 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowV = `${uid}-iaa-arrow-v`;
+const arrowA = `${uid}-iaa-arrow-a`;
+const arrowMix = `${uid}-iaa-arrow-mix`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const carotidLines = twoLines(t['diagram.label.left-common-carotid']);
+const subclavianLines = twoLines(t['diagram.label.left-subclavian']);
+const gapLines = twoLines(t['diagram.label.arch-interruption']);
+const ductLines = twoLines(t['diagram.label.open-duct']);
+const lungLines = twoLines(t['diagram.label.much-blood-to-lungs']);
+const lowerBodyLines = twoLines(t['diagram.label.to-lower-body']);
+// The arch and its branches follow the coarctation diagram. The aorta rises from the left
+// ventricle (viewer's left), arches over and goes down on the right. Three branches leave the top
+// of the arch: the brachiocephalic trunk, the left common carotid and the left subclavian artery.
+// The pulmonary trunk rises from the right ventricle between the two limbs of the aorta and
+// divides under the arch; the branch to the right lung passes behind the ascending aorta, the
+// branch to the left lung in front of the descending aorta.
+const arch = 'L150,130 Q150,80 200,80 L290,80 Q340,80 340,130 L340,440';
+const aortaWall = `M150,300 ${arch}`;
+const aortaLumen = `M150,316 ${arch}`;
+const branches = { brachiocephalic: 185, carotid: 228, subclavian: 272 };
+const branchXs = Object.values(branches);
+const vessel = {
+  trunk: 'M250,300 V212',
+  trunkLumen: 'M250,316 V212',
+  rightPa: 'M250,222 C250,207 232,205 212,205 L-12,205',
+  leftPa: 'M250,222 C250,207 268,205 288,205 L452,205',
+  // Interrupted arch, type B (Минздрав 830_1, 1.1 and 1.5): a wide open duct runs from the
+  // pulmonary artery to the descending aorta, below the gap in the arch.
+  duct: 'M262,196 L338,141',
+  ductLumen: 'M256,200 L340,141',
+};
+const flow = {
+  // Normal: one stream round the whole arch and down the descending aorta.
+  aorta: 'M150,334 L150,130 Q150,80 200,80 L290,80 Q340,80 340,130 L340,432',
+  branch: (x: number) => `M${x},72 L${x},44`,
+  trunk: 'M250,334 L250,212',
+  toRightLung: 'M250,212 C250,207 232,205 212,205 L0,205',
+  toLeftLung: 'M250,212 C250,207 268,205 288,205 L440,205',
+  // Disease: the ascending aorta ends at the gap and feeds only the first two branches.
+  ascending: 'M150,334 L150,130 Q150,80 200,80 L232,80',
+  // Blood from the pulmonary artery crosses the duct into the descending aorta: down to the lower
+  // body, and up to the left subclavian artery, which leaves the aorta below the gap.
+  duct: 'M256,200 L334,146',
+  down: 'M340,148 L340,432',
+  toSubclavian: 'M340,148 L340,130 Q340,80 290,80 L272,80 L272,44',
+  // Defect in the septum: blood crosses from the left ventricle to the right one.
+  shunt: 'M164,326 L226,326',
+};
+// The start of the branch to the right lung again, in front, up to the edge of the ascending aorta.
+const rightStart = 'M250,212 C250,207 232,205 212,205 L168,205';
+// Disease: mixed blood, drawn as a venous line with arterial dashes on it as in the other
+// diagrams. The streams to the lungs are thicker because the lungs get too much blood.
+const mixed = [
+  { d: flow.trunk, width: 5, arrow: false },
+  { d: rightStart, width: 5, arrow: false },
+  { d: flow.toLeftLung, width: 5, arrow: true },
+  { d: flow.duct, width: 4, arrow: false },
+  { d: flow.down, width: 4, arrow: true },
+  { d: flow.toSubclavian, width: 3, arrow: true },
+];
+---
+
+<svg
+  viewBox="0 0 480 450"
+  role="img"
+  aria-label={t['diagram.interrupted-aortic-arch.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowV}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+    <marker
+      id={arrowA}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={arrowMix}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- The drawing is shifted right by 20 to leave a column for the lung labels on the left -->
+  <g transform="translate(20 0)">
+    <!-- Ventricles: the outer wall, the same in both states -->
+    <path
+      d="M85,300 L305,300 C312,360 270,410 195,416 C120,410 78,360 85,300 Z"
+      fill="var(--diagram-muscle)"
+    ></path>
+
+    <!-- The branch to the right lung passes behind the ascending aorta, so it and its blood come
+       first. Each tube is a wide stroke in the wall colour under a narrower one in the blood
+       colour. -->
+    <path d={vessel.rightPa} fill="none" stroke="var(--diagram-venous)" stroke-width="24"></path>
+    <path
+      d={vessel.rightPa}
+      fill="none"
+      stroke="var(--diagram-venous-fill)"
+      stroke-width="20"
+    ></path>
+    <g fill="none" stroke-linecap="round">
+      <path
+        class="normal-only"
+        d={flow.toRightLung}
+        stroke="var(--diagram-venous)"
+        stroke-width="3"
+        marker-end={`url(#${arrowV})`}
+      ></path>
+      <g class="disease-only">
+        <path
+          d={flow.toRightLung}
+          stroke="var(--diagram-venous)"
+          stroke-width="5"
+          marker-end={`url(#${arrowMix})`}
+        ></path>
+        <path
+          d={flow.toRightLung}
+          stroke="var(--diagram-arterial)"
+          stroke-width="5"
+          stroke-dasharray="6 6"
+          stroke-linecap="butt"
+        ></path>
+      </g>
+    </g>
+    <g class="flow" fill="none" stroke="var(--color-bg)">
+      <path class="dash-flow normal-only" d={flow.toRightLung} stroke-width="1.5"></path>
+      <path class="dash-flow disease-only" d={flow.toRightLung} stroke-width="2.5"></path>
+    </g>
+
+    <!-- Vessel walls: with the defect, the open duct (first, so that the aorta wall closes over its
+       end), then the aorta with its three branches, the pulmonary trunk and the branch to the left
+       lung -->
+    <g fill="none">
+      <path
+        class="disease-only"
+        d={vessel.duct}
+        stroke="var(--diagram-venous)"
+        stroke-width="26"
+      ></path>
+      <g stroke="var(--diagram-arterial)">
+        {branchXs.map((x) => (
+          <path d={`M${x},84 L${x},40`} stroke-width="16" />
+        ))}
+        <path d={aortaWall} stroke-width="34"></path>
+      </g>
+      <path d={vessel.trunk} stroke="var(--diagram-venous)" stroke-width="34"></path>
+      <path d={vessel.leftPa} stroke="var(--diagram-venous)" stroke-width="24"></path>
+    </g>
+
+    <!-- Ventricle cavities: the left one (arterial blood) under the aorta, the right one (venous
+       blood) under the pulmonary trunk, with the septum between them -->
+    <path
+      d="M100,312 L189,312 L189,392 C140,386 104,355 100,312 Z"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--diagram-arterial)"
+      stroke-width="2"
+    ></path>
+    <path
+      d="M205,312 L290,312 C286,355 250,386 205,392 Z"
+      fill="var(--diagram-venous-fill)"
+      stroke="var(--diagram-venous)"
+      stroke-width="2"
+    ></path>
+
+    <!-- Vessel lumens on top of the walls, opening into each other and into the ventricles -->
+    <g fill="none">
+      <g stroke="var(--diagram-arterial-fill)">
+        {branchXs.map((x) => (
+          <path d={`M${x},92 L${x},40`} stroke-width="10" />
+        ))}
+        <path d={aortaLumen} stroke-width="26"></path>
+      </g>
+      <g stroke="var(--diagram-venous-fill)">
+        <path d={vessel.trunkLumen} stroke-width="30"></path>
+        <path d={vessel.leftPa} stroke-width="20"></path>
+        <path d="M250,226 C250,209 234,207 214,207" stroke-width="18"></path>
+        <path class="disease-only" d={vessel.ductLumen} stroke-width="20"></path>
+      </g>
+    </g>
+
+    <!-- The interruption, type B: the arch has no segment between the left common carotid and the
+       left subclavian artery; both ends are closed -->
+    <g class="disease-only">
+      <rect x="239" y="60" width="20" height="40" fill="var(--color-bg)"></rect>
+      <rect x="236" y="63" width="3" height="34" fill="var(--diagram-arterial)"></rect>
+      <rect x="259" y="63" width="3" height="34" fill="var(--diagram-arterial)"></rect>
+    </g>
+
+    <!-- Defect at the top of the septum -->
+    <rect
+      class="disease-only"
+      x="187"
+      y="314"
+      width="20"
+      height="26"
+      fill="var(--diagram-arterial-fill)"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="3 2"
+    ></rect>
+
+    <!-- Flow arrows, visible with and without motion -->
+    <g fill="none" stroke-linecap="round">
+      <g class="normal-only">
+        <path
+          d={flow.aorta}
+          stroke="var(--diagram-arterial)"
+          stroke-width="4"
+          marker-end={`url(#${arrowA})`}
+        ></path>
+        {branchXs.map((x) => (
+          <path
+            d={flow.branch(x)}
+            stroke="var(--diagram-arterial)"
+            stroke-width="3"
+            marker-end={`url(#${arrowA})`}
+          />
+        ))}
+        <path d={flow.trunk} stroke="var(--diagram-venous)" stroke-width="3"></path>
+        <path d={rightStart} stroke="var(--diagram-venous)" stroke-width="3"></path>
+        <path
+          d={flow.toLeftLung}
+          stroke="var(--diagram-venous)"
+          stroke-width="3"
+          marker-end={`url(#${arrowV})`}
+        ></path>
+      </g>
+      <g class="disease-only">
+        <path d={flow.ascending} stroke="var(--diagram-arterial)" stroke-width="4"></path>
+        {[branches.brachiocephalic, branches.carotid].map((x) => (
+          <path
+            d={flow.branch(x)}
+            stroke="var(--diagram-arterial)"
+            stroke-width="3"
+            marker-end={`url(#${arrowA})`}
+          />
+        ))}
+        <path
+          d={flow.shunt}
+          stroke="var(--diagram-arterial)"
+          stroke-width="3"
+          marker-end={`url(#${arrowA})`}
+        ></path>
+        {mixed.map((m) => (
+          <path
+            d={m.d}
+            stroke="var(--diagram-venous)"
+            stroke-width={m.width}
+            marker-end={m.arrow ? `url(#${arrowMix})` : undefined}
+          />
+        ))}
+        {mixed.map((m) => (
+          <path
+            d={m.d}
+            stroke="var(--diagram-arterial)"
+            stroke-width={m.width}
+            stroke-dasharray="6 6"
+            stroke-linecap="butt"
+          />
+        ))}
+      </g>
+    </g>
+
+    <!-- Moving blood: dashes running along the arrows -->
+    <g class="flow" fill="none" stroke="var(--color-bg)">
+      <g class="normal-only">
+        <path class="dash-flow" d={flow.aorta} stroke-width="2"></path>
+        {branchXs.map((x) => (
+          <path class="dash-flow" d={flow.branch(x)} stroke-width="1.5" />
+        ))}
+        <path class="dash-flow" d={flow.trunk} stroke-width="1.5"></path>
+        <path class="dash-flow" d={rightStart} stroke-width="1.5"></path>
+        <path class="dash-flow" d={flow.toLeftLung} stroke-width="1.5"></path>
+      </g>
+      <g class="disease-only">
+        <path class="dash-flow" d={flow.ascending} stroke-width="2"></path>
+        {[branches.brachiocephalic, branches.carotid].map((x) => (
+          <path class="dash-flow" d={flow.branch(x)} stroke-width="1.5" />
+        ))}
+        <path class="dash-flow" d={flow.shunt} stroke-width="1.5"></path>
+        {mixed.map((m) => (
+          <path class="dash-flow" d={m.d} stroke-width="2" />
+        ))}
+      </g>
+    </g>
+
+    <!-- Labels: chambers, vessels, the gap and the duct -->
+    <text x="146" y="358" text-anchor="middle">
+      {t['diagram.label.lv']}
+    </text>
+    <text x="248" y="358" text-anchor="middle">
+      {t['diagram.label.rv']}
+    </text>
+    <text class="diagram-small" x="126" y="262" text-anchor="end">
+      {t['diagram.label.aorta']}
+    </text>
+    <text class="diagram-small" x={branches.carotid} y="16" text-anchor="middle">
+      <tspan x={branches.carotid}>{carotidLines[0]}</tspan>
+      <tspan x={branches.carotid} dy="14">
+        {carotidLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="290" y="16">
+      <tspan x="290">{subclavianLines[0]}</tspan>
+      <tspan x="290" dy="14">
+        {subclavianLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="362" y="384">
+      <tspan x="362">{lowerBodyLines[0]}</tspan>
+      <tspan x="362" dy="14">
+        {lowerBodyLines[1]}
+      </tspan>
+    </text>
+    <g class="disease-only">
+      <g stroke="var(--color-muted)" stroke-width="1.5">
+        <line x1="249" y1="99" x2="249" y2="105"></line>
+        <line x1="252" y1="164" x2="266" y2="178"></line>
+      </g>
+      <text class="diagram-small" x="249" y="117" text-anchor="middle">
+        <tspan x="249">{gapLines[0]}</tspan>
+        <tspan x="249" dy="14">
+          {gapLines[1]}
+        </tspan>
+      </text>
+      <text class="diagram-small" x="212" y="158" text-anchor="middle">
+        <tspan x="212">{ductLines[0]}</tspan>
+        <tspan x="212" dy="14">
+          {ductLines[1]}
+        </tspan>
+      </text>
+    </g>
+
+    <!-- Septum (normal) or defect (disease), labelled below the heart -->
+    <line x1="197" y1="356" x2="197" y2="428" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text class="diagram-small normal-only" x="197" y="442" text-anchor="middle">
+      {t['diagram.label.septum']}
+    </text>
+    <text class="diagram-small disease-only" x="197" y="442" text-anchor="middle">
+      {t['diagram.label.defect']}
+    </text>
+  </g>
+
+  <!-- Lung labels in the left column, right above the branch to the right lung -->
+  <text class="diagram-small normal-only" x="8" y="186">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small disease-only" x="8" y="172">
+    <tspan x="8">{lungLines[0]}</tspan>
+    <tspan x="8" dy="14">
+      {lungLines[1]}
+    </tspan>
+  </text>
+</svg>

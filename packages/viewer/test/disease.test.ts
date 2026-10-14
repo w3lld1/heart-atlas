@@ -3,11 +3,15 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { viewerMessageKeys } from '../src/types.ts';
 import {
+  diseaseFromQuery,
   diseaseIds,
   diseaseShapes,
   diseaseView,
   hasStillSigns,
   isDiseaseId,
+  queryWithDisease,
+  shownDisease,
+  shownOnAnatomy,
   ZONE_FADE,
   nearestDistances,
   presetShape,
@@ -147,5 +151,77 @@ describe('diseaseView', () => {
       still: false,
       beat: false,
     });
+  });
+});
+
+describe('disease picked in the page address', () => {
+  const choices = ['aortic-stenosis', 'hypertension'] as const;
+  it('reads only a disease among the choices', () => {
+    expect(diseaseFromQuery('?disease=hypertension', choices)).toBe('hypertension');
+    expect(diseaseFromQuery('?disease=atrial-fibrillation', choices)).toBeNull();
+    expect(diseaseFromQuery('?disease=%3Cscript%3E', choices)).toBeNull();
+    expect(diseaseFromQuery('', choices)).toBeNull();
+  });
+  it('sets and removes the pick, keeping other params', () => {
+    expect(queryWithDisease('', 'hypertension')).toBe('?disease=hypertension');
+    expect(queryWithDisease('?a=1&disease=hypertension', 'aortic-stenosis')).toBe(
+      '?a=1&disease=aortic-stenosis',
+    );
+    expect(queryWithDisease('?a=1&disease=hypertension', null)).toBe('?a=1');
+    expect(queryWithDisease('?disease=hypertension', null)).toBe('');
+  });
+});
+
+describe('the disease a viewer draws', () => {
+  const base = {
+    picker: false,
+    picked: null,
+    own: undefined,
+    followsClock: false,
+    showOwn: true,
+    preset: null,
+  } as const;
+  it('takes the pick of a picker alone', () => {
+    expect(
+      shownDisease({ ...base, picker: true, picked: 'hypertension', preset: 'stemi' }),
+    ).toEqual({ disease: 'hypertension', preset: null, ownSwitch: false });
+    expect(shownDisease({ ...base, picker: true }).disease).toBeUndefined();
+  });
+  it('gives a viewer with its own disease and no clock a switch', () => {
+    expect(shownDisease({ ...base, own: 'hypertrophic-cardiomyopathy' })).toEqual({
+      disease: 'hypertrophic-cardiomyopathy',
+      preset: null,
+      ownSwitch: true,
+    });
+    expect(
+      shownDisease({ ...base, own: 'hypertrophic-cardiomyopathy', showOwn: false }).disease,
+    ).toBeUndefined();
+  });
+  it('switches a viewer that follows a clock with the clock normal preset', () => {
+    const clock = { ...base, own: 'hypertension', followsClock: true } as const;
+    expect(shownDisease({ ...clock, preset: 'hypertension' })).toEqual({
+      disease: 'hypertension',
+      preset: 'hypertension',
+      ownSwitch: false,
+    });
+    expect(shownDisease({ ...clock, preset: null }).disease).toBe('hypertension');
+    expect(shownDisease({ ...clock, preset: 'normal' })).toEqual({
+      disease: undefined,
+      preset: null,
+      ownSwitch: false,
+    });
+  });
+  it('leaves a plain viewer to the clock preset', () => {
+    expect(shownDisease({ ...base, followsClock: true, preset: 'stemi' })).toEqual({
+      disease: undefined,
+      preset: 'stemi',
+      ownSwitch: false,
+    });
+  });
+  it('offers on the 3D page only shapes it can show without a clock preset', () => {
+    expect(shownOnAnatomy('heart-failure')).toBe(false);
+    expect(shownOnAnatomy('atrial-fibrillation')).toBe(false);
+    expect(shownOnAnatomy('aortic-stenosis')).toBe(true);
+    expect(shownOnAnatomy('dilated-cardiomyopathy')).toBe(true);
   });
 });

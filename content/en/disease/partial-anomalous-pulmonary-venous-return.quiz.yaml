@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is partial anomalous pulmonary venous return?
+    options:
+      - text: All of the pulmonary veins drain into the right atrium or venae cavae
+      - text: There is an extra opening in the wall between the ventricles
+      - text: Some pulmonary veins drain into the right atrium or venae cavae
+        correct: true
+    explanation: 'PAPVR is a congenital heart defect in which one or more, but not all, of the pulmonary veins drain not into the left atrium but into the right atrium, the coronary sinus or the venae cavae. If all the pulmonary veins drain abnormally, it is a different defect: total anomalous pulmonary venous return.'
+    cite: [1]
+  - level: patient
+    prompt: Why is the right side of the heart overloaded in PAPVR?
+    options:
+      - text: Some blood from the lungs returns to it and goes back to the lungs
+        correct: true
+      - text: Some blood from the body leaves it and goes straight to the aorta
+      - text: The pulmonary valve is narrowed and lets almost no blood into the lungs
+    explanation: In PAPVR, some of the oxygen-rich blood from the lungs returns to the right side of the heart and goes back to the lungs, so the right side of the heart is overloaded with extra blood, just as in an atrial septal defect.
+    cite: [1, 2]
+  - level: patient
+    prompt: What happens in scimitar syndrome?
+    options:
+      - text: The left pulmonary veins run upwards into the superior vena cava
+      - text: The right pulmonary veins run down into the inferior vena cava
+        correct: true
+      - text: The right pulmonary veins drain directly into the right ventricle
+    explanation: 'A special rare variant is scimitar syndrome: the right pulmonary veins run downwards and drain into the inferior vena cava.'
+    cite: [1, 2]
+  - level: patient
+    prompt: What is done during the operation for PAPVR?
+    options:
+      - text: The opening is closed with a device passed through a blood vessel
+      - text: The opening is patched and vein blood is sent to the left atrium
+        correct: true
+      - text: The opening is left alone and the abnormal veins are just tied off
+    explanation: During the operation, the opening in the wall between the atria is closed with a patch, and the blood from the abnormally draining veins is directed into the left atrium through a patch tunnel inside the right atrium. A sinus venosus defect does not close on its own and cannot be closed with a device passed through a blood vessel (an occluder).
+    cite: [1, 3]
+  - level: student
+    prompt: What Qp/Qs ratio is considered significant in PAPVR?
+    options:
+      - text: Qp/Qs of 0.5 or less
+      - text: Qp/Qs of 1.0 or less
+      - text: Qp/Qs above 1.5
+        correct: true
+    explanation: The ratio of pulmonary to systemic blood flow (Qp/Qs) must be determined; a ratio above 1.5 is considered significant.
+    cite: [1]
+  - level: student
+    prompt: What does the ECG show in PAPVR?
+    options:
+      - text: RV hypertrophy, incomplete RBBB and right atrial overload
+        correct: true
+      - text: LV hypertrophy, complete LBBB and left atrial overload
+      - text: LV hypertrophy, a short PR interval and a delta wave before QRS
+    explanation: The ECG shows RV hypertrophy, incomplete right bundle branch block and signs of right atrial overload.
+    cite: [1]
