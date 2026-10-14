@@ -21,6 +21,7 @@ export const presetIds = [
   'av-block-third-degree',
   'av-block-third-degree-paced',
   'sinus-tachycardia',
+  'focal-atrial-tachycardia',
   'supraventricular-tachycardia',
   'long-qt-syndrome',
   'short-qt-syndrome',
@@ -177,6 +178,20 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // which look the same on one strip.
     // Spec: docs/plans/2026-10-14-heart-clock-sinus-tachycardia.md.
     heartRate: 120,
+  }),
+  'focal-atrial-tachycardia': Object.freeze({
+    // Focal atrial tachycardia: a regular rhythm from one atrial focus, usually 150 to 200 per
+    // minute (MSD Manuals, Ectopic Supraventricular Arrhythmias, 2024). assumption: 150, the low
+    // end; the QRS and the rest of the beat stay normal.
+    // Spec: docs/plans/2026-10-14-heart-clock-focal-atrial-tachycardia.md.
+    heartRate: 150,
+    // The sign is a P′ wave that differs from the sinus P, with isoelectric intervals between them
+    // (Minzdrav 2025, Supraventricular tachycardias, §2.4). P′ negative in the inferior leads
+    // suggests a caudal focus (same). assumption: that kind, with the default P amplitude inverted
+    // and an axis of 90°, so P′ is negative in II and III and flat in I; the focus can be
+    // anywhere in the atria (same, §1.2.2), and other foci give other P′ shapes.
+    pAmplitude: -0.15,
+    pAxis: 90,
   }),
   'supraventricular-tachycardia': Object.freeze({
     // Typical AV nodal re-entrant tachycardia. The rate is the sign, so this preset sets it:
@@ -449,6 +464,9 @@ export const presetRateFloors: Readonly<Partial<Record<PresetId, number>>> = Obj
   // Sinus tachycardia is faster than 100 per minute (Minzdrav 2025, Supraventricular tachycardias,
   // §1.2.1): 101 is the lowest whole rate above that.
   'sinus-tachycardia': 101,
+  // Focal atrial tachycardia is an atrial rhythm of 100 per minute or more (Minzdrav 2025,
+  // Supraventricular tachycardias, §1.2.2).
+  'focal-atrial-tachycardia': 100,
   // VT runs at more than 100 per minute (Minzdrav 2025, Ventricular arrhythmias): 101 is the lowest
   // whole rate above that, so the slider never shows a rate below the VT definition.
   'ventricular-tachycardia': 101,

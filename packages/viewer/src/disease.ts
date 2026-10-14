@@ -226,6 +226,7 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'av-block-third-degree': null,
   'av-block-third-degree-paced': null,
   'sinus-tachycardia': null,
+  'focal-atrial-tachycardia': null,
   'supraventricular-tachycardia': null,
   'long-qt-syndrome': null,
   'short-qt-syndrome': null,

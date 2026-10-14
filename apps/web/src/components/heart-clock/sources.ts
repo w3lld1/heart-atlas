@@ -161,6 +161,7 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ventricular-premature-beats-vpb',
     lang: 'en',
   },
+  // Also behind focal atrial tachycardia, with the SVT guideline (619_3) above.
   {
     text: 'MSD Manuals, Professional Version. Ectopic Supraventricular Arrhythmias. 2024.',
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/ectopic-supraventricular-arrhythmias',

@@ -223,6 +223,23 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       180,
     ],
   },
+  "focal-atrial-tachycardia": {
+    "curves": [
+      "100:deadcb35",
+      "100:deadcb35",
+      "137:59f3802e",
+      "170:9bc1fce9",
+      "180:5a8fa145",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      100,
+      180,
+    ],
+  },
   "heart-failure": {
     "curves": [
       "40:2fd1830e",

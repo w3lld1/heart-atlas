@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: How does alcohol harm the heart muscle in alcoholic cardiomyopathy?
+    options:
+      - text: It clogs the heart's arteries with cholesterol plaques
+      - text: It gives the person a congenital defect of the heart valves
+      - text: It and acetaldehyde directly damage the muscle's cells
+        correct: true
+    explanation: Alcohol and the substance the body turns it into (acetaldehyde) directly damage the cells of the heart muscle.
+    cite: [1]
+  - level: patient
+    prompt: What is called "holiday heart"?
+    options:
+      - text: Flushed cheeks from joy at a holiday party
+      - text: Atrial fibrillation triggered by a binge
+        correct: true
+      - text: Heartburn after a very large festive meal
+    explanation: A binge can trigger atrial fibrillation; this is called "holiday heart".
+    cite: [2, 6]
+  - level: patient
+    prompt: What does the article say about the role of heredity?
+    options:
+      - text: Alcohol harms the heart unequally in people with different genes
+        correct: true
+      - text: Heredity has no influence at all on whether this heart disease develops
+      - text: The disease is passed only from mother to daughter and never to sons
+    explanation: Heredity matters too; alcohol does not harm the heart equally in people with different genes.
+    cite: [1]
+  - level: patient
+    prompt: Which sign in alcoholic cardiomyopathy is a reason to call emergency services?
+    options:
+      - text: A spring runny nose
+      - text: Chest pain
+        correct: true
+      - text: A mosquito bite itch
+    explanation: Call your local emergency number if there are signs of acute heart failure (severe shortness of breath or choking, especially when lying down), fainting or chest pain.
+    cite: [1]
+  - level: student
+    prompt: In which group of causes of DCM do the European guidelines place alcohol?
+    options:
+      - text: Infectious viral causes
+      - text: Endocrine and hormonal disorders
+      - text: Toxic non-genetic causes
+        correct: true
+    explanation: The European guidelines list alcohol (ethanol) among the toxic non-genetic causes of DCM.
+    cite: [4]
+  - level: student
+    prompt: Which cardiomyocyte proteins do ethanol and its metabolites damage, according to the Russian guideline?
+    options:
+      - text: The alpha-myosin heavy chains
+        correct: true
+      - text: Red cell haemoglobin chains
+      - text: Collagen of the valve leaflets
+    explanation: According to the Russian Ministry of Health guideline, ethanol and its metabolites, above all acetaldehyde, damage the alpha-myosin heavy chains and reduce contractility.
+    cite: [1]

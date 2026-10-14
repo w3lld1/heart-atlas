@@ -22,6 +22,7 @@ export const presetGroup: Readonly<Record<PresetId, PresetGroup | null>> = {
   'av-block-third-degree': 'conduction',
   'av-block-third-degree-paced': 'treated',
   'sinus-tachycardia': 'rhythm',
+  'focal-atrial-tachycardia': 'rhythm',
   'supraventricular-tachycardia': 'rhythm',
   'long-qt-syndrome': 'rhythm',
   'short-qt-syndrome': 'rhythm',
