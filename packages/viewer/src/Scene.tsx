@@ -44,6 +44,7 @@ import {
   type ValveId,
 } from './cycle.ts';
 import type { PresetId } from '@heart-atlas/heart-clock';
+import type { DiseaseShape } from './disease.ts';
 import {
   AORTA_BULGE,
   growOnVentricles,
@@ -51,8 +52,7 @@ import {
   nearestDistances,
   ZONE_FADE,
   zoneWeight,
-  type DiseaseShape,
-} from './disease.ts';
+} from './disease-geometry.ts';
 import type { SectionAxis } from './types.ts';
 
 export interface SceneProps {
