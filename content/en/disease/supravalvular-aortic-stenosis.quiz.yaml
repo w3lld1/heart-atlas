@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens in congenital supravalvular aortic stenosis?
+    options:
+      - text: The aortic valve itself is narrowed or does not open well
+      - text: The aorta is narrowed above the aortic valve
+        correct: true
+      - text: The obstruction lies below the aortic valve
+    explanation: In supravalvular stenosis the aorta is narrowed above the aortic valve. In aortic stenosis the valve itself is narrowed, and in subvalvular aortic stenosis the obstruction lies below the valve.
+    cite: [1, 3]
+  - level: patient
+    prompt: What causes this defect in most cases?
+    options:
+      - text: Chest injury during birth
+      - text: Frequent colds in the first years of life
+      - text: A change or loss of the elastin gene
+        correct: true
+    explanation: In most cases the cause is a change (mutation) or loss (deletion) of the elastin gene on chromosome 7.
+    cite: [1, 2]
+  - level: patient
+    prompt: What is the main treatment for this defect?
+    options:
+      - text: Surgery on the aorta
+        correct: true
+      - text: Medicines that remove the narrowing
+      - text: A therapeutic diet
+    explanation: There are no medicines that remove the narrowing. The main treatment is surgery.
+    cite: [1, 2]
+  - level: patient
+    prompt: When should you call an ambulance for someone with supravalvular aortic stenosis?
+    options:
+      - text: They sneezed a few times in a row
+      - text: They felt thirsty after a walk
+      - text: They have chest pain
+        correct: true
+    explanation: Call an ambulance if a child or adult with supravalvular aortic stenosis has chest pain, faints, has an attack of strong palpitations or has rapidly worsening shortness of breath.
+    cite: [1, 2]
+  - level: student
+    prompt: What is the diffuse form of SVAS?
+    options:
+      - text: Narrowing of the whole ascending aorta
+        correct: true
+      - text: A fibrous diaphragm just distal to the coronary ostia
+      - text: An external hourglass deformity of the aorta
+    explanation: According to the ESC, the diffuse form is narrowing of the whole ascending aorta; a fibrous diaphragm marks the membranous form, and an external deformity the hourglass form.
+    cite: [2]
+  - level: student
+    prompt: Per the Russian guideline, which method is superior to other imaging in assessing the arteries supplying the heart?
+    options:
+      - text: A plain chest radiograph
+      - text: CT coronary angiography
+        correct: true
+      - text: Ultrasound of the abdominal aorta
+    explanation: According to the Russian Ministry of Health paediatric guideline, CT coronary angiography is superior to other imaging methods in assessing coronary artery anatomy.
+    cite: [1]
