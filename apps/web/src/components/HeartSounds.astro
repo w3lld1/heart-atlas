@@ -51,7 +51,7 @@ const titleId = `heart-sounds-${sound}`;
 <section class="heart-sounds" aria-labelledby={titleId} data-pagefind-ignore>
   <!-- The player and the note are UI text in the page locale; the caption is article text. -->
   <div lang={locale}>
-    <h2 id={titleId}>{t['heartSounds.articleTitle']}</h2>
+    <h3 id={titleId}>{t['heartSounds.articleTitle']}</h3>
     <p class="schematic" role="note">
       {t['heartSounds.schematic']}
     </p>
@@ -80,7 +80,8 @@ const titleId = `heart-sounds-${sound}`;
     background: var(--color-bg-2);
   }
 
-  h2 {
+  /* h3: the block sits inside the diagnosis section. */
+  h3 {
     margin-block: 0 0.75rem;
   }
 
