@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the pulmonary valve in this defect?
+    options:
+      - text: It does not close, and blood flows back into the ventricle
+      - text: It does not let blood pass from the heart to the lungs
+        correct: true
+      - text: It lets blood pass from the right ventricle straight into the aorta
+    explanation: In this defect the pulmonary valve is not properly formed and does not let blood pass from the heart to the lungs.
+    cite: [2]
+  - level: patient
+    prompt: Which test is used to diagnose the defect after birth if it was missed during pregnancy?
+    options:
+      - text: Ultrasound of the heart (echocardiography)
+        correct: true
+      - text: Ultrasound of the kidneys, ureters and bladder
+      - text: Ultrasound of the hip joints
+    explanation: The defect may be found before birth on an ultrasound scan of the fetus; if not, it is diagnosed after birth with an ultrasound scan of the heart (echocardiography).
+    cite: [2]
+  - level: patient
+    prompt: What does the survival of a newborn with this defect depend on?
+    options:
+      - text: On whether the large fontanelle on the head stays open
+      - text: On how quickly the umbilical stump heals
+      - text: On whether the arterial duct stays open
+        correct: true
+    explanation: In this defect blood reaches the lungs through the arterial duct, so the newborn's survival depends on the duct staying open.
+    cite: [2, 3]
+  - level: patient
+    prompt: What in the first week of life is a medical emergency?
+    options:
+      - text: Hiccups in a baby after breast or bottle feeding
+      - text: Cyanosis or acute severe heart failure
+        correct: true
+      - text: Sneezing after a bath when water got into the nose
+    explanation: Acute severe heart failure or cyanosis in the first week of life is a medical emergency.
+    cite: [3]
+  - level: student
+    prompt: How do the ESC guidelines class pulmonary atresia (all forms) in adults with CHD?
+    options:
+      - text: As CHD of moderate complexity
+      - text: As simple CHD
+      - text: As CHD of severe complexity
+        correct: true
+    explanation: In the ESC guidelines on adults with CHD, pulmonary atresia (all forms) is classed as CHD of severe complexity.
+    cite: [1]
+  - level: student
+    prompt: What does the Fontan operation do?
+    options:
+      - text: Separates the systemic and pulmonary venous returns without a subpulmonary ventricle
+        correct: true
+      - text: Switches the aorta and the pulmonary artery over to the opposite ventricles of the heart
+      - text: Widens the opening of a coronary artery with a patch of pericardium
+    explanation: The Fontan operation separates the systemic and pulmonary venous returns without a subpulmonary ventricle.
+    cite: [1]
