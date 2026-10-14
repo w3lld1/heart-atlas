@@ -444,3 +444,57 @@ test('the corrected transposition article shows complete AV block without the Wi
   await expect(page.getByRole('img', { name: en['heartClock.wiggers.label'] })).toHaveCount(0);
   await expect(page.getByText(en['heartClock.wiggers.title'])).toHaveCount(0);
 });
+
+test('the bundle branch block article shows right, left and anterior fascicular block', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/bundle-branch-block/');
+  // Normal, right bundle branch block (`preset`), then left and anterior fascicular block
+  // (`morePresets`). The article's diagram has its own radios, so scope to the clock's group.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(4);
+  await expect(conditions.getByRole('radio').nth(2)).toHaveAccessibleName(
+    en['heartClock.preset.left-bundle-branch-block'],
+  );
+  await expect(conditions.getByRole('radio').nth(3)).toHaveAccessibleName(
+    en['heartClock.preset.left-anterior-fascicular-block'],
+  );
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.right-bundle-branch-block'] }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.right-bundle-branch-block.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.left-bundle-branch-block'] })
+    .check();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.left-bundle-branch-block.summary'],
+  );
+  expect((await axe(page).analyze()).violations).toEqual([]);
+});
+
+test('the Chagas article shows right bundle branch block without the Wiggers diagram', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/chagas-cardiomyopathy/');
+  // Normal and right bundle branch block (`preset`). Anterior fascicular block is left out: its
+  // summary calls the isolated block low-risk, which would mislead next to Chagas heart disease.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.right-bundle-branch-block'] }),
+  ).toBeChecked();
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  expect((await axe(page).analyze()).violations).toEqual([]);
+  // The block presets keep a normal pump; the cardiomyopathy in this article does not.
+  await expect(page.getByRole('img', { name: en['heartClock.wiggers.label'] })).toHaveCount(0);
+  await expect(page.getByText(en['heartClock.wiggers.title'])).toHaveCount(0);
+});
