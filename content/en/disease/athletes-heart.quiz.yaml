@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is athlete's heart?
+    options:
+      - text: An inflammation of the heart muscle that starts after a cold
+      - text: Heart changes in people who train long and/or hard
+        correct: true
+      - text: A narrowing of the leg arteries that develops in smokers
+    explanation: Athlete's heart is a set of changes in the structure and function of the heart in people who train for long periods and/or at high intensity.
+    cite: [6]
+  - level: patient
+    prompt: What does the article say about chest pain, breathlessness or palpitations in an athlete?
+    options:
+      - text: They are the usual signs of athlete's heart in any athlete
+      - text: They always mean that the training was far too light
+      - text: Athlete's heart does not explain them; look for a disease
+        correct: true
+    explanation: If an athlete has chest pain, breathlessness or palpitations, athlete's heart does not explain them; a heart disease has to be looked for.
+    cite: [6]
+  - level: patient
+    prompt: Why do athletes have a heart check before competitions?
+    options:
+      - text: To find dangerous heart diseases before symptoms
+        correct: true
+      - text: To choose the athlete's diet for the training camp
+      - text: To pick comfortable running shoes for the athlete
+    explanation: Before taking part in competitions, athletes have a heart check to find diseases that carry a risk of sudden death before the first symptoms appear.
+    cite: [1, 2]
+  - level: patient
+    prompt: In which situation should you call emergency services and start resuscitation straight away?
+    options:
+      - text: An athlete's leg muscles ache on the day after training
+      - text: An athlete suddenly collapses and does not regain consciousness
+        correct: true
+      - text: An athlete feels very thirsty after a long run and wants a drink
+    explanation: If an athlete suddenly collapses and does not regain consciousness, this may be cardiac arrest. Call your local emergency number straight away and start cardiopulmonary resuscitation.
+    cite: [5, 8]
+  - level: student
+    prompt: According to MSD, what mainly explains the lower resting heart rate in an athlete?
+    options:
+      - text: A lower haemoglobin level in the blood
+      - text: Chronic dehydration of the body
+      - text: Increased vagal tone
+        correct: true
+    explanation: In athlete's heart, maximal stroke volume and cardiac output increase, and the resting heart rate falls mainly because of increased vagal tone.
+    cite: [6]
+  - level: student
+    prompt: How does ESC 2020 compare screening ECG with history and physical examination in athletes?
+    options:
+      - text: The ECG is worse than history and examination in every case
+      - text: The ECG outperforms history and examination
+        correct: true
+      - text: The ECG is not used at all in screening athletes
+    explanation: According to ESC 2020, ECG screening outperforms history and physical examination, but there is insufficient evidence to recommend routine echocardiography.
+    cite: [1]

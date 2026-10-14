@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is attached to an Lp(a) particle, which resembles an LDL particle?
+    options:
+      - text: A pituitary hormone, growth hormone
+      - text: An extra protein, apo(a)
+        correct: true
+      - text: A saliva enzyme, amylase
+    explanation: An Lp(a) particle resembles an LDL particle but has an extra protein attached to it, apo(a).
+    cite: [5, 6]
+  - level: patient
+    prompt: What sets the Lp(a) level almost entirely?
+    options:
+      - text: The genes inherited from one's parents
+        correct: true
+      - text: The amount of water a person drinks each day
+      - text: The number of hours a person sleeps each night
+    explanation: The Lp(a) level is set almost entirely by the genes inherited from one's parents, so a high level runs in families.
+    cite: [3, 6]
+  - level: patient
+    prompt: What can small Lp(a) particles do, like LDL particles?
+    options:
+      - text: Dissolve plaques that have already grown in blood vessel walls
+      - text: Carry oxygen from the lungs to all the organs of the body
+      - text: Pass into the artery wall and be retained there
+        correct: true
+    explanation: Like LDL particles, Lp(a) particles can pass into the inner layer of the artery wall and be retained there, and this raises the risk of atherosclerosis.
+    cite: [2]
+  - level: patient
+    prompt: Which diseases is high Lp(a) most strongly linked to?
+    options:
+      - text: Bronchial asthma and chronic migraine headaches
+      - text: Heart attack and aortic stenosis
+        correct: true
+      - text: Cataract and age-related glaucoma of the eye
+    explanation: High Lp(a) is most strongly linked to heart attack and aortic stenosis, a narrowing of the aortic valve.
+    cite: [3]
+  - level: student
+    prompt: What is the apo(a) kringle homologous with plasminogen thought to do?
+    options:
+      - text: Enhance fibrinolysis and speed up the dissolution of thrombi
+      - text: Bind haemoglobin inside red blood cells
+      - text: Competitively inhibit fibrinolysis
+        correct: true
+    explanation: One of the apo(a) kringles is homologous with plasminogen and is thought to competitively inhibit fibrinolysis and thus predispose to thrombus formation.
+    cite: [5]
+  - level: student
+    prompt: According to the 2019 ESC/EAS guidelines, what may extremely elevated Lp(a) represent?
+    options:
+      - text: An inherited dyslipidaemia
+        correct: true
+      - text: An autoimmune disease of the thyroid gland
+      - text: A viral infection of the heart muscle
+    explanation: The 2019 ESC/EAS guidelines suggest that extremely elevated Lp(a) may represent an inherited dyslipidaemia.
+    cite: [2]
