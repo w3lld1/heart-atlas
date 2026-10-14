@@ -43,6 +43,8 @@ const narrowedLimits: Partial<Record<PresetId, readonly [number, number]>> = {
   'sick-sinus-syndrome': [30, 39],
   'sick-sinus-syndrome-paced': [50, 70],
   'wpw-syndrome': [40, 153],
+  'right-bundle-branch-block': [40, 157],
+  'left-bundle-branch-block': [40, 144],
 };
 
 describe('presetTreated', () => {

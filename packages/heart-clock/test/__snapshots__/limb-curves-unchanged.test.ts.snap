@@ -98,6 +98,22 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "II:77093f68",
     "III:de7d45ad",
   ],
+  "left-anterior-fascicular-block": [
+    "I:1dd0c556",
+    "II:58d7b8",
+    "III:dc052a66",
+    "I:dffec0eb",
+    "II:58d7b8",
+    "III:e0198f5",
+  ],
+  "left-bundle-branch-block": [
+    "I:fbf548aa",
+    "II:74bd2201",
+    "III:991c0871",
+    "I:aadd52b4",
+    "II:74bd2201",
+    "III:24d27151",
+  ],
   "long-qt-syndrome": [
     "I:a023cb90",
     "II:6b0ab153",
@@ -113,6 +129,14 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "I:660ebea3",
     "II:77093f68",
     "III:de7d45ad",
+  ],
+  "right-bundle-branch-block": [
+    "I:62798f7e",
+    "II:7ce31318",
+    "III:2a8fd106",
+    "I:26455d53",
+    "II:7ce31318",
+    "III:9b50bff5",
   ],
   "sick-sinus-syndrome": [
     "I:abc7da0a",

@@ -30,6 +30,9 @@ export const presetIds = [
   'sick-sinus-syndrome-paced',
   'wpw-syndrome',
   'brugada-syndrome',
+  'right-bundle-branch-block',
+  'left-bundle-branch-block',
+  'left-anterior-fascicular-block',
 ] as const;
 
 export type PresetId = (typeof presetIds)[number];
@@ -304,6 +307,54 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // delta wave. The later R peak (timing.ts) lets the preset fit up to 153 bpm.
     qrsDuration: 130,
     deltaWave: 40,
+  }),
+  'right-bundle-branch-block': Object.freeze({
+    // Right bundle branch block: QRS ≥ 0.12 s, an rsR' complex in V1 or V2, and an S wave in leads
+    // I and V6 longer than R or longer than 0.04 s (MSD Manuals, Bundle Branch Block and
+    // Fascicular Block, 2024). The model draws the limb leads, so it shows the broad S in I; V1 is
+    // not drawn. Spec: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
+    // assumption: QRS 140 ms; the start of the QRS as in the normal preset; a broad late S of
+    // −0.3 mV in II on the 0° axis, so it points right: −0.6 mV in I and a late r of +0.3 mV in III.
+    // No source gives the S axis or amplitudes in the limb leads.
+    qrsDuration: 140,
+    sAmplitude: -0.3,
+    sAxis: 0,
+    sWidth: 0.1,
+  }),
+  'left-bundle-branch-block': Object.freeze({
+    // Left bundle branch block: QRS ≥ 0.12 s; a broad notched or slurred R wave and no Q wave in
+    // leads I, aVL, V5 and V6; ST and T deviate opposite to the QRS (MSD Manuals, Bundle Branch
+    // Block and Fascicular Block, 2024). Spec: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
+    // assumption: QRS 150 ms; no S wave either (the source names only the missing Q); R 0.6 mV in
+    // II on the 0° axis, so lead I shows 1.2 mV, the largest R; a notch of 0.3. No source gives the
+    // axis or amplitudes.
+    qrsDuration: 150,
+    qAmplitude: 0,
+    sAmplitude: 0,
+    rAmplitude: 0.6,
+    qrsAxis: 0,
+    rNotch: 0.3,
+    // assumption: ST −0.1 mV and T −0.3 mV in II on the QRS axis, opposite to the R wave in every
+    // lead; no source gives their size.
+    stShift: -0.1,
+    stAxis: 0,
+    tAmplitude: -0.3,
+    tAxis: 0,
+  }),
+  'left-anterior-fascicular-block': Object.freeze({
+    // Left anterior fascicular block (left anterior hemiblock): modest QRS prolongation under
+    // 0.12 s and a frontal QRS axis more negative than −45° (MSD Manuals, Bundle Branch Block and
+    // Fascicular Block, 2024). Spec: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
+    // assumption: QRS 110 ms, wider than the model's 90 ms but under 120. A small first r of
+    // 0.2 mV and a deep S of −0.4 mV in II on one line at 120°: r points down to +120° and S up to
+    // −60°, so lead I shows qR, II and III show rS with the S in III twice as deep. The S area is
+    // larger than the r area, so the net axis is −60°. No source gives these shapes or amplitudes.
+    qrsDuration: 110,
+    qAmplitude: 0,
+    rAmplitude: 0.2,
+    sAmplitude: -0.4,
+    qrsAxis: 120,
+    sAxis: 120,
   }),
   'brugada-syndrome': Object.freeze({
     // Type 1 Brugada pattern: J-point and ST elevation in the right precordial leads V1 and V2;

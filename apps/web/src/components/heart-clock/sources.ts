@@ -189,6 +189,12 @@ export const presetSources: readonly ClockSource[] = [
     href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/arrhythmogenic-cardiac-disorders/brugada-syndrome',
     lang: 'en',
   },
+  // Bundle branch blocks: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
+  {
+    text: 'MSD Manuals, Professional Version. Bundle Branch Block and Fascicular Block. 2024.',
+    href: 'https://www.msdmanuals.com/professional/cardiovascular-disorders/specific-cardiac-arrhythmias/bundle-branch-block-and-fascicular-block',
+    lang: 'en',
+  },
   // Sick sinus syndrome after treatment (pacemaker): docs/plans/2026-10-13-heart-clock-after-treatment.md.
   // The ESC 2021 pacing translation and the Bradyarrhythmias guideline (160_2) are listed above.
   {

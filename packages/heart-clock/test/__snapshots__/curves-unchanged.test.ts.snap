@@ -250,6 +250,47 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
       180,
     ],
   },
+  "left-anterior-fascicular-block": {
+    "curves": [
+      "40:f0f02182",
+      "40:f0f02182",
+      "47:b7c74613",
+      "60:51128c73",
+      "75:90a0e61d",
+      "100:7ebf871d",
+      "137:d04f5882",
+      "170:45a72281",
+      "180:3b93343d",
+    ],
+    "limits": [
+      40,
+      180,
+    ],
+    "presetLimits": [
+      40,
+      180,
+    ],
+  },
+  "left-bundle-branch-block": {
+    "curves": [
+      "40:d619380",
+      "40:d619380",
+      "47:f2175a0a",
+      "60:f2f21aba",
+      "75:2a6e6c64",
+      "100:5067c649",
+      "137:406bf3c7",
+      "144:e3803ca5",
+    ],
+    "limits": [
+      40,
+      144,
+    ],
+    "presetLimits": [
+      40,
+      144,
+    ],
+  },
   "long-qt-syndrome": {
     "curves": [
       "40:1258cca5",
@@ -289,6 +330,26 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
     "presetLimits": [
       40,
       180,
+    ],
+  },
+  "right-bundle-branch-block": {
+    "curves": [
+      "40:7372b54e",
+      "40:7372b54e",
+      "47:24028713",
+      "60:36db51b2",
+      "75:6e2c90ae",
+      "100:8f9a3904",
+      "137:25b5b2fa",
+      "157:80ccf9ee",
+    ],
+    "limits": [
+      40,
+      157,
+    ],
+    "presetLimits": [
+      40,
+      157,
     ],
   },
   "sick-sinus-syndrome": {
