@@ -101,6 +101,12 @@ const sections: SectionCard[] = [
     title: t['home.cta.clock'],
     note: t['home.section.clockNote'],
   },
+  {
+    id: 'sounds',
+    href: href('heart-sounds/'),
+    title: t['heartSounds.title'],
+    note: t['home.section.soundsNote'],
+  },
   { id: 'code', href: repoUrl, title: t['home.section.code'], note: t['home.section.codeNote'] },
 ];
 
@@ -1180,7 +1186,7 @@ const heroData = JSON.stringify({
 
   .section-cards {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 1rem;
   }
 
@@ -1238,8 +1244,9 @@ const heroData = JSON.stringify({
       flex: 1 1 12.5rem;
     }
 
+    /* Seven cards: a row of four and a row of three. */
     .section-cards {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 

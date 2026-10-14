@@ -104,4 +104,5 @@ export function cardPath(
 }
 
 /** Cards of the "key sections" row on the home page. */
-export type SectionId = 'anatomy' | 'disease' | 'diagnostic' | 'model' | 'clock' | 'code';
+export type SectionId =
+  'anatomy' | 'disease' | 'diagnostic' | 'model' | 'clock' | 'sounds' | 'code';

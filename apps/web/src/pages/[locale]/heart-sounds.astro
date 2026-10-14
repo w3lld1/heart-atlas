@@ -34,7 +34,12 @@ const citations = Object.fromEntries(
 );
 ---
 
-<BaseLayout locale={locale} title={t['heartSounds.title']} description={t['heartSounds.intro']}>
+<BaseLayout
+  locale={locale}
+  title={t['heartSounds.title']}
+  description={t['heartSounds.intro']}
+  searchable
+>
   <h1>{t['heartSounds.title']}</h1>
   <p>{t['heartSounds.intro']}</p>
   <p class="schematic" role="note">

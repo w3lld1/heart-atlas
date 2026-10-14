@@ -132,6 +132,36 @@ const heart =
       <circle cx="120" cy="65" r="5" fill="var(--color-text)" />
     </>
   )}
+  {id === 'sounds' && (
+    <>
+      <line x1="20" y1="65" x2="220" y2="65" stroke="var(--color-border)" stroke-width="2" />
+      <line
+        x1="62"
+        y1="30"
+        x2="62"
+        y2="100"
+        stroke="var(--color-text)"
+        stroke-width="5"
+        stroke-linecap="round"
+      />
+      <path d="M78 65 113 45l35 20-35 20Z" fill="var(--color-accent)" opacity=".45" />
+      <path
+        d="M78 65 113 45l35 20-35 20Z"
+        fill="none"
+        stroke="var(--color-accent)"
+        stroke-width="2"
+      />
+      <line
+        x1="164"
+        y1="42"
+        x2="164"
+        y2="88"
+        stroke="var(--color-text)"
+        stroke-width="5"
+        stroke-linecap="round"
+      />
+    </>
+  )}
   {id === 'code' && (
     <path
       d="M92 40 64 65l28 25M148 40l28 25-28 25M130 30l-20 70"

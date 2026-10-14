@@ -5,18 +5,24 @@ import { articleTypes } from '../src/lib/content.ts';
 import { navCurrent, navLabel, siteNav } from '../src/lib/site-nav.ts';
 
 describe('siteNav', () => {
-  it('lists home, anatomy, the sections the language has, then the heart clock', () => {
+  it('lists home, anatomy, the sections the language has, then the heart clock and sounds', () => {
     expect(siteNav(['diagnostic', 'disease', 'anatomy']).map((item) => item.path)).toEqual([
       '',
       'anatomy/',
       'disease/',
       'diagnostic/',
       'heart-clock/',
+      'heart-sounds/',
     ]);
   });
 
   it('keeps anatomy for a language without articles', () => {
-    expect(siteNav([]).map((item) => item.id)).toEqual(['home', 'anatomy', 'heart-clock']);
+    expect(siteNav([]).map((item) => item.id)).toEqual([
+      'home',
+      'anatomy',
+      'heart-clock',
+      'heart-sounds',
+    ]);
   });
 
   it('adds learning tracks before the heart clock when the language has any', () => {
@@ -26,6 +32,7 @@ describe('siteNav', () => {
       'disease',
       'tracks',
       'heart-clock',
+      'heart-sounds',
     ]);
   });
 
@@ -34,6 +41,7 @@ describe('siteNav', () => {
       'home',
       'anatomy',
       'heart-clock',
+      'heart-sounds',
     ]);
   });
 });

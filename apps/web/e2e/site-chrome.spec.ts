@@ -68,6 +68,12 @@ for (const locale of localeCodes) {
       await expect(clock).toHaveAttribute('aria-current', 'page');
       await expect(menu(page, locale).locator('[aria-current]')).toHaveCount(1);
 
+      await page.goto(`${locale}/heart-sounds/`);
+      await expect(
+        menu(page, locale).getByRole('link', { name: text(locale, 'nav.sounds'), exact: true }),
+      ).toHaveAttribute('aria-current', 'page');
+      await expect(menu(page, locale).locator('[aria-current]')).toHaveCount(1);
+
       const article = await firstArticle(page, locale);
       await page.goto(article.href);
       const section = menu(page, locale).getByRole('link', {
