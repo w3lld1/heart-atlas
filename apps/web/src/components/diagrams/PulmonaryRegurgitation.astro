@@ -1,0 +1,196 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-pulr-arrow`;
+// Both states show diastole: the right ventricle relaxes and the pulmonary valve should be closed.
+// The right ventricle is below, the pulmonary artery above, the valve between them at y = 150 with
+// its hinges on the walls at x = 73 and x = 157. Labels sit in a column on the right.
+// The cusps hang from the hinges and belly towards the ventricle.
+const closedCusps = ['M73,150 Q94,162 113,165', 'M157,150 Q136,162 117,165'];
+// In regurgitation the cusps stop short of each other and leave a gap (x = 103–127).
+const gapCusps = ['M73,150 Q89,159 103,162', 'M157,150 Q141,159 127,162'];
+// The ventricle is drawn larger only in the disease state, as the caption ties it to long-standing
+// severe regurgitation. No prosthesis, no numbers and no tetralogy anatomy are drawn.
+const cavity =
+  'M70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150';
+const cavityLarge =
+  'M70,150 C46,163 40,190 40,212 C40,270 84,300 115,300 C146,300 190,270 190,212 C190,190 184,163 160,150';
+const wall =
+  'M70,150 C54,152 54,180 54,200 C54,252 88,280 115,280 C142,280 176,252 176,200 C176,180 176,152 160,150 Z';
+const wallLarge =
+  'M70,150 C32,152 30,190 30,212 C30,280 80,308 115,308 C150,308 200,280 200,212 C200,190 198,152 160,150 Z';
+// Blood falling back from the artery through the gap: each particle fans out sideways (dx).
+const back = [
+  { dx: -22, delay: 0 },
+  { dx: 0, delay: 0.2 },
+  { dx: 22, delay: 0.4 },
+];
+---
+
+<svg
+  viewBox="0 0 440 316"
+  role="img"
+  aria-label={t['diagram.pulmonary-regurgitation.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Phase of the cardiac cycle: the same in both states -->
+  <text x="218" y="24">
+    {t['diagram.state.diastole']}
+  </text>
+
+  <!-- Right ventricle wall: larger in the disease state -->
+  <path class="normal-only" d={wall} fill="var(--diagram-muscle)"></path>
+  <path class="disease-only" d={wallLarge} fill="var(--diagram-muscle)"></path>
+
+  <!-- Right ventricle cavity and pulmonary artery -->
+  <g fill="var(--diagram-venous-fill)">
+    <path class="normal-only" d={`${cavity} Z`}></path>
+    <path class="disease-only" d={`${cavityLarge} Z`}></path>
+    <path d="M70,150 L70,18 L160,18 L160,150 Z"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2">
+    <path class="normal-only" d={cavity}></path>
+    <path class="disease-only" d={cavityLarge}></path>
+    <path d="M70,150 L70,18 M160,150 L160,18"></path>
+  </g>
+
+  <!-- Backflow: from the artery through the gap into the ventricle; visible with and without
+       motion -->
+  <g class="disease-only">
+    <path
+      d="M108,164 L122,164 L156,250 L74,250 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+    ></path>
+    <path
+      d="M115,40 L115,236"
+      fill="none"
+      stroke="var(--diagram-venous)"
+      stroke-width="4"
+      stroke-linecap="round"
+      marker-end={`url(#${arrowId})`}
+    ></path>
+  </g>
+
+  <!-- Pulmonary valve cusps: closed in the normal state, a gap between them in regurgitation -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="5" stroke-linecap="round">
+    {closedCusps.map((d) => (
+      <path class="normal-only" d={d} />
+    ))}
+    {gapCusps.map((d) => (
+      <path class="disease-only" d={d} />
+    ))}
+  </g>
+  <circle cx="73" cy="150" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="157" cy="150" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Moving blood: only in regurgitation, back from the artery into the ventricle -->
+  <g class="flow disease-only">
+    {back.map((p) => (
+      <circle
+        class="pulr-p"
+        cx="115"
+        cy="44"
+        r="5"
+        fill="var(--diagram-venous)"
+        style={`--pulr-dx: ${p.dx}px; animation-delay: ${p.delay}s`}
+      />
+    ))}
+  </g>
+
+  <!-- Leader lines from the drawing to the label column -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="164" y1="60" x2="212" y2="60"></line>
+    <line class="disease-only" x1="120" y1="104" x2="212" y2="104"></line>
+    <line x1="160" y1="150" x2="212" y2="144"></line>
+    <line class="normal-only" x1="148" y1="240" x2="212" y2="246"></line>
+    <line class="disease-only" x1="172" y1="244" x2="212" y2="246"></line>
+  </g>
+
+  <!-- Labels -->
+  <text x="218" y="65">
+    {t['diagram.label.pulmonaryArtery']}
+  </text>
+  <text class="diagram-small disease-only" x="218" y="108">
+    {t['diagram.label.backflow']}
+  </text>
+  <text class="diagram-small" x="218" y="148">
+    {t['diagram.label.pulmonary-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="218" y="166">
+    {t['diagram.label.leaflets-closed']}
+  </text>
+  <text class="diagram-small disease-only" x="218" y="166">
+    {t['diagram.label.leaflets-gap']}
+  </text>
+  <text class="normal-only" x="218" y="251">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="disease-only" x="218" y="251">
+    {t['diagram.label.rv-dilated']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .pulr-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: pulr-back 2.4s linear infinite;
+  }
+
+  /* Paused: the particles stop; the arrow carries the meaning. */
+  .diagram:has(.diagram-pause :checked) .pulr-p {
+    animation: none;
+  }
+
+  /* Diastole: blood falls back from the artery through the gap and fans out in the ventricle. */
+  @keyframes pulr-back {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    8% {
+      opacity: 1;
+    }
+
+    45% {
+      opacity: 1;
+      transform: translate(0, 118px);
+    }
+
+    70% {
+      opacity: 1;
+      transform: translate(var(--pulr-dx), 186px);
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--pulr-dx), 196px);
+    }
+  }
+</style>

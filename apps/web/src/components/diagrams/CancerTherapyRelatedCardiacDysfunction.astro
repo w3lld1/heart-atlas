@@ -1,0 +1,264 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-ctrcd-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const maxChars = 22;
+const lines = (key: MessageKey) => wrap(t[key], maxChars);
+
+// The left ventricle in a long-axis view, base at the top and apex at the bottom, as in the
+// takotsubo diagram. Only the ventricle is drawn: no ejection fraction or strain numbers, no
+// drugs, doses or schedules. The point is the comparison with the same ventricle before treatment.
+// Cavity before contraction (end of diastole), as an open outline along the wall; the same in both
+// states.
+const relaxedWall = 'M100,60 C78,150 100,320 160,320 C220,320 242,150 220,60';
+// End of contraction: the relaxed outline scaled towards the middle of the base. Before treatment
+// every wall moves in well; with cardiotoxicity the same walls move in less.
+const squeezed = (sx: number, sy: number) => {
+  const p = (x: number, y: number) =>
+    `${+(160 + (x - 160) * sx).toFixed(1)},${+(60 + (y - 60) * sy).toFixed(1)}`;
+  return `M${p(100, 60)} C${p(78, 150)} ${p(100, 320)} ${p(160, 320)} C${p(220, 320)} ${p(242, 150)} ${p(220, 60)}`;
+};
+const baselineWall = squeezed(0.72, 0.78);
+const weakWall = squeezed(0.9, 0.93);
+const closed = (wall: string) => `${wall} Z`;
+
+const labelX = 294;
+const wallLabel = {
+  normal: lines('diagram.label.all-walls-contract'),
+  disease: lines('diagram.label.walls-contract-weaker'),
+};
+
+// Legend rows: solid (before contraction), dashed (after contraction before treatment), dotted
+// (after contraction now, disease only). Each row starts below the previous one's last line.
+const legendX = 268;
+const legendTextX = 308;
+const legendRows = [
+  { key: 'diagram.label.before-contraction' as const, kind: 'solid', only: '' },
+  { key: 'diagram.label.contracted-before-treatment' as const, kind: 'dashed', only: '' },
+  { key: 'diagram.label.contracted-now' as const, kind: 'dotted', only: 'disease-only' },
+];
+let legendY = 262;
+const legend = legendRows.map((row) => {
+  const text = lines(row.key);
+  const y = legendY;
+  legendY += text.length * lineHeight + 10;
+  return { ...row, text, y };
+});
+---
+
+<svg
+  viewBox="0 0 460 400"
+  role="img"
+  aria-label={t['diagram.cancer-therapy-related-cardiac-dysfunction.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="5"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-text)"></path>
+    </marker>
+  </defs>
+
+  <!-- Before contraction: shown at rest and while the beat is relaxed -->
+  <g class="ctrcd-relaxed">
+    <path d={closed(relaxedWall)} fill="var(--diagram-arterial-fill)"></path>
+    <path
+      d={relaxedWall}
+      fill="none"
+      stroke="var(--diagram-muscle)"
+      stroke-width="14"
+      stroke-linejoin="round"
+    ></path>
+  </g>
+
+  <!-- End of contraction: fades in during the beat; hidden when motion is off -->
+  {[
+    { wall: baselineWall, state: 'normal-only' },
+    { wall: weakWall, state: 'disease-only' },
+  ].map(({ wall, state }) => (
+    <g class={`ctrcd-contracted ${state}`}>
+      <path d={closed(wall)} fill="var(--diagram-arterial-fill)" />
+      <path
+        d={wall}
+        fill="none"
+        stroke="var(--diagram-muscle)"
+        stroke-width="14"
+        stroke-linejoin="round"
+      />
+    </g>
+  ))}
+
+  <!-- Outlines. Solid: before contraction. Dashed: after contraction before treatment, in both
+       states so the comparison stays visible. Dotted: after contraction now. -->
+  <path
+    d={closed(relaxedWall)}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+  <path
+    d={closed(baselineWall)}
+    fill="none"
+    stroke="var(--color-text)"
+    stroke-width="2"
+    stroke-dasharray="6 4"
+  ></path>
+  <path
+    class="disease-only"
+    d={closed(weakWall)}
+    fill="none"
+    stroke="var(--color-muted)"
+    stroke-width="2.5"
+    stroke-dasharray="1 4"
+    stroke-linecap="round"
+  ></path>
+
+  <text x="160" y="200" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+
+  <!-- Arrows: how far the walls move in. Long before treatment, short with cardiotoxicity. -->
+  <g stroke="var(--color-text)" stroke-width="2.5" marker-end={`url(#${arrowId})`}>
+    <g class="normal-only">
+      <line x1="48" y1="120" x2="80" y2="120"></line>
+      <line x1="272" y1="120" x2="240" y2="120"></line>
+      <line x1="160" y1="364" x2="160" y2="338"></line>
+    </g>
+    <g class="disease-only">
+      <line x1="60" y1="120" x2="74" y2="120"></line>
+      <line x1="260" y1="120" x2="246" y2="120"></line>
+      <line x1="160" y1="352" x2="160" y2="340"></line>
+    </g>
+  </g>
+
+  <!-- Leader line and label from the right column to the wall -->
+  <line
+    x1={labelX - 6}
+    y1="214"
+    x2="236"
+    y2="214"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></line>
+  {[
+    { text: wallLabel.normal, state: 'normal-only' },
+    { text: wallLabel.disease, state: 'disease-only' },
+  ].map(({ text, state }) => (
+    <text class={`diagram-small ${state}`} x={labelX} y="218">
+      {text.map((line, i) => (
+        <tspan x={labelX} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  ))}
+
+  <!-- Legend -->
+  {legend.map((row) => (
+    <g class={row.only || undefined}>
+      <line
+        x1={legendX}
+        y1={row.y - 4}
+        x2={legendX + 32}
+        y2={row.y - 4}
+        stroke={
+          row.kind === 'solid'
+            ? 'var(--diagram-arterial)'
+            : row.kind === 'dashed'
+              ? 'var(--color-text)'
+              : 'var(--color-muted)'
+        }
+        stroke-width={row.kind === 'dotted' ? 2.5 : 2}
+        stroke-dasharray={row.kind === 'dashed' ? '6 4' : row.kind === 'dotted' ? '1 4' : undefined}
+        stroke-linecap={row.kind === 'dotted' ? 'round' : undefined}
+      />
+      <text class="diagram-small" x={legendTextX} y={row.y}>
+        {row.text.map((line, i) => (
+          <tspan x={legendTextX} dy={i === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  ))}
+</svg>
+
+<style is:global>
+  /* One beat: the relaxed chamber gives way to the contracted one and back. Before treatment the
+     cavity shrinks a lot; with cardiotoxicity the same ventricle shrinks less. Without motion only
+     the relaxed chamber is filled, and the dashed and dotted outlines show the end of contraction. */
+  .diagram .ctrcd-contracted {
+    opacity: 0;
+    animation: ctrcd-contract 2s ease-in-out infinite;
+  }
+
+  .diagram .ctrcd-relaxed {
+    animation: ctrcd-relax 2s ease-in-out infinite;
+  }
+
+  .diagram:has(.diagram-pause :checked) .ctrcd-contracted,
+  .diagram:has(.diagram-pause :checked) .ctrcd-relaxed {
+    animation: none;
+  }
+
+  @keyframes ctrcd-contract {
+    0%,
+    25%,
+    85%,
+    100% {
+      opacity: 0;
+    }
+
+    40%,
+    65% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ctrcd-relax {
+    0%,
+    25%,
+    85%,
+    100% {
+      opacity: 1;
+    }
+
+    40%,
+    65% {
+      opacity: 0;
+    }
+  }
+</style>

@@ -1,0 +1,235 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const sideMax = 20;
+const spiralLines = lines('diagram.label.spiral-arteries', sideMax);
+const wallLines = lines('diagram.label.uterine-wall', sideMax);
+const wideLines = lines('diagram.label.wide-arteries-much-blood-to-placenta', 44);
+const narrowLines = lines('diagram.label.narrow-arteries-little-blood-to-placenta', 44);
+const substancesLines = lines('diagram.label.placenta-substances-damage-mother-vessels', 36);
+const pressureLines = lines('diagram.label.mother-blood-pressure-rises', sideMax);
+const organsLines = lines('diagram.label.mother-kidneys-liver-brain-at-risk', sideMax);
+
+// A section through part of the uterine wall with the placenta lying on it. Spiral arteries in the
+// wall carry the mother's blood up into the placenta. Normal: the arteries are wide and much blood
+// reaches the placenta. Pre-eclampsia (by the current theory): the arteries stay narrow, the
+// placenta gets little blood, substances from the placenta damage the mother's vessels, her blood
+// pressure rises and her kidneys, liver and brain can be harmed. No pressure numbers, no weeks, no
+// pills, no heart and no person.
+const wallTop = 180;
+const wallBottom = 260;
+const placenta = `M40,${wallTop} C60,112 280,112 300,${wallTop} Z`;
+const arteryXs = [90, 170, 250];
+const spiral = (x: number) =>
+  `M${x},${wallBottom + 2} C${x - 14},248 ${x + 14},236 ${x},222 C${x - 14},208 ${x + 14},196 ${x},${wallTop + 2}`;
+const sideX = 330;
+const centreX = 170;
+// An upward arrowhead with its tip at (x, tip).
+const arrowhead = (x: number, tip: number, head: number) =>
+  `M${x - head},${tip + head} L${x},${tip} L${x + head},${tip + head}`;
+---
+
+<svg
+  viewBox="0 0 480 360"
+  role="img"
+  aria-label={t['diagram.hypertension-in-pregnancy.title']}
+  lang={locale}
+>
+  <!-- Uterine wall and the placenta lying on it -->
+  <rect
+    x="20"
+    y={wallTop}
+    width="300"
+    height={wallBottom - wallTop}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></rect>
+  <path
+    d={placenta}
+    fill="var(--diagram-arterial-fill)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Spiral arteries: wide normally, narrow in pre-eclampsia. Walls, then lumens on top. -->
+  <g class="normal-only" fill="none">
+    {arteryXs.map((x) => (
+      <path d={spiral(x)} stroke="var(--diagram-arterial)" stroke-width="16" />
+    ))}
+    {arteryXs.map((x) => (
+      <path d={spiral(x)} stroke="var(--diagram-arterial-fill)" stroke-width="10" />
+    ))}
+  </g>
+  <g class="disease-only" fill="none">
+    {arteryXs.map((x) => (
+      <path d={spiral(x)} stroke="var(--diagram-arterial)" stroke-width="7" />
+    ))}
+    {arteryXs.map((x) => (
+      <path d={spiral(x)} stroke="var(--diagram-arterial-fill)" stroke-width="2.5" />
+    ))}
+  </g>
+
+  <!-- Moving blood up the arteries; slower and thinner in pre-eclampsia; hidden without motion -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)">
+    {arteryXs.map((x) => (
+      <path class="dash-flow normal-only" d={spiral(x)} stroke-width="2.5" />
+    ))}
+    {arteryXs.map((x) => (
+      <path class="dash-flow hip-slow disease-only" d={spiral(x)} stroke-width="1.5" />
+    ))}
+  </g>
+
+  <!-- Blood entering the placenta: long, thick arrows normally; short, thin ones in pre-eclampsia -->
+  <g
+    class="normal-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="3"
+    stroke-linecap="round"
+  >
+    {arteryXs.map((x) => (
+      <path d={`M${x},${wallTop - 4} V140`} />
+    ))}
+    {arteryXs.map((x) => (
+      <path d={arrowhead(x, 140, 7)} />
+    ))}
+  </g>
+  <g
+    class="disease-only"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+  >
+    {arteryXs.map((x) => (
+      <path d={`M${x},${wallTop - 4} V164`} />
+    ))}
+    {arteryXs.map((x) => (
+      <path d={arrowhead(x, 164, 4)} />
+    ))}
+  </g>
+
+  <!-- Labels shared by both states -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1={sideX - 6} y1="134" x2="276" y2="158"></line>
+    <line x1={sideX - 6} y1="206" x2="262" y2="222"></line>
+    <line x1={sideX - 6} y1="246" x2="312" y2="246"></line>
+  </g>
+  <text class="diagram-small" x={sideX} y="138">
+    {t['diagram.label.placenta']}
+  </text>
+  <text class="diagram-small" x={sideX} y="210">
+    {spiralLines.map((line, index) => (
+      <tspan x={sideX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={sideX} y="250">
+    {wallLines.map((line, index) => (
+      <tspan x={sideX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Normal: plenty of blood reaches the placenta -->
+  <text class="diagram-small normal-only" x={centreX} y="292" text-anchor="middle">
+    {wideLines.map((line, index) => (
+      <tspan x={centreX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Pre-eclampsia: little blood reaches the placenta, and the mother is affected -->
+  <g class="disease-only">
+    <text class="diagram-small" x={centreX} y="292" text-anchor="middle">
+      {narrowLines.map((line, index) => (
+        <tspan x={centreX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <g class="hip-pulse">
+      <g fill="none" stroke="var(--diagram-arterial)" stroke-width="2" stroke-linecap="round">
+        <path d={`M${centreX},112 V70`}></path>
+        <path d={arrowhead(centreX, 70, 6)}></path>
+        <path d={`M300,36 H${sideX - 10}`}></path>
+        <path d={`M${sideX - 16},30 L${sideX - 10},36 L${sideX - 16},42`}></path>
+      </g>
+      <text class="diagram-small" x={centreX} y="30" text-anchor="middle">
+        {substancesLines.map((line, index) => (
+          <tspan x={centreX} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+      <text class="diagram-small" x={sideX} y="30">
+        {pressureLines.map((line, index) => (
+          <tspan x={sideX} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+      <text class="diagram-small" x={sideX} y="72">
+        {organsLines.map((line, index) => (
+          <tspan x={sideX} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  </g>
+</svg>
+
+<style is:global>
+  /* In pre-eclampsia the blood moves more slowly and the effects on the mother pulse; without
+     motion the narrow arteries, the thin arrows and the labels carry the difference. */
+  .diagram .hip-slow {
+    animation-duration: 4s;
+  }
+
+  .diagram .hip-pulse {
+    animation: hip-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes hip-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+
+    40% {
+      opacity: 1;
+    }
+  }
+</style>

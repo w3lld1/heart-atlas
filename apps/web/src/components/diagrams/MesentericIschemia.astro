@@ -1,0 +1,207 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max = 20) => wrap(t[key], max);
+const smaLines = lines('diagram.label.superior-mesenteric-artery', 22);
+const imaLines = lines('diagram.label.inferior-mesenteric-artery', 22);
+const fromHeartLines = lines('diagram.label.clot-may-come-from-heart-in-af');
+const chronicLines = lines('diagram.label.chronic-form-plaques-narrow-arteries', 16);
+
+// The abdominal aorta seen from the side, front to the right: three arteries leave it forwards,
+// the coeliac trunk, the superior mesenteric artery (SMA) to the loops of the intestine and the
+// inferior mesenteric artery (IMA) to the lower colon. Normal: blood reaches the intestine, which
+// is pink. Disease (acute): a clot blocks the SMA, there is no flow beyond it and the loops it
+// supplies are grey; the clot may come from the heart in atrial fibrillation. The chronic form is
+// only a legend: plaques narrow the arteries, drawn near the start of the coeliac trunk and SMA.
+// No percentages, no stent, no clock and no numbers anywhere.
+const aortaX = 60;
+const aorta = `M${aortaX},0 V440`;
+const celiac = `M${aortaX},70 C100,70 130,66 160,58`;
+const sma = `M${aortaX},120 C110,120 140,130 160,150 C175,165 185,180 195,195`;
+// The SMA up to the clot: the first curve of `sma` split at t = 0.7.
+const smaToClot = `M${aortaX},120 C95,120 120.2,124.9 139,134.7`;
+const ima = `M${aortaX},350 C100,350 135,360 160,388`;
+// Small branches of the SMA into the loops.
+const smaBranches = [
+  'M195,195 L224,201',
+  'M195,195 C205,220 210,240 222,256',
+  'M195,195 C200,240 205,270 232,287',
+];
+// Loops of the small intestine fed by the SMA, and the lower colon fed by the IMA.
+const loops =
+  'M215,200 C260,185 320,185 340,205 C358,222 340,240 300,238 C260,236 225,240 220,262 C215,285 250,295 300,290 C335,287 350,300 345,318';
+const colon = 'M150,402 C200,392 250,396 290,404 C320,410 345,404 360,392';
+// The clot sits in the SMA at t = 0.8 of its first curve, turned along the artery.
+const clot = { x: 146.7, y: 139.2, angle: 33 };
+// Plaques of the chronic form narrow the lumen of the coeliac trunk and the SMA from both sides.
+const plaques = [
+  { x: 88, y: 66.6 },
+  { x: 88, y: 73.4 },
+  { x: 88, y: 116.6 },
+  { x: 88, y: 123.4 },
+];
+const columnX = 380;
+---
+
+<svg
+  viewBox="0 0 520 440"
+  role="img"
+  aria-label={t['diagram.mesenteric-ischemia.title']}
+  lang={locale}
+>
+  <!-- The intestine: an outline, then the tissue; in disease the loops beyond the clot are grey -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d={loops} stroke="var(--color-muted)" stroke-width="24"></path>
+    <path d={colon} stroke="var(--color-muted)" stroke-width="22"></path>
+    <path d={loops} stroke="var(--diagram-muscle)" stroke-width="20"></path>
+    <path d={colon} stroke="var(--diagram-muscle)" stroke-width="18"></path>
+    <path class="disease-only mzi-grey" d={loops} stroke-width="20"></path>
+  </g>
+
+  <!-- Arteries: walls, then lumens on top -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={celiac} stroke-width="12"></path>
+    <path d={sma} stroke-width="12"></path>
+    <path d={ima} stroke-width="10"></path>
+    {smaBranches.map((d) => (
+      <path d={d} stroke-width="4" />
+    ))}
+    <path d={aorta} stroke-width="26" stroke-linecap="butt"></path>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linecap="round">
+    <path d={celiac} stroke-width="7"></path>
+    <path d={sma} stroke-width="7"></path>
+    <path d={ima} stroke-width="5"></path>
+    <path d={aorta} stroke-width="18" stroke-linecap="butt"></path>
+  </g>
+
+  <!-- Moving blood; hidden without motion. In disease it stops at the clot. -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path class="dash-flow" d={aorta}></path>
+    <path class="dash-flow" d={celiac}></path>
+    <path class="dash-flow" d={ima}></path>
+    <path class="dash-flow normal-only" d={sma}></path>
+    <path class="dash-flow disease-only" d={smaToClot}></path>
+  </g>
+
+  <!-- Disease: the clot in the SMA and plaques near the start of two arteries. The outline keeps
+       their edges visible against the lumen in the light theme. -->
+  <g class="disease-only" stroke="var(--color-text)" stroke-width="1">
+    <ellipse
+      cx={clot.x}
+      cy={clot.y}
+      rx="9"
+      ry="5"
+      fill="var(--diagram-arterial)"
+      transform={`rotate(${clot.angle} ${clot.x} ${clot.y})`}
+    ></ellipse>
+    <g fill="var(--diagram-plaque)">
+      {plaques.map((p) => (
+        <ellipse cx={p.x} cy={p.y} rx="7" ry="2.4" />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="80" y="24">
+    {t['diagram.label.abdominal-aorta']}
+  </text>
+  <text class="diagram-small" x="170" y="62">
+    {t['diagram.label.celiac-trunk']}
+  </text>
+  <text class="diagram-small" x="190" y="104">
+    {smaLines.map((line, index) => (
+      <tspan x="190" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x="180" y="352">
+    {imaLines.map((line, index) => (
+      <tspan x="180" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Normal: the intestine is named -->
+  <text class="diagram-small normal-only" x={columnX} y="250">
+    {t['diagram.label.intestine']}
+  </text>
+
+  <!-- Disease labels in the right column -->
+  <g class="disease-only">
+    <line
+      x1="158"
+      y1="139"
+      x2={columnX - 6}
+      y2="139"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text x={columnX} y="144">
+      {t['diagram.label.clot']}
+    </text>
+    <text class="diagram-small" x={columnX} y="164">
+      {fromHeartLines.map((line, index) => (
+        <tspan x={columnX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={columnX} y="250">
+      {t['diagram.label.no-blood-flow']}
+    </text>
+    <!-- Legend for the chronic form: a plaque swatch and its label -->
+    <ellipse
+      cx={columnX + 6}
+      cy="296"
+      rx="6"
+      ry="3"
+      fill="var(--diagram-plaque)"
+      stroke="var(--color-text)"
+      stroke-width="1"
+    ></ellipse>
+    <text class="diagram-small" x={columnX + 18} y="300">
+      {chronicLines.map((line, index) => (
+        <tspan x={columnX + 18} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The loops beyond the clot turn grey: the muted colour over the pink tissue. */
+  .diagram .mzi-grey {
+    stroke: var(--color-muted);
+    stroke-opacity: 0.8;
+  }
+</style>
