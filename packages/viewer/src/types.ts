@@ -38,6 +38,13 @@ export const viewerMessageKeys = [
   'viewer.heartbeat.rateValue',
   'viewer.heartbeat.note',
   'viewer.disease.note',
+  'viewer.disease.pick',
+  'viewer.disease.startBeat',
+  'viewer.disease.pick.normal',
+  'viewer.disease.article',
+  'viewer.disease.view',
+  'viewer.disease.view.normal',
+  'viewer.disease.view.disease',
   'viewer.disease.sources',
   'viewer.disease.marker.atrial-septal-defect',
   'viewer.disease.coronary-heart-disease',
@@ -80,6 +87,16 @@ export interface ViewerModels {
   low: string;
 }
 
+/** A disease the reader can pick on the model, with its localized name and article link. */
+export interface DiseaseChoice {
+  id: DiseaseId;
+  label: string;
+  href: string;
+  /** Language and direction of `label` when the article falls back to another locale. */
+  lang?: string;
+  dir?: 'ltr' | 'rtl';
+}
+
 export interface HeartViewerProps {
   models: ViewerModels;
   /** Static image shown until the 3D model loads, and instead of it when WebGL is missing. */
@@ -104,6 +121,11 @@ export interface HeartViewerProps {
   cycle?: 'own' | 'page';
   /** Disease article id whose signs the model shows: docs/plans/2026-10-12-disease-signs-3d.md. */
   disease?: DiseaseId;
+  /**
+   * Diseases the reader can pick from a list: docs/plans/2026-10-13-disease-picker-3d.md. The
+   * pick is kept in the page address as `?disease=<id>`. Takes the place of `disease`.
+   */
+  diseases?: DiseaseChoice[];
   /**
    * Model source credits the source licenses require, filled into `{source}` of
    * `viewer.attribution` and joined by "; ". Required so no page shows the model uncredited.

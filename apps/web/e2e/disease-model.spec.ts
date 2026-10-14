@@ -86,6 +86,71 @@ test.describe('disease signs on the 3D model', () => {
     ).toBeVisible();
   });
 
+  test('the anatomy page picks a disease and keeps it in the address', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('en/anatomy/');
+    const picker = page.getByLabel(en['viewer.disease.pick']);
+    await expect(page.locator('astro-island', { has: picker })).not.toHaveAttribute('ssr');
+    const caption = page.getByText(en['viewer.disease.dilated-cardiomyopathy'], { exact: true });
+    await expect(caption).toHaveCount(0);
+    // Heart failure shows through a clock preset, which this page has not got.
+    await expect(picker.locator('option[value="heart-failure"]')).toHaveCount(0);
+    await picker.selectOption('dilated-cardiomyopathy');
+    await expect(caption).toBeVisible();
+    await expect(page).toHaveURL(/\?disease=dilated-cardiomyopathy$/);
+    await expect(page.getByRole('link', { name: /^Article: / })).toHaveAttribute(
+      'href',
+      /\/en\/disease\/dilated-cardiomyopathy\/$/,
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+    await picker.selectOption('');
+    await expect(caption).toHaveCount(0);
+    await expect(page).toHaveURL(/\/anatomy\/$/);
+  });
+
+  test('a shared link opens the model with its disease', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('ru/anatomy/?disease=hypertension');
+    await expect(page.getByLabel(ru['viewer.disease.pick'])).toHaveValue('hypertension');
+    await expect(page.getByText(ru['viewer.disease.hypertension'], { exact: true })).toBeVisible();
+  });
+
+  test('an article without a clock switches the model to normal', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    await page.goto('en/disease/hypertrophic-cardiomyopathy/');
+    const caption = page.getByText(en['viewer.disease.hypertrophic-cardiomyopathy']);
+    const view = page.getByRole('group', { name: en['viewer.disease.view'] });
+    const normal = view.getByRole('radio', { name: en['viewer.disease.view.normal'] });
+    await normal.scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island', { has: normal })).not.toHaveAttribute('ssr');
+    await expect(caption).toBeVisible();
+    await normal.check();
+    await expect(caption).toHaveCount(0);
+    await view.getByRole('radio', { name: en['viewer.disease.view.disease'] }).check();
+    await expect(caption).toBeVisible();
+  });
+
+  test('an article with a clock shows the normal model with its normal preset', async ({
+    page,
+  }) => {
+    test.skip(articles, 'needs the production content build');
+    test.slow();
+    await page.goto('en/disease/hypertension/');
+    const strip = page.locator('canvas[role="img"]').first();
+    await strip.scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island', { has: strip })).not.toHaveAttribute('ssr');
+    const region = page.getByRole('region', { name: en['heartClock.inModel'] });
+    // One normal / disease choice: the clock's.
+    await expect(region.getByRole('group', { name: en['viewer.disease.view'] })).toHaveCount(0);
+    const caption = page.getByText(en['viewer.disease.hypertension'], { exact: true });
+    await loadModel(page);
+    await expect(caption).toBeVisible(LOAD);
+    await region
+      .getByRole('radio', { name: en['heartClock.preset.normal'] })
+      .dispatchEvent('click');
+    await expect(caption).toHaveCount(0, LOAD);
+  });
+
   test('the heart clock page model follows the chosen preset', async ({ page }) => {
     test.slow();
     await page.goto('en/heart-clock/');

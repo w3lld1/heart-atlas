@@ -50,11 +50,12 @@ const nav = siteNav(
     .map((page) => page.type),
   articlePages(await getCollection('tracks'), locales).some((page) => page.locale === locale),
 );
-// The page path after "<base><locale>/", for the current menu item.
+// The page path after "<base><locale>/", for the current menu item; null for a page outside the
+// locale's pages (the 404 page), which no menu item is current for.
 const localeRoot = localePath(base, locale);
 const pagePath = Astro.url.pathname.startsWith(localeRoot)
   ? Astro.url.pathname.slice(localeRoot.length)
-  : '';
+  : null;
 ---
 
 <html lang={locale} dir={dir}>
@@ -75,11 +76,13 @@ const pagePath = Astro.url.pathname.startsWith(localeRoot)
         href={new URL(switchLocalePath(Astro.url.pathname, base, code, localeCodes), Astro.site)}
       />
     ))}
-    <link
-      rel="alternate"
-      hreflang="x-default"
-      href={new URL(localePath(base, defaultLocale), Astro.site)}
-    />
+    {translatedLocales.length > 0 && (
+      <link
+        rel="alternate"
+        hreflang="x-default"
+        href={new URL(localePath(base, defaultLocale), Astro.site)}
+      />
+    )}
     <title>{pageTitle}</title>
     <MotionScript />
     <slot name="head" />

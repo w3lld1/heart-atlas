@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { localeCodes, productionLocales } from '../src/i18n/locales.ts';
+import { defaultLocale, localeCodes, productionLocales } from '../src/i18n/locales.ts';
 import { axe } from './axe.ts';
 
 // messages.ts relies on Vite's import.meta.glob, so tests read the strings files directly.
@@ -122,3 +122,30 @@ for (const locale of localeCodes) {
     }
   });
 }
+
+test('an unknown address shows the site 404 page in every language, with no axe violations', async ({
+  page,
+}) => {
+  const response = await page.goto('no-such-page/at-all/');
+  expect(response?.status()).toBe(404);
+  // The default language heads the page; the others follow as sections.
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    text(defaultLocale, 'notFound.title'),
+  );
+  for (const locale of Object.keys(productionLocales).filter((code) => code !== defaultLocale)) {
+    await expect(
+      page.getByRole('heading', { level: 2, name: text(locale, 'notFound.title'), exact: true }),
+    ).toBeVisible();
+  }
+  for (const locale of Object.keys(productionLocales)) {
+    await expect(
+      page.getByRole('link', { name: text(locale, 'notFound.home'), exact: true }).first(),
+    ).toHaveAttribute('href', new RegExp(`/${locale}/$`));
+    await expect(
+      page.getByRole('link', { name: text(locale, 'notFound.search'), exact: true }),
+    ).toHaveAttribute('href', new RegExp(`/${locale}/search/$`));
+  }
+  // The page is in no section, so no menu item is current.
+  await expect(menu(page, defaultLocale).locator('a[aria-current]')).toHaveCount(0);
+  expect((await axe(page).analyze()).violations).toEqual([]);
+});

@@ -209,3 +209,60 @@ export function nearestDistances(
   }
   return out;
 }
+
+/** Query parameter that keeps the disease picked on the model, so the page link can be shared. */
+export const DISEASE_PARAM = 'disease';
+
+/** The picked disease in a page query string, if it is one of `choices`. */
+export function diseaseFromQuery(search: string, choices: readonly DiseaseId[]): DiseaseId | null {
+  const value = new URLSearchParams(search).get(DISEASE_PARAM);
+  return choices.find((id) => id === value) ?? null;
+}
+
+/** The query string with `id` picked, or with the pick removed for null; other params stay. */
+export function queryWithDisease(search: string, id: DiseaseId | null): string {
+  const params = new URLSearchParams(search);
+  if (id) params.set(DISEASE_PARAM, id);
+  else params.delete(DISEASE_PARAM);
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+/** What decides the disease a viewer draws: docs/plans/2026-10-13-disease-picker-3d.md. */
+export interface ShownDiseaseInput {
+  /** The viewer offers a picker; `picked` is the reader's choice from it. */
+  picker: boolean;
+  picked: DiseaseId | null;
+  own: DiseaseId | undefined;
+  /** The viewer follows the heart clock on the page. */
+  followsClock: boolean;
+  /** The reader's normal / disease switch of a viewer with its own disease and no clock. */
+  showOwn: boolean;
+  preset: PresetId | null;
+}
+
+/**
+ * The disease drawn and the clock preset it may follow. A picker decides alone. A viewer with
+ * its own disease that follows a clock switches with the clock's normal preset; without a clock it
+ * has a switch of its own (`ownSwitch`).
+ */
+export function shownDisease(input: ShownDiseaseInput): {
+  disease: DiseaseId | undefined;
+  preset: PresetId | null;
+  ownSwitch: boolean;
+} {
+  if (input.picker) return { disease: input.picked ?? undefined, preset: null, ownSwitch: false };
+  if (!input.own) return { disease: undefined, preset: input.preset, ownSwitch: false };
+  const ownSwitch = !input.followsClock;
+  const shown = ownSwitch ? input.showOwn : input.preset !== 'normal';
+  return shown
+    ? { disease: input.own, preset: input.preset, ownSwitch }
+    : { disease: undefined, preset: null, ownSwitch };
+}
+
+/**
+ * Whether a disease shows on a viewer with its own heartbeat, like the 3D page: it has still signs
+ * or signs the viewer draws itself. Signs that come from a clock preset need that clock.
+ */
+export const shownOnAnatomy = (id: DiseaseId): boolean =>
+  hasStillSigns(diseaseShapes[id]) || diseaseShapes[id].beat === true;

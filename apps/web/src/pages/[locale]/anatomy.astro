@@ -1,13 +1,14 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { HeartViewer } from '@heart-atlas/viewer';
+import { HeartViewer, isDiseaseId, shownOnAnatomy, type DiseaseChoice } from '@heart-atlas/viewer';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
 import { localePath } from '../../i18n/paths.ts';
 import { articlePages } from '../../lib/articles.ts';
 import {
+  congenitalModelIds,
   heartAttribution,
   heartModelUrls,
   heartStructures,
@@ -22,9 +23,33 @@ const t = getMessages(locale);
 const base = import.meta.env.BASE_URL;
 const { models, poster } = heartModelUrls(base);
 // Anatomy articles readable in this locale; this page is their list (see typesListedElsewhere).
-const articles = articlePages(await getCollection('articles'), locales)
+const pages = articlePages(await getCollection('articles'), locales);
+const articles = pages
   .filter((page) => page.locale === locale && page.type === 'anatomy')
   .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title, locale));
+// Disease articles readable in this locale: those whose shape shows on this model become its picker
+// (docs/plans/2026-10-13-disease-picker-3d.md), those with a patient model are linked under it.
+const diseasePages = pages
+  .filter((page) => page.locale === locale && page.type === 'disease')
+  .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title, locale));
+const diseaseHref = (slug: string) => localePath(base, locale, `disease/${slug}/`);
+const diseases: DiseaseChoice[] = diseasePages.flatMap((page) =>
+  isDiseaseId(page.slug) && shownOnAnatomy(page.slug)
+    ? [
+        {
+          id: page.slug,
+          label: page.entry.data.title,
+          href: diseaseHref(page.slug),
+          ...(page.contentLocale === locale
+            ? {}
+            : { lang: page.contentLocale, dir: locales[page.contentLocale]?.dir ?? 'ltr' }),
+        },
+      ]
+    : [],
+);
+const patientModels = diseasePages.filter((page) =>
+  (congenitalModelIds as readonly string[]).includes(page.slug),
+);
 ---
 
 <BaseLayout locale={locale} title={t['anatomy.title']} description={t['anatomy.intro']} searchable>
@@ -39,7 +64,26 @@ const articles = articlePages(await getCollection('articles'), locales)
     attribution={heartAttribution()}
     loadOn="auto"
     cycle="own"
+    diseases={diseases}
   />
+  {patientModels.length > 0 && (
+    <div>
+      <p>{t['anatomy.patientModels']}</p>
+      <ul>
+        {patientModels.map((page) => (
+          <li>
+            <a
+              href={diseaseHref(page.slug)}
+              lang={page.contentLocale === locale ? undefined : page.contentLocale}
+              dir={page.contentLocale === locale ? undefined : locales[page.contentLocale]?.dir}
+            >
+              {page.entry.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
   {articles.length > 0 && (
     <section aria-labelledby="anatomy-articles">
       <h2 id="anatomy-articles">{t['anatomy.articles']}</h2>
