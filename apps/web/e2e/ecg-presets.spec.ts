@@ -524,3 +524,23 @@ for (const slug of [
     expect((await axe(page).analyze()).violations).toEqual([]);
   });
 }
+
+test('the CPVT article shows bidirectional ventricular tachycardia', async ({ page }) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/catecholaminergic-polymorphic-ventricular-tachycardia/');
+  // Normal (the ECG between episodes) and bidirectional VT (`preset`), drawn in the limb leads.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', {
+      name: en['heartClock.preset.bidirectional-ventricular-tachycardia'],
+    }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.bidirectional-ventricular-tachycardia.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  expect((await axe(page).analyze()).violations).toEqual([]);
+});
