@@ -44,10 +44,10 @@
 |---|---|---|---|---|---|
 | esc | guideline | 2022 ESC Guidelines for the management of patients with ventricular arrhythmias and the prevention of sudden cardiac death | 2022 | [10.1093/eurheartj/ehac262](https://doi.org/10.1093/eurheartj/ehac262) | Только официальный набор слайдов (рекомендации по ER) |
 | minzdrav-rf | guideline | Желудочковые нарушения ритма сердца. Внезапная сердечная смерть (ID 569_2) | 2025 | [10.15829/1560-4071-2025-6670](https://doi.org/10.15829/1560-4071-2025-6670) | Классификация, экстренные состояния |
-| msd-manuals | reference | Early Repolarization Syndrome; Athlete's Heart; Overview of Channelopathies | 2026 | msdmanuals.com | Целиком |
+| msd-manuals | reference | Early Repolarization Syndrome; Athlete's Heart | 2026 | msdmanuals.com | Целиком |
 | statpearls | reference | ST Segment | 2023 | PMID 29083566 | Только аннотация в PubMed |
 
-Паттерн и синдром разделяем в каждом разделе. Признаки высокого риска — со ссылкой на MSD. Препараты — только как «лекарственное лечение», без названий. Экстренно: обморок без предвестников, остановка сердца — «103 или 112», реанимация.
+Паттерн и синдром разделяем в каждом разделе. Признаки высокого риска — со ссылкой на MSD. Препараты — только как «лекарственное лечение», без названий. Экстренно: признаки по Минздраву 569_2 (приступ аритмии с головокружением, слабостью, предобмороком или обмороком; разряд ИКД), остановка сердца — «103 или 112», реанимация.
 
 ### 2. Сердце при гипотиреозе (`hypothyroid-heart-disease`)
 
@@ -69,7 +69,7 @@
 | minzdrav-rf | guideline | Хроническая сердечная недостаточность (ID 156_2) | 2024 | [10.15829/1560-4071-2024-6162](https://doi.org/10.15829/1560-4071-2024-6162) | Разделы 1.2, 1.6 |
 | esc | guideline | 2026 ESC Guidelines for the management of heart failure | 2026 | [10.1093/eurheartj/ehag100](https://doi.org/10.1093/eurheartj/ehag100) | Только официальный набор слайдов |
 | esc | guideline | 2024 ESC Guidelines for the management of elevated blood pressure and hypertension | 2024 | [10.1093/eurheartj/ehae178](https://doi.org/10.1093/eurheartj/ehae178) | Только «Essential Messages» |
-| msd-manuals | reference | Hypertension (professional) и High Blood Pressure (consumer); Heart Failure | 2025–2026 | msdmanuals.com | Целиком |
+| msd-manuals | reference | Hypertension (professional) и High Blood Pressure (consumer); Acute Heart Failure | 2025–2026 | msdmanuals.com | Целиком |
 
 Критерии ГЛЖ (ЭКГ, ЭхоКГ) и диастолические пороги — только для студента, каждый со своим источником, без смешивания наборов Минздрава и ESC. Категории фракции выброса — по Минздраву с оговоркой, что ESC 2026 их изменил. Пороги давления США из MSD не используем. Экстренно: признаки острой сердечной недостаточности, боль в груди — «103 или 112»; гипертонический криз — ссылкой на статью.
 
@@ -80,7 +80,8 @@
 | esc | guideline | 2023 ESC Guidelines for the management of cardiovascular disease in patients with diabetes | 2023 | [10.1093/eurheartj/ehad192](https://doi.org/10.1093/eurheartj/ehad192) | Только официальный набор слайдов |
 | minzdrav-rf | guideline | Сахарный диабет 2 типа у взрослых (ID 290_2) | 2022 | [cr.minzdrav.gov.ru/view-cr/290_2](https://cr.minzdrav.gov.ru/view-cr/290_2) | Весь текст через API |
 | nice | guideline | Type 2 diabetes in adults: management (NG28) | 2026 | [nice.org.uk/guidance/ng28](https://www.nice.org.uk/guidance/ng28) | Раздел о первых препаратах |
-| msd-manuals | reference | Complications of Diabetes Mellitus; Acute Myocardial Infarction; Acute Coronary Syndromes (consumer) | 2025–2026 | msdmanuals.com | Целиком |
+| msd-manuals | reference | Long-Term Complications of Diabetes Mellitus (professional и consumer); Acute Myocardial Infarction; Acute Coronary Syndromes (consumer) | 2025–2026 | msdmanuals.com | Целиком |
+| statpearls | reference | Silent Myocardial Ischemia | 2024 | PMID 30725600 | Только аннотация в PubMed |
 
 Классы сахароснижающих препаратов с доказанной пользой для сердца — только классами. Совет «разжевать аспирин» из MSD не используем. Экстренно: инфаркт при диабете может быть без боли; одышка, слабость, пот, тошнота, обморок — «103 или 112».
 
