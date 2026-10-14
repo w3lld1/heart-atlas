@@ -131,6 +131,7 @@ const ventricularPrematureShape = {
   rNotch: 0,
   tAmplitude: -0.3,
   stShift: 0,
+  jWave: 0,
   stSlope: 0,
   atrialContribution: 0,
   prematureEvery: 0,

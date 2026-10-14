@@ -11,9 +11,10 @@ describe('early repolarization', () => {
   const at = (ms: number, lead?: 'I' | 'II' | 'III') =>
     clock.ecgAt(beat.start + beat.timing.jPoint + ms, lead);
 
-  it('raises the J point by 0.1 mV or more, but not to the 0.2 mV of a high-risk J wave', () => {
+  it('raises the J point by 0.1 mV or more, below a high-risk 0.2 mV, from 40 to 180 bpm', () => {
     expect(presetLead('early-repolarization')).toBe('II');
-    for (const rate of presetRateLimits('early-repolarization')) {
+    const [min, max] = presetRateLimits('early-repolarization');
+    for (let rate = min; rate <= max; rate += 10) {
       const fast = createHeartClock({ ...params, heartRate: rate });
       const b = fast.beatAt(3000);
       const ecg = fast.ecgBetween(
@@ -35,14 +36,15 @@ describe('early repolarization', () => {
     expect(at(50)).toBeGreaterThan(0.03);
   });
 
-  it('raises the J point in leads I and III too, less than in II (ST axis 60°)', () => {
-    expect(at(0, 'III')).toBeGreaterThanOrEqual(0.05);
-    expect(at(0, 'III')).toBeLessThan(at(0));
-    expect(at(0, 'I')).toBeGreaterThanOrEqual(0.05);
+  it('raises the J point as much in III as in II, and not in I (ST axis 90°)', () => {
+    expect(at(0, 'III')).toBeGreaterThanOrEqual(0.1);
+    expect(Math.abs(at(0, 'III') - at(0))).toBeLessThan(0.01);
+    expect(Math.abs(at(0, 'I'))).toBeLessThan(0.01);
   });
 
-  it('draws nothing new without a J wave', () => {
+  it('has no J wave by default and accepts 0 to 0.3 mV', () => {
     expect(defaultParams.jWave).toBe(0);
     expect(() => resolveParams({ jWave: 0.31 })).toThrow(RangeError);
+    expect(() => resolveParams({ jWave: -0.01 })).toThrow(RangeError);
   });
 });
