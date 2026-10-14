@@ -108,6 +108,7 @@ export const diseaseGroups = {
     'acute-limb-ischemia',
     'aortic-dissection',
     'carotid-artery-stenosis',
+    'giant-cell-arteritis',
     'loeys-dietz-syndrome',
     'marfan-syndrome',
     'mesenteric-ischemia',
