@@ -16,6 +16,8 @@ import {
 } from '../src/components/heart-clock/ecg-canvas.ts';
 import { drawWiggers, type WiggersColors } from '../src/components/heart-clock/wiggers-canvas.ts';
 
+const everyPresetTimeout = 20_000;
+
 /** A canvas context that records the vertical segments the trace draws. */
 function recorder() {
   const vertical: { x: number; from: number; to: number }[] = [];
@@ -122,19 +124,25 @@ describe('Wiggers ECG row', () => {
 });
 
 describe('limb lead strips', () => {
-  it('fit every preset drawn in lead II, in every limb lead, with its spikes', () => {
-    const top = limbStrip.baseline / pxPerMv;
-    const bottom = (limbStrip.height - limbStrip.baseline) / pxPerMv;
-    for (const id of presetIds.filter((preset) => presetLead(preset) === 'II')) {
-      const clock = createHeartClock(presetParams(id));
-      // 30 s in windows inside the clock's history, so pauses and premature beats all show.
-      for (let from = 0; from < 30000; from += 9000) {
-        for (const lead of limbLeads) {
-          const values = clock.ecgBetween(from, from + 9000, 9001, lead);
-          expect(Math.max(...values, pacingSpikeMv), `${id} in ${lead}`).toBeLessThan(top);
-          expect(Math.min(...values), `${id} in ${lead}`).toBeGreaterThan(-bottom);
+  // Samples every preset in three leads: about 2 s locally, past the default 5 s on a busy CI
+  // runner (#466).
+  it(
+    'fit every preset drawn in lead II, in every limb lead, with its spikes',
+    () => {
+      const top = limbStrip.baseline / pxPerMv;
+      const bottom = (limbStrip.height - limbStrip.baseline) / pxPerMv;
+      for (const id of presetIds.filter((preset) => presetLead(preset) === 'II')) {
+        const clock = createHeartClock(presetParams(id));
+        // 30 s in windows inside the clock's history, so pauses and premature beats all show.
+        for (let from = 0; from < 30000; from += 9000) {
+          for (const lead of limbLeads) {
+            const values = clock.ecgBetween(from, from + 9000, 9001, lead);
+            expect(Math.max(...values, pacingSpikeMv), `${id} in ${lead}`).toBeLessThan(top);
+            expect(Math.min(...values), `${id} in ${lead}`).toBeGreaterThan(-bottom);
+          }
         }
       }
-    }
-  });
+    },
+    everyPresetTimeout,
+  );
 });

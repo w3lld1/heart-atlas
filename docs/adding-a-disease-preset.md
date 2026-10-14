@@ -42,7 +42,7 @@ When the heart rate is the sign, as in supraventricular tachycardia (120–250 b
 1. Put `heartRate` in the preset, with a source or `assumption:` comment like any other number. It must fit `paramRanges.heartRate` (30–180); below 40 the preset also needs its own floor in `presetRateFloors`.
 2. Add the lowest rate the sign allows to `presetRateFloors`, with its source. `presetRateLimits(id)` then gives `heartRateLimits` limited to that floor instead of the default 40 (a floor can go down to 30 for a slow rhythm), and the slider, the embed builder and the embed's `?rate=` clamp all use it.
 
-`HeartClockDemo` applies `switchedHeartRate`: switching to such a preset sets its rate, switching away from it goes back to the next preset's rate (75 for every other preset), and switching between other presets keeps the reader's rate. An article, the heart clock page or an embed with `?preset=<id>` and no `?rate=` start at the preset's rate. Give the preset its range in `narrowedLimits` in `presets.test.ts`.
+`HeartClockDemo` applies `switchedHeartRate` (through `switchedRate` in `apps/web/src/components/heart-clock/clock-choice.ts`, on the choices the build resolves): switching to such a preset sets its rate, switching away from it goes back to the next preset's rate (75 for every other preset), and switching between other presets keeps the reader's rate. An article, the heart clock page or an embed with `?preset=<id>` and no `?rate=` start at the preset's rate. Give the preset its range in `narrowedLimits` in `presets.test.ts`.
 
 ```ts
 'supraventricular-tachycardia': Object.freeze({
@@ -114,7 +114,7 @@ Add every document your numbers come from to `presetSources` in [`apps/web/src/c
 
 - **Heart clock page.** `[locale]/heart-clock.astro` passes all `presetIds`, so the new preset appears there with no further change.
 - **Article.** Set `preset: <id>` in the frontmatter of the disease article (see [Adding an article](adding-an-article.md)). The schema in `apps/web/src/lib/content.ts` accepts any id from `presetIds` except `normal`. The article page then shows the monitor after the text with the switch `normal` / `<id>` (and the state after treatment when `presetTreated` has one), starting on the preset. Ids that are a `presetTreated` target are not accepted.
-- **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/EcgEmbed.tsx`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range or has a floor, `presetRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped. Without `?rate=` the embed starts at the preset's own rate, if it has one.
+- **Embed.** The ECG embed `/<locale>/embed/ecg/` reads `?preset=<id>` and `?rate=` (`ecgEmbedParams` in `apps/web/src/components/heart-clock/embed-settings.ts`). A new preset id is accepted there and listed in the embed builder automatically. If the preset narrows the heart rate range or has a floor, `presetRateLimits` gives the builder its min and max, and an out-of-range `?rate=` is clamped. Without `?rate=` the embed starts at the preset's own rate, if it has one.
 
 ### 6. Check
 

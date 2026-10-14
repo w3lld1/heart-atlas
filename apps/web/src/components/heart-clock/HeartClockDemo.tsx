@@ -315,7 +315,8 @@ export default function HeartClockDemo({
 
   function changePreset(next: PresetId) {
     const nextChoice = choices.find((item) => item.id === next);
-    if (!nextChoice) return;
+    // `choice` is set by now (the render throws without one); the closure loses that narrowing.
+    if (!choice || !nextChoice) return;
     const rate = switchedRate(choice, nextChoice, heartRate);
     // Sounds queued for the old clock would play out of step.
     playerRef.current?.cancel();
