@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Which hormones does a phaeochromocytoma release?
+    options:
+      - text: Thyroxine and triiodothyronine from the thyroid
+      - text: Adrenaline, noradrenaline and dopamine
+        correct: true
+      - text: Oestrogen and testosterone
+    explanation: Phaeochromocytoma is a tumour of chromaffin cells that usually sits in the adrenal gland and releases catecholamines — adrenaline, noradrenaline and dopamine.
+    cite: [5, 7]
+  - level: patient
+    prompt: What is the same kind of tumour called when it is outside the adrenal gland?
+    options:
+      - text: A paraganglioma
+        correct: true
+      - text: A pituitary adenoma
+      - text: A lipoma
+    explanation: The same kind of tumour outside the adrenal gland is called a paraganglioma.
+    cite: [7, 8]
+  - level: patient
+    prompt: Why is genetic testing recommended for everyone with this tumour?
+    options:
+      - text: To find out the blood group before an operation
+      - text: To learn whether the tumour can be caught from other people
+      - text: To help plan follow-up and check relatives in time
+        correct: true
+    explanation: Genetic testing is recommended for everyone with this tumour — it helps plan follow-up, find other tumours and check relatives in time.
+    cite: [1, 5, 6]
+  - level: patient
+    prompt: What is the main treatment for phaeochromocytoma?
+    options:
+      - text: A kidney transplant from a donor
+      - text: Surgery to remove the tumour
+        correct: true
+      - text: Removing the whole thyroid gland
+    explanation: The main treatment is surgery to remove the tumour.
+    cite: [2, 5, 6]
+  - level: student
+    prompt: According to MSD, why are plasma free metanephrines more sensitive than circulating adrenaline and noradrenaline?
+    options:
+      - text: They are made by the thyroid gland, not by chromaffin cells
+      - text: Adrenaline and noradrenaline are elevated continuously, metanephrines only intermittently
+      - text: Metanephrines are elevated continuously, the hormones only intermittently
+        correct: true
+    explanation: Plasma free metanephrines are more sensitive because metanephrines are elevated continuously, whereas adrenaline and noradrenaline are secreted intermittently.
+    cite: [5]
+  - level: student
+    prompt: How does the Ministry's neuroendocrine tumour guideline view the metastatic potential of PCC?
+    options:
+      - text: There is none, as PCC is always considered benign
+      - text: Every PCC has it, like any neuroendocrine tumour
+        correct: true
+      - text: Only a PCC of the right adrenal gland has it
+    explanation: According to the Ministry's neuroendocrine tumour guideline, every PCC, like any neuroendocrine tumour, has metastatic potential; the former division into benign and malignant has been revised in favour of risk stratification.
+    cite: [2]

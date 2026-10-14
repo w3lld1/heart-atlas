@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Where does blood collect in intramural haematoma of the aorta?
+    options:
+      - text: Inside the arteries that supply the heart itself
+      - text: In the middle layer of the aortic wall
+        correct: true
+      - text: In a second, false lumen behind a detached flap
+    explanation: Intramural haematoma of the aorta is a collection of blood within the middle layer of the aortic wall, with no overt tear of the inner layer and no false lumen.
+    cite: [2, 3]
+  - level: patient
+    prompt: How is intramural haematoma diagnosed?
+    options:
+      - text: On imaging (CT angiography, MRI or echocardiography)
+        correct: true
+      - text: With a blood test alone, without any imaging of the aorta at all
+      - text: With an ECG recording, and the aorta is never imaged for it
+    explanation: The diagnosis is made on imaging, a CT scan of the aorta with contrast dye (CT angiography), MRI or echocardiography.
+    cite: [2, 3]
+  - level: patient
+    prompt: How does treatment of intramural haematoma start?
+    options:
+      - text: A diet is followed for a few weeks first, and treatment comes later
+      - text: The person is sent home first and given a routine check-up
+      - text: Pain is relieved and blood pressure is lowered
+        correct: true
+    explanation: Treatment starts straight away, usually in an intensive care unit. Pain is relieved and blood pressure is lowered to reduce the strain on the aortic wall.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: Which sign means you should call an ambulance?
+    options:
+      - text: A mild runny nose with no fever and no other complaints
+      - text: Sudden, severe pain in the chest or back
+        correct: true
+      - text: Slightly dry skin on the hands after washing the dishes
+    explanation: Call an ambulance for sudden, severe pain in the chest or back.
+    cite: [2]
+  - level: student
+    prompt: What distinguishes type A IMH from type B IMH?
+    options:
+      - text: Type A means a false lumen with blood flowing through it
+      - text: In type A the haematoma occurs only in the abdominal aorta
+      - text: Type A involves the ascending aorta
+        correct: true
+    explanation: The classification is the same as for dissection. Type A involves the ascending aorta, and type B does not.
+    cite: [2, 3]
+  - level: student
+    prompt: How does an ulcer-like projection in IMH differ from a PAU?
+    options:
+      - text: It is not associated with an atherosclerotic plaque
+        correct: true
+      - text: It is just another name for a PAU, with no difference at all
+      - text: It always arises from an ulcerated atherosclerotic plaque
+    explanation: An ulcer-like projection in IMH is not the same as a PAU, as it is not associated with an atherosclerotic plaque.
+    cite: [2, 3]

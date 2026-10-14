@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is thyrotoxicosis?
+    options:
+      - text: Too much sugar in the blood
+      - text: Inflammation of the inner lining of the heart valves
+      - text: Too much thyroid hormone in the blood
+        correct: true
+    explanation: Thyrotoxicosis is a condition in which the blood contains too much thyroid hormone, and the hormone has a toxic, harmful effect on organs and tissues.
+    cite: [1]
+  - level: patient
+    prompt: What happens in the body in Graves disease?
+    options:
+      - text: The body makes antibodies that drive the gland
+        correct: true
+      - text: Cholesterol and calcium build up inside the thyroid gland
+      - text: A flu virus destroys the gland
+    explanation: Graves disease is an autoimmune disease in which the body makes antibodies that drive the thyroid gland.
+    cite: [1]
+  - level: patient
+    prompt: Which test does everyone with thyrotoxicosis have to check the heart?
+    options:
+      - text: A biopsy of the heart muscle through a catheter
+      - text: An electrocardiogram (ECG)
+        correct: true
+      - text: Coronary angiography
+    explanation: Everyone with thyrotoxicosis has an ECG to check the heart.
+    cite: [1]
+  - level: patient
+    prompt: How does the article describe thyroid storm?
+    options:
+      - text: Narrowing of a coronary artery by a plaque
+      - text: A hole present from birth in the wall between the right and left atria
+      - text: A sudden severe flare of thyrotoxicosis treated in intensive care
+        correct: true
+    explanation: Thyroid storm is a life-threatening complication, a sudden severe flare of thyrotoxicosis that is treated in intensive care.
+    cite: [1, 4, 5]
+  - level: student
+    prompt: How is thyrotoxicosis with AF, heart failure or thromboembolism classed?
+    options:
+      - text: As congenital thyrotoxicosis
+      - text: As complicated thyrotoxicosis
+        correct: true
+      - text: As an inherited form of the disease
+    explanation: Thyrotoxicosis with AF, heart failure or thromboembolism is classed as complicated.
+    cite: [1]
+  - level: student
+    prompt: How does the myocardium work at rest in thyrotoxicosis?
+    options:
+      - text: It is hyperfunctioning
+        correct: true
+      - text: It works just as in healthy people
+      - text: It almost stops contracting
+    explanation: In thyrotoxicosis the myocardium is hyperfunctioning already at rest; the rise in heart rate and myocardial oxygen demand can unmask latent angina and lead to decompensated heart failure.
+    cite: [1]

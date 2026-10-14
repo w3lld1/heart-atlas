@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What does coronary angiography show in angina with no obstructive coronary arteries (ANOCA)?
+    options:
+      - text: The arteries are blocked by a clot
+      - text: The large coronary arteries are not narrowed
+        correct: true
+      - text: The heart valve leaflets have fused and narrowed
+    explanation: Many people who have coronary angiography because of angina have no narrowing of the large coronary arteries; this is called angina with no obstructive coronary arteries (ANOCA).
+    cite: [1]
+  - level: patient
+    prompt: What happens to a large artery in vasospastic angina?
+    options:
+      - text: A plaque grows in it
+      - text: A bulge like a small sac forms in the artery wall
+      - text: It suddenly narrows for a while due to spasm
+        correct: true
+    explanation: In vasospastic angina a large coronary artery suddenly narrows for a while; this is a spasm.
+    cite: [1, 4]
+  - level: patient
+    prompt: What is wrong with the small blood vessels of the heart in microvascular angina?
+    options:
+      - text: They do not widen well with exercise
+        correct: true
+      - text: Bacteria that got into the blood inflame them
+      - text: They have been too wide since birth
+    explanation: In microvascular angina the structure or function of the small vessels is changed; they do not widen well with exercise, or they constrict too much.
+    cite: [1, 3]
+  - level: patient
+    prompt: What does the article say to do if you have fainted?
+    options:
+      - text: Wait until morning
+      - text: Call an ambulance straight away
+        correct: true
+      - text: Book a doctor's appointment in the coming weeks
+    explanation: Call your local emergency number straight away if you have fainted.
+    cite: [1]
+  - level: student
+    prompt: How does the Russian Ministry of Health classification place vasospastic and microvascular angina?
+    options:
+      - text: Among valve defects
+      - text: Among inflammatory diseases of the myocardium and pericardium
+      - text: As separate forms of stable CAD
+        correct: true
+    explanation: In the classification of the Russian Ministry of Health guideline these are separate forms of stable CAD, vasospastic angina (variant angina, Prinzmetal angina) and microvascular angina.
+    cite: [2]
+  - level: student
+    prompt: According to ESC 2024, what is the diagnosis of ANOCA/INOCA based on?
+    options:
+      - text: Only on a plain chest X-ray taken in the usual way
+      - text: Only on invasive functional evaluation
+        correct: true
+      - text: Only on a full blood count
+    explanation: According to ESC 2024, myocardial ischaemia on functional imaging without obstructive CAD should raise the suspicion of ANOCA/INOCA, and the diagnosis is based only on invasive functional evaluation.
+    cite: [1]
