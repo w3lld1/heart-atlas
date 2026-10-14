@@ -43,6 +43,9 @@ test.describe('heart viewer', () => {
     await page.goto('en/anatomy/');
     expect((await model).ok()).toBe(true);
     await expect(page.locator('canvas')).toBeVisible(LOAD);
+    // On a wide screen the model stays in view beside the long structure list.
+    const stage = page.locator('canvas').locator('xpath=ancestor::div[@tabindex="-1"][1]');
+    expect(await stage.evaluate((e) => getComputedStyle(e).position)).toBe('sticky');
 
     const button = page.getByRole('button', { name: en['structure.left-ventricle'], exact: true });
     await button.click();

@@ -9,12 +9,6 @@
     grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr);
     align-items: start;
   }
-
-  /* The model stays in view while the reader goes down the long structure list beside it. */
-  .stage {
-    position: sticky;
-    inset-block-start: 1rem;
-  }
 }
 
 .stage {
@@ -26,6 +20,15 @@
   border: 1px solid var(--color-border, #d9d9de);
   border-radius: 0.5rem;
   overflow: hidden;
+}
+
+/* After the base rule, so it wins: the model stays in view while the reader goes down the long
+   structure list beside it. */
+@media (width >= 56rem) {
+  .stage {
+    position: sticky;
+    inset-block-start: 1rem;
+  }
 }
 
 .stage :global(.heart-viewer-canvas) {
@@ -104,6 +107,9 @@
   font: inherit;
   font-weight: 600;
   white-space: nowrap;
+  max-inline-size: calc(100% - 1.5rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -242,7 +248,7 @@
   justify-self: start;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--color-border, #d9d9de);
+  border: 1px solid var(--color-muted, #5a6b86);
   border-radius: 1.125rem;
   overflow: hidden;
 }
@@ -285,7 +291,7 @@
   display: inline-flex;
   gap: 0.375rem;
   padding: 0.25rem 0.75rem;
-  border: 1px solid var(--color-border, #d9d9de);
+  border: 1px solid var(--color-muted, #5a6b86);
   border-radius: 1rem;
   background: var(--color-bg, #fff);
   color: var(--color-text, #1b1b1f);
@@ -297,6 +303,24 @@
   border-color: var(--color-accent, #b3122e);
   background: var(--color-accent, #b3122e);
   color: var(--color-on-accent, #fff);
+}
+
+/* A check mark as well as the fill, so the state reads without colour and in forced colours. */
+.options .toggle:has(:checked)::before,
+.view label:has(:checked)::before {
+  content: '✓' / '';
+}
+
+.view label:has(:checked)::before {
+  margin-inline-end: 0.25rem;
+}
+
+@media (forced-colors: active) {
+  .options .toggle:has(:checked),
+  .view label:has(:checked) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
 }
 
 .options .toggle:has(:focus-visible) {
