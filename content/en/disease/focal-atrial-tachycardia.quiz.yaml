@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What sets the fast rhythm in focal atrial tachycardia?
+    options:
+      - text: The leaflets of the aortic valve of the heart
+      - text: The diaphragm muscle that lies below the lungs
+      - text: A separate focus in the wall of an atrium
+        correct: true
+    explanation: In focal AT the fast rhythm is set not by the sinus node but by a separate focus in the wall of an atrium.
+    cite: [2, 3, 4]
+  - level: patient
+    prompt: Which group of rhythm disorders does focal atrial tachycardia belong to?
+    options:
+      - text: One of the types of supraventricular tachycardia
+        correct: true
+      - text: One of the forms of disease of the brain's blood vessels
+      - text: One of the types of narrowing of the leg arteries
+    explanation: Focal atrial tachycardia is one of the types of supraventricular tachycardia.
+    cite: [1]
+  - level: patient
+    prompt: How does multifocal atrial tachycardia differ from focal AT?
+    options:
+      - text: There is no focus at all anywhere in the atria
+      - text: There are several foci, and they fire at random
+        correct: true
+      - text: The rhythm is always set by the chest wall muscles
+    explanation: In multifocal atrial tachycardia there are several foci, and they fire at random.
+    cite: [1, 3]
+  - level: patient
+    prompt: Which of these, if it comes with an episode of fast heartbeat, is a reason to call an ambulance?
+    options:
+      - text: A mild runny nose
+      - text: Fainting
+        correct: true
+      - text: Dry skin on the hands
+    explanation: Call an ambulance if an episode of fast heartbeat comes with fainting or feeling faint.
+    cite: [1]
+  - level: student
+    prompt: How does the EHRA consensus define focal AT?
+    options:
+      - text: Atrial activation from a discrete focus separate from the sinus node
+        correct: true
+      - text: Excitation of the gut nerves that runs downward from the stomach
+      - text: Activation that spreads strictly along the wall of the aorta from top to bottom
+    explanation: The EHRA consensus defines focal AT as atrial activation emanating from a discrete focus separate from the sinus node and spreading centrifugally.
+    cite: [4]
+  - level: student
+    prompt: How does the Russian Ministry of Health guideline define arrhythmia-induced cardiomyopathy?
+    options:
+      - text: Thickening of the aortic wall due to calcium deposits in its lining in older people
+      - text: Narrowing of the renal arteries followed by a persistent rise in blood pressure
+      - text: Ventricular dilatation and reduced systolic function due to an arrhythmia
+        correct: true
+    explanation: The Ministry guideline defines AiCM as ventricular dilatation and reduced systolic function that most likely arose or worsened because of an arrhythmia.
+    cite: [1]

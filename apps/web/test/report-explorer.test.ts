@@ -1,10 +1,11 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import Cite from '../src/components/Cite.astro';
 import ReportExplorer from '../src/components/report/ReportExplorer.astro';
 import ReportSection from '../src/components/report/ReportSection.astro';
 import ReportTerm from '../src/components/report/ReportTerm.astro';
-import { localeCodes } from '../src/i18n/locales.ts';
+import { localeCodes, productionLocales } from '../src/i18n/locales.ts';
 import { getMessages } from '../src/i18n/messages.ts';
 import en from '../src/i18n/messages/en.json';
 
@@ -139,4 +140,29 @@ describe('the report sample', () => {
       expect(t['report.more']).toContain('{title}');
     }
   });
+});
+
+// The build checks one page at a time; this reads the sample in every production language.
+describe('the echocardiography sample', () => {
+  const content = new URL('../../../content/', import.meta.url);
+  it.each(Object.keys(productionLocales))(
+    '%s: no numbers, every term cites, links exist',
+    (locale) => {
+      const text = readFileSync(
+        new URL(`${locale}/diagnostic/echocardiography.mdx`, content),
+        'utf8',
+      );
+      const block = text.slice(text.indexOf('<ReportExplorer>'), text.indexOf('</ReportExplorer>'));
+      expect(block.length).toBeGreaterThan(0);
+      for (const [, value = ''] of block.matchAll(/\b(?:term|title)="([^"]*)"/g)) {
+        expect(value).not.toMatch(/\d/);
+      }
+      for (const [, body = ''] of block.matchAll(/<ReportTerm\b[^>]*>([\s\S]*?)<\/ReportTerm>/g)) {
+        expect(body).toMatch(/<Cite n=/);
+      }
+      for (const [, path = ''] of block.matchAll(/\barticle="([^"]*)"/g)) {
+        expect(existsSync(new URL(`${locale}/${path}.mdx`, content)), path).toBe(true);
+      }
+    },
+  );
 });
