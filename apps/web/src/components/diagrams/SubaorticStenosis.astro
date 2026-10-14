@@ -1,0 +1,248 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-sas-arrow`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const membraneLines = twoLines(t['diagram.label.subaortic-membrane']);
+// Long-axis view in systole: the left ventricle below, the aorta above, the aortic valve at y = 90
+// with its hinges on the walls at x = 73 and x = 157. The straight stretch between the valve and
+// the ventricle cavity (y = 90 to 150) is the outflow tract. In the disease state a membrane sits in
+// it at y = 124, below a valve that is drawn the same as in the normal state (ESC 2020 ACHD,
+// Russian MoH guideline 745_2). Blood particles: start column (x), start row (y) and a delay so the second row
+// trails the first.
+const particles = [
+  { x: 92, y: 228, delay: 0 },
+  { x: 115, y: 228, delay: 0 },
+  { x: 138, y: 228, delay: 0 },
+  { x: 92, y: 248, delay: 0.2 },
+  { x: 115, y: 248, delay: 0.2 },
+  { x: 138, y: 248, delay: 0.2 },
+];
+// In stenosis the same particles start a little wider and converge on the opening in the membrane.
+const jet = particles.map((p) => ({ ...p, offset: Math.sign(p.x - 115) * 27 }));
+---
+
+<svg
+  viewBox="0 0 440 310"
+  role="img"
+  aria-label={t['diagram.subaortic-stenosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Left ventricle wall round the cavity and the outflow tract: the same in both states -->
+  <path
+    d="M70,90 L54,90 L54,150 C44,158 42,178 42,200 C42,258 82,292 115,292 C148,292 188,258 188,200 C188,178 186,158 176,150 L176,90 L160,90 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Left ventricle cavity, outflow tract and aorta: one lumen with the valve in it -->
+  <path
+    d="M70,18 L70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150 L160,18 Z"
+    fill="var(--diagram-arterial-fill)"
+  ></path>
+  <path
+    d="M70,18 L70,150 C62,163 62,185 62,200 C62,245 92,272 115,272 C138,272 168,245 168,200 C168,185 168,163 160,150 L160,18"
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Normal: a wide, even stream through the free outflow tract and the open valve -->
+  <g class="normal-only" fill="none" stroke="var(--diagram-arterial)" stroke-width="3">
+    <path d="M92,226 L92,32" marker-end={`url(#${arrowId})`}></path>
+    <path d="M115,226 L115,32" marker-end={`url(#${arrowId})`}></path>
+    <path d="M138,226 L138,32" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Disease: blood converges on the opening in the membrane and leaves it as a fast jet -->
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d="M88,226 C88,180 113,156 114,134" stroke-width="3"></path>
+    <path d="M115,226 L115,134" stroke-width="3"></path>
+    <path d="M142,226 C142,180 117,156 116,134" stroke-width="3"></path>
+    <path
+      d="M110,122 L120,122 L118,26 L112,26 Z"
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M115,122 L115,30" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+    <!-- Speed lines mark that the jet moves faster -->
+    <path
+      d="M101,44 L101,62 M101,76 L101,94 M129,44 L129,62 M129,76 L129,94"
+      stroke-width="2"
+    ></path>
+  </g>
+
+  <!-- Aortic valve leaflets (side view), open in systole; the same in both states -->
+  <g transform="translate(73,90) rotate(-80)">
+    <path class="sas-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+  </g>
+  <g transform="translate(157,90) scale(-1,1) rotate(-80)">
+    <path class="sas-leaf" d="M0,-2.5 Q22,-4 41,-2 Q45,0 41,2 Q22,4 0,2.5 Z"></path>
+  </g>
+  <circle cx="73" cy="90" r="3.5" fill="var(--color-muted)"></circle>
+  <circle cx="157" cy="90" r="3.5" fill="var(--color-muted)"></circle>
+
+  <!-- Disease: a fibrous membrane across the outflow tract below the valve, with a narrow opening -->
+  <g class="disease-only" fill="var(--color-muted)" stroke="var(--color-text)" stroke-width="1.5">
+    <rect x="68" y="120" width="38" height="8" rx="4"></rect>
+    <rect x="124" y="120" width="38" height="8" rx="4"></rect>
+  </g>
+
+  <!-- Moving blood: a wide, even stream normally, a narrow fast jet below the valve in stenosis -->
+  <g class="flow">
+    <g class="normal-only">
+      {particles.map((p) => (
+        <circle
+          class="sas-p sas-p-normal"
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {jet.map((p) => (
+        <circle
+          class="sas-p sas-p-jet"
+          cx={115 + p.offset}
+          cy={p.y}
+          r="5"
+          fill="var(--diagram-arterial)"
+          style={`--sas-dx: ${-p.offset}px; animation-delay: ${p.delay}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Leader lines from the drawing to the label column -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="164" y1="30" x2="200" y2="30"></line>
+    <line class="disease-only" x1="132" y1="68" x2="200" y2="68"></line>
+    <line x1="156" y1="74" x2="200" y2="98"></line>
+    <line class="disease-only" x1="158" y1="128" x2="200" y2="180"></line>
+  </g>
+
+  <!-- Labels -->
+  <text x="206" y="35">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="disease-only" x="206" y="73">
+    {t['diagram.label.fast-jet']}
+  </text>
+  <text x="206" y="103">
+    {t['diagram.label.leaflets']}
+  </text>
+  <text class="disease-only" x="206" y="180">
+    <tspan x="206">{membraneLines[0]}</tspan>
+    <tspan x="206" dy="19">
+      {membraneLines[1]}
+    </tspan>
+  </text>
+  <text x="115" y="256" text-anchor="middle">
+    {t['diagram.label.lv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .sas-leaf {
+    fill: var(--color-border);
+    stroke: var(--color-muted);
+    stroke-width: 2;
+  }
+
+  .diagram .sas-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .sas-p-normal {
+    animation: sas-normal 2.4s linear infinite;
+  }
+
+  .diagram .sas-p-jet {
+    animation: sas-jet 2.4s linear infinite;
+  }
+
+  /* Normal: a wide stream rises at an even pace. */
+  @keyframes sas-normal {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14%,
+    52% {
+      opacity: 1;
+    }
+
+    58%,
+    100% {
+      opacity: 0;
+      transform: translate(0, -200px);
+    }
+  }
+
+  /* Stenosis: blood crowds into the opening in the membrane, then shoots up as a fast jet. */
+  @keyframes sas-jet {
+    0%,
+    10% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    36% {
+      opacity: 1;
+      transform: translate(var(--sas-dx), -96px) scale(0.8, 1);
+    }
+
+    40% {
+      transform: translate(var(--sas-dx), -120px) scale(0.6, 2.2);
+    }
+
+    47% {
+      opacity: 1;
+      transform: translate(var(--sas-dx), -185px) scale(0.6, 2.2);
+    }
+
+    50%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--sas-dx), -200px) scale(0.6, 2.2);
+    }
+  }
+</style>
