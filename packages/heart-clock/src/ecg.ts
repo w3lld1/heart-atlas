@@ -202,10 +202,29 @@ function vfSinesFor(seed: number): readonly [VfSine[], VfSine[]] {
   return [axis(0), axis(1)];
 }
 
-/** Sines of the last seed asked for: a strip draws one seed thousands of times per frame. */
-let vfCache: { seed: number; sines: readonly [VfSine[], VfSine[]] } | undefined;
+/**
+ * Sines of the last seed asked for, and the vector at the last time asked for: a strip draws one
+ * seed thousands of times per frame, and the clock asks for the same moment in several leads.
+ */
+let vfCache:
+  | { seed: number; sines: readonly [VfSine[], VfSine[]]; t: number; x: number; y: number }
+  | undefined;
 
-/** One axis at `s` seconds, roughly 0.5 in size (unbounded in theory: see `vfWaves`). */
+/** Cosine and sine of each limb lead's angle. */
+function leadAxis(lead: LimbLead): readonly [number, number] {
+  const angle = (limbLeadAngles[lead] * Math.PI) / 180;
+  return [Math.cos(angle), Math.sin(angle)];
+}
+const vfLeadAxes: Readonly<Record<LimbLead, readonly [number, number]>> = {
+  I: leadAxis('I'),
+  II: leadAxis('II'),
+  III: leadAxis('III'),
+};
+
+/**
+ * One axis at `s` seconds: about 0.3 mV RMS, at most 0.3 · 9 / √3 ≈ 1.6 mV, which `vfWaves`
+ * limits further.
+ */
 function vfAxis(s: number, sines: readonly VfSine[]): number {
   let sum = 0;
   for (const { centre, driftRate, sizeRate, driftPhase, sizePhase, phase } of sines) {
@@ -214,7 +233,7 @@ function vfAxis(s: number, sines: readonly VfSine[]): number {
     const size = 1 + 0.5 * Math.sin(2 * Math.PI * (sizeRate * s + sizePhase));
     sum += size * Math.sin(2 * Math.PI * (centre * s - drifting + phase));
   }
-  return (0.5 * sum) / Math.sqrt(sines.length / 2);
+  return (0.3 * sum) / Math.sqrt(sines.length / 2);
 }
 
 /**
@@ -226,14 +245,20 @@ function vfAxis(s: number, sines: readonly VfSine[]): number {
  */
 export function vfWaves(t: number, params: HeartParams, lead: LimbLead = 'II'): number {
   if (params.ventricularFibrillation === 0) return 0;
-  const s = t / 1000;
-  if (vfCache?.seed !== params.seed)
-    vfCache = { seed: params.seed, sines: vfSinesFor(params.seed) };
-  const x = vfAxis(s, vfCache.sines[0]);
-  const y = vfAxis(s, vfCache.sines[1]);
-  const size = Math.hypot(x, y);
-  // tanh keeps small vectors as they are and bends large ones below vfMaxSize without a corner.
-  const scale = size === 0 ? 1 : (vfMaxSize * Math.tanh(size / vfMaxSize)) / size;
-  const angle = (limbLeadAngles[lead] * Math.PI) / 180;
-  return scale * (x * Math.cos(angle) + y * Math.sin(angle));
+  if (vfCache?.seed !== params.seed) {
+    vfCache = { seed: params.seed, sines: vfSinesFor(params.seed), t: NaN, x: 0, y: 0 };
+  }
+  if (vfCache.t !== t) {
+    const s = t / 1000;
+    const x = vfAxis(s, vfCache.sines[0]);
+    const y = vfAxis(s, vfCache.sines[1]);
+    const size = Math.hypot(x, y);
+    // tanh barely changes small vectors and bends large ones below vfMaxSize without a corner.
+    const scale = size === 0 ? 1 : (vfMaxSize * Math.tanh(size / vfMaxSize)) / size;
+    vfCache.t = t;
+    vfCache.x = scale * x;
+    vfCache.y = scale * y;
+  }
+  const [cos, sin] = vfLeadAxes[lead];
+  return vfCache.x * cos + vfCache.y * sin;
 }

@@ -43,16 +43,19 @@ describe('vfWaves', () => {
     for (let t = 0; t < 2000; t += 37) expect(vfWaves(t, normal)).toBe(0);
   });
 
-  it('crosses zero at 300 per minute or faster in every 2 s window of every lead', () => {
-    for (const lead of ['I', 'II', 'III'] as const) {
-      for (let from = 0; from < 60_000; from += 2000) {
-        const strip = samples((t) => vfWaves(t, params, lead), from, from + 2000);
-        let crossings = 0;
-        for (let k = 1; k < strip.length; k += 1) {
-          if (Math.sign(strip[k] as number) !== Math.sign(strip[k - 1] as number)) crossings += 1;
+  it('crosses zero at 300 per minute or faster in every 2 s window, lead and seed', () => {
+    for (const seed of [1, 2, 7919, 0xdeadbeef]) {
+      const seeded = resolveParams({ ...vf, seed });
+      for (const lead of ['I', 'II', 'III'] as const) {
+        for (let from = 0; from < 60_000; from += 2000) {
+          const strip = samples((t) => vfWaves(t, seeded, lead), from, from + 2000);
+          let crossings = 0;
+          for (let k = 1; k < strip.length; k += 1) {
+            if (Math.sign(strip[k] as number) !== Math.sign(strip[k - 1] as number)) crossings += 1;
+          }
+          // Two crossings per oscillation; 300 per minute is 10 oscillations in 2 s.
+          expect(crossings, `seed ${seed} ${lead} from ${from} ms`).toBeGreaterThanOrEqual(20);
         }
-        // Two crossings per oscillation; 300 per minute is 10 oscillations in 2 s.
-        expect(crossings, `${lead} from ${from} ms`).toBeGreaterThanOrEqual(20);
       }
     }
   });
@@ -156,25 +159,26 @@ describe('ventricular fibrillation clock', () => {
   it('refuses fibrillation together with any rhythm, atrial or beat mode', () => {
     const base = resolveParams(vf);
     checkParams(base);
+    // Each patch is valid on its own, so only the fibrillation check can refuse it.
     for (const patch of [
       { pAmplitude: 0.15 },
       { atrialContribution: 0.2 },
       { fWaveAmplitude: 0.05 },
-      { flutterConduction: 2, atrialRate: 300 },
+      { flutterConduction: 2, flutterAmplitude: 0.2 },
       { rrIrregularity: 0.2 },
       { pauseEvery: 3, pauseDuration: 1000 },
-      { blockedP: 1, pauseEvery: 3 },
+      { blockedP: 1 },
       { prStep: 40 },
       { atrialRate: 60 },
       { atrialPacing: 1 },
       { ventricularPacing: 1 },
       { prematureEvery: 3 },
-      { deltaWave: 1 },
+      { deltaWave: 0.3 },
       { bidirectional: 1 },
       { s2Split: 30 },
     ]) {
       expect(() => checkParams(resolveParams(patch, base)), JSON.stringify(patch)).toThrow(
-        RangeError,
+        /^ventricularFibrillation needs/,
       );
     }
     expect(() => checkParams(resolveParams({ ventricularFibrillation: 0.5 }))).toThrow(RangeError);

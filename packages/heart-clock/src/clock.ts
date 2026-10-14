@@ -233,13 +233,13 @@ export function heartRateLimits(params: HeartParams): readonly [min: number, max
 }
 
 /**
- * What the monitor shows at a sample: the phase, or a sinus pause. A pause with a blocked P wave,
- * or after a ventricular premature beat, keeps the sinus node going, so it shows as filling.
- */
-/**
  * Pressures in ventricular fibrillation: no flow, so nothing changes. assumption: LV and LA at
  * the end-diastolic pressure, the aorta at its diastolic pressure, the ventricle full; the sources
- * do not say how fast pressures fall, and the Wiggers diagram does not draw this state.
+ * do not say how fast pressures fall, and the Wiggers diagram does not draw this state. A
+ * `setParams` into or out of fibrillation steps LA and aortic pressure and LV volume at the slot
+ * boundary: the beat before builds its decline by its own timing (spec), and the beat after starts
+ * from the hidden timing of the slot. The site builds a new clock on a preset change, so it never
+ * shows this step.
  */
 function fibrillationHemodynamics(params: Readonly<HeartParams>): Hemodynamics {
   return {
@@ -251,6 +251,10 @@ function fibrillationHemodynamics(params: Readonly<HeartParams>): Hemodynamics {
   };
 }
 
+/**
+ * What the monitor shows at a sample: the phase, or a sinus pause. A pause with a blocked P wave,
+ * or after a ventricular premature beat, keeps the sinus node going, so it shows as filling.
+ */
 export function monitorPhase(sample: ClockSample): Phase | 'pause' {
   const { beat } = sample;
   return sample.pause && beat.params.blockedP === 0 && beat.premature !== 2

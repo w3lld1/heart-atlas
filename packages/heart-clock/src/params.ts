@@ -318,6 +318,36 @@ export function resolveParams(
   if (!Number.isInteger(params.seed)) {
     throw new RangeError(`seed must be an integer, got ${params.seed}`);
   }
+  if (!Number.isInteger(params.ventricularFibrillation)) {
+    throw new RangeError(
+      `ventricularFibrillation must be 0 or 1, got ${params.ventricularFibrillation}`,
+    );
+  }
+  // Fibrillation has no beats, so nothing that shapes or times beats can come with it; atrial
+  // contraction and P waves are left out too (assumption: the sources do not describe the atria). This
+  // comes before the cross-checks of other parameters, so they cannot hide it.
+  if (
+    params.ventricularFibrillation === 1 &&
+    (params.pAmplitude > 0 ||
+      params.atrialContribution > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.blockedP > 0 ||
+      params.prStep > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.prematureEvery > 0 ||
+      params.deltaWave > 0 ||
+      params.bidirectional > 0 ||
+      params.s2Split > 0)
+  ) {
+    throw new RangeError(
+      'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, prematureEvery, deltaWave, bidirectional and s2Split at 0',
+    );
+  }
   if (!Number.isInteger(params.pauseEvery) || params.pauseEvery === 1) {
     throw new RangeError(
       `pauseEvery must be 0 or an integer from 2 to 20, got ${params.pauseEvery}`,
@@ -432,35 +462,6 @@ export function resolveParams(
   ) {
     throw new RangeError(
       'bidirectional needs pAmplitude, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, atrialRate, atrialPacing, ventricularPacing, prematureEvery and deltaWave at 0',
-    );
-  }
-  if (!Number.isInteger(params.ventricularFibrillation)) {
-    throw new RangeError(
-      `ventricularFibrillation must be 0 or 1, got ${params.ventricularFibrillation}`,
-    );
-  }
-  // Fibrillation has no beats, so nothing that shapes or times beats can come with it; atrial
-  // contraction and P waves are left out too (assumption: the sources do not describe the atria).
-  if (
-    params.ventricularFibrillation === 1 &&
-    (params.pAmplitude > 0 ||
-      params.atrialContribution > 0 ||
-      params.fWaveAmplitude > 0 ||
-      params.flutterConduction > 0 ||
-      params.rrIrregularity > 0 ||
-      params.pauseEvery > 0 ||
-      params.blockedP > 0 ||
-      params.prStep > 0 ||
-      params.atrialRate > 0 ||
-      params.atrialPacing > 0 ||
-      params.ventricularPacing > 0 ||
-      params.prematureEvery > 0 ||
-      params.deltaWave > 0 ||
-      params.bidirectional > 0 ||
-      params.s2Split > 0)
-  ) {
-    throw new RangeError(
-      'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, prematureEvery, deltaWave, bidirectional and s2Split at 0',
     );
   }
   if (!Number.isInteger(params.blockedP)) {
