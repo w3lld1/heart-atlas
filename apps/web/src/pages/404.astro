@@ -1,7 +1,8 @@
 ---
 // GitHub Pages serves this page for every address the site does not have. The address says
 // nothing reliable about the reader's language, so the page speaks every language in the registry,
-// the default one first.
+// the default one first. The language switcher links every language to its home page: no
+// language has this page under its own path.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { defaultLocale, localeCodes, locales } from '../i18n/locales.ts';
 import { getMessages } from '../i18n/messages.ts';
@@ -15,7 +16,7 @@ const others = localeCodes.filter((code) => code !== defaultLocale);
 <BaseLayout
   locale={defaultLocale}
   title={t['notFound.title']}
-  pageLocales={[defaultLocale]}
+  pageLocales={[]}
   translatedLocales={[]}
 >
   <meta slot="head" name="robots" content="noindex" />
