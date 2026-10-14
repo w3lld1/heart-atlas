@@ -21,9 +21,16 @@ import {
 } from '@heart-atlas/heart-clock';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
-import { drawEcg, ecgHeight, limbStrip, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
+import {
+  drawEcg,
+  ecgHeight,
+  limbStrip,
+  maxEcgWidth,
+  readColors,
+  wiggersHeight,
+  windowMs,
+} from './ecg-canvas.ts';
 import type { HeartSoundPlayer } from './heart-sounds.ts';
-import { drawWiggers, readWiggersColors, wiggersHeight } from './wiggers-canvas.ts';
 import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts';
 import styles from './HeartClockDemo.module.css';
 
@@ -188,6 +195,7 @@ export default function HeartClockDemo({
   const [soundOn, setSoundOn] = useState(false);
   // Ventricular fibrillation: no pulse, so no rate to set, no heart sounds and no cycles to draw.
   const pulse = hasPulse(choice.params);
+  const showDiagram = showWiggers && pulse;
 
   // One strip per limb lead, or one strip with the clock's own trace (lead II or V1).
   const threeStrips = showLimbLeads && choice.lead === 'II';
@@ -197,6 +205,10 @@ export default function HeartClockDemo({
   );
   const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const wiggersRef = useRef<HTMLCanvasElement>(null);
+  // The Wiggers drawing code, loaded when the diagram comes near view
+  // (docs/plans/2026-10-14-lazy-wiggers.md).
+  const [wiggersCode, setWiggersCode] = useState<typeof import('./wiggers-canvas.ts') | null>(null);
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Clock time shown at the right edge of the strip. Starts one strip in, so the paused
   // first frame already shows a full trace.
@@ -273,6 +285,31 @@ export default function HeartClockDemo({
     return () => withdrawCycleSource(source);
   }, [clock, presetId]);
 
+  // Loads the Wiggers drawing code once the diagram is within 200 px of view. A failed load
+  // leaves the canvas empty; the text description under it stays.
+  useEffect(() => {
+    const canvas = wiggersRef.current;
+    if (!showDiagram || wiggersCode || !canvas) return;
+    let cancelled = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        observer.disconnect();
+        import('./wiggers-canvas.ts')
+          .then((code) => {
+            if (!cancelled) setWiggersCode(code);
+          })
+          .catch(() => undefined);
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(canvas);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [showDiagram, wiggersCode]);
+
   // Draws one frame now and, while playing, on every animation frame.
   useEffect(() => {
     if (nowClockRef.current !== clock) {
@@ -285,14 +322,19 @@ export default function HeartClockDemo({
       return element && ctx ? [{ element, ctx, lead }] : [];
     });
     const canvas = ecgs[0]?.element;
-    const wiggers = wiggersRef.current;
-    const wiggersContext = wiggers?.getContext('2d');
+    const wiggersCanvas = wiggersRef.current;
+    const wiggersCanvasContext = wiggersCanvas?.getContext('2d');
+    // Drawn only once its code has loaded; sized at once, so the canvas has its final size.
+    const wiggers = wiggersCode ? wiggersCanvas : null;
+    const wiggersContext = wiggersCode ? wiggersCanvasContext : null;
     if (!canvas || ecgs.length !== strips.length || width === 0) return;
 
     const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = ecgs.map(
       ({ element, ctx, lead }) => [element, ctx, lead ? limbStrip.height : ecgHeight],
     );
-    if (wiggers && wiggersContext) canvases.push([wiggers, wiggersContext, wiggersHeight]);
+    if (wiggersCanvas && wiggersCanvasContext) {
+      canvases.push([wiggersCanvas, wiggersCanvasContext, wiggersHeight]);
+    }
     for (const [element, ctx, height] of canvases) {
       element.width = Math.round(width * dpr);
       element.height = Math.round(height * dpr);
@@ -300,19 +342,26 @@ export default function HeartClockDemo({
     }
 
     let colors = readColors(canvas);
-    let wiggersColors = wiggers && readWiggersColors(wiggers);
+    let wiggersColors = wiggers && wiggersCode?.readWiggersColors(wiggers);
     const scheme = window.matchMedia('(prefers-color-scheme: dark)');
     const onScheme = () => {
       colors = readColors(canvas);
-      wiggersColors = wiggers && readWiggersColors(wiggers);
+      wiggersColors = wiggers && wiggersCode?.readWiggersColors(wiggers);
       render();
     };
     scheme.addEventListener('change', onScheme);
 
     function render() {
       for (const { ctx, lead } of ecgs) drawEcg(ctx, width, nowRef.current, clock, colors, lead);
-      if (wiggersContext && wiggersColors) {
-        drawWiggers(wiggersContext, width, nowRef.current, clock, wiggersColors, wiggersLabels);
+      if (wiggersCode && wiggersContext && wiggersColors) {
+        wiggersCode.drawWiggers(
+          wiggersContext,
+          width,
+          nowRef.current,
+          clock,
+          wiggersColors,
+          wiggersLabels,
+        );
       }
       const sample = clock.sample(nowRef.current);
       setPhase(monitorPhase(sample));
@@ -336,7 +385,7 @@ export default function HeartClockDemo({
       playerRef.current?.cancel();
     };
     // showWiggers, pulse and the strips mount and unmount canvases, so their refs must be read again.
-  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, pulse, strips]);
+  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, pulse, strips, wiggersCode]);
 
   // Closes the audio context when the island goes away.
   useEffect(

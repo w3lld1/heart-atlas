@@ -8,6 +8,11 @@ export const pxPerMv = 10 * pxPerMm;
 /** Canvas height of a single strip: 32 mm of paper, baseline 18 mm from the top. */
 export const ecgHeight = 32 * pxPerMm;
 /**
+ * Height of the Wiggers diagram, px. Kept here, apart from its drawing code, which loads when the
+ * diagram comes near view (docs/plans/2026-10-14-lazy-wiggers.md).
+ */
+export const wiggersHeight = 320;
+/**
  * One of three limb lead strips: 25 mm, so the three fit on a phone and the 5 mm grid runs on
  * across them, with the baseline on a major line 15 mm from the top. Room for 1.5 mV up and 1 mV
  * down; a test checks every preset in every lead fits.

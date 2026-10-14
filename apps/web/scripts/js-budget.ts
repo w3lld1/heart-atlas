@@ -60,7 +60,7 @@ function resolveFile(url: string, from: string): string | undefined {
 
 /**
  * Entries that pages import only on demand, so they and what only they reach are left out of the
- * budget: the 3D heart and the sound players.
+ * budget: the 3D heart, the sound players and the Wiggers diagram.
  * - The live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or the "Rotate in
  *   3D" button).
  * - The viewer's scene (`Scene.tsx`, after the load button; disease articles show the viewer with
@@ -68,8 +68,10 @@ function resolveFile(url: string, from: string): string | undefined {
  * - The heart clock's sound (`heart-clock/heart-sounds.ts`) and the heart sounds player
  *   (`heart-sounds/player.ts`), after the first sound or "Listen" click
  *   (docs/plans/2026-10-14-lazy-sound-players.md).
+ * - The Wiggers diagram's drawing code (`heart-clock/wiggers-canvas.ts`), when the diagram comes
+ *   near view (docs/plans/2026-10-14-lazy-wiggers.md).
  */
-export const onDemandEntry = /^(hero|Scene|heart-sounds|player)\.[\w-]+\.js$/;
+export const onDemandEntry = /^(hero|Scene|heart-sounds|player|wiggers-canvas)\.[\w-]+\.js$/;
 
 /**
  * The file to count for a reference, or '' when it is an on-demand entry loaded with import().
