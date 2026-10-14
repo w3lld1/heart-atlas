@@ -146,6 +146,14 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "II:11c9238",
     "III:f6dfbc85",
   ],
+  "short-qt-syndrome": [
+    "I:499add7e",
+    "II:5a163718",
+    "III:499add7e",
+    "I:ec890cf8",
+    "II:5a163718",
+    "III:7a363eef",
+  ],
   "sick-sinus-syndrome": [
     "I:abc7da0a",
     "II:c340251d",

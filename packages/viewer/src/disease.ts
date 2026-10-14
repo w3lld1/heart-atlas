@@ -217,6 +217,7 @@ export const presetShape: Record<PresetId, DiseaseId | null> = {
   'sinus-tachycardia': null,
   'supraventricular-tachycardia': null,
   'long-qt-syndrome': null,
+  'short-qt-syndrome': null,
   'ventricular-tachycardia': null,
   'bidirectional-ventricular-tachycardia': null,
   'atrial-flutter': null,

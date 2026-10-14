@@ -206,6 +206,22 @@ describe('presets', () => {
     );
   });
 
+  it('keeps QTc at the preset value, at or below 320 ms, at every heart rate in short QT syndrome', () => {
+    const params = presetParams('short-qt-syndrome');
+    expect(params.heartRate).toBe(defaultParams.heartRate);
+    const [min, max] = presetRateLimits('short-qt-syndrome');
+    expect([min, max]).toEqual(presetRateLimits('normal'));
+    for (let heartRate = min; heartRate <= max; heartRate += 1) {
+      const beat = createHeartClock({ ...params, heartRate }).beatAt(3000);
+      const normal = createHeartClock({ heartRate }).beatAt(3000);
+      const qt = beat.timing.tEnd - beat.timing.qOnset;
+      const qtc = qt / Math.sqrt(beat.rr / 1000);
+      expect(qtc, `at ${heartRate}`).toBeCloseTo(320, 6);
+      expect(qtc, `at ${heartRate}`).toBeLessThanOrEqual(320 + 1e-6);
+      expect(qt, `at ${heartRate}`).toBeLessThan(normal.timing.tEnd - normal.timing.qOnset);
+    }
+  });
+
   it('shows a fast regular wide-QRS rhythm without P waves and with a discordant T in VT', () => {
     const params = presetParams('ventricular-tachycardia');
     expect(params.heartRate).toBe(150);

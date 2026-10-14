@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Changes in which gene cause this type of the syndrome?
+    options:
+      - text: The gene for haemoglobin, a red blood cell protein
+      - text: The gene for type III collagen (COL3A1)
+        correct: true
+      - text: The gene for insulin, a hormone of the pancreas
+    explanation: This type of the syndrome is caused by pathogenic variants in the COL3A1 gene, the gene for type III collagen.
+    cite: [1, 3]
+  - level: patient
+    prompt: According to the article, how is the diagnosis confirmed?
+    options:
+      - text: With a blood sugar test
+      - text: With a resting electrocardiogram
+      - text: With a genetic test
+        correct: true
+    explanation: The diagnosis is based on clinical signs and confirmed by a genetic test.
+    cite: [4]
+  - level: patient
+    prompt: Why is surgery on blood vessels riskier than usual in this syndrome?
+    options:
+      - text: The vessels are fragile and bleed more easily
+        correct: true
+      - text: The vessels are too narrow for instruments to pass
+      - text: The vessel walls are too thick and stiff to stitch
+    explanation: Surgery on blood vessels is riskier than usual in this syndrome because the vessels are fragile and bleeding is more likely.
+    cite: [1, 3]
+  - level: patient
+    prompt: Which sign of possible aortic dissection, per the article, needs an immediate ambulance call?
+    options:
+      - text: A mild runny nose and blocked nose without fever
+      - text: Sudden, severe pain in the chest or back
+        correct: true
+      - text: Dry, flaky skin on the hands after washing dishes
+    explanation: Sudden, severe pain in the chest or back (sometimes in the abdomen), especially if it is worst at the very start, needs an immediate call to the emergency number.
+    cite: [1]
+  - level: student
+    prompt: Which group of aortic diseases do ACC/AHA place this type in?
+    options:
+      - text: Atherosclerotic diseases of the abdominal aorta and its major branches
+      - text: Inflammatory diseases of the thoracic aorta, known as aortitis
+      - text: Syndromic heritable thoracic aortic diseases (HTAD)
+        correct: true
+    explanation: This type of Ehlers–Danlos syndrome is one of the syndromic heritable thoracic aortic diseases (HTAD), together with Marfan syndrome and Loeys–Dietz syndrome.
+    cite: [1]
+  - level: student
+    prompt: In this type, what do ACC/AHA and the Russian guideline recommend for an intact thoracoabdominal aneurysm requiring intervention?
+    options:
+      - text: Open surgical repair
+        correct: true
+      - text: Endovascular aortic repair
+      - text: Watchful waiting without intervention
+    explanation: For an intact thoracoabdominal aneurysm requiring intervention, ACC/AHA and the Russian Ministry of Health guideline recommend open rather than endovascular repair.
+    cite: [1, 3]

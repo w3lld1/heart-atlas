@@ -20,20 +20,31 @@ const base = (process.env['BASE_PATH'] ?? '/heart-atlas').replace(/\/?$/, '/');
 
 const gzipSize = (text: string | Buffer) => gzipSync(text, { level: 9 }).length;
 
-/** URLs of JS modules referenced from HTML or JS: script src, island URLs, static and dynamic imports. */
-export function jsReferences(source: string): string[] {
-  const patterns = [
-    /<script[^>]*\ssrc="([^"]+\.js)"/g,
-    /(?:component-url|renderer-url|before-hydration-url)="([^"]+\.js)"/g,
-    /<link[^>]*rel="modulepreload"[^>]*href="([^"]+\.js)"/g,
+export interface JsReference {
+  url: string;
+  /** Loaded with `import()`, only when the code runs it; everything else loads with the page. */
+  dynamic: boolean;
+}
+
+/** JS modules referenced from HTML or JS: script src, island URLs, static and dynamic imports. */
+export function jsImports(source: string): JsReference[] {
+  const patterns: [RegExp, boolean][] = [
+    [/<script[^>]*\ssrc="([^"]+\.js)"/g, false],
+    [/(?:component-url|renderer-url|before-hydration-url)="([^"]+\.js)"/g, false],
+    [/<link[^>]*rel="modulepreload"[^>]*href="([^"]+\.js)"/g, false],
+    [/\bfrom\s*["'`]([^"'`]+\.js)["'`]/g, false],
+    [/\bimport\s*["'`]([^"'`]+\.js)["'`]/g, false],
     // Minified output quotes dynamic imports with backticks.
-    /\bfrom\s*["'`]([^"'`]+\.js)["'`]/g,
-    /\bimport\s*\(?\s*["'`]([^"'`]+\.js)["'`]/g,
+    [/\bimport\s*\(\s*["'`]([^"'`]+\.js)["'`]/g, true],
   ];
-  return patterns.flatMap((pattern) =>
-    [...source.matchAll(pattern)].map((match) => match[1] ?? ''),
+  return patterns.flatMap(([pattern, dynamic]) =>
+    [...source.matchAll(pattern)].map((match) => ({ url: match[1] ?? '', dynamic })),
   );
 }
+
+/** URLs of the JS modules `source` references (`jsImports` without the kind). */
+export const jsReferences = (source: string): string[] =>
+  jsImports(source).map((reference) => reference.url);
 
 function resolveFile(url: string, from: string): string | undefined {
   if (/^[a-z]+:/i.test(url)) return undefined;
@@ -48,35 +59,54 @@ function resolveFile(url: string, from: string): string | undefined {
 }
 
 /**
- * Entries of 3D that pages import only on demand, so they and what only they reach are the 3D the
- * budget leaves out: the live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or
- * the "Rotate in 3D" button) and the viewer's scene (`Scene.tsx`, after the load button; disease
- * articles show the viewer with its poster until then).
+ * Entries that pages import only on demand, so they and what only they reach are left out of the
+ * budget: the 3D heart and the sound players.
+ * - The live heart on the home page (`@heart-atlas/viewer/hero`, motion "full" or the "Rotate in
+ *   3D" button).
+ * - The viewer's scene (`Scene.tsx`, after the load button; disease articles show the viewer with
+ *   its poster until then).
+ * - The heart clock's sound (`heart-clock/heart-sounds.ts`) and the heart sounds player
+ *   (`heart-sounds/player.ts`), after the first sound or "Listen" click
+ *   (docs/plans/2026-10-14-lazy-sound-players.md).
  */
-export const lazy3dEntry = /^(hero|Scene)\.[\w-]+\.js$/;
+export const onDemandEntry = /^(hero|Scene|heart-sounds|player)\.[\w-]+\.js$/;
 
-/** gzip bytes of inline scripts plus every JS file reachable from the page, without the 3D heart. */
+/**
+ * The file to count for a reference, or '' when it is an on-demand entry loaded with import().
+ * An on-demand entry loaded up front would hide real bytes, so that fails the check.
+ */
+export function counted(file: string, dynamic: boolean, from: string): string {
+  if (!onDemandEntry.test(basename(file))) return file;
+  if (dynamic) return '';
+  throw new Error(`js-budget: ${from} loads ${basename(file)} up front`);
+}
+
+/** gzip bytes of inline scripts plus every JS file reachable from the page, without the on-demand entries. */
 export function pageJsBytes(htmlFile: string): { bytes: number; files: string[] } {
   const html = readFileSync(htmlFile, 'utf8');
+  const follow = ({ url, dynamic }: JsReference, from: string) => {
+    const file = resolveFile(url, from) ?? '';
+    return counted(file, dynamic, relative(dist, from));
+  };
   let bytes = 0;
   const pending: string[] = [];
   for (const match of html.matchAll(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
     const code = match[1] ?? '';
     if (code.trim() === '') continue;
     bytes += gzipSize(code);
-    for (const url of jsReferences(code)) pending.push(resolveFile(url, htmlFile) ?? '');
+    for (const reference of jsImports(code)) pending.push(follow(reference, htmlFile));
   }
-  for (const url of jsReferences(html)) pending.push(resolveFile(url, htmlFile) ?? '');
+  for (const reference of jsImports(html)) pending.push(follow(reference, htmlFile));
 
   const seen = new Set<string>();
   while (pending.length > 0) {
     const file = pending.pop();
-    if (!file || seen.has(file) || lazy3dEntry.test(basename(file))) continue;
+    if (!file || seen.has(file)) continue;
     seen.add(file);
     const code = readFileSync(file);
     bytes += gzipSize(code);
-    for (const url of jsReferences(code.toString('utf8'))) {
-      pending.push(resolveFile(url, file) ?? '');
+    for (const reference of jsImports(code.toString('utf8'))) {
+      pending.push(follow(reference, file));
     }
   }
   return { bytes, files: [...seen].map((file) => relative(dist, file)) };

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: According to the article, what is Loeys–Dietz syndrome?
+    options:
+      - text: An infection of the heart valves caused by bacteria
+      - text: An inherited disorder of connective tissue
+        correct: true
+      - text: A disease caused by smoking and high cholesterol
+    explanation: Loeys–Dietz syndrome is an inherited disorder of connective tissue.
+    cite: [1]
+  - level: patient
+    prompt: Why are medicines prescribed in this syndrome?
+    options:
+      - text: To reduce the stress blood flow puts on the aortic wall
+        correct: true
+      - text: To repair the changed gene in the cells of the body
+      - text: To make the skin thicker so the veins are no longer visible
+    explanation: Medicines are prescribed to reduce the stress that the blood flow puts on the aortic wall; which medicines are needed is decided by the doctor.
+    cite: [1]
+  - level: patient
+    prompt: At the first evaluation, how are the whole aorta and its branches from head to pelvis examined?
+    options:
+      - text: By measuring blood pressure with a cuff on the arm
+      - text: By listening to the heart with a stethoscope
+      - text: With CT or MRI
+        correct: true
+    explanation: At the first evaluation, the whole aorta and its branches from head to pelvis are examined with CT or MRI to look for aneurysms, dissections and arterial tortuosity.
+    cite: [1, 2, 3]
+  - level: patient
+    prompt: According to the article, which pain is a reason to call an ambulance at once?
+    options:
+      - text: A mild aching in the leg muscles after a long walk
+      - text: Sudden, severe pain in the chest or back
+        correct: true
+      - text: Brief tingling in the fingers when out in the cold
+    explanation: Call an ambulance for sudden, severe pain in the chest or back (sometimes in the abdomen), especially if it is worst at the very start.
+    cite: [1]
+  - level: student
+    prompt: What other name is given to the disease caused by variants in the five genes of this syndrome?
+    options:
+      - text: Giant cell arteritis
+      - text: Atherosclerotic disease of the aorta
+      - text: TGF-β vasculopathy
+        correct: true
+    explanation: The disease caused by variants in these five genes is also termed transforming growth factor-β (TGF-β) vasculopathy.
+    cite: [1]
+  - level: student
+    prompt: Why is echocardiography alone not enough in this syndrome?
+    options:
+      - text: A risk of aortic involvement beyond the root and of branch aneurysms
+        correct: true
+      - text: Ultrasound damages the wall of the widened aorta and of its branches
+      - text: In this syndrome the heart is displaced, so ultrasound cannot show it clearly
+    explanation: All the genes of the syndrome confer a risk of aortic involvement beyond the root, as well as of branch vessel and intracranial aneurysms, so echocardiography alone is not enough.
+    cite: [1]

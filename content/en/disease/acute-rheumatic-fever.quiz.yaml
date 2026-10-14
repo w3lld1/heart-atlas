@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: According to the article, what does the body react to with inflammation in ARF?
+    options:
+      - text: A food allergy to cow's milk proteins
+      - text: A streptococcal throat infection
+        correct: true
+      - text: Blood poisoning after a deep cut to the skin
+    explanation: ARF is the body's inflammatory reaction to a streptococcal throat infection, tonsillitis or pharyngitis.
+    cite: [1, 6]
+  - level: patient
+    prompt: According to the article, when does ARF start?
+    options:
+      - text: Some time after the sore throat
+        correct: true
+      - text: In the first hours of the sore throat, along with it
+      - text: Before the sore throat, before the germ reaches the throat
+    explanation: ARF does not start during the tonsillitis or pharyngitis caused by group A streptococcus but some time after it.
+    cite: [1, 5]
+  - level: patient
+    prompt: According to the article, why does the immune system attack heart tissue in ARF?
+    options:
+      - text: The heart overheats during a high fever
+      - text: Salt from food slowly builds up in the heart
+      - text: The germ's proteins resemble heart proteins
+        correct: true
+    explanation: The proteins of this germ resemble proteins of the heart valves, heart muscle and joints, and the immune system attacks them by mistake.
+    cite: [1, 5]
+  - level: patient
+    prompt: According to the article, what is the main test for rheumatic carditis?
+    options:
+      - text: An X-ray of the joints of the hands
+      - text: A heart ultrasound (echocardiography)
+        correct: true
+      - text: An X-ray of the heart's arteries with dye (coronary angiography)
+    explanation: The main test for rheumatic carditis is an ultrasound scan of the heart (echocardiography).
+    cite: [1]
+  - level: student
+    prompt: According to the article, which is a feature of the chronic disease rather than the acute phase?
+    options:
+      - text: Pericarditis
+      - text: Aortic regurgitation
+      - text: Mitral stenosis
+        correct: true
+    explanation: In the acute phase the most common lesions are mitral regurgitation and pericarditis, sometimes aortic regurgitation; mitral stenosis is a feature of the chronic disease.
+    cite: [5]
+  - level: student
+    prompt: According to the article, what is subclinical carditis in ARF?
+    options:
+      - text: Valvulitis seen only on echocardiography
+        correct: true
+      - text: A heart murmur with a normal echocardiogram
+      - text: A prolonged PR interval without other signs of carditis
+    explanation: Carditis is a major criterion, clinical and/or subclinical; subclinical carditis is valvulitis seen only on echocardiography.
+    cite: [1, 5]

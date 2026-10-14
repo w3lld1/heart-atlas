@@ -1,4 +1,4 @@
-import { createHeartClock, presetParams, type HeartClock } from '@heart-atlas/heart-clock';
+import type { HeartClock } from '@heart-atlas/heart-clock';
 import {
   auscultationEvents,
   type HeartSoundId,
@@ -6,17 +6,7 @@ import {
   type Timbre,
   type Tone,
 } from './auscultation.ts';
-
-/**
- * Heart rate of the player. assumption: 60 bpm, slow enough to tell the phases apart
- * (docs/plans/2026-10-13-heart-sounds.md).
- */
-export const playerHeartRate = 60;
-
-/** The heart clock the player follows: the normal preset at the player's rate. */
-export function playerClock(): HeartClock {
-  return createHeartClock({ ...presetParams('normal'), heartRate: playerHeartRate });
-}
+import { playerClock } from './player-clock.ts';
 
 // Stylised sounds, not recordings. Pitches are higher than real heart sounds so phone speakers can
 // play them (model assumption, as for the heart clock's S1 and S2).

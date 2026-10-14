@@ -353,6 +353,30 @@ test.describe('disease presets', () => {
     expect((await axe(page).analyze()).violations).toEqual([]);
   });
 
+  test("show short QT syndrome at the reader's rate", async ({ page }) => {
+    // docs/plans/2026-10-14-heart-clock-short-qt.md
+    await page.goto('en/heart-clock/');
+    await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+    const conditions = page.getByRole('combobox', { name: en['heartClock.condition'] });
+    const slider = page.getByRole('slider', { name: en['heartClock.heartRate'] });
+    const ecg = page.getByRole('img', { name: en['heartClock.ecgLabel'].replace('{lead}', 'II') });
+    await expect(
+      conditions.locator(
+        `optgroup[label="${en['heartClock.group.rhythm']}"] option[value="short-qt-syndrome"]`,
+      ),
+    ).toHaveCount(1);
+    const rate = await slider.inputValue();
+    await choose(page, 'short-qt-syndrome');
+    await expect(slider).toHaveValue(rate);
+    await expect(conditions).toHaveAccessibleDescription(
+      en['heartClock.preset.short-qt-syndrome.summary'],
+    );
+    await expect(ecg).toHaveAccessibleDescription(
+      en['heartClock.preset.short-qt-syndrome.ecg'].replace('{rate}', rate),
+    );
+    expect((await axe(page).analyze()).violations).toEqual([]);
+  });
+
   test('show bidirectional VT at its own rate', async ({ page }) => {
     // docs/plans/2026-10-14-heart-clock-bidirectional-vt.md
     await page.goto('en/heart-clock/');
@@ -537,5 +561,38 @@ test.describe('heart sounds', () => {
     await page.getByRole('button', { name: en['heartClock.soundOn'] }).click();
     await expect(page.getByRole('button', { name: en['heartClock.soundOff'] })).toBeVisible();
     await expect.poll(started, { timeout: 5000 }).toBeGreaterThan(0);
+  });
+
+  test('stay off when turned off while the player loads', async ({ page }) => {
+    // docs/plans/2026-10-14-lazy-sound-players.md: the player's code loads on the first click.
+    await page.addInitScript(() => {
+      const counter = window as unknown as { startedOscillators: number };
+      counter.startedOscillators = 0;
+      const start = OscillatorNode.prototype.start;
+      OscillatorNode.prototype.start = function (...args: Parameters<OscillatorNode['start']>) {
+        counter.startedOscillators += 1;
+        return start.apply(this, args);
+      };
+    });
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    let requested = false;
+    await page.route(/\/heart-sounds\.[\w-]+\.js$/, async (route) => {
+      requested = true;
+      await held;
+      await route.continue();
+    });
+    await page.goto('en/heart-clock/');
+    await page.getByRole('button', { name: en['heartClock.soundOn'] }).click();
+    await page.getByRole('button', { name: en['heartClock.soundOff'] }).click();
+    await expect(page.getByRole('button', { name: en['heartClock.soundOn'] })).toBeVisible();
+    expect(requested).toBe(true);
+    release();
+    await page.waitForTimeout(1500);
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { startedOscillators: number }).startedOscillators,
+      ),
+    ).toBe(0);
   });
 });

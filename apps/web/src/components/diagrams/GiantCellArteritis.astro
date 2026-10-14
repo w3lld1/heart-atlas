@@ -1,0 +1,218 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-gca-arrow`;
+// Long labels do not fit the narrow column right of the cross-section on one line: split them in
+// two at the word boundary that gives the shortest longer line.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  let bestScore = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const first = words.slice(0, i).join(' ');
+    const second = words.slice(i).join(' ');
+    const score = Math.max(first.length, second.length);
+    if (score < bestScore) {
+      bestScore = score;
+      best = [first, second];
+    }
+  }
+  return best;
+}
+const normalWallLines = twoLines(t['diagram.label.normal-thickness']);
+const wideLumenLines = twoLines(t['diagram.label.wide-lumen']);
+const thickWallLines = twoLines(t['diagram.label.thick-wall']);
+const narrowLumenLines = twoLines(t['diagram.label.narrow-lumen']);
+const inflamedLines = twoLines(t['diagram.label.inflamed-segments']);
+// A schematic head seen from the side, face to the right. Only an outline for orientation: the ear
+// and the eye are landmarks, not part of the disease. The ear lies behind the artery.
+const head =
+  'M95,370 C95,330 70,300 55,250 C35,190 45,110 100,72 C150,40 225,48 255,100 C268,122 268,150 270,170 L288,205 C292,212 286,216 278,216 L276,236 C280,242 274,248 270,250 C272,262 262,276 245,278 C225,280 205,284 195,300 L190,370';
+const eye = 'M228,160 Q240,151 252,160 Q240,167 228,160 Z';
+// The temporal artery rises in front of the ear (x = 172) and divides at the temple into a branch
+// going forward over the forehead and one going up and back over the scalp. Vessels are wide
+// strokes: the wall, then the lumen on top of it.
+const trunk = 'M172,330 V142';
+const forward = 'M172,146 C180,120 200,108 218,90';
+const backward = 'M172,146 C168,120 160,100 130,74';
+// Disease: inflamed segments of the trunk with a thick wall and a narrow lumen, between them the
+// wall is normal. The cross-section on the right is taken at the lower segment (y = 267).
+const inflamed = ['M172,282 V252', 'M172,214 V184'];
+const flow = {
+  trunk: 'M172,326 V150',
+  forward: 'M172,146 C180,120 200,108 214,95',
+  backward: 'M172,146 C168,120 160,100 135,79',
+};
+// The cross-section of the artery, enlarged
+const cx = 360;
+const cy = 200;
+---
+
+<svg
+  viewBox="0 0 520 380"
+  role="img"
+  aria-label={t['diagram.giant-cell-arteritis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- The head for orientation -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+    <path d={head}></path>
+    <ellipse cx="128" cy="190" rx="13" ry="24"></ellipse>
+    <path d={eye}></path>
+  </g>
+
+  <!-- The temporal artery: wall, then lumen -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={trunk} stroke-width="12"></path>
+    <path d={forward} stroke-width="10"></path>
+    <path d={backward} stroke-width="10"></path>
+    <g class="disease-only">
+      {inflamed.map((d) => (
+        <path d={d} stroke-width="20" />
+      ))}
+    </g>
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linecap="round">
+    <path d={trunk} stroke-width="7"></path>
+    <path d={forward} stroke-width="5"></path>
+    <path d={backward} stroke-width="5"></path>
+  </g>
+  <!-- In the inflamed segments only a narrow channel is left in the thick wall -->
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial)" stroke-linecap="butt">
+    {inflamed.map((d) => (
+      <path d={d} stroke-width="7" />
+    ))}
+  </g>
+  <g class="disease-only" fill="none" stroke="var(--diagram-arterial-fill)">
+    {inflamed.map((d) => (
+      <path d={d} stroke-width="2" />
+    ))}
+  </g>
+
+  <!-- Flow arrows, visible with and without motion; thinner in disease -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="2">
+      <path d={flow.trunk}></path>
+      <path d={flow.forward} marker-end={`url(#${arrow})`}></path>
+      <path d={flow.backward} marker-end={`url(#${arrow})`}></path>
+    </g>
+    <g class="disease-only" stroke-width="1">
+      <path d={flow.trunk}></path>
+      <path d={flow.forward} marker-end={`url(#${arrow})`}></path>
+      <path d={flow.backward} marker-end={`url(#${arrow})`}></path>
+    </g>
+  </g>
+
+  <!-- Moving blood: dashes running along the arrows -->
+  <g class="flow" fill="none" stroke="var(--color-bg)">
+    <g class="normal-only" stroke-width="1">
+      <path class="dash-flow" d={flow.trunk}></path>
+      <path class="dash-flow" d={flow.forward}></path>
+      <path class="dash-flow" d={flow.backward}></path>
+    </g>
+    <g class="disease-only" stroke-width="0.5">
+      <path class="dash-flow" d={flow.trunk}></path>
+      <path class="dash-flow" d={flow.forward}></path>
+      <path class="dash-flow" d={flow.backward}></path>
+    </g>
+  </g>
+
+  <!-- Where the cross-section is taken, and the lines to the enlarged view -->
+  <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+    <circle cx="172" cy="267" r="17"></circle>
+    <line x1="186" y1="257" x2={cx - 40} y2={cy - 50} stroke-dasharray="4 3"></line>
+    <line x1="186" y1="277" x2={cx - 40} y2={cy + 50} stroke-dasharray="4 3"></line>
+  </g>
+
+  <!-- The enlarged cross-section: the wall, then the lumen -->
+  <g class="normal-only">
+    <circle cx={cx} cy={cy} r="60" fill="var(--diagram-arterial)"></circle>
+    <circle cx={cx} cy={cy} r="44" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+  <g class="disease-only">
+    <circle cx={cx} cy={cy} r="66" fill="var(--diagram-arterial)"></circle>
+    <circle cx={cx} cy={cy} r="12" fill="var(--diagram-arterial-fill)"></circle>
+  </g>
+
+  <!-- Labels of the head -->
+  <text class="diagram-small normal-only" x="172" y="24" text-anchor="middle">
+    {t['diagram.label.to-scalp']}
+  </text>
+  <text class="diagram-small disease-only" x="172" y="24" text-anchor="middle">
+    {t['diagram.label.reduced-blood-flow']}
+  </text>
+  <line x1="180" y1="318" x2="198" y2="330" stroke="var(--color-text)" stroke-width="1.5"></line>
+  <text class="diagram-small" x="202" y="338">
+    {t['diagram.label.temporal-artery']}
+  </text>
+  <g class="disease-only">
+    <line x1="161" y1="212" x2="144" y2="228" stroke="var(--color-text)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="140" y="238" text-anchor="end">
+      <tspan x="140">{inflamedLines[0]}</tspan>
+      <tspan x="140" dy="15">
+        {inflamedLines[1]}
+      </tspan>
+    </text>
+  </g>
+
+  <!-- Labels of the cross-section -->
+  <text class="diagram-small" x="376" y="118" text-anchor="middle">
+    {t['diagram.label.temporal-artery-cross-section']}
+  </text>
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line class="normal-only" x1={cx + 42} y1={cy - 30} x2="432" y2={cy - 30}></line>
+    <line class="normal-only" x1={cx + 20} y1={cy + 20} x2="432" y2={cy + 40}></line>
+    <line class="disease-only" x1={cx + 40} y1={cy - 30} x2="432" y2={cy - 30}></line>
+    <line class="disease-only" x1={cx + 6} y1={cy + 6} x2="432" y2={cy + 40}></line>
+  </g>
+  <g class="normal-only">
+    <text class="diagram-small" x="436" y={cy - 34}>
+      <tspan x="436">{normalWallLines[0]}</tspan>
+      <tspan x="436" dy="15">
+        {normalWallLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="436" y={cy + 36}>
+      <tspan x="436">{wideLumenLines[0]}</tspan>
+      <tspan x="436" dy="15">
+        {wideLumenLines[1]}
+      </tspan>
+    </text>
+  </g>
+  <g class="disease-only">
+    <text class="diagram-small" x="436" y={cy - 34}>
+      <tspan x="436">{thickWallLines[0]}</tspan>
+      <tspan x="436" dy="15">
+        {thickWallLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="436" y={cy + 36}>
+      <tspan x="436">{narrowLumenLines[0]}</tspan>
+      <tspan x="436" dy="15">
+        {narrowLumenLines[1]}
+      </tspan>
+    </text>
+  </g>
+</svg>

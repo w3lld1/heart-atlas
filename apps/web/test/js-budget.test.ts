@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fontUrls, jsReferences, lazy3dEntry } from '../scripts/js-budget.ts';
+import { counted, fontUrls, jsImports, jsReferences, onDemandEntry } from '../scripts/js-budget.ts';
 
 describe('jsReferences', () => {
   it('finds script, island and preload URLs in HTML', () => {
@@ -20,6 +20,20 @@ describe('jsReferences', () => {
       'import{a as b}from"./e.js";import"./f.js";const g=()=>import("./g.js");' +
       'const h=()=>import(`./h.js`);';
     expect(jsReferences(js).sort()).toEqual(['./e.js', './f.js', './g.js', './h.js']);
+    expect(jsImports(js).filter((reference) => reference.dynamic)).toEqual([
+      { url: './g.js', dynamic: true },
+      { url: './h.js', dynamic: true },
+    ]);
+  });
+});
+
+describe('counted', () => {
+  it('leaves out an on-demand entry only when it is loaded with import()', () => {
+    expect(counted('_astro/player.C9dE8fGh.js', true, 'a.js')).toBe('');
+    expect(() => counted('_astro/player.C9dE8fGh.js', false, 'a.js')).toThrow(/up front/);
+    expect(counted('_astro/HeartSounds.xA7Uo7RQ.js', false, 'a.js')).toBe(
+      '_astro/HeartSounds.xA7Uo7RQ.js',
+    );
   });
 });
 
@@ -35,12 +49,16 @@ describe('fontUrls', () => {
   });
 });
 
-describe('lazy3dEntry', () => {
-  it('matches only the entries of 3D loaded on demand', () => {
-    expect(lazy3dEntry.test('hero.DZVkaJ9a.js')).toBe(true);
-    expect(lazy3dEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
-    expect(lazy3dEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
-    expect(lazy3dEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
-    expect(lazy3dEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
+describe('onDemandEntry', () => {
+  it('matches only the entries loaded on demand', () => {
+    expect(onDemandEntry.test('hero.DZVkaJ9a.js')).toBe(true);
+    expect(onDemandEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
+    expect(onDemandEntry.test('heart-sounds.Bq1x2Yz3.js')).toBe(true);
+    expect(onDemandEntry.test('player.C9dE8fGh.js')).toBe(true);
+    expect(onDemandEntry.test('player-clock.Dk3L9mNp.js')).toBe(false);
+    expect(onDemandEntry.test('HeartSounds.xA7Uo7RQ.js')).toBe(false);
+    expect(onDemandEntry.test('hero-state.CMDD34wJ.js')).toBe(false);
+    expect(onDemandEntry.test('HeroScene.DxVQ1ha-.js')).toBe(false);
+    expect(onDemandEntry.test('index.astro_astro_type_script_index_0_lang.b.js')).toBe(false);
   });
 });

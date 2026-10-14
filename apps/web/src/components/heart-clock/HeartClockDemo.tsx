@@ -21,7 +21,7 @@ import {
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
 import { drawEcg, ecgHeight, limbStrip, maxEcgWidth, readColors, windowMs } from './ecg-canvas.ts';
-import { HeartSoundPlayer } from './heart-sounds.ts';
+import type { HeartSoundPlayer } from './heart-sounds.ts';
 import { drawWiggers, readWiggersColors, wiggersHeight } from './wiggers-canvas.ts';
 import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts';
 import styles from './HeartClockDemo.module.css';
@@ -201,6 +201,9 @@ export default function HeartClockDemo({
   const audioRef = useRef<AudioContext | null>(null);
   // Set only while sound is on.
   const playerRef = useRef<HeartSoundPlayer | null>(null);
+  /** Counts sound on/off clicks, so a player that finishes loading after sound went off is dropped. */
+  const soundToken = useRef(0);
+  const soundOnRef = useRef(false);
 
   const wiggersLabels = useMemo(
     () => ({
@@ -331,6 +334,7 @@ export default function HeartClockDemo({
   // Closes the audio context when the island goes away.
   useEffect(
     () => () => {
+      soundToken.current += 1;
       void audioRef.current?.close();
     },
     [],
@@ -362,12 +366,14 @@ export default function HeartClockDemo({
   }
 
   // The audio context is created only here, on a click: browsers block sound before a gesture.
-  // Everything up to resume() runs synchronously inside the click, so a quick second click
-  // sees the player and turns sound off instead of starting a second one.
+  // `soundOnRef` changes synchronously inside the click, so a quick second click turns sound off
+  // instead of starting a second player.
   function toggleSound() {
-    const player = playerRef.current;
-    if (player) {
-      player.cancel();
+    if (soundOnRef.current) {
+      soundOnRef.current = false;
+      // Turning sound off while the player's code loads drops the load too (`soundToken`).
+      soundToken.current += 1;
+      playerRef.current?.cancel();
       playerRef.current = null;
       setSoundOn(false);
       void audioRef.current?.suspend().catch(() => undefined);
@@ -382,7 +388,22 @@ export default function HeartClockDemo({
       return; // No Web Audio: the button stays off.
     }
     void audioRef.current.resume().catch(() => undefined);
-    playerRef.current = new HeartSoundPlayer(audioRef.current);
+    // The player's code loads on the first click (docs/plans/2026-10-14-lazy-sound-players.md).
+    // The context was created above, inside the click, so the sound may start after the import.
+    const context = audioRef.current;
+    const token = (soundToken.current += 1);
+    void import('./heart-sounds.ts')
+      .then(({ HeartSoundPlayer }) => {
+        if (soundToken.current === token) playerRef.current = new HeartSoundPlayer(context);
+      })
+      .catch(() => {
+        if (soundToken.current !== token) return;
+        soundToken.current += 1;
+        soundOnRef.current = false;
+        setSoundOn(false);
+        void context.suspend().catch(() => undefined);
+      });
+    soundOnRef.current = true;
     setSoundOn(true);
     // Sound follows the trace, so turning it on also starts the trace.
     setPlaying(true);

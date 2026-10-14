@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: According to the article, what does the adrenal cortex do in this condition?
+    options:
+      - text: It makes its hormones at night and switches off during the day
+      - text: It takes sugar from the blood and stores it instead of the liver
+      - text: It makes too much of a hormone on its own
+        correct: true
+    explanation: In primary aldosteronism the adrenal cortex makes too much of the hormone aldosterone on its own, without the usual control.
+    cite: [3, 6]
+  - level: patient
+    prompt: According to the article, what besides a tumour of one adrenal gland can cause the condition?
+    options:
+      - text: Enlargement (hyperplasia) of both adrenal glands
+        correct: true
+      - text: Stones that have formed inside both adrenal glands
+      - text: An infection that has gradually destroyed both adrenal glands
+    explanation: The cause can be a benign tumour of one adrenal gland (adenoma) that makes aldosterone, or enlargement (hyperplasia) of both adrenal glands.
+    cite: [1, 3]
+  - level: patient
+    prompt: Why does blood pressure rise in this condition?
+    options:
+      - text: The vessel walls widen and become much softer than usual
+      - text: Sodium and water are retained, and blood volume in the vessels grows
+        correct: true
+      - text: The kidneys hold on to sugar, and it builds up in the walls of the vessels
+    explanation: Sodium and water are retained, the volume of blood in the vessels grows and blood pressure rises.
+    cite: [3, 4, 5]
+  - level: patient
+    prompt: How is it usually treated if the cause is a tumour of one adrenal gland?
+    options:
+      - text: Both adrenal glands are treated with several sessions of radiation over a month
+      - text: A course of antibiotics is given so that the tumour gradually shrinks away
+      - text: That gland is removed by keyhole (laparoscopic) surgery
+        correct: true
+    explanation: If the cause is a tumour of one adrenal gland, that gland is usually removed by keyhole (laparoscopic) surgery.
+    cite: [1, 3]
+  - level: student
+    prompt: What is typical of secondary hyperaldosteronism?
+    options:
+      - text: Renin is suppressed, while aldosterone stays within the normal range
+      - text: Both renin and aldosterone are high
+        correct: true
+      - text: Renin is high, while aldosterone is low
+    explanation: In secondary hyperaldosteronism both renin and aldosterone are high.
+    cite: [3, 4]
+  - level: student
+    prompt: According to MSD, why do most patients need adrenal vein catheterisation for lateralisation?
+    options:
+      - text: CT and MRI are relatively insensitive
+        correct: true
+      - text: The adrenal glands lie outside the scanning area of abdominal CT and MRI
+      - text: CT and MRI are contraindicated in patients with high blood pressure
+    explanation: According to MSD, CT and MRI are relatively insensitive, so most patients need adrenal vein catheterisation for lateralisation.
+    cite: [3]

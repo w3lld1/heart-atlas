@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: When do doctors start treating this disease?
+    options:
+      - text: After a biopsy has confirmed the diagnosis
+      - text: As soon as the doctor suspects it
+        correct: true
+      - text: When complications in the aorta appear
+    explanation: Treatment is started urgently, as soon as the doctor suspects GCA, usually even before the biopsy, because without treatment blindness can develop.
+    cite: [2, 4, 5]
+  - level: patient
+    prompt: What narrows the lumen of an affected artery in this disease?
+    options:
+      - text: Cholesterol plaques, as in atherosclerosis
+      - text: A blood clot carried from the heart in the bloodstream
+      - text: A markedly thickened inner layer of the wall
+        correct: true
+    explanation: The inner layer of the artery becomes markedly thickened, and the lumen narrows, sometimes until it is completely blocked.
+    cite: [4]
+  - level: patient
+    prompt: When are the aorta and its branches examined with CT or MRI?
+    options:
+      - text: When the diagnosis is made and then periodically
+        correct: true
+      - text: Only once, several years after the diagnosis was made
+      - text: After the headache has gone away
+    explanation: So that involvement of the aorta and its branches is not missed, they are examined with CT or MRI when the diagnosis is made and then periodically, even without symptoms.
+    cite: [1, 2, 4]
+  - level: patient
+    prompt: What should you do if vision is suddenly lost or gets worse?
+    options:
+      - text: Wait and see whether vision comes back by itself
+      - text: Put it off until a routine doctor's visit
+      - text: Call the emergency number straight away
+        correct: true
+    explanation: Sudden loss of vision is a dangerous emergency that needs immediate medical help. If vision is suddenly lost or gets worse, call your local emergency number straight away.
+    cite: [3]
+  - level: student
+    prompt: Why is a segment of the artery that appears abnormal preferred for biopsy?
+    options:
+      - text: Inflamed segments alternate with normal ones
+        correct: true
+      - text: It makes the sample shorter
+      - text: So that the biopsy can be done without a local anaesthetic
+    explanation: A segment that appears abnormal is biopsied if possible, because inflamed segments alternate with normal ones.
+    cite: [4]
+  - level: student
+    prompt: Why, according to MSD, should ESR alone not be used to assess disease activity?
+    options:
+      - text: In this disease ESR usually stays normal
+      - text: In older patients other factors can raise it
+        correct: true
+      - text: Its value does not change from the start of treatment to remission
+    explanation: According to MSD, ESR alone should not be used to evaluate response to treatment and disease activity, because in older patients other factors, such as monoclonal gammopathies, can raise it.
+    cite: [4]
