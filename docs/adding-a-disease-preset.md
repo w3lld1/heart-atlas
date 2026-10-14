@@ -86,7 +86,7 @@ When a disease's treatment changes the ECG away from normal, as a pacemaker does
 
 Add a test for the sign the preset is meant to show, like the existing ones for ST elevation in `stemi` and the split S2 in `atrial-septal-defect`.
 
-Two snapshot tests, `curves-unchanged` and `limb-curves-unchanged`, hold a digest of every preset's curves so that a change to the model cannot move an existing preset unnoticed. A new preset adds its own entries: run them with `-u` once and check that the snapshot diff only adds your preset. The 3D model maps each preset to a disease shape or to none in `presetShape` (`packages/viewer/src/disease.ts`); add your preset there, as `null` unless the 3D thread gives it a shape.
+Two snapshot tests, `curves-unchanged` and `limb-curves-unchanged`, hold a digest of every preset's curves so that a change to the model cannot move an existing preset unnoticed. A new preset adds its own entries: run them with `-u` once and check that the snapshot diff only adds your preset. The 3D model maps each preset to a disease shape or to none in `presetShape` (`packages/viewer/src/disease.ts`); add your preset there, as `null` unless the 3D model has a shape for that disease.
 
 ```sh
 pnpm vitest run --project @heart-atlas/heart-clock
