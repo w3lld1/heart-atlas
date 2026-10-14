@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Because of the narrowing, what happens to blood in tricuspid stenosis?
+    options:
+      - text: Blood passes into the ventricle more easily and more quickly
+      - text: Blood passes less easily from the atrium into the ventricle
+        correct: true
+      - text: Blood stops returning to the heart through the veins at all
+    explanation: Because of the narrowing of the tricuspid valve opening, blood passes less easily from the atrium into the ventricle.
+    cite: [3, 4]
+  - level: patient
+    prompt: According to the article, which infections can rheumatic fever follow?
+    options:
+      - text: Flu or a common cold caught in adulthood
+      - text: A stomach bug or food poisoning in the summer
+      - text: Untreated strep throat or scarlet fever
+        correct: true
+    explanation: Rheumatic fever is a childhood illness that follows some cases of untreated strep throat or scarlet fever.
+    cite: [3, 4]
+  - level: patient
+    prompt: What does echocardiography with Doppler show in tricuspid stenosis?
+    options:
+      - text: A narrowed valve opening and an enlarged right atrium
+        correct: true
+      - text: A widened left ventricle and a clot in the lung artery
+      - text: Inflamed lung tissue and fluid around the lungs in the chest
+    explanation: Echocardiography shows the narrowed valve opening, thickened leaflets that move little, an enlarged right atrium and how much blood passes through the valve; it is used to determine how severe the stenosis is.
+    cite: [3, 4]
+  - level: patient
+    prompt: What is the main operation for tricuspid stenosis named by the European guidelines?
+    options:
+      - text: A transplant of the heart and both lungs from one donor
+      - text: Replacement of the tricuspid valve with a prosthesis
+        correct: true
+      - text: Removal of the spleen
+    explanation: The main operation is replacement of the tricuspid valve with a prosthesis.
+    cite: [1]
+  - level: student
+    prompt: According to MSD, what happens to the RV in TS?
+    options:
+      - text: It is overfilled with more blood than normal
+      - text: It remains underfilled and small
+        correct: true
+      - text: It develops a dysfunction of its own
+    explanation: 'According to MSD, the RA becomes hypertrophied and distended; sequelae of heart failure caused by right heart disease develop, but without RV dysfunction: the RV remains underfilled and small.'
+    cite: [3]
+  - level: student
+    prompt: How does ESC 2025 view the role of transcatheter valve replacement in TS?
+    options:
+      - text: It is the main accepted treatment for TS
+      - text: Its benefit is proven in large trials
+      - text: Its role in TS remains unexplored
+        correct: true
+    explanation: According to ESC 2025, the role of transcatheter valve replacement in TS remains unexplored; treatment of symptomatic TS mainly involves surgical tricuspid valve replacement.
+    cite: [1]
