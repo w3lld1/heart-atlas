@@ -92,4 +92,13 @@ test('the aortic stenosis article compares its murmur with the normal heart', as
     choices.getByRole('radio', { name: en['heartSounds.sound.aortic-stenosis'] }),
   ).toBeChecked();
   await expect(page.locator('svg[data-sound="aortic-stenosis"] polygon')).toHaveCount(1);
+  // The player cites the article's own numbered sources.
+  const player = page.locator('section.heart-sounds');
+  await expect(player.getByRole('heading', { name: en['heartSounds.articleTitle'] })).toBeVisible();
+  for (const href of await player
+    .locator('a[href^="#source-"]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))) {
+    await expect(page.locator(href)).toHaveCount(1);
+  }
+  await expect(player.locator('a[href^="#source-"]')).not.toHaveCount(0);
 });

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is bundle branch block?
+    options:
+      - text: Narrowing of one of the arteries that supply the heart
+      - text: An interruption of the impulse along a bundle branch
+        correct: true
+      - text: An interruption of the impulse from the atria to the ventricles
+    explanation: Bundle branch block is a partial or complete interruption of the electrical impulse as it travels along the right or left bundle branch. An interruption on the way from the atria to the ventricles is called atrioventricular block.
+    cite: [1, 5, 6]
+  - level: patient
+    prompt: What does bundle branch block usually feel like?
+    options:
+      - text: Constant severe chest pain
+      - text: Breathlessness even at rest
+      - text: Nothing at all
+        correct: true
+    explanation: Bundle branch block usually causes no symptoms at all.
+    cite: [2, 6]
+  - level: patient
+    prompt: In left bundle branch block, why should the doctor compare a new ECG with an earlier one?
+    options:
+      - text: The block itself can cause ST elevation, as in a heart attack
+        correct: true
+      - text: Left bundle branch block cannot be seen on an ordinary resting ECG
+      - text: A new ECG cannot technically be recorded without the old one
+    explanation: Left bundle branch block can itself cause ST-segment elevation on the ECG, as in a heart attack, and it makes it impossible to use the usual ECG signs of a past heart attack. This is why it is important for the doctor to compare a new ECG with one recorded earlier.
+    cite: [3, 5]
+  - level: patient
+    prompt: When should someone with bundle branch block call an ambulance?
+    options:
+      - text: Sneezing a couple of times in the morning
+      - text: Yawning before bed
+      - text: Fainting
+        correct: true
+    explanation: Emergency care for fainting caused by a slow heart rhythm is started by the ambulance team.
+    cite: [1]
+  - level: student
+    prompt: How do bundle branch blocks affect the ECG criteria of past myocardial infarction?
+    options:
+      - text: Both blocks preclude use of the usual criteria
+      - text: RBBB does not interfere much; LBBB precludes their use
+        correct: true
+      - text: LBBB does not interfere much, while RBBB precludes their use
+    explanation: RBBB does not significantly interfere with the ECG criteria of past myocardial infarction, whereas LBBB precludes use of the usual criteria.
+    cite: [5]
+  - level: student
+    prompt: In the Russian Ministry of Health ECG classification, which three fascicles make up the ventricular conduction system?
+    options:
+      - text: The right bundle branch and the two fascicles of the left
+        correct: true
+      - text: The sinus node, the atrioventricular node and the bundle of His
+      - text: The left bundle branch and the two fascicles of the right
+    explanation: 'In the electrocardiographic classification given by the Russian Ministry of Health guideline, the ventricular conduction system consists of three fascicles: the right bundle branch and the anterior and posterior fascicles of the left bundle branch.'
+    cite: [1]

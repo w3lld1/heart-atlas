@@ -1,0 +1,200 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const clipId = `${uid}-scad-slit`;
+// Long labels do not fit the label column on one line: split them in two at the word boundary
+// that gives the shortest longer line, never leaving a one- or two-letter word (a preposition) at
+// the end of the first line.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  let best: [string, string] = [label, ''];
+  let bestScore = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const first = words.slice(0, i).join(' ');
+    const second = words.slice(i).join(' ');
+    const score =
+      Math.max(first.length, second.length) + ((words[i - 1]?.length ?? 0) <= 2 ? 100 : 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = [first, second];
+    }
+  }
+  return best;
+}
+const wideLines = twoLines(t['diagram.label.wide-lumen']);
+const hematomaLines = twoLines(t['diagram.label.wall-hematoma']);
+const compressedLines = twoLines(t['diagram.label.compressed-lumen']);
+// A coronary artery cut across, centred at (130, 145): the wall (r 66-110), the intima lining it
+// (a thin line at r 65.5) and the lumen (r 64).
+const cx = 130;
+const cy = 145;
+// Disease: blood inside the wall (the haematoma, or false lumen) fills a crescent in the outer part
+// of the wall and pushes the inner wall with the intima towards the lumen, which is left as a slit.
+// The picture names no layer for it: the sources differ on which layer it lies in.
+const hematoma = 'M52,170 C28,115 70,55 130,55 C190,55 232,115 208,170 Q130,200 52,170 Z';
+// The squeezed true lumen: the lower part of the normal lumen under the pushed-in wall. Its ends
+// lie on the circle r = 64.
+const slit = 'M78.5,183 Q130,207 181.5,183 A64,64 0 0,1 78.5,183 Z';
+// Blood moving through the lumen towards the viewer: dots that pulse in place.
+const normalDots = [
+  { x: 130, y: 145, delay: 0 },
+  { x: 102, y: 122, delay: -0.4 },
+  { x: 158, y: 122, delay: -0.8 },
+  { x: 102, y: 168, delay: -1.2 },
+  { x: 158, y: 168, delay: -0.6 },
+];
+const diseaseDots = [
+  { x: 110, y: 197, delay: 0 },
+  { x: 130, y: 201, delay: -0.6 },
+  { x: 150, y: 197, delay: -1.2 },
+];
+// Label column on the right; each label has a leader line to the point it names.
+const labelX = 262;
+const leaderX = 258;
+---
+
+<svg
+  viewBox="0 0 416 268"
+  role="img"
+  aria-label={t['diagram.spontaneous-coronary-artery-dissection.title']}
+  lang={locale}
+>
+  <defs>
+    <clipPath id={clipId}>
+      <path d={slit}></path>
+    </clipPath>
+  </defs>
+
+  <!-- The artery wall around the intima (only the intima and the media are named, as in the
+       captions) -->
+  <circle
+    cx={cx}
+    cy={cy}
+    r="110"
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-muscle)"
+    stroke-width="1.5"
+  ></circle>
+
+  <!-- Normal: the intima lines a wide round lumen -->
+  <g class="normal-only">
+    <circle cx={cx} cy={cy} r="64" fill="var(--diagram-arterial-fill)"></circle>
+    <circle
+      cx={cx}
+      cy={cy}
+      r="65.5"
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="3"
+    ></circle>
+  </g>
+
+  <!-- Disease: blood inside the wall squeezes the true lumen to a slit -->
+  <g class="disease-only">
+    <path
+      d={hematoma}
+      fill="var(--diagram-arterial)"
+      fill-opacity="0.85"
+      stroke="var(--diagram-arterial)"
+      stroke-width="1.5"
+    ></path>
+    <path d={slit} fill="var(--diagram-arterial-fill)"></path>
+    <path d={slit} fill="none" stroke="var(--color-text)" stroke-width="2.5"></path>
+  </g>
+
+  <!-- Moving blood in the lumen -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    <g class="normal-only">
+      {normalDots.map(({ x, y, delay }) => (
+        <circle class="scad-pulse" cx={x} cy={y} r="6" style={`animation-delay: ${delay}s`} />
+      ))}
+    </g>
+    <g class="disease-only" clip-path={`url(#${clipId})`}>
+      {diseaseDots.map(({ x, y, delay }) => (
+        <circle class="scad-pulse" cx={x} cy={y} r="3" style={`animation-delay: ${delay}s`} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <text x="8" y="22">
+    {t['diagram.label.coronary-artery']}
+  </text>
+
+  <g class="normal-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1={leaderX} y1="131" x2="212.8" y2="131"></line>
+      <line x1={leaderX} y1="166" x2="192" y2="166"></line>
+      <line x1={leaderX} y1="209" x2="166" y2="190"></line>
+    </g>
+    <g fill="var(--color-muted)">
+      <circle cx="212.8" cy="131" r="2.5"></circle>
+      <circle cx="192" cy="166" r="2.5"></circle>
+      <circle cx="166" cy="190" r="2.5"></circle>
+    </g>
+    <text class="diagram-small" x={labelX} y="135">
+      {t['diagram.label.media']}
+    </text>
+    <text class="diagram-small" x={labelX} y="170">
+      {t['diagram.label.intima']}
+    </text>
+    <text x={labelX} y="206">
+      <tspan x={labelX}>{wideLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {wideLines[1]}
+      </tspan>
+    </text>
+  </g>
+
+  <g class="disease-only">
+    <g stroke="var(--color-muted)" stroke-width="1.5">
+      <line x1={leaderX} y1="84" x2="175" y2="84"></line>
+      <line x1={leaderX} y1="209" x2="165" y2="194"></line>
+    </g>
+    <g fill="var(--color-muted)">
+      <circle cx="175" cy="84" r="2.5"></circle>
+      <circle cx="165" cy="194" r="2.5"></circle>
+    </g>
+    <text x={labelX} y="81">
+      <tspan x={labelX}>{hematomaLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {hematomaLines[1]}
+      </tspan>
+    </text>
+    <text x={labelX} y="206">
+      <tspan x={labelX}>{compressedLines[0]}</tspan>
+      <tspan x={labelX} dy="18">
+        {compressedLines[1]}
+      </tspan>
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .scad-pulse {
+    animation: scad-pulse 1.8s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @keyframes scad-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: scale(0.6);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

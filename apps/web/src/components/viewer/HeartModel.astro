@@ -1,5 +1,5 @@
 ---
-import { HeartViewer, type DiseaseId } from '@heart-atlas/viewer';
+import { HeartViewer, isDiseaseId, type DiseaseId } from '@heart-atlas/viewer';
 import { defaultLocale } from '../../i18n/locales.ts';
 import { getMessages } from '../../i18n/messages.ts';
 import {
@@ -21,7 +21,15 @@ interface Props {
   headingLevel?: 2 | 3 | 4;
 }
 
-const { highlight, disease, cycle, headingLevel = 3 } = Astro.props;
+const { highlight, headingLevel = 3 } = Astro.props;
+// In a disease article with a shape on the model, a <HeartModel> in the text shows that shape, and
+// the page leaves out its own model (docs/plans/2026-10-13-disease-picker-3d.md).
+const page = Astro.locals.article;
+const disease =
+  Astro.props.disease ??
+  (page?.type === 'disease' && isDiseaseId(page.slug) ? page.slug : undefined);
+// A disease model without the page's clock gets its own heartbeat, so signs seen in motion show.
+const cycle = Astro.props.cycle ?? (disease ? 'own' : undefined);
 const locale = Astro.props.locale ?? Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
 const structures = heartStructures(t);

@@ -107,6 +107,7 @@ type Phase = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported';
 /** Marker text for the shapes that have a marker. */
 const MARKER_KEY: Partial<Record<DiseaseId, ViewerMessageKey>> = {
   'atrial-septal-defect': 'viewer.disease.marker.atrial-septal-defect',
+  'ventricular-septal-defect': 'viewer.disease.marker.ventricular-septal-defect',
 };
 
 const STATUS: Partial<Record<Phase, ViewerMessageKey>> = {
@@ -488,18 +489,24 @@ export default function HeartViewer({
 
         {phase === 'ready' && (
           <div className={styles.options}>
-            <label>
-              <input type="checkbox" checked={ghost} onChange={(e) => setGhost(e.target.checked)} />
-              {t['viewer.ghost']}
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={isolate}
-                onChange={(e) => setIsolate(e.target.checked)}
-              />
-              {t['viewer.isolate']}
-            </label>
+            <div className={styles.toggles}>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={ghost}
+                  onChange={(e) => setGhost(e.target.checked)}
+                />
+                {t['viewer.ghost']}
+              </label>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={isolate}
+                  onChange={(e) => setIsolate(e.target.checked)}
+                />
+                {t['viewer.isolate']}
+              </label>
+            </div>
             <div className={styles.field}>
               <label htmlFor={`${id}-section`}>{t['viewer.section']}</label>
               <select
@@ -516,7 +523,11 @@ export default function HeartViewer({
             </div>
             {cycleMode === 'own' && (
               <div className={styles.heartbeat}>
-                <button type="button" onClick={toggleHeartbeat}>
+                <button
+                  type="button"
+                  data-running={cycle !== null || startingClock}
+                  onClick={toggleHeartbeat}
+                >
                   {cycle || startingClock
                     ? t['viewer.heartbeat.stop']
                     : t['viewer.heartbeat.start']}

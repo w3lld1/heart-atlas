@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What are coronary artery anomalies?
+    options:
+      - text: Narrowing of the coronary arteries caused by atherosclerosis in older people
+      - text: Congenital differences in the origin, course or branches of the arteries
+        correct: true
+      - text: Acquired changes of the arteries in children after Kawasaki disease
+    explanation: Coronary artery anomalies are congenital differences in where the coronary arteries start, how they run or how their end branches are built.
+    cite: [1]
+  - level: patient
+    prompt: In ALCAPA, what happens after birth when the pressure in the pulmonary artery falls?
+    options:
+      - text: Blood flow in the left coronary artery rises sharply
+      - text: The left coronary artery moves over to the aorta by itself
+      - text: Blood flow in the left coronary artery drops
+        correct: true
+    explanation: After birth the pressure in the pulmonary artery falls, blood flow in the left coronary artery drops, and the heart muscle of the left ventricle gets too little blood and oxygen.
+    cite: [1, 2]
+  - level: patient
+    prompt: What is a coronary fistula?
+    options:
+      - text: An abnormal connection of a coronary artery with a chamber or vessel
+        correct: true
+      - text: A bag-like bulge in the wall of a coronary artery left after inflammation
+      - text: A blood clot that completely blocks the lumen of a coronary artery
+    explanation: A coronary fistula is an abnormal connection between a coronary artery and a chamber of the heart or a vessel, bypassing the small vessels.
+    cite: [1, 2]
+  - level: patient
+    prompt: When should you call an ambulance for a baby with ALCAPA?
+    options:
+      - text: Sneezing during the evening bath
+      - text: Attacks of sudden distress with pallor, sweating and breathlessness
+        correct: true
+      - text: Hiccups after a feed that go away on their own in a couple of minutes
+    explanation: Call your local emergency number if a baby has attacks of sudden distress with pallor, sweating and worsening shortness of breath, especially during or after feeds.
+    cite: [1, 4]
+  - level: student
+    prompt: Where does the left coronary artery arise from in ALCAPA?
+    options:
+      - text: From the right sinus of the aorta
+      - text: From the anterior surface of the ascending part of the aorta
+      - text: From the posterior surface of the pulmonary trunk
+        correct: true
+    explanation: In ALCAPA the right coronary artery arises from the aorta, while the left one arises from the posterior surface of the pulmonary trunk and almost immediately divides into the anterior interventricular and circumflex branches.
+    cite: [1]
+  - level: student
+    prompt: How does the Russian guideline explain mitral regurgitation in ALCAPA?
+    options:
+      - text: Papillary muscle ischaemia and dilatation of the mitral annulus
+        correct: true
+      - text: Rheumatic damage to the leaflets after a streptococcal sore throat
+      - text: A congenital cleft of the anterior leaflet of the mitral valve
+    explanation: According to the Russian Ministry of Health paediatric guideline, mitral regurgitation in ALCAPA results from papillary muscle ischaemia and dilatation of the mitral annulus.
+    cite: [1]

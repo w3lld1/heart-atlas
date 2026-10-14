@@ -128,7 +128,7 @@ The level switch hides one level when JavaScript runs; without JavaScript both a
 
 ### `<Diagram>`
 
-An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
+An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, `normal` / `rbbb` / `lbbb` (bundle branch block), or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
 
 ```mdx
 <Diagram name="aortic-stenosis">
@@ -178,7 +178,7 @@ An unknown preset id fails the build. A disease article with `preset` in its fro
 
 ### `<HeartSounds>`
 
-The heart sounds player: normal S1 and S2 next to the murmur of a valve disease, synthesised in step with the heart clock (docs/plans/2026-10-13-heart-sounds.md). `sound` is one of `aortic-stenosis`, `aortic-regurgitation`, `mitral-stenosis`, `mitral-regurgitation`, `mitral-valve-prolapse` (or `normal`). The player lists its own sources under each sound, so it needs no `<Cite>`; children are an optional caption.
+The heart sounds player: normal S1 and S2 next to the murmur of a valve disease, synthesised in step with the heart clock (docs/plans/2026-10-13-heart-sounds.md). `sound` is one of `aortic-stenosis`, `aortic-regurgitation`, `mitral-stenosis`, `mitral-regurgitation`, `mitral-valve-prolapse` (or `normal`). It renders as a framed block «Послушайте сердце» / “Listen to the heart”; put it at the end of the diagnosis section, after its text. The player cites the sources of each sound by their numbers in the article's source list, so every source in `heart-sounds/sources.ts` for the article's sound and for `normal` must be in the article's `sources` (the build names any that is missing; add it at the end of the list so existing numbers stay). Children are an optional caption.
 
 ```mdx
 <HeartSounds sound="aortic-stenosis" />

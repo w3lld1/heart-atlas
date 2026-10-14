@@ -1,0 +1,174 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-caa-arrow`;
+const hatchId = `${uid}-caa-hatch`;
+// Front view of the heart with the roots of the aorta and the pulmonary trunk, cut off above the
+// heart, and the main coronary arteries, as in CoronaryArteries.astro. Normally both coronary
+// arteries start from the aorta and the left one runs behind the pulmonary trunk. Disease shows
+// ALCAPA, the anomaly the article's sources describe in most detail: the left coronary artery
+// starts from the pulmonary trunk, the right one is wide and tortuous, collaterals carry blood from
+// the right system to the left, and through the left artery it runs back into the pulmonary trunk;
+// the anterior wall of the left ventricle gets too little blood. The number and course of the
+// collaterals are not from the sources, so two stand for the network. No numbers on the art.
+const aorta = 'M160,90 L160,8';
+const pulmonaryTrunk = 'M212,100 L226,8';
+const rcaNormal = 'M150,84 Q110,90 90,120 Q66,160 88,214 Q100,240 126,256';
+const rcaWide = 'M150,84 Q112,84 94,112 Q62,138 82,166 Q60,194 88,214 Q100,240 126,256';
+// The left main runs from the aorta behind the pulmonary trunk; in ALCAPA its short stem starts
+// from the pulmonary trunk, under the trunk's stroke.
+const lcaNormal = 'M170,84 L234,104';
+const lcaFromTrunk = 'M214,90 L234,104';
+const lad = 'M234,104 Q232,196 200,290';
+const lcx = 'M234,104 Q286,108 308,140 Q324,168 316,200';
+// Collaterals near the apex, from the right coronary artery to the anterior descending branch.
+const collaterals = ['M126,256 Q160,276 201,286', 'M98,232 Q150,238 210,250'];
+// Reversed paths: in ALCAPA blood runs up the left artery and into the pulmonary trunk.
+const ladBack = 'M200,290 Q232,196 234,104';
+const lcaBack = 'M234,104 L214,90';
+// The pale zone: the anterior wall of the left ventricle beside the anterior descending branch.
+const zone = 'M246,128 Q290,130 298,172 Q300,220 264,248 Q244,262 230,250 Q242,190 246,128 Z';
+---
+
+<svg
+  viewBox="-114 -16 548 358"
+  role="img"
+  aria-label={t['diagram.coronary-artery-anomalies.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0,8 L8,0" stroke="var(--color-muted)" stroke-width="1.5"></path>
+    </pattern>
+  </defs>
+
+  <!-- Heart: the outline keeps it visible on the page background in both themes -->
+  <path
+    d="M70,90 Q180,40 310,90 Q350,170 290,250 Q230,312 186,300 Q140,300 90,250 Q30,170 70,90 Z"
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Pale anterior wall of the left ventricle: it gets too little blood and oxygen -->
+  <g class="disease-only">
+    <path d={zone} fill="var(--color-bg)" fill-opacity="0.6"></path>
+    <path d={zone} fill={`url(#${hatchId})`}></path>
+    <path
+      d={zone}
+      fill="none"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="4 3"
+    ></path>
+  </g>
+
+  <!-- Aorta, cut off above the heart -->
+  <path d={aorta} fill="none" stroke="var(--diagram-arterial)" stroke-width="24"></path>
+
+  <!-- Coronary arteries. The left main is drawn before the pulmonary trunk, so it runs behind it. -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="5" stroke-linecap="round">
+    <path class="normal-only" d={rcaNormal}></path>
+    <path class="disease-only" d={rcaWide} stroke-width="10"></path>
+    <path class="normal-only" d={lcaNormal}></path>
+    <path class="disease-only" d={lcaFromTrunk}></path>
+    <path d={lad}></path>
+    <path d={lcx}></path>
+    <g class="disease-only" stroke-width="2.5">
+      {collaterals.map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Pulmonary trunk, cut off above the heart; in front of the left main -->
+  <path d={pulmonaryTrunk} fill="none" stroke="var(--diagram-venous)" stroke-width="24"></path>
+
+  <!-- Flow arrows beside the arteries, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="3" stroke-linecap="round">
+    <g class="normal-only">
+      <path d="M100,146 L96,174" marker-end={`url(#${arrowId})`}></path>
+      <path d="M246,170 L244,206" marker-end={`url(#${arrowId})`}></path>
+    </g>
+    <g class="disease-only">
+      <path d="M108,146 L104,174" marker-end={`url(#${arrowId})`}></path>
+      <path d="M146,262 L176,272" marker-end={`url(#${arrowId})`}></path>
+      <path d="M216,206 L220,170" marker-end={`url(#${arrowId})`}></path>
+      <path d="M240,90 L228,82" marker-end={`url(#${arrowId})`}></path>
+    </g>
+  </g>
+
+  <!-- Moving blood along the arteries -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="3">
+    <g class="normal-only">
+      <path class="dash-flow" d={rcaNormal}></path>
+      <path class="dash-flow" d={lad}></path>
+    </g>
+    <path class="dash-flow" d={lcx}></path>
+    <g class="disease-only">
+      <path class="dash-flow" d={rcaWide}></path>
+      {collaterals.map((d) => (
+        <path class="dash-flow" d={d} stroke-width="1.5" />
+      ))}
+      <path class="dash-flow" d={ladBack}></path>
+      <path class="dash-flow" d={lcaBack}></path>
+    </g>
+  </g>
+
+  <!-- Labels -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line x1="296" y1="62" x2="240" y2="100"></line>
+    <line x1="40" y1="112" x2="86" y2="114"></line>
+  </g>
+  <text class="diagram-small" x="146" y="4" text-anchor="end">
+    {t['diagram.label.aorta']}
+  </text>
+  <text class="diagram-small" x="242" y="4">
+    {t['diagram.label.pulmonary-trunk']}
+  </text>
+  <text class="diagram-small" x="300" y="62">
+    {t['diagram.label.lca']}
+  </text>
+  <text class="diagram-small" x="36" y="116" text-anchor="end">
+    {t['diagram.label.rca']}
+  </text>
+  <g class="disease-only">
+    <text class="diagram-small" x="36" y="132" text-anchor="end">
+      {t['diagram.label.rca-wide-tortuous']}
+    </text>
+    <line x1="270" y1="34" x2="236" y2="80" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="272" y="32">
+      {t['diagram.label.backflow']}
+    </text>
+    <line x1="90" y1="306" x2="112" y2="252" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="90" y="322" text-anchor="middle">
+      {t['diagram.label.collaterals']}
+    </text>
+    <line x1="330" y1="300" x2="280" y2="226" stroke="var(--color-muted)" stroke-width="1.5"></line>
+    <text class="diagram-small" x="330" y="316" text-anchor="middle">
+      {t['diagram.label.anterior-wall']}
+    </text>
+    <text class="diagram-small" x="330" y="332" text-anchor="middle">
+      {t['diagram.label.low-blood-oxygen']}
+    </text>
+  </g>
+</svg>

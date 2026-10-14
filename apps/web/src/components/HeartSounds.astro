@@ -8,28 +8,50 @@ import { heartSoundSources } from './heart-sounds/sources.ts';
 import { defaultLocale } from '../i18n/locales.ts';
 import { getMessages } from '../i18n/messages.ts';
 
-// The heart sounds player inside an article: <HeartSounds sound="aortic-stenosis" />, with an
-// optional article caption as children. The reader compares the sound with the normal heart
-// (docs/plans/2026-10-13-heart-sounds.md). MDX components are not hydrated themselves, so this
-// Astro wrapper renders the island.
+// The heart sounds player inside an article: <HeartSounds sound="aortic-stenosis" />, placed after
+// the text of the diagnosis section, with an optional article caption as children. The reader
+// compares the sound with the normal heart (docs/plans/2026-10-13-heart-sounds.md). MDX components
+// are not hydrated themselves, so this Astro wrapper renders the island.
 interface Props {
   sound: HeartSoundId;
 }
 
 const { sound } = Astro.props;
 if (!isHeartSoundId(sound)) throw new Error(`<HeartSounds>: unknown sound "${String(sound)}"`);
+const { article, sourceUrls } = Astro.locals;
+if (article === undefined || sourceUrls === undefined) {
+  throw new Error('<HeartSounds> works only on article pages');
+}
 const locale = Astro.locals.locale ?? defaultLocale;
 const t = getMessages(locale);
 const messages = Object.fromEntries(
   heartSoundsMessageKeys.map((key) => [key, t[key]]),
 ) as HeartSoundsMessages;
 const sounds: HeartSoundId[] = sound === 'normal' ? ['normal'] : ['normal', sound];
-const sources = Object.fromEntries(sounds.map((id) => [id, heartSoundSources[id]]));
+// The player cites the article's own numbered sources, so every source of its sounds must be one.
+const citations = Object.fromEntries(
+  sounds.map((id) => [
+    id,
+    heartSoundSources[id]
+      .map((source) => {
+        const n = sourceUrls.indexOf(source.href) + 1;
+        if (n === 0) {
+          throw new Error(
+            `<HeartSounds sound="${sound}">: add ${source.href} to the sources of ${article.locale}/${article.type}/${article.slug}`,
+          );
+        }
+        return n;
+      })
+      .sort((a, b) => a - b),
+  ]),
+);
+const titleId = `heart-sounds-${sound}`;
 ---
 
-<figure class="heart-sounds" data-pagefind-ignore>
+<section class="heart-sounds" aria-labelledby={titleId} data-pagefind-ignore>
   <!-- The player and the note are UI text in the page locale; the caption is article text. -->
   <div lang={locale}>
+    <h3 id={titleId}>{t['heartSounds.articleTitle']}</h3>
     <p class="schematic" role="note">
       {t['heartSounds.schematic']}
     </p>
@@ -38,30 +60,40 @@ const sources = Object.fromEntries(sounds.map((id) => [id, heartSoundSources[id]
       messages={messages}
       sounds={sounds}
       sound={sound}
-      sources={sources}
+      citations={citations}
     />
   </div>
   {Astro.slots.has('default') && (
-    <figcaption>
+    <p class="caption">
       <slot />
-    </figcaption>
+    </p>
   )}
-</figure>
+</section>
 
 <style>
+  /* A framed block with a heading, like the quiz. */
   .heart-sounds {
-    margin-block: 1.5rem;
-    margin-inline: 0;
+    margin-block: 2rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-2);
+  }
+
+  /* h3: the block sits inside the diagnosis section. */
+  h3 {
+    margin-block: 0 0.75rem;
   }
 
   .schematic {
     margin-block: 0 1rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--color-border);
+    padding-inline-start: 0.75rem;
     border-inline-start: 4px solid var(--color-accent);
+    color: var(--color-muted);
+    font-size: 0.875rem;
   }
 
-  figcaption {
-    margin-block-start: 0.5rem;
+  .caption {
+    margin-block: 0.75rem 0;
   }
 </style>

@@ -2,6 +2,42 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-10-14
+
+The heart clock ECG in leads I, II and III at once, a player of heart sounds and valve murmurs, disease shapes to pick on the 3D model, a disease catalogue with groups and a filter, ten new disease articles and a page for addresses that do not exist.
+
+### Heart clock
+
+- The ECG shows the standard limb leads I, II and III at once, three strips with a shared time ([#297](https://github.com/w3lld1/heart-atlas/pull/297), [#301](https://github.com/w3lld1/heart-atlas/pull/301), [#305](https://github.com/w3lld1/heart-atlas/pull/305), [#323](https://github.com/w3lld1/heart-atlas/pull/323)). Each wave has its own direction in the frontal plane, so the leads differ the way they do in a real ECG: in ST-elevation infarction of the inferior wall the ST segment rises in II and III and falls in I, flutter waves are clear in II and III and small in I, the atrial septal defect preset shows right axis deviation, and in ventricular tachycardia and ventricular premature beats the QRS is small in I. Lead II looks exactly as before, and I + III = II at every moment (Einthoven's law). Directions come from cited sources or are marked as model assumptions. The Brugada syndrome preset stays a single V1 strip.
+- The embedded ECG shows the same three strips, and the embed builder gives taller snippets for the ECG and for articles with the heart clock monitor. Snippets already pasted on other sites keep their old height; take a new one from the builder to fit all three strips.
+
+### Heart sounds
+
+- A new page plays heart sounds and valve murmurs in time with the heart clock: normal sounds, aortic stenosis and regurgitation, mitral stenosis and regurgitation and mitral valve prolapse ([#299](https://github.com/w3lld1/heart-atlas/pull/299), [#306](https://github.com/w3lld1/heart-atlas/pull/306)). The sounds are synthesized and schematic; what each murmur sounds like and where it is heard come from cited sources.
+- The five valve disease articles play their murmur next to the normal sounds ([#321](https://github.com/w3lld1/heart-atlas/pull/321)).
+
+### 3D model
+
+- The 3D page has a "Show on the model" list of the diseases whose shape the model can show; the pick changes the model, its caption and sources, links to the article and stays in the address, so it can be shared. An article with a disease shape but without a heart clock gets a "Normal / With the disease" switch on its model, and under the 3D page model there are links to the articles with real patient heart models ([#324](https://github.com/w3lld1/heart-atlas/pull/324)).
+
+### Articles
+
+- New disease articles in Russian and English, each with a diagram: pulmonary atresia with ventricular septal defect ([#293](https://github.com/w3lld1/heart-atlas/pull/293)), left ventricular noncompaction, catecholaminergic polymorphic ventricular tachycardia, ventricular fibrillation and chronic thromboembolic pulmonary hypertension ([#295](https://github.com/w3lld1/heart-atlas/pull/295)), acute limb ischaemia ([#300](https://github.com/w3lld1/heart-atlas/pull/300)), single ventricle ([#322](https://github.com/w3lld1/heart-atlas/pull/322)), partial anomalous pulmonary venous return ([#329](https://github.com/w3lld1/heart-atlas/pull/329)) aortopulmonary window ([#338](https://github.com/w3lld1/heart-atlas/pull/338)) and interrupted aortic arch ([#344](https://github.com/w3lld1/heart-atlas/pull/344)). The site now has seventy-six disease articles.
+- The disease list is cards in ten groups (rhythm, coronary, valves, congenital and others) with jump links and counts, and a "Find a disease" field narrows the cards as you type; the other sections get the same cards ([#339](https://github.com/w3lld1/heart-atlas/pull/339)).
+- The congenitally corrected transposition article shows the heart clock with complete AV block, without the Wiggers diagram and the pacemaker state, which are written for a usual heart ([#294](https://github.com/w3lld1/heart-atlas/pull/294)).
+- Above every article a visible "Explanation level" label names the patient and student buttons, and a line under them says what the chosen level gives ([#312](https://github.com/w3lld1/heart-atlas/pull/312)).
+
+### Learning
+
+- Quizzes in thirteen more articles, 84 in all ([#292](https://github.com/w3lld1/heart-atlas/pull/292), [#302](https://github.com/w3lld1/heart-atlas/pull/302), [#304](https://github.com/w3lld1/heart-atlas/pull/304), [#314](https://github.com/w3lld1/heart-atlas/pull/314), [#325](https://github.com/w3lld1/heart-atlas/pull/325), [#343](https://github.com/w3lld1/heart-atlas/pull/343)).
+- Quiz numbers start the question line, and the diagram's "Normal / Disease / After treatment" switch fits one row on a phone ([#315](https://github.com/w3lld1/heart-atlas/pull/315)).
+- Track pages show the steps as numbered cards that fill when read, and search results use the site's fonts and colours in both themes ([#327](https://github.com/w3lld1/heart-atlas/pull/327)).
+
+### Site
+
+- An address that does not exist opens a "Page not found" page with links to the home page and search in every language, instead of the GitHub Pages default ([#328](https://github.com/w3lld1/heart-atlas/pull/328)).
+- Specs for the next work: stage 15 articles ([#309](https://github.com/w3lld1/heart-atlas/pull/309)) and a disease picker with new shape changes on the 3D model ([#310](https://github.com/w3lld1/heart-atlas/pull/310)).
+
 ## [0.6.0] - 2026-10-13
 
 Twenty new disease articles, heart clock presets for AV block, pacemakers and premature beats, and quizzes in fifteen more articles.
@@ -167,6 +203,8 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.7.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.7.0
+[0.6.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.6.0
 [0.5.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.5.0
 [0.4.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.4.0
 [0.3.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.3.0

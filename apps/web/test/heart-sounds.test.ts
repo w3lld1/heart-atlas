@@ -16,10 +16,19 @@ beforeAll(async () => {
   container.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' });
 });
 
+const articleLocals = {
+  locale: 'ru',
+  article: { locale: 'ru', type: 'disease', slug: 'mitral-stenosis' },
+};
+
 describe('HeartSounds', () => {
   it('compares the article sound with normal and draws its murmur', async () => {
+    const urls = [
+      'https://example.org/guideline',
+      ...heartSoundSources['aortic-stenosis'].map((source) => source.href),
+    ];
     const html = await container.renderToString(HeartSounds, {
-      locals: { locale: 'ru' },
+      locals: { ...articleLocals, sourceUrls: urls },
       props: { sound: 'aortic-stenosis' },
     });
     const sounds = [...html.matchAll(/type="radio" name="[^"]*-sound"[^>]*?value="([^"]+)"/g)].map(
@@ -29,6 +38,9 @@ describe('HeartSounds', () => {
     const t = getMessages('ru');
     expect(html).toContain(t['heartSounds.sound.aortic-stenosis.description']);
     expect(html).toMatch(/<polygon[^>]*data-timbre="harsh"/);
+    // The murmur cites the article's numbered sources, not a list of its own.
+    expect(html).toMatch(/href="#source-2"[^>]*>2<\/a>/);
+    expect(html).not.toContain('<ul');
     // No autoplay: the button offers to listen.
     expect(html).toContain(`>${t['heartSounds.listen']}</button>`);
   });
@@ -36,10 +48,21 @@ describe('HeartSounds', () => {
   it('rejects an unknown sound', async () => {
     await expect(
       container.renderToString(HeartSounds, {
-        locals: { locale: 'en' },
+        locals: { ...articleLocals, sourceUrls: [] },
         props: { sound: 'wpw-syndrome' },
       }),
     ).rejects.toThrow(/unknown sound/);
+  });
+
+  it('asks for a source the article lacks', async () => {
+    await expect(
+      container.renderToString(HeartSounds, {
+        locals: { ...articleLocals, sourceUrls: [] },
+        props: { sound: 'mitral-stenosis' },
+      }),
+    ).rejects.toThrow(
+      /add https:\/\/www\.msdmanuals\.com\/.+ to the sources of ru\/disease\/mitral-stenosis/,
+    );
   });
 });
 

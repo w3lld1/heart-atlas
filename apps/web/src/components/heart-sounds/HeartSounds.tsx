@@ -1,6 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { currentMotion, MOTION_EVENT } from '../../lib/motion.ts';
-import type { ClockSource } from '../heart-clock/sources.ts';
 import {
   auscultationEvents,
   heartSoundIds,
@@ -20,7 +19,7 @@ export const heartSoundsMessageKeys = [
   'heartSounds.diastole',
   'heartSounds.click',
   'heartSounds.openingSnap',
-  'heartSounds.sources',
+  'sources.cite',
   ...heartSoundIds.flatMap(
     (id) => [`heartSounds.sound.${id}`, `heartSounds.sound.${id}.description`] as const,
   ),
@@ -34,17 +33,21 @@ export interface HeartSoundsProps {
   sounds: readonly HeartSoundId[];
   /** Sound to start with; the first of `sounds` by default. */
   sound?: HeartSoundId;
-  /** Sources of each sound, listed under its description. */
-  sources: Readonly<Partial<Record<HeartSoundId, readonly ClockSource[]>>>;
+  /**
+   * Numbers of each sound's sources in the page's numbered source list (`#source-<n>`), cited after
+   * its description, as `<Cite>` does in an article.
+   */
+  citations: Readonly<Partial<Record<HeartSoundId, readonly number[]>>>;
 }
 
-// The diagram: one beat from the onset of the P wave to the next, in SVG user units.
-// Narrow, so labels stay readable when a phone scales the drawing down.
+// The diagram: one beat from the onset of the P wave to the next, in SVG user units. Its labels
+// are HTML around the drawing, so they keep the text size however wide the drawing is.
 const width = 480;
-const height = 150;
-const baseline = 90;
+const height = 120;
+const baseline = height / 2;
 const toneHeight = 50;
 const murmurHeight = 30;
+const percent = (x: number) => `${((x / width) * 100).toFixed(2)}%`;
 
 const toneLabels: Record<Tone, keyof HeartSoundsMessages | undefined> = {
   S1: undefined,
@@ -68,7 +71,7 @@ function murmurPoints(murmur: MurmurEvent, x: (time: number) => number): string 
   return [...top, ...bottom].join(' ');
 }
 
-export default function HeartSounds({ messages: t, sounds, sound, sources }: HeartSoundsProps) {
+export default function HeartSounds({ messages: t, sounds, sound, citations }: HeartSoundsProps) {
   const [selected, setSelected] = useState<HeartSoundId>(sound ?? sounds[0] ?? 'normal');
   const [playing, setPlaying] = useState(false);
   const [still, setStill] = useState(true);
@@ -153,32 +156,49 @@ export default function HeartSounds({ messages: t, sounds, sound, sources }: Hea
 
   const name = t[`heartSounds.sound.${selected}`];
   const descriptionId = `${id}-description`;
-  const selectedSources = sources[selected] ?? [];
+  const cited = citations[selected] ?? [];
 
   return (
     <div className={styles['sounds']}>
       {sounds.length > 1 && (
         <fieldset className={styles['choices']}>
           <legend>{t['heartSounds.choose']}</legend>
-          {sounds.map((item) => (
-            <label key={item}>
-              <input
-                type="radio"
-                name={`${id}-sound`}
-                value={item}
-                checked={selected === item}
-                onChange={() => choose(item)}
-              />
-              {t[`heartSounds.sound.${item}`]}
-            </label>
-          ))}
+          <div className={styles['segments']}>
+            {sounds.map((item) => (
+              <label key={item}>
+                <input
+                  type="radio"
+                  name={`${id}-sound`}
+                  value={item}
+                  checked={selected === item}
+                  onChange={() => choose(item)}
+                />
+                {t[`heartSounds.sound.${item}`]}
+              </label>
+            ))}
+          </div>
         </fieldset>
       )}
       <button type="button" className={styles['listen']} onClick={toggle}>
+        <svg className={styles['icon']} viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          {playing ? (
+            <rect x={3} y={3} width={10} height={10} rx={1} />
+          ) : (
+            <path d="M4 2.5v11l9.5-5.5z" />
+          )}
+        </svg>
         {playing ? t['heartSounds.stop'] : t['heartSounds.listen']}
       </button>
       {/* Time runs left to right in every language, as on a phonocardiogram. */}
       <div className={styles['diagram']} dir="ltr">
+        <div className={styles['phases']} aria-hidden="true">
+          <span style={{ insetInlineStart: percent((s1 + s2) / 2) }}>
+            {t['heartSounds.systole']}
+          </span>
+          <span style={{ insetInlineStart: percent((s2 + width) / 2) }}>
+            {t['heartSounds.diastole']}
+          </span>
+        </div>
         <svg
           viewBox={`0 0 ${width} ${height}`}
           role="img"
@@ -186,13 +206,7 @@ export default function HeartSounds({ messages: t, sounds, sound, sources }: Hea
           aria-describedby={descriptionId}
           data-sound={selected}
         >
-          <rect className={styles['systole']} x={s1} y={10} width={s2 - s1} height={height - 20} />
-          <text className={styles['phase']} x={(s1 + s2) / 2} y={24} textAnchor="middle">
-            {t['heartSounds.systole']}
-          </text>
-          <text className={styles['phase']} x={(s2 + width) / 2} y={24} textAnchor="middle">
-            {t['heartSounds.diastole']}
-          </text>
+          <rect className={styles['systole']} x={s1} y={0} width={s2 - s1} height={height} />
           <line className={styles['baseline']} x1={0} x2={width} y1={baseline} y2={baseline} />
           {murmurs.map((murmur) => (
             <polygon
@@ -205,7 +219,6 @@ export default function HeartSounds({ messages: t, sounds, sound, sources }: Hea
           {tones.map((tone) => {
             const position = x(tone.time);
             const half = (toneHeight * Math.min(tone.gain, 1.5)) / 1.5;
-            const label = toneLabels[tone.tone];
             return (
               <g key={tone.tone} data-tone={tone.tone}>
                 <line
@@ -215,9 +228,6 @@ export default function HeartSounds({ messages: t, sounds, sound, sources }: Hea
                   y1={baseline - half}
                   y2={baseline + half}
                 />
-                <text className={styles['label']} x={position} y={height - 4} textAnchor="middle">
-                  {label ? t[label] : tone.tone}
-                </text>
               </g>
             );
           })}
@@ -226,29 +236,45 @@ export default function HeartSounds({ messages: t, sounds, sound, sources }: Hea
             className={styles['cursor']}
             x1={0}
             x2={0}
-            y1={10}
-            y2={height - 20}
+            y1={0}
+            y2={height}
             visibility={playing && !still ? 'visible' : 'hidden'}
           />
         </svg>
-      </div>
-      <p id={descriptionId} className={styles['description']}>
-        {t[`heartSounds.sound.${selected}.description`]}
-      </p>
-      {selectedSources.length > 0 && (
-        <div className={styles['sources']}>
-          <p>{t['heartSounds.sources']}</p>
-          <ul>
-            {selectedSources.map((source) => (
-              <li key={source.href}>
-                <a href={source.href} lang={source.lang}>
-                  {source.text}
-                </a>
-              </li>
-            ))}
-          </ul>
+        <div className={styles['tones']} aria-hidden="true">
+          {tones.map((tone) => {
+            const label = toneLabels[tone.tone];
+            return (
+              <span
+                key={tone.tone}
+                // Extra sounds sit on a second row: an opening snap is too close to S2 to share one.
+                data-row={label ? 2 : 1}
+                style={{ insetInlineStart: percent(x(tone.time)) }}
+              >
+                {label ? t[label] : tone.tone}
+              </span>
+            );
+          })}
         </div>
-      )}
+      </div>
+      <p className={styles['description']}>
+        {/* The diagram is described by the text alone, without the citation numbers. */}
+        <span id={descriptionId}>{t[`heartSounds.sound.${selected}.description`]}</span>
+        {cited.length > 0 && (
+          <sup className={styles['cite']}>
+            [
+            {cited.map((n, i) => (
+              <span key={n}>
+                {i > 0 && ', '}
+                <a href={`#source-${n}`} aria-label={t['sources.cite'].replace('{n}', String(n))}>
+                  {n}
+                </a>
+              </span>
+            ))}
+            ]
+          </sup>
+        )}
+      </p>
     </div>
   );
 }

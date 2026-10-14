@@ -1,0 +1,454 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-bbb-arrow`;
+// The wave letters P and QRS are international ECG notation, the same in every locale, so they
+// are not in messages.
+
+// Labels that do not fit their free space on one line: split in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const interruptedLines = twoLines(t['diagram.label.conduction-interrupted']);
+const laterLines = twoLines(t['diagram.label.activated-later']);
+
+/*
+ * A flat pathway scheme, not a heart outline, drawn as seen from the front: the right ventricle on
+ * the viewer's left. Atria on top, the AV node between, the two ventricles below with the bundle
+ * of His running down between them and dividing into the right branch and the left branch, which
+ * divides again into an anterior and a posterior fascicle. One ECG beat in a panel at the bottom.
+ * Normal: both ventricles are activated at once and the QRS is narrow. Right or left bundle
+ * branch block: conduction along the whole branch is interrupted (no point of the block is
+ * marked, the sources do not place it), that ventricle is activated later, and the QRS is wide.
+ * No route of the late impulse is drawn and no heart rate: the block does not slow the rhythm.
+ */
+type State = 'normal' | 'rbbb' | 'lbbb';
+const states: readonly State[] = ['normal', 'rbbb', 'lbbb'];
+
+// The usual route: SA node across the atria into the AV node and down the bundle of His.
+const route = 'M64,48 Q180,54 220,98 L220,165';
+const rightBranch = 'M220,165 Q200,210 140,250';
+const leftTrunk = 'M220,165 Q236,190 270,205';
+const anterior = 'M270,205 Q320,200 360,198';
+const posterior = 'M270,205 Q306,236 334,258';
+// The moving impulse runs along the left trunk into each fascicle.
+const leftRuns = [
+  `${leftTrunk} ${anterior.replace('M270,205 ', '')}`,
+  `${leftTrunk} ${posterior.replace('M270,205 ', '')}`,
+];
+
+const ventricles = {
+  right: { x: 16, y: 128, width: 196, height: 172 },
+  left: { x: 228, y: 128, width: 196, height: 172 },
+};
+const late: Record<State, 'right' | 'left' | null> = { normal: null, rbbb: 'right', lbbb: 'left' };
+// Where the block labels sit: "conduction interrupted" next to the blocked branch, "activated
+// later" low in the late ventricle, clear of the branch ends.
+const labelSpots = {
+  rbbb: { interrupted: { x: 136, y: 238 }, later: { x: 114, y: 274, anchor: 'middle' } },
+  lbbb: { interrupted: { x: 412, y: 216 }, later: { x: 236, y: 274, anchor: 'start' } },
+} as const;
+
+// One ECG beat on its own baseline in the bottom panel, in the lead where each block is usually
+// described (MSD): RBBB in V1 as rSR′, LBBB in V6 as a broad notched R with no initial q. In both
+// the T wave is turned against the wide QRS. Normal: a sharp complex with an upright T wave.
+const base = 396;
+const qrsStart = 100;
+const beat = (state: string) => {
+  const wide = state !== 'normal';
+  const p = `M24,${base} L40,${base} C48,${base - 16} 66,${base - 16} 74,${base}`;
+  const qrs =
+    state === 'rbbb'
+      ? `L${qrsStart},${base} L${qrsStart + 8},${base - 16} L${qrsStart + 18},${base + 12} L${qrsStart + 36},${base - 44} L${qrsStart + 56},${base}`
+      : state === 'lbbb'
+        ? `L${qrsStart},${base} L${qrsStart + 16},${base - 40} L${qrsStart + 27},${base - 30} L${qrsStart + 38},${base - 44} L${qrsStart + 56},${base}`
+        : `L${qrsStart},${base} L${qrsStart + 6},${base + 6} L${qrsStart + 14},${base - 44} L${qrsStart + 22},${base + 8} L${qrsStart + 28},${base}`;
+  const tStart = qrsStart + (wide ? 56 : 28) + 26;
+  const tPeak = wide ? base + 22 : base - 24;
+  return `${p} ${qrs} L${tStart},${base} C${tStart + 12},${tPeak} ${tStart + 40},${tPeak} ${tStart + 52},${base} L300,${base}`;
+};
+const bracketY = 410;
+const bracket = (wide: boolean) => {
+  const end = qrsStart + (wide ? 56 : 28);
+  return `M${qrsStart},${bracketY - 5} L${qrsStart},${bracketY + 5} M${qrsStart},${bracketY} L${end},${bracketY} M${end},${bracketY - 5} L${end},${bracketY + 5}`;
+};
+---
+
+<svg
+  viewBox="0 0 440 440"
+  role="img"
+  aria-label={t['diagram.bundle-branch-block.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="7"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M0,0 L10,5 L0,10 z"
+        fill="var(--diagram-impulse)"
+        stroke="var(--color-text)"
+        stroke-width="1"
+        stroke-opacity="0.6"
+      ></path>
+    </marker>
+  </defs>
+
+  <!-- Atria on top, the two ventricles below, the ECG panel at the bottom -->
+  <rect x="16" y="16" width="408" height="64" rx="16" fill="var(--diagram-muscle)"></rect>
+  {Object.values(ventricles).map((v) => (
+    <rect x={v.x} y={v.y} width={v.width} height={v.height} rx="16" fill="var(--diagram-muscle)" />
+  ))}
+  <rect
+    x="16"
+    y="330"
+    width="408"
+    height="100"
+    rx="12"
+    fill="var(--color-bg)"
+    stroke="var(--color-border)"
+    stroke-width="2"
+  ></rect>
+
+  {states.map((state) => (
+    <g data-only={state}>
+      {/* The ventricle activated later: outlined without motion, flashing later with it */}
+      {(['right', 'left'] as const).map((side) => {
+        const v = ventricles[side];
+        const isLate = late[state] === side;
+        return (
+          <g>
+            {isLate && (
+              <rect
+                class="bbb-late"
+                x={v.x + 4}
+                y={v.y + 4}
+                width={v.width - 8}
+                height={v.height - 8}
+                rx="13"
+              />
+            )}
+            <g class="flow">
+              <rect
+                class={isLate ? 'bbb-flash bbb-flash-late' : 'bbb-flash'}
+                x={v.x}
+                y={v.y}
+                width={v.width}
+                height={v.height}
+                rx="16"
+              />
+            </g>
+          </g>
+        );
+      })}
+
+      {/* Branches: conducting ones carry the impulse; a blocked one is dashed and grey */}
+      {state === 'rbbb' ? (
+        <path class="bbb-blocked" d={rightBranch} />
+      ) : (
+        <path class="bbb-mark" d={rightBranch} marker-end={`url(#${arrowId})`} />
+      )}
+      {state === 'lbbb' ? (
+        <g>
+          <path class="bbb-blocked" d={leftTrunk} />
+          <path class="bbb-blocked" d={anterior} />
+          <path class="bbb-blocked" d={posterior} />
+        </g>
+      ) : (
+        <g>
+          <path class="bbb-mark" d={leftTrunk} />
+          <path class="bbb-mark" d={anterior} marker-end={`url(#${arrowId})`} />
+          <path class="bbb-mark" d={posterior} marker-end={`url(#${arrowId})`} />
+        </g>
+      )}
+      <g class="flow">
+        {state !== 'rbbb' && (
+          <path class="bbb-run bbb-run-branch" d={rightBranch} pathLength="100" />
+        )}
+        {state !== 'lbbb' &&
+          leftRuns.map((d) => <path class="bbb-run bbb-run-branch" d={d} pathLength="100" />)}
+      </g>
+
+      {/* ECG beat: narrow QRS in the normal state, wide QRS with a block */}
+      <path class="bbb-trace" d={beat(state)} />
+      {state !== 'normal' && (
+        <text class="diagram-small" x="40" y="346" text-anchor="middle">
+          {state === 'rbbb' ? 'V1' : 'V6'}
+        </text>
+      )}
+      <path class="bbb-bracket" d={bracket(state !== 'normal')} />
+      <text x="412" y="356" text-anchor="end">
+        {state === 'normal' ? t['diagram.label.narrow-qrs'] : t['diagram.label.wide-qrs']}
+      </text>
+      <text
+        class="diagram-small"
+        x={qrsStart + (state === 'normal' ? 14 : 28)}
+        y="346"
+        text-anchor="middle"
+      >
+        QRS
+      </text>
+
+      {/* What happens in the ventricles */}
+      <text class="diagram-small" x="220" y="320" text-anchor="middle">
+        {state === 'normal'
+          ? t['diagram.label.ventricles-simultaneous']
+          : t['diagram.label.ventricles-sequential']}
+      </text>
+      {state !== 'normal' && (
+        <g>
+          <text
+            class="diagram-small"
+            x={labelSpots[state].interrupted.x}
+            y={labelSpots[state].interrupted.y}
+            text-anchor="end"
+          >
+            {interruptedLines.map((line, i) => (
+              <tspan x={labelSpots[state].interrupted.x} dy={i === 0 ? 0 : 14}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+          <text
+            class="diagram-small"
+            x={labelSpots[state].later.x}
+            y={labelSpots[state].later.y}
+            text-anchor={labelSpots[state].later.anchor}
+          >
+            {laterLines.map((line, i) => (
+              <tspan x={labelSpots[state].later.x} dy={i === 0 ? 0 : 14}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+        </g>
+      )}
+    </g>
+  ))}
+
+  <!-- The usual route to the branches, in every state -->
+  <path class="bbb-mark" d={route}></path>
+  <g class="flow">
+    <path class="bbb-run bbb-run-route" d={route} pathLength="100"></path>
+  </g>
+
+  <!-- Nodes -->
+  <circle class="bbb-node" cx="64" cy="48" r="7"></circle>
+  <ellipse class="bbb-node" cx="220" cy="104" rx="14" ry="9"></ellipse>
+
+  <!-- ECG baseline and the P wave letter, the same in every state -->
+  <line class="bbb-base" x1="24" y1={base} x2="300" y2={base}></line>
+  <text class="diagram-small" x="57" y="374" text-anchor="middle">
+    P
+  </text>
+
+  <!-- Labels -->
+  <text x="80" y="36">
+    {t['diagram.label.sa-node']}
+  </text>
+  <text x="30" y="74">
+    {t['diagram.label.atria']}
+  </text>
+  <text x="200" y="109" text-anchor="end">
+    {t['diagram.label.av-node']}
+  </text>
+  <text class="diagram-small" x="240" y="122">
+    {t['diagram.label.his']}
+  </text>
+  <text x="30" y="152">
+    {t['diagram.label.right-ventricle']}
+  </text>
+  <text x="410" y="152" text-anchor="end">
+    {t['diagram.label.left-ventricle']}
+  </text>
+  <text class="diagram-small" x="176" y="211" text-anchor="end">
+    {t['diagram.label.right-bundle-branch']}
+  </text>
+  <text class="diagram-small" x="262" y="181">
+    {t['diagram.label.left-bundle-branch']}
+  </text>
+  <text class="diagram-small" x="412" y="384" text-anchor="end">
+    {t['diagram.label.ecg']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .bbb-node {
+    fill: var(--diagram-impulse);
+    stroke: var(--color-text);
+    stroke-width: 1.5;
+  }
+
+  .diagram .bbb-mark {
+    fill: none;
+    stroke: var(--diagram-impulse);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  /* A branch that does not conduct: grey and dashed along its whole length, so no point of the
+     block is suggested. */
+  .diagram .bbb-blocked {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 4;
+    stroke-dasharray: 3 7;
+    stroke-linecap: round;
+  }
+
+  /* The ventricle activated later: marked without motion too. */
+  .diagram .bbb-late {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+
+  .diagram .bbb-base {
+    stroke: var(--color-border);
+    stroke-width: 1;
+  }
+
+  .diagram .bbb-trace {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .diagram .bbb-bracket {
+    fill: none;
+    stroke: var(--color-muted);
+    stroke-width: 1.5;
+  }
+
+  /* The moving impulse: a short dash that runs along its path (pathLength is 100). */
+  .diagram .bbb-run {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 8 92;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  .diagram .bbb-run-route {
+    animation: bbb-run-route 2s linear infinite;
+  }
+
+  .diagram .bbb-run-branch {
+    animation: bbb-run-branch 2s linear infinite;
+  }
+
+  .diagram .bbb-flash {
+    fill: var(--diagram-impulse);
+    opacity: 0;
+    animation: bbb-flash 2s linear infinite;
+  }
+
+  .diagram .bbb-flash-late {
+    animation-name: bbb-flash-late;
+  }
+
+  /* Across the atria and into the AV node, where the impulse is held back for a moment (20–32 %),
+     then down the bundle of His. */
+  @keyframes bbb-run-route {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    20%,
+    32% {
+      opacity: 1;
+      stroke-dashoffset: -66;
+    }
+
+    45% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    46%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  @keyframes bbb-run-branch {
+    0%,
+    45% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
+
+    46% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+
+    58% {
+      opacity: 1;
+      stroke-dashoffset: -92;
+    }
+
+    59%,
+    100% {
+      opacity: 0;
+      stroke-dashoffset: -92;
+    }
+  }
+
+  /* A ventricle reached through its own branch lights up as the impulse arrives. */
+  @keyframes bbb-flash {
+    0%,
+    58% {
+      opacity: 0;
+    }
+
+    62% {
+      opacity: 0.45;
+    }
+
+    80%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* The ventricle behind the blocked branch lights up later. */
+  @keyframes bbb-flash-late {
+    0%,
+    74% {
+      opacity: 0;
+    }
+
+    78% {
+      opacity: 0.45;
+    }
+
+    96%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
