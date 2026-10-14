@@ -56,6 +56,7 @@
 | esc | guideline | 2024 ESC Guidelines for the management of elevated blood pressure and hypertension | 2024 | [10.1093/eurheartj/ehae178](https://doi.org/10.1093/eurheartj/ehae178) | Только набор слайдов |
 | nice | guideline | Hypertension in adults (NG136) | 2019, обновлено 2026 | [nice.org.uk/guidance/ng136](https://www.nice.org.uk/guidance/ng136) | Рекомендация 1.5.3 |
 | msd-manuals | reference | Pheochromocytoma (professional и consumer) | 2026 | msdmanuals.com | Целиком |
+| statpearls | reference | Pheochromocytoma; Paraganglioma | 2024 | [PMID 36944004](https://pubmed.ncbi.nlm.nih.gov/36944004/), [PMID 31751024](https://pubmed.ncbi.nlm.nih.gov/31751024/) | Только аннотации в PubMed |
 
 Отдельной рекомендации Минздрава о феохромоцитоме нет. Катехоламиновую кардиомиопатию упоминаем одной фразой по MSD, без связи с такоцубо и без описания механизма сужения сосудов. Экстренно: гипертонический криз при феохромоцитоме — показание к экстренной госпитализации (Минздрав 62_3), «103 или 112» и ссылка на статью о гипертоническом кризе; NICE — направление к специалисту в тот же день при подозрении.
 
@@ -68,7 +69,7 @@
 | msd-manuals | reference | Microvascular Angina (ANOCA); Vasospastic Angina | 2026 | msdmanuals.com | Целиком |
 | esc | guideline | 2023 ESC Guidelines for the management of acute coronary syndromes | 2023 | [10.1093/eurheartj/ehad191](https://doi.org/10.1093/eurheartj/ehad191) | Красные флаги; по желанию |
 
-Проверяющий сверяет пары «рекомендация — класс» таблицы 25 по странице PDF и проверяет, не меняет ли поправка ESC 2025 (10.1093/eurheartj/ehaf079) раздел 5.2. Пороги CFR и IMR — только в блоке для студента. Экстренно: боль в груди дольше нескольких минут или в покое — «103 или 112», как в статье об инфаркте.
+Проверяющий сверяет пары «рекомендация — класс» таблицы 25 по странице PDF и проверяет, не меняет ли поправка ESC 2025 (10.1093/eurheartj/ehaf079) раздел 5.2. Пороги CFR и IMR — только в блоке для студента. Экстренно, «103 или 112»: приступ в покое или ночью, который не снимает назначенное врачом средство (Минздрав 155_2); боль в груди дольше 15 минут или повторно в течение часа (ESC ACS 2023); обморок. Ссылка на статью об инфаркте.
 
 ### 4. Сердце при тиреотоксикозе (`thyrotoxic-heart-disease`)
 

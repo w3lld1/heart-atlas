@@ -33,7 +33,7 @@ const lines = (key: MessageKey, max: number) => wrap(t[key], max);
 // a gland of usual size, a thin arrow (the usual amount of hormones) and a heart beating at its
 // usual rhythm. Thyrotoxicosis: a larger gland, a thick pulsing arrow (too much hormone), a heart
 // that beats faster, and dashed chaotic marks in the atria labelled "may go into fibrillation":
-// atrial fibrillation happens in only some patients, so it is drawn faint and the label says
+// atrial fibrillation happens in only some patients, so it is drawn as thin dashed marks and the label says
 // "may". No numbers, no drugs, no enlarged heart chambers, no eye signs.
 const thyroid = { x: 110, y: 160 };
 // Two lobes joined by an isthmus; in thyrotoxicosis the whole gland is larger (goitre).
@@ -117,7 +117,7 @@ const afLeaderY = afY + (afLines.length - 1) * lineHeight + 5;
     <path d={arrowHead} stroke-width="4"></path>
   </g>
 
-  <!-- Heart: the same shape in both states; it beats faster in thyrotoxicosis. In disease, faint
+  <!-- Heart: the same shape in both states; it beats faster in thyrotoxicosis. In disease, thin
        dashed chaotic marks in the atria, because fibrillation is only possible. -->
   {[
     { state: 'normal-only', beat: 'thyro-beat', chaotic: false },
@@ -208,7 +208,7 @@ const afLeaderY = afY + (afLines.length - 1) * lineHeight + 5;
     </text>
     <!-- The leader ends between the atria on a short bar that touches both of them. -->
     <g stroke="var(--color-text)" stroke-width="1.5">
-      <line x1={afX + 30} y1={afLeaderY} x2={heartX} y2={atriumY}></line>
+      <line x1={afX + 50} y1={afLeaderY} x2={heartX} y2={atriumY}></line>
       <line x1={rightAtriumX + 20} y1={atriumY} x2={leftAtriumX - 20} y2={atriumY}></line>
     </g>
     <text class="diagram-small" x={afX} y={afY}>
