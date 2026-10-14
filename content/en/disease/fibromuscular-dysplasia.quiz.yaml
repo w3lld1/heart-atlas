@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What happens to the artery wall in FMD?
+    options:
+      - text: It dissolves completely and disappears without a trace
+      - text: It becomes abnormally thick, and the artery narrows
+        correct: true
+      - text: It becomes coated on the inside with a layer of salt crystals
+    explanation: In FMD the wall of the artery becomes abnormally thick, and the artery narrows and sometimes becomes blocked or widens to form an aneurysm.
+    cite: [4, 5, 6]
+  - level: patient
+    prompt: What kind of disease is FMD in terms of its course?
+    options:
+      - text: Infectious, spread through shared dishes
+      - text: Short-lived, it goes away by itself after a rest
+      - text: Chronic, it needs treatment and follow-up
+        correct: true
+    explanation: FMD is a chronic disease of the blood vessels that needs treatment and follow-up.
+    cite: [4]
+  - level: patient
+    prompt: What does the artery look like on a scan in multifocal FMD?
+    options:
+      - text: A string of beads
+        correct: true
+      - text: A tightly wound spring
+      - text: A fine fishing net
+    explanation: In multifocal FMD, narrowings alternate with widenings in the middle and far parts of the artery; on a scan this looks like a string of beads.
+    cite: [1, 4]
+  - level: patient
+    prompt: What sign can appear when FMD of the carotid arteries shows up as a stroke?
+    options:
+      - text: An itchy mosquito bite
+      - text: Difficulty speaking
+        correct: true
+      - text: Dry skin in winter
+    explanation: FMD of the carotid arteries can show up as a TIA or stroke, with difficulty speaking, muscle weakness, paralysis of one side of the body, or vision problems.
+    cite: [6]
+  - level: student
+    prompt: How does the international consensus propose classifying FMD lesions?
+    options:
+      - text: By electrocardiogram findings
+      - text: By fasting blood sugar level
+      - text: By angiographic appearance
+        correct: true
+    explanation: The international consensus proposes classifying lesions by their angiographic appearance only, as focal or multifocal FMD.
+    cite: [4]
+  - level: student
+    prompt: Which test does the consensus accept first for renal artery FMD only in centres with extensive expertise?
+    options:
+      - text: Duplex ultrasound
+        correct: true
+      - text: A hearing test
+      - text: Eye pressure measurement
+    explanation: The consensus accepts duplex ultrasound as the first diagnostic test for renal artery FMD only in specialised centres with extensive expertise.
+    cite: [4, 7]
