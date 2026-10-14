@@ -35,7 +35,7 @@ async function firstArticle(page: Page, locale: string): Promise<{ href: string;
     .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
   for (const section of sections) {
     const type = /\/([a-z-]+)\/$/.exec(section)?.[1];
-    if (!type || type === 'heart-clock' || type === locale) continue;
+    if (!type || type === 'heart-clock' || type === 'heart-sounds' || type === locale) continue;
     await page.goto(section);
     const href = await page
       .locator('main a')

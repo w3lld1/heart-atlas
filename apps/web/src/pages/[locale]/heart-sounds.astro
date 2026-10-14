@@ -45,7 +45,10 @@ const citations = Object.fromEntries(
   <p class="schematic" role="note">
     {t['heartSounds.schematic']}
   </p>
-  <HeartSounds client:visible messages={messages} sounds={heartSoundIds} citations={citations} />
+  {/* Search indexes the text around the player, not its controls. */}
+  <div data-pagefind-ignore>
+    <HeartSounds client:visible messages={messages} sounds={heartSoundIds} citations={citations} />
+  </div>
   <h2>{t['heartSounds.sources']}</h2>
   <ol class="sources">
     {sources.map((source, i) => (
