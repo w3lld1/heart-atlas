@@ -71,10 +71,12 @@ test('draws the Wiggers diagram once its code loads near view', async ({ page })
   await page.goto('en/heart-clock/');
   await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
   const wiggers = page.getByRole('img', { name: en['heartClock.wiggers.label'] });
+  const loaded = () => requested.some((url) => /\/wiggers-canvas\.[\w-]+\.js$/.test(url));
+  // At 1280 × 720 the diagram starts more than 200 px below the fold.
+  await page.waitForLoadState('networkidle');
+  expect(loaded()).toBe(false);
   await wiggers.scrollIntoViewIfNeeded();
-  await expect
-    .poll(() => requested.some((url) => /\/wiggers-canvas\.[\w-]+\.js$/.test(url)))
-    .toBe(true);
+  await expect.poll(loaded).toBe(true);
   // Some pixels are drawn: the diagram is not left blank.
   await expect
     .poll(() =>

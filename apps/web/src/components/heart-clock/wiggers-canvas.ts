@@ -1,8 +1,6 @@
 import { phaseStarts, type HeartClock } from '@heart-atlas/heart-clock';
 import { pacingSpikeMv, wiggersHeight } from './ecg-canvas.ts';
 
-export { wiggersHeight };
-
 export interface WiggersColors {
   lv: string;
   aorta: string;

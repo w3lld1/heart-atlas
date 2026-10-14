@@ -31,6 +31,7 @@ import {
   windowMs,
 } from './ecg-canvas.ts';
 import type { HeartSoundPlayer } from './heart-sounds.ts';
+import type { WiggersColors } from './wiggers-canvas.ts';
 import { maxSwitchChoices, presetGroup, presetGroups } from './preset-groups.ts';
 import styles from './HeartClockDemo.module.css';
 
@@ -208,6 +209,11 @@ export default function HeartClockDemo({
   // The Wiggers drawing code, loaded when the diagram comes near view
   // (docs/plans/2026-10-14-lazy-wiggers.md).
   const [wiggersCode, setWiggersCode] = useState<typeof import('./wiggers-canvas.ts') | null>(null);
+  // Read by the frame loop, so the code arriving does not restart it (which would cut a sound).
+  const wiggersCodeRef = useRef(wiggersCode);
+  wiggersCodeRef.current = wiggersCode;
+  // Draws the current frame; set by the frame loop, so a paused monitor draws the diagram too.
+  const renderRef = useRef<(() => void) | null>(null);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Clock time shown at the right edge of the strip. Starts one strip in, so the paused
@@ -322,19 +328,15 @@ export default function HeartClockDemo({
       return element && ctx ? [{ element, ctx, lead }] : [];
     });
     const canvas = ecgs[0]?.element;
-    const wiggersCanvas = wiggersRef.current;
-    const wiggersCanvasContext = wiggersCanvas?.getContext('2d');
-    // Drawn only once its code has loaded; sized at once, so the canvas has its final size.
-    const wiggers = wiggersCode ? wiggersCanvas : null;
-    const wiggersContext = wiggersCode ? wiggersCanvasContext : null;
+    // Sized at once, so the canvas has its final size; drawn once its code has loaded.
+    const wiggers = wiggersRef.current;
+    const wiggersContext = wiggers?.getContext('2d');
     if (!canvas || ecgs.length !== strips.length || width === 0) return;
 
     const canvases: [HTMLCanvasElement, CanvasRenderingContext2D, number][] = ecgs.map(
       ({ element, ctx, lead }) => [element, ctx, lead ? limbStrip.height : ecgHeight],
     );
-    if (wiggersCanvas && wiggersCanvasContext) {
-      canvases.push([wiggersCanvas, wiggersCanvasContext, wiggersHeight]);
-    }
+    if (wiggers && wiggersContext) canvases.push([wiggers, wiggersContext, wiggersHeight]);
     for (const [element, ctx, height] of canvases) {
       element.width = Math.round(width * dpr);
       element.height = Math.round(height * dpr);
@@ -342,19 +344,22 @@ export default function HeartClockDemo({
     }
 
     let colors = readColors(canvas);
-    let wiggersColors = wiggers && wiggersCode?.readWiggersColors(wiggers);
+    // Read when the diagram's code is there, and again when the colour scheme changes.
+    let wiggersColors: WiggersColors | undefined;
     const scheme = window.matchMedia('(prefers-color-scheme: dark)');
     const onScheme = () => {
       colors = readColors(canvas);
-      wiggersColors = wiggers && wiggersCode?.readWiggersColors(wiggers);
+      wiggersColors = undefined;
       render();
     };
     scheme.addEventListener('change', onScheme);
 
     function render() {
       for (const { ctx, lead } of ecgs) drawEcg(ctx, width, nowRef.current, clock, colors, lead);
-      if (wiggersCode && wiggersContext && wiggersColors) {
-        wiggersCode.drawWiggers(
+      const code = wiggersCodeRef.current;
+      if (code && wiggers && wiggersContext) {
+        wiggersColors ??= code.readWiggersColors(wiggers);
+        code.drawWiggers(
           wiggersContext,
           width,
           nowRef.current,
@@ -378,14 +383,21 @@ export default function HeartClockDemo({
       frame = requestAnimationFrame(tick);
     };
     render();
+    renderRef.current = render;
     if (playing) frame = requestAnimationFrame(tick);
     return () => {
+      renderRef.current = null;
       cancelAnimationFrame(frame);
       scheme.removeEventListener('change', onScheme);
       playerRef.current?.cancel();
     };
     // showWiggers, pulse and the strips mount and unmount canvases, so their refs must be read again.
-  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, pulse, strips, wiggersCode]);
+  }, [clock, playing, width, dpr, wiggersLabels, showWiggers, pulse, strips]);
+
+  // Draws the diagram as soon as its code arrives, also while paused.
+  useEffect(() => {
+    if (wiggersCode) renderRef.current?.();
+  }, [wiggersCode]);
 
   // Closes the audio context when the island goes away.
   useEffect(
