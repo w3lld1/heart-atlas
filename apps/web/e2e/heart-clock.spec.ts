@@ -329,7 +329,7 @@ test.describe('disease presets', () => {
     expect(seen).not.toContain('pause');
   });
 
-  test('show sinus tachycardia at its own rate, never at a normal one', async ({ page }) => {
+  test('show sinus tachycardia at its own rate, with a floor above 100', async ({ page }) => {
     // docs/plans/2026-10-14-heart-clock-sinus-tachycardia.md
     await page.goto('en/heart-clock/');
     await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
