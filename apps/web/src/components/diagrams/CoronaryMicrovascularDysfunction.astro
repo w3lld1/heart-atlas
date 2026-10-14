@@ -1,0 +1,273 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-cmd-arrow`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const headingLineHeight = 18;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+const microvascularLines = lines('diagram.label.microvascular-angina', 22);
+const vasospasticLines = lines('diagram.label.vasospastic-angina', 22);
+const coronaryArteryLines = lines('diagram.label.coronary-artery', 12);
+const noNarrowingLines = lines('diagram.label.artery-without-narrowing', 12);
+const widenLines = lines('diagram.label.small-vessels-widen-with-exercise', 30);
+const notWidenLines = lines('diagram.label.small-vessels-do-not-widen-with-exercise', 30);
+const spasmNarrowsLines = lines('diagram.label.spasm-narrows-artery-for-a-while', 30);
+
+// Two panels with the same drawing: on the left the small vessels, on the right the large
+// artery. In each panel a large coronary artery runs down the surface of the heart (x = cx) into
+// the heart muscle (the block from y = 226), where it gives off small vessels in a fan. Normal:
+// the small vessels are wide, as during exercise, and blood flows freely in both panels. Disease,
+// left (microvascular angina): the artery has no narrowing, the small vessels stay narrow and
+// carry little blood. Disease, right (vasospastic angina): a short segment of the artery is
+// squeezed by a spasm, and little blood passes it. Drawn without plaque, clot, stent or numbers.
+const left = 130;
+const right = 390;
+const panels = [left, right];
+const arteryTop = 50;
+const arteryEnd = 232;
+const fanOffsets = [-84, -42, 0, 42, 84];
+const fanEndY = 312;
+const fan = (cx: number) =>
+  fanOffsets.map((dx) =>
+    dx === 0
+      ? `M${cx},${arteryEnd} V${fanEndY}`
+      : `M${cx},${arteryEnd} Q${cx + dx * 0.3},${arteryEnd + 30} ${cx + dx},${fanEndY}`,
+  );
+// The spasm narrows the artery between y = 124 and y = 170 in the right panel.
+const spasmY = 147;
+const spasm = (side: -1 | 1) =>
+  `M${right + side * 10},124 C${right + side * 1},138 ${right + side * 1},156 ${right + side * 10},170 Z`;
+const flowDown = (cx: number, from: number, to: number) => `M${cx},${from} V${to}`;
+const labelBelowY = 374;
+---
+
+<svg
+  viewBox="0 0 520 420"
+  role="img"
+  aria-label={t['diagram.coronary-microvascular-dysfunction.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+  </defs>
+
+  <!-- Divider between the two panels -->
+  <line
+    x1="260"
+    y1="8"
+    x2="260"
+    y2="412"
+    stroke="var(--color-muted)"
+    stroke-width="1"
+    stroke-dasharray="4 4"
+  ></line>
+
+  <!-- Heart muscle in each panel -->
+  {panels.map((cx) => (
+    <rect x={cx - 120} y="226" width="240" height="126" rx="14" fill="var(--diagram-muscle)" />
+  ))}
+
+  <!-- Disease: the muscle gets less blood than it needs. Paler, but still muscle. -->
+  <g
+    class="disease-only"
+    fill="var(--color-bg)"
+    fill-opacity="0.6"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"
+  >
+    {panels.map((cx) => (
+      <rect x={cx - 112} y="240" width="224" height="104" rx="10" />
+    ))}
+  </g>
+
+  <!-- Small vessels in the muscle. Normal: wide in both panels. Disease: narrow on the left
+       (they do not widen), unchanged on the right (the problem is the spasm above them). -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <g class="normal-only" stroke-width="7">
+      {fan(left).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g class="disease-only" stroke-width="2.5">
+      {fan(left).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g stroke-width="7">
+      {fan(right).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </g>
+
+  <!-- Large coronary arteries: the wall, then the lumen on top of it -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-width="28">
+    {panels.map((cx) => (
+      <path d={`M${cx},${arteryTop} V${arteryEnd - 4}`} />
+    ))}
+  </g>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-width="20">
+    {panels.map((cx) => (
+      <path d={`M${cx},${arteryTop} V${arteryEnd - 4}`} />
+    ))}
+  </g>
+
+  <!-- Disease, right: the artery wall contracts and squeezes the lumen for a short length -->
+  <g class="disease-only" fill="var(--diagram-arterial)">
+    <path d={spasm(-1)}></path>
+    <path d={spasm(1)}></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round">
+    <path d={flowDown(left, 60, 212)} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+    <path
+      class="normal-only"
+      d={flowDown(right, 60, 212)}
+      stroke-width="3"
+      marker-end={`url(#${arrow})`}
+    ></path>
+    <g class="disease-only">
+      <path d={flowDown(right, 60, 112)} stroke-width="3" marker-end={`url(#${arrow})`}></path>
+      <path d={flowDown(right, 130, 212)} stroke-width="1.5" marker-end={`url(#${arrow})`}></path>
+    </g>
+  </g>
+
+  <!-- Moving blood: dashes running along the arteries and the small vessels -->
+  <g class="flow" stroke="var(--color-bg)">
+    <path class="dash-flow" d={flowDown(left, 60, 226)} stroke-width="1.5"></path>
+    <g class="normal-only">
+      <path class="dash-flow" d={flowDown(right, 60, 226)} stroke-width="1.5"></path>
+      {[...fan(left), ...fan(right)].map((d) => (
+        <path class="dash-flow" d={d} stroke-width="2" />
+      ))}
+    </g>
+    <g class="disease-only">
+      <path class="dash-flow" d={flowDown(right, 60, 118)} stroke-width="1.5"></path>
+      <path class="dash-flow" d={flowDown(right, 130, 226)} stroke-width="0.75"></path>
+      {[...fan(left), ...fan(right)].map((d) => (
+        <path class="dash-flow" d={d} stroke-width="0.75" />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels shared by both states -->
+  {panels.map((cx) => (
+    <text class="diagram-small" x={cx + 22} y="74">
+      {coronaryArteryLines.map((line, index) => (
+        <tspan x={cx + 22} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  ))}
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    {panels.map((cx) => (
+      <text class="diagram-small" x={cx} y="342" text-anchor="middle">
+        {t['diagram.label.heart-muscle']}
+      </text>
+    ))}
+    {panels.map((cx) => (
+      <text class="diagram-small" x={cx} y={labelBelowY} text-anchor="middle">
+        {widenLines.map((line, index) => (
+          <tspan x={cx} dy={index === 0 ? 0 : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    ))}
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <text x={left} y="18" text-anchor="middle">
+      {microvascularLines.map((line, index) => (
+        <tspan x={left} dy={index === 0 ? 0 : headingLineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text x={right} y="18" text-anchor="middle">
+      {vasospasticLines.map((line, index) => (
+        <tspan x={right} dy={index === 0 ? 0 : headingLineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={left - 22} y="140" text-anchor="end">
+      {noNarrowingLines.map((line, index) => (
+        <tspan x={left - 22} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <line
+      x1={right - 20}
+      y1={spasmY}
+      x2={right - 12}
+      y2={spasmY}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={right - 24} y={spasmY + 4} text-anchor="end">
+      {t['diagram.label.spasm']}
+    </text>
+    {panels.map((cx) => (
+      <text class="diagram-small" x={cx} y="342" text-anchor="middle">
+        {t['diagram.label.reduced-blood-flow']}
+      </text>
+    ))}
+    <text class="diagram-small" x={left} y={labelBelowY} text-anchor="middle">
+      {notWidenLines.map((line, index) => (
+        <tspan x={left} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={right} y={labelBelowY} text-anchor="middle">
+      {spasmNarrowsLines.map((line, index) => (
+        <tspan x={right} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>

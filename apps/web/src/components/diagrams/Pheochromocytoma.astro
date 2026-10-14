@@ -1,0 +1,354 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// A kidney with its adrenal gland on top, a heart and an artery. Normal: the adrenal gland
+// releases adrenaline as needed (thin arrows to the heart and into the blood), the heart beats
+// calmly and the pressure arrows on the artery wall are small. Disease: a tumour in the adrenal
+// gland releases a lot of adrenaline and noradrenaline in surges (thick arrows that brighten in
+// waves), the heart beats faster and the pressure arrows are larger. The artery keeps the same
+// width in both states: the sources read do not describe narrowing of the vessels. No numbers,
+// no drugs.
+const kidneyY = 280;
+const hilum = 165;
+const x = (dx: number) => hilum - dx;
+const kidney = `M${x(0)},${kidneyY - 14} C${x(4)},${kidneyY - 50} ${x(30)},${kidneyY - 56} ${x(46)},${kidneyY - 44} C${x(64)},${kidneyY - 30} ${x(64)},${kidneyY + 30} ${x(46)},${kidneyY + 44} C${x(30)},${kidneyY + 56} ${x(4)},${kidneyY + 50} ${x(0)},${kidneyY + 14} C${x(8)},${kidneyY + 6} ${x(8)},${kidneyY - 6} ${x(0)},${kidneyY - 14} Z`;
+// The adrenal gland sits on the upper pole of the kidney like a cap.
+const adrenal =
+  'M100,230 C104,200 124,176 138,170 C152,182 162,206 160,232 C142,222 118,222 100,230 Z';
+const tumour = { x: 136, y: 206, r: 13 };
+
+// Hormone arrows: from the adrenal gland to the heart and down into the artery (the blood).
+const toHeart = 'M160,196 C220,150 290,126 356,124';
+const toHeartHead = 'M354,116 L368,124 L354,132 Z';
+const toBlood = 'M162,214 C220,214 252,232 256,252';
+const toBloodHead = 'M248,250 L257,264 L264,249 Z';
+
+// The heart, top right.
+const heartX = 430;
+const heart = `M${heartX},170 C${heartX - 50},140 ${heartX - 58},100 ${heartX - 34},88 C${heartX - 18},80 ${heartX},92 ${heartX},104 C${heartX},92 ${heartX + 18},80 ${heartX + 34},88 C${heartX + 58},100 ${heartX + 50},140 ${heartX},170 Z`;
+
+// The artery: a horizontal tube of the same width in both states.
+const arteryY = 290;
+const arteryStart = 236;
+const arteryEnd = 520;
+// Pressure arrows push from the blood onto the artery wall: x positions per state.
+const normalArrows = [330, 410];
+const diseaseArrows = [295, 340, 385, 425];
+const flow = [0, -0.6, -1.2, -1.8];
+
+const normalAdrenalLines = lines('diagram.label.adrenaline-released-as-needed', 30);
+const tumourLines = lines('diagram.label.tumour-releases-much-adrenaline-noradrenaline', 30);
+const calmLines = lines('diagram.label.calm-heart-rate-at-rest', 22);
+const fastLines = lines('diagram.label.heart-rate-rises-markedly', 22);
+const usualPressureLines = lines('diagram.label.blood-pressure-usual-range', 30);
+const adrenalLines = lines('diagram.label.adrenal-gland', 13);
+const labelX = 16;
+const labelY = 30;
+// Callout lines start just below the last line of the label they belong to.
+const calloutY = (count: number) => labelY + (count - 1) * lineHeight + 6;
+---
+
+<svg
+  viewBox="0 0 520 400"
+  role="img"
+  aria-label={t['diagram.pheochromocytoma.title']}
+  lang={locale}
+>
+  <!-- Kidney and adrenal gland -->
+  <path
+    d={kidney}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+  <path
+    d={adrenal}
+    fill="var(--diagram-plaque)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- Disease: a tumour in the adrenal gland. The outline keeps its edge visible in both themes. -->
+  <circle
+    class="disease-only"
+    cx={tumour.x}
+    cy={tumour.y}
+    r={tumour.r}
+    fill="var(--diagram-impulse)"
+    stroke="var(--color-text)"
+    stroke-width="1.5"
+  ></circle>
+
+  <!-- Hormone arrows: thin normally, thick and surging in disease -->
+  <g class="normal-only" fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+    <path d={toHeart} fill="none" stroke-width="2.5"></path>
+    <path d={toHeartHead} stroke-width="1"></path>
+    <path d={toBlood} fill="none" stroke-width="2.5"></path>
+    <path d={toBloodHead} stroke-width="1"></path>
+  </g>
+  <g
+    class="disease-only pheo-surge"
+    fill="var(--diagram-arterial)"
+    stroke="var(--diagram-arterial)"
+  >
+    <path d={toHeart} fill="none" stroke-width="7"></path>
+    <path d={toHeartHead} stroke-width="3"></path>
+    <path d={toBlood} fill="none" stroke-width="7"></path>
+    <path d={toBloodHead} stroke-width="3"></path>
+  </g>
+
+  <!-- Heart: beats calmly normally, faster in disease -->
+  <path
+    class="normal-only pheo-beat"
+    d={heart}
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+  <path
+    class="disease-only pheo-beat pheo-fast"
+    d={heart}
+    fill="var(--diagram-muscle)"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+  ></path>
+
+  <!-- Artery: wall drawn as a wide stroke, lumen as a narrower one on top; same width in both states -->
+  <path
+    d={`M${arteryStart},${arteryY} L${arteryEnd},${arteryY}`}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="40"
+  ></path>
+  <path
+    d={`M${arteryStart},${arteryY} L${arteryEnd},${arteryY}`}
+    fill="none"
+    stroke="var(--diagram-arterial-fill)"
+    stroke-width="32"
+  ></path>
+
+  <!-- Blood pressure on the artery wall: small arrows normally, larger and more of them in disease -->
+  <g class="normal-only" fill="var(--color-muted)" stroke="var(--color-muted)">
+    {normalArrows.map((ax) => (
+      <>
+        <line x1={ax} y1={arteryY - 12} x2={ax} y2={arteryY - 18} stroke-width="2.5" />
+        <path
+          d={`M${ax - 5},${arteryY - 17} L${ax},${arteryY - 25} L${ax + 5},${arteryY - 17} Z`}
+          stroke="none"
+        />
+        <line x1={ax} y1={arteryY + 12} x2={ax} y2={arteryY + 18} stroke-width="2.5" />
+        <path
+          d={`M${ax - 5},${arteryY + 17} L${ax},${arteryY + 25} L${ax + 5},${arteryY + 17} Z`}
+          stroke="none"
+        />
+      </>
+    ))}
+  </g>
+  <g
+    class="disease-only pheo-surge"
+    fill="var(--diagram-arterial)"
+    stroke="var(--diagram-arterial)"
+  >
+    {diseaseArrows.map((ax) => (
+      <>
+        <line x1={ax} y1={arteryY - 13} x2={ax} y2={arteryY - 22} stroke-width="3.5" />
+        <path
+          d={`M${ax - 6.5},${arteryY - 20} L${ax},${arteryY - 31} L${ax + 6.5},${arteryY - 20} Z`}
+          stroke="none"
+        />
+        <line x1={ax} y1={arteryY + 13} x2={ax} y2={arteryY + 22} stroke-width="3.5" />
+        <path
+          d={`M${ax - 6.5},${arteryY + 20} L${ax},${arteryY + 31} L${ax + 6.5},${arteryY + 20} Z`}
+          stroke="none"
+        />
+      </>
+    ))}
+  </g>
+
+  <!-- Moving blood along the artery -->
+  <g class="flow">
+    {flow.map((delay) => (
+      <circle
+        class="pheo-flow"
+        cx={arteryStart + 34}
+        cy={arteryY}
+        r="4"
+        fill="var(--diagram-arterial)"
+        style={`animation-delay: ${delay}s`}
+      />
+    ))}
+  </g>
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x="94" y="200" text-anchor="end">
+    {adrenalLines.map((line, index) => (
+      <tspan x="94" dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={hilum - 32} y="358" text-anchor="middle">
+    {t['diagram.label.kidney']}
+  </text>
+  <text class="diagram-small" x={heartX} y="68" text-anchor="middle">
+    {t['diagram.label.heart']}
+  </text>
+  <text class="diagram-small" x="510" y="254" text-anchor="end">
+    {t['diagram.label.artery']}
+  </text>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    <line
+      x1="60"
+      y1={calloutY(normalAdrenalLines.length)}
+      x2="124"
+      y2="182"
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={labelX} y={labelY}>
+      {normalAdrenalLines.map((line, index) => (
+        <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y="192" text-anchor="middle">
+      {calmLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="378" y="346" text-anchor="middle">
+      {usualPressureLines.map((line, index) => (
+        <tspan x="378" dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <line
+      x1="60"
+      y1={calloutY(tumourLines.length)}
+      x2={tumour.x - 6}
+      y2={tumour.y - 12}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+    ></line>
+    <text class="diagram-small" x={labelX} y={labelY}>
+      {tumourLines.map((line, index) => (
+        <tspan x={labelX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y="192" text-anchor="middle">
+      {fastLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x="378" y="346" text-anchor="middle">
+      {t['diagram.label.high-pressure']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The heart beats faster in disease; the thick hormone arrows and the pressure arrows brighten
+     in surges. Without motion everything stands still at full strength, and the arrow widths,
+     the number of pressure arrows and the labels carry the difference. */
+  .diagram .pheo-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pheo-beat 1.1s ease-in-out infinite;
+  }
+
+  .diagram .pheo-fast {
+    animation-duration: 0.55s;
+  }
+
+  .diagram .pheo-surge {
+    animation: pheo-surge 3s ease-in-out infinite;
+  }
+
+  .diagram .pheo-flow {
+    animation: pheo-flow 2.4s linear infinite;
+  }
+
+  @keyframes pheo-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes pheo-surge {
+    0%,
+    45%,
+    100% {
+      opacity: 0.45;
+    }
+
+    15%,
+    25% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pheo-flow {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    10%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(220px, 0);
+    }
+  }
+</style>

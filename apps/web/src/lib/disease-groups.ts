@@ -25,6 +25,7 @@ export const diseaseGroups = {
   coronary: [
     'coronary-artery-anomalies',
     'coronary-heart-disease',
+    'coronary-microvascular-dysfunction',
     'kawasaki-disease',
     'myocardial-infarction',
     'spontaneous-coronary-artery-dissection',
@@ -37,6 +38,7 @@ export const diseaseGroups = {
     'hypertension-in-pregnancy',
     'hypertensive-crisis',
     'orthostatic-hypotension',
+    'pheochromocytoma',
     'primary-aldosteronism',
   ],
   myocardium: [
@@ -53,6 +55,7 @@ export const diseaseGroups = {
     'left-ventricular-noncompaction',
     'peripartum-cardiomyopathy',
     'restrictive-cardiomyopathy',
+    'thyrotoxic-heart-disease',
   ],
   valves: [
     'aortic-regurgitation',
@@ -65,6 +68,7 @@ export const diseaseGroups = {
     'pulmonary-valve-stenosis',
     'rheumatic-heart-disease',
     'tricuspid-regurgitation',
+    'tricuspid-stenosis',
   ],
   inflammation: [
     'acute-rheumatic-fever',

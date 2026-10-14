@@ -1,0 +1,264 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; unused here because this SVG has no ids. */
+  uid: string;
+}
+
+const { locale } = Astro.props;
+const t = getMessages(locale);
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// The thyroid gland on the left, an arrow of thyroid hormones to the heart on the right. Normal:
+// a gland of usual size, a thin arrow (the usual amount of hormones) and a heart beating at its
+// usual rhythm. Thyrotoxicosis: a larger gland, a thick pulsing arrow (too much hormone), a heart
+// that beats faster, and dashed chaotic marks in the atria labelled "may go into fibrillation":
+// atrial fibrillation happens in only some patients, so it is drawn faint and the label says
+// "may". No numbers, no drugs, no enlarged heart chambers, no eye signs.
+const thyroid = { x: 110, y: 160 };
+// Two lobes joined by an isthmus; in thyrotoxicosis the whole gland is larger (goitre).
+const normalGland = { dx: 22, rx: 20, ry: 36 };
+const largeGland = { dx: 30, rx: 28, ry: 48 };
+const glandLabelLines = lines('diagram.label.thyroid-gland', 20);
+const glandLabelY = 86 - (glandLabelLines.length - 1) * lineHeight;
+const enlargedLines = lines('diagram.label.thyroid-enlarged', 22);
+
+// The hormone arrow and its label under it.
+const arrow = 'M190,160 H310';
+const arrowHead = 'M308,150 L326,160 L308,170 Z';
+const hormoneX = 258;
+const hormoneY = 192;
+const usualHormoneLines = lines('diagram.label.thyroid-hormones-usual-amount', 18);
+const excessHormoneLines = lines('diagram.label.excess-thyroid-hormones', 18);
+
+// The heart with its two atria on top.
+const heartX = 410;
+const heart =
+  'M410,250 C345,205 325,150 345,115 C363,85 397,92 410,115 C423,92 457,85 475,115 C495,150 475,205 410,250 Z';
+const rightAtriumX = 382;
+const leftAtriumX = 438;
+const atria = [
+  { cx: rightAtriumX, fill: 'var(--diagram-venous-fill)', stroke: 'var(--diagram-venous)' },
+  { cx: leftAtriumX, fill: 'var(--diagram-arterial-fill)', stroke: 'var(--diagram-arterial)' },
+];
+const atriumY = 130;
+// Chaotic activity in the atria (disease only): short wavy dashed marks.
+const squiggles = [
+  'M368,126 q5,-8 10,-2 t10,-4',
+  'M376,138 q6,4 12,-1 t8,3',
+  'M426,124 q5,-8 10,-2 t10,-4',
+  'M430,138 q6,4 12,-1 t8,3',
+];
+const heartLabelY = 76;
+const rhythmY = 280;
+const fasterLines = lines('diagram.label.heart-beats-faster', 22);
+// The atria label sits top left of the heart; its leader starts just under its last line and
+// ends between the two atria.
+const afLines = lines('diagram.label.atria-may-fibrillate', 30);
+const afX = 296;
+const afY = 22;
+const afLeaderY = afY + (afLines.length - 1) * lineHeight + 5;
+---
+
+<svg
+  viewBox="0 0 520 330"
+  role="img"
+  aria-label={t['diagram.thyrotoxic-heart-disease.title']}
+  lang={locale}
+>
+  <!-- Thyroid gland: usual size normally, larger in thyrotoxicosis -->
+  {[
+    { state: 'normal-only', gland: normalGland, isthmus: 10 },
+    { state: 'disease-only', gland: largeGland, isthmus: 14 },
+  ].map(({ state, gland, isthmus }) => (
+    <g class={state} fill="var(--diagram-plaque)" stroke="var(--color-muted)" stroke-width="1.5">
+      <rect
+        x={thyroid.x - gland.dx}
+        y={thyroid.y + gland.ry / 3 - isthmus / 2}
+        width={gland.dx * 2}
+        height={isthmus}
+      />
+      <ellipse cx={thyroid.x - gland.dx} cy={thyroid.y} rx={gland.rx} ry={gland.ry} />
+      <ellipse cx={thyroid.x + gland.dx} cy={thyroid.y} rx={gland.rx} ry={gland.ry} />
+    </g>
+  ))}
+
+  <!-- Hormone arrow: thin normally, thick and pulsing in thyrotoxicosis -->
+  <g class="normal-only" fill="var(--diagram-arterial)" stroke="var(--diagram-arterial)">
+    <path d={arrow} fill="none" stroke-width="3"></path>
+    <path d={arrowHead} stroke-width="1"></path>
+  </g>
+  <g
+    class="disease-only thyro-pulse"
+    fill="var(--diagram-arterial)"
+    stroke="var(--diagram-arterial)"
+  >
+    <path d={arrow} fill="none" stroke-width="8"></path>
+    <path d={arrowHead} stroke-width="4"></path>
+  </g>
+
+  <!-- Heart: the same shape in both states; it beats faster in thyrotoxicosis. In disease, faint
+       dashed chaotic marks in the atria, because fibrillation is only possible. -->
+  {[
+    { state: 'normal-only', beat: 'thyro-beat', chaotic: false },
+    { state: 'disease-only', beat: 'thyro-beat thyro-fast', chaotic: true },
+  ].map(({ state, beat, chaotic }) => (
+    <g class={`${state} ${beat}`}>
+      <path
+        d={heart}
+        fill="var(--diagram-muscle)"
+        stroke="var(--diagram-arterial)"
+        stroke-width="2"
+      />
+      {atria.map((atrium) => (
+        <ellipse
+          cx={atrium.cx}
+          cy={atriumY}
+          rx="22"
+          ry="16"
+          fill={atrium.fill}
+          stroke={atrium.stroke}
+          stroke-width="2"
+        />
+      ))}
+      {chaotic && (
+        <g
+          fill="none"
+          stroke="var(--color-text)"
+          stroke-width="1.5"
+          stroke-dasharray="3 3"
+          stroke-linecap="round"
+        >
+          {squiggles.map((d) => (
+            <path d={d} />
+          ))}
+        </g>
+      )}
+    </g>
+  ))}
+
+  <!-- Labels shared by both states -->
+  <text class="diagram-small" x={thyroid.x} y={glandLabelY} text-anchor="middle">
+    {glandLabelLines.map((line, index) => (
+      <tspan x={thyroid.x} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small" x={heartX} y={heartLabelY} text-anchor="middle">
+    {t['diagram.label.heart']}
+  </text>
+
+  <!-- Normal labels -->
+  <g class="normal-only">
+    <text class="diagram-small" x={hormoneX} y={hormoneY} text-anchor="middle">
+      {usualHormoneLines.map((line, index) => (
+        <tspan x={hormoneX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y={rhythmY} text-anchor="middle">
+      {t['diagram.label.normal-rhythm']}
+    </text>
+  </g>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <text class="diagram-small" x={thyroid.x} y="232" text-anchor="middle">
+      {enlargedLines.map((line, index) => (
+        <tspan x={thyroid.x} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={hormoneX} y={hormoneY} text-anchor="middle">
+      {excessHormoneLines.map((line, index) => (
+        <tspan x={hormoneX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <text class="diagram-small" x={heartX} y={rhythmY} text-anchor="middle">
+      {fasterLines.map((line, index) => (
+        <tspan x={heartX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+    <!-- The leader ends between the atria on a short bar that touches both of them. -->
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1={afX + 30} y1={afLeaderY} x2={heartX} y2={atriumY}></line>
+      <line x1={rightAtriumX + 20} y1={atriumY} x2={leftAtriumX - 20} y2={atriumY}></line>
+    </g>
+    <text class="diagram-small" x={afX} y={afY}>
+      {afLines.map((line, index) => (
+        <tspan x={afX} dy={index === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  /* The heart beats, faster in thyrotoxicosis, and the thick hormone arrow pulses. Without motion
+     the heart and the arrow stand still: the arrow's width, the gland's size, the dashed marks in
+     the atria and the labels carry the difference. */
+  .diagram .thyro-beat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: thyro-beat 1.1s ease-in-out infinite;
+  }
+
+  .diagram .thyro-fast {
+    animation-duration: 0.55s;
+  }
+
+  .diagram .thyro-pulse {
+    animation: thyro-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes thyro-beat {
+    0%,
+    40%,
+    100% {
+      transform: scale(1);
+    }
+
+    15% {
+      transform: scale(1.06);
+    }
+  }
+
+  @keyframes thyro-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+
+    40% {
+      opacity: 1;
+    }
+  }
+</style>

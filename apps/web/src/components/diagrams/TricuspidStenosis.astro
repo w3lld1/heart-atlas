@@ -1,0 +1,349 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-tsv-arrow`;
+// Both states show diastole: the right ventricle fills and blood flows down from the right atrium.
+// Blood reaches the atrium from the body through the superior vena cava at the top. The tricuspid
+// annulus spans x = 280–340 at y = 165; the leaflets hang from it into the ventricle. Labels sit in
+// a column on the left.
+// Normal: thin leaflets open wide, leaving the whole opening free.
+const openLeaflets = ['M280,165 Q283,190 287,214', 'M340,165 Q337,190 333,214'];
+// Stenosis: thickened leaflets that open poorly; their tips leave a narrow opening (x 306–314).
+const thickLeaflets = ['M280,165 Q292,190 301,206', 'M340,165 Q328,190 319,206'];
+// Flow paths: a wide even stream in the normal state, a stream converging on the narrow opening in
+// stenosis. Arrows and moving particles use the same columns.
+const normalColumns = [292, 310, 328];
+const diseaseColumns = [286, 310, 334];
+const converging = [
+  'M286,44 C286,110 306,140 308,190',
+  'M310,44 L310,190',
+  'M334,44 C334,110 314,140 312,190',
+];
+---
+
+<svg
+  viewBox="0 -40 480 360"
+  role="img"
+  aria-label={t['diagram.tricuspid-stenosis.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-venous)"></path>
+    </marker>
+  </defs>
+
+  <!-- Right ventricle wall. In stenosis the ventricle receives less blood and stays small, as the
+       caption says. -->
+  <path
+    class="normal-only"
+    d="M420,160 L200,160 C186,205 210,286 310,308 C410,286 434,205 420,160 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+  <path
+    class="disease-only"
+    d="M376,160 L244,160 C232,195 252,262 310,272 C368,262 388,195 376,160 Z"
+    fill="var(--diagram-muscle)"
+  ></path>
+
+  <!-- Superior vena cava: wider in stenosis, where pressure in the veins rises -->
+  <rect
+    class="normal-only"
+    x="296"
+    y="-40"
+    width="28"
+    height="90"
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+  <rect
+    class="disease-only"
+    x="289"
+    y="-40"
+    width="42"
+    height="70"
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+
+  <!-- Right atrium: larger in stenosis, as the caption says -->
+  <ellipse
+    class="normal-only"
+    cx="310"
+    cy="92"
+    rx="62"
+    ry="46"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+  <ellipse
+    class="disease-only"
+    cx="310"
+    cy="84"
+    rx="84"
+    ry="60"
+    fill="var(--diagram-venous-fill)"
+    stroke="var(--diagram-venous)"
+    stroke-width="2"
+  ></ellipse>
+
+  <!-- The vein opens into the atrium: hide the atrium outline across its mouth, then draw the vein
+       walls down to where they meet the atrium outline -->
+  <rect
+    class="normal-only"
+    x="297"
+    y="40"
+    width="26"
+    height="12"
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+  <rect
+    class="disease-only"
+    x="290"
+    y="18"
+    width="40"
+    height="14"
+    fill="var(--diagram-venous-fill)"
+  ></rect>
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2">
+    <path class="normal-only" d="M296,-40 L296,47 M324,-40 L324,47"></path>
+    <path class="disease-only" d="M289,-40 L289,26 M331,-40 L331,26"></path>
+  </g>
+
+  <!-- Right ventricle cavity and the opening to the atrium as one lumen -->
+  <path
+    class="normal-only"
+    d="M280,165 L280,118 L340,118 L340,165 L404,165 C416,205 386,270 310,290 C234,270 204,205 216,165 Z"
+    fill="var(--diagram-venous-fill)"
+  ></path>
+  <path
+    class="disease-only"
+    d="M280,165 L280,118 L340,118 L340,165 L362,165 C372,195 352,244 310,256 C268,244 248,195 258,165 Z"
+    fill="var(--diagram-venous-fill)"
+  ></path>
+  <g fill="none" stroke="var(--diagram-venous)" stroke-width="2">
+    <path
+      class="normal-only"
+      d="M280,165 L216,165 C204,205 234,270 310,290 C386,270 416,205 404,165 L340,165"
+    ></path>
+    <path
+      class="disease-only"
+      d="M280,165 L258,165 C248,195 268,244 310,256 C352,244 372,195 362,165 L340,165"
+    ></path>
+    <!-- Sides of the opening between atrium and ventricle, up to where each atrium outline meets them -->
+    <path class="normal-only" d="M280,132 L280,165 M340,132 L340,165"></path>
+    <path class="disease-only" d="M280,140 L280,165 M340,140 L340,165"></path>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion: from the vein into the atrium, then down -->
+  <path
+    d="M310,-34 L310,36"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    stroke-linecap="round"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+  <g
+    class="normal-only"
+    fill="none"
+    stroke="var(--diagram-venous)"
+    stroke-width="3"
+    stroke-linecap="round"
+  >
+    {normalColumns.map((x) => (
+      <path d={`M${x},60 L${x},250`} marker-end={`url(#${arrowId})`} />
+    ))}
+  </g>
+  <g class="disease-only" fill="none" stroke="var(--diagram-venous)" stroke-linecap="round">
+    <!-- Blood converges on the narrow opening -->
+    {converging.map((d) => (
+      <path d={d} stroke-width="3" />
+    ))}
+    <!-- A narrow stream enters the small ventricle -->
+    <path
+      d="M306,204 L314,204 L322,236 L298,236 Z"
+      fill="var(--diagram-venous)"
+      fill-opacity="0.25"
+      stroke="none"
+    ></path>
+    <path d="M310,196 L310,234" stroke-width="4" marker-end={`url(#${arrowId})`}></path>
+  </g>
+
+  <!-- Tricuspid leaflets: thin and wide open normally, thick with a narrow opening in stenosis -->
+  <g fill="none" stroke="var(--color-text)" stroke-linecap="round">
+    {openLeaflets.map((d) => (
+      <path class="normal-only" d={d} stroke-width="4" />
+    ))}
+    {thickLeaflets.map((d) => (
+      <path class="disease-only" d={d} stroke-width="9" />
+    ))}
+  </g>
+  <circle cx="280" cy="165" r="3.5" fill="var(--color-text)"></circle>
+  <circle cx="340" cy="165" r="3.5" fill="var(--color-text)"></circle>
+
+  <!-- Moving blood: an even stream through the open valve, a stream squeezed through the narrow
+       opening. Without motion the particles stay hidden and the arrows above show the flow. -->
+  <g class="flow">
+    <g class="normal-only">
+      {normalColumns.map((x, i) => (
+        <circle
+          class="tsv-p tsv-p-normal"
+          cx={x}
+          cy="58"
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`animation-delay: ${i * 0.15}s`}
+        />
+      ))}
+    </g>
+    <g class="disease-only">
+      {diseaseColumns.map((x, i) => (
+        <circle
+          class="tsv-p tsv-p-jet"
+          cx={x}
+          cy="50"
+          r="5"
+          fill="var(--diagram-venous)"
+          style={`--tsv-dx: ${310 - x}px; animation-delay: ${i * 0.15}s`}
+        />
+      ))}
+    </g>
+  </g>
+
+  <!-- Labels: the vein's on the left of it at the top, the rest in the column on the left with
+       leader lines into the drawing -->
+  <g stroke="var(--color-muted)" stroke-width="1.5">
+    <line class="normal-only" x1="192" y1="88" x2="244" y2="88"></line>
+    <line class="disease-only" x1="192" y1="88" x2="222" y2="88"></line>
+    <line x1="192" y1="166" x2="276" y2="166"></line>
+    <line class="disease-only" x1="192" y1="182" x2="285" y2="183"></line>
+    <line class="disease-only" x1="192" y1="198" x2="298" y2="208"></line>
+    <line class="normal-only" x1="192" y1="230" x2="232" y2="230"></line>
+    <line class="disease-only" x1="192" y1="230" x2="272" y2="230"></line>
+  </g>
+  <text class="diagram-small" x="282" y="-24" text-anchor="end">
+    {t['diagram.label.svc']}
+  </text>
+  <text class="diagram-small disease-only" x="282" y="-8" text-anchor="end">
+    {t['diagram.label.vein-pressure-higher']}
+  </text>
+  <!-- In stenosis the atrium label says that it is enlarged and the ventricle label that it is small -->
+  <text class="normal-only" x="186" y="94" text-anchor="end">
+    {t['diagram.label.ra']}
+  </text>
+  <text class="disease-only" x="186" y="94" text-anchor="end">
+    {t['diagram.label.ra-dilated']}
+  </text>
+  <text class="diagram-small" x="186" y="170" text-anchor="end">
+    {t['diagram.label.tricuspid-valve']}
+  </text>
+  <text class="diagram-small normal-only" x="186" y="186" text-anchor="end">
+    {t['diagram.label.leaflets-open']}
+  </text>
+  <text class="diagram-small disease-only" x="186" y="186" text-anchor="end">
+    {t['diagram.label.thick-leaflets']}
+  </text>
+  <text class="diagram-small disease-only" x="186" y="202" text-anchor="end">
+    {t['diagram.label.narrow-opening']}
+  </text>
+  <text class="normal-only" x="186" y="236" text-anchor="end">
+    {t['diagram.label.rv']}
+  </text>
+  <text class="disease-only" x="186" y="236" text-anchor="end">
+    {t['diagram.label.small-rv']}
+  </text>
+</svg>
+
+<style is:global>
+  .diagram .tsv-p {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .diagram .tsv-p-normal {
+    animation: tsv-normal 2.4s linear infinite;
+  }
+
+  .diagram .tsv-p-jet {
+    animation: tsv-jet 2.4s linear infinite;
+  }
+
+  /* Normal diastole: blood falls from the atrium into the ventricle at an even pace. */
+  @keyframes tsv-normal {
+    0%,
+    6% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+
+    12%,
+    56% {
+      opacity: 1;
+    }
+
+    64%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 186px);
+    }
+  }
+
+  /* Stenosis: blood crowds towards the narrow opening, then squeezes through into the ventricle. */
+  @keyframes tsv-jet {
+    0%,
+    6% {
+      opacity: 0;
+      transform: translate(0, 0) scale(1, 1);
+    }
+
+    12% {
+      opacity: 1;
+    }
+
+    /* Side particles follow the drawn converging curves: first down, then in towards the opening. */
+    18% {
+      transform: translate(calc(var(--tsv-dx) * 0.19), 40px) scale(1, 1);
+    }
+
+    26% {
+      transform: translate(calc(var(--tsv-dx) * 0.44), 66px) scale(0.95, 1);
+    }
+
+    33% {
+      transform: translate(calc(var(--tsv-dx) * 0.7), 92px) scale(0.9, 1);
+    }
+
+    44% {
+      opacity: 1;
+      transform: translate(var(--tsv-dx), 140px) scale(0.8, 1);
+    }
+
+    54% {
+      opacity: 1;
+      transform: translate(var(--tsv-dx), 170px) scale(0.6, 2);
+    }
+
+    62%,
+    100% {
+      opacity: 0;
+      transform: translate(var(--tsv-dx), 184px) scale(0.6, 2);
+    }
+  }
+</style>
