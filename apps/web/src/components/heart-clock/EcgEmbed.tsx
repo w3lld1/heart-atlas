@@ -1,55 +1,42 @@
-import {
-  hasPulse,
-  isPresetId,
-  paramRanges,
-  presetIds,
-  presetParams,
-  type PresetId,
-} from '@heart-atlas/heart-clock';
-import { useEffect, useMemo, useState } from 'react';
-import { integerIn, parseEmbedParams } from '../../lib/embed.ts';
+import type { PresetId } from '@heart-atlas/heart-clock';
+import { useEffect, useState } from 'react';
+import type { ClockChoice } from './clock-choice.ts';
+import { embedSettings } from './embed-settings.ts';
 import HeartClockDemo from './HeartClockDemo.tsx';
 import type { HeartClockMessages } from './messages.ts';
-
-/** Query parameters the ECG embed accepts; everything else is ignored. */
-export const ecgEmbedParams = {
-  rate: integerIn(...paramRanges.heartRate),
-  preset: (value: string): PresetId | undefined => (isPresetId(value) ? value : undefined),
-};
 
 interface Props {
   locale: string;
   messages: HeartClockMessages;
+  /** Every preset with its own settings, resolved in the build (`clockChoices`). */
+  choices: readonly ClockChoice[];
 }
 
 interface Settings {
-  rate?: number;
   preset?: PresetId;
+  rate?: number;
+  choices: readonly ClockChoice[];
 }
 
 /**
- * Heart clock monitor configured from the query string. The build renders it with default
- * settings, so the page has its final size before scripts run; after hydration the monitor is
- * mounted again with the settings from the URL.
+ * Heart clock monitor configured from the query string (`embed-settings.ts`). The build renders
+ * it with default settings, so the page has its final size before scripts run; after hydration
+ * the monitor is mounted again with the settings from the URL.
  */
-export default function EcgEmbed({ locale, messages }: Props) {
-  const [settings, setSettings] = useState<Settings>({});
+export default function EcgEmbed({ locale, messages, choices }: Props) {
+  const [settings, setSettings] = useState<Settings>({ choices });
   useEffect(() => {
-    setSettings(parseEmbedParams(window.location.search, ecgEmbedParams));
+    const fromUrl = embedSettings(window.location.search);
+    if (fromUrl) setSettings(fromUrl);
   }, []);
-  const { preset } = settings;
-  // A preset without a pulse (ventricular fibrillation) has no heart rate to set.
-  const rate = preset !== undefined && !hasPulse(presetParams(preset)) ? undefined : settings.rate;
-  // A stable object: the monitor rebuilds its clock whenever `params` changes.
-  const params = useMemo(() => (rate === undefined ? undefined : { heartRate: rate }), [rate]);
+  const { preset, rate } = settings;
   return (
     <HeartClockDemo
       key={`${preset ?? ''}:${rate ?? ''}`}
       locale={locale}
       messages={messages}
-      presets={presetIds}
+      choices={settings.choices}
       {...(preset === undefined ? {} : { preset })}
-      {...(params === undefined ? {} : { params })}
     />
   );
 }

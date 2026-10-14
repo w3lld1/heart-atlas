@@ -1,5 +1,7 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
+import { presetIds } from '@heart-atlas/heart-clock';
+import { clockChoices } from '../../../components/heart-clock/choices.ts';
 import EcgEmbed from '../../../components/heart-clock/EcgEmbed.tsx';
 import {
   heartClockMessageKeys,
@@ -26,7 +28,7 @@ const canonical = new URL(localePath(import.meta.env.BASE_URL, locale, 'heart-cl
   <p class="schematic" role="note">
     {t['heartClock.schematic']}
   </p>
-  <EcgEmbed client:load locale={locale} messages={messages} />
+  <EcgEmbed client:load locale={locale} messages={messages} choices={clockChoices(presetIds)} />
   <noscript>
     <p>{t['embed.noScript']}</p>
   </noscript>

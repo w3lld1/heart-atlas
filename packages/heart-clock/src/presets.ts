@@ -607,15 +607,6 @@ export function rateLimitsFrom(
   return [low, high];
 }
 
-/**
- * Whether the heart pumps with these parameters: not in ventricular fibrillation, which has no
- * pulse and so no heart rate to show or set (MSD Manuals, Cardiac Arrest, 2025). The interface
- * reads this instead of preset ids.
- */
-export function hasPulse(params: Readonly<HeartParams>): boolean {
-  return params.ventricularFibrillation === 0;
-}
-
 /** Whether a preset sets its own heart rate. */
 export function setsHeartRate(id: PresetId): boolean {
   return presets[id].heartRate !== undefined;

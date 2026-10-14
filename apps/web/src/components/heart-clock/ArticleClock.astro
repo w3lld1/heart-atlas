@@ -5,6 +5,7 @@ import { getMessages } from '../../i18n/messages.ts';
 import type { CongenitalModelId } from '../../lib/heart-model.ts';
 import CongenitalModel from '../viewer/CongenitalModel.astro';
 import HeartModel from '../viewer/HeartModel.astro';
+import { clockChoices } from './choices.ts';
 import HeartClockDemo from './HeartClockDemo.tsx';
 import { heartClockMessageKeys, type HeartClockMessages } from './messages.ts';
 
@@ -62,9 +63,8 @@ const messages = Object.fromEntries(
         client:visible
         locale={locale}
         messages={messages}
-        presets={choices}
+        choices={clockChoices(choices, preset, undefined, presetLead(preset))}
         preset={preset}
-        lead={presetLead(preset)}
         headingLevel={3}
         wiggers={wiggers}
       />
