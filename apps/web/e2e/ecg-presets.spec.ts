@@ -541,6 +541,38 @@ for (const slug of [
   });
 }
 
+test('the thyrotoxic heart disease article shows sinus tachycardia and atrial fibrillation', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/thyrotoxic-heart-disease/');
+  // Normal, sinus tachycardia (`preset`, the fast pulse) and atrial fibrillation (`morePresets`).
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(3);
+  await expect(
+    conditions.getByRole('radio', { name: en['heartClock.preset.sinus-tachycardia'] }),
+  ).toBeChecked();
+  await expect(conditions.getByRole('radio').nth(2)).toHaveAccessibleName(
+    en['heartClock.preset.atrial-fibrillation'],
+  );
+
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.sinus-tachycardia.summary'],
+  );
+
+  // The island is client:visible: scroll to it and wait for hydration before switching.
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  expect((await axe(page).analyze()).violations).toEqual([]);
+
+  await conditions
+    .getByRole('radio', { name: en['heartClock.preset.atrial-fibrillation'] })
+    .check();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.atrial-fibrillation.summary'],
+  );
+});
+
 test('the CPVT article shows bidirectional ventricular tachycardia', async ({ page }) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/catecholaminergic-polymorphic-ventricular-tachycardia/');

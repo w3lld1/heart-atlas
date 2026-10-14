@@ -2,6 +2,30 @@
 
 All notable changes to Heart Atlas are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-10-14
+
+Sixteen new disease articles, ventricular fibrillation and short QT syndrome on the heart clock, and lighter article pages.
+
+### Articles
+
+- New disease articles in Russian and English, each with a diagram: short QT syndrome, acute rheumatic fever, subclavian artery stenosis and primary aldosteronism ([#398](https://github.com/w3lld1/heart-atlas/pull/398)), Loeys–Dietz syndrome ([#400](https://github.com/w3lld1/heart-atlas/pull/400)), giant cell arteritis ([#405](https://github.com/w3lld1/heart-atlas/pull/405)), tricuspid stenosis, pheochromocytoma, angina without obstructive coronary arteries and thyrotoxic heart disease ([#412](https://github.com/w3lld1/heart-atlas/pull/412)), popliteal artery aneurysm ([#415](https://github.com/w3lld1/heart-atlas/pull/415)), vascular rings ([#419](https://github.com/w3lld1/heart-atlas/pull/419)), fibromuscular dysplasia ([#421](https://github.com/w3lld1/heart-atlas/pull/421)), thromboangiitis obliterans ([#430](https://github.com/w3lld1/heart-atlas/pull/430)), Raynaud phenomenon ([#432](https://github.com/w3lld1/heart-atlas/pull/432)) and aortic intramural hematoma ([#434](https://github.com/w3lld1/heart-atlas/pull/434)). The site now has one hundred and sixteen disease articles.
+- The short QT syndrome and ventricular fibrillation articles show their states on the heart clock ([#416](https://github.com/w3lld1/heart-atlas/pull/416), [#428](https://github.com/w3lld1/heart-atlas/pull/428)), and the AV block article adds first-degree block ([#431](https://github.com/w3lld1/heart-atlas/pull/431)).
+- Older articles link to the new acute rheumatic fever, giant cell arteritis and aortic intramural hematoma articles ([#398](https://github.com/w3lld1/heart-atlas/pull/398), [#405](https://github.com/w3lld1/heart-atlas/pull/405), [#434](https://github.com/w3lld1/heart-atlas/pull/434)).
+
+### Heart clock
+
+- New preset: short QT syndrome, with a QTc of 320 ms at every heart rate ([#409](https://github.com/w3lld1/heart-atlas/pull/409)).
+- New preset: ventricular fibrillation ([#418](https://github.com/w3lld1/heart-atlas/pull/418), [#424](https://github.com/w3lld1/heart-atlas/pull/424)). The strips show irregular oscillations from 300 per minute with no P waves, QRS complexes or T waves. The monitor shows "No pulse" in place of the heart rate slider and "No heart sounds" next to the sound button. The Wiggers diagram gives way to a line saying the heart pumps no blood. On the heart clock page, a note under the 3D model says why the model stays still. The embed builder hides the heart rate field for this preset, and embeds ignore a rate in the address.
+
+### Site
+
+- Article pages load less code up front. The heart sound players load on the first click ([#413](https://github.com/w3lld1/heart-atlas/pull/413)), and the Wiggers diagram's drawing code loads when the diagram comes near view ([#429](https://github.com/w3lld1/heart-atlas/pull/429)).
+- Spec for ventricular fibrillation in the heart clock ([#404](https://github.com/w3lld1/heart-atlas/pull/404)).
+
+### Learning
+
+- Quizzes in seventeen more articles, 126 in all ([#402](https://github.com/w3lld1/heart-atlas/pull/402), [#410](https://github.com/w3lld1/heart-atlas/pull/410), [#414](https://github.com/w3lld1/heart-atlas/pull/414), [#420](https://github.com/w3lld1/heart-atlas/pull/420), [#422](https://github.com/w3lld1/heart-atlas/pull/422), [#427](https://github.com/w3lld1/heart-atlas/pull/427), [#433](https://github.com/w3lld1/heart-atlas/pull/433), [#435](https://github.com/w3lld1/heart-atlas/pull/435), [#437](https://github.com/w3lld1/heart-atlas/pull/437), [#438](https://github.com/w3lld1/heart-atlas/pull/438)).
+
 ## [0.8.0] - 2026-10-14
 
 Twenty-four new disease articles, five new heart clock presets including bundle branch blocks and bidirectional ventricular tachycardia, nine more disease shapes on the 3D model, a page for physicians and a shorter header on phones.
@@ -237,6 +261,7 @@ The first public version: a working site in Russian and English with the 3D hear
 - Astro and React monorepo with TypeScript strict, ESLint, Prettier, stylelint, Vitest and Playwright; CI and deploy to GitHub Pages ([#6](https://github.com/w3lld1/heart-atlas/pull/6), [#14](https://github.com/w3lld1/heart-atlas/pull/14)).
 - Contributor guides: architecture, adding an article, a language, a model and a disease preset.
 
+[0.9.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.9.0
 [0.8.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.8.0
 [0.7.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.7.0
 [0.6.0]: https://github.com/w3lld1/heart-atlas/releases/tag/v0.6.0
