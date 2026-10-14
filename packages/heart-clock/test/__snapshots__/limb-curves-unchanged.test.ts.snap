@@ -154,6 +154,14 @@ exports[`existing presets > keep their curves in leads I, II and III 1`] = `
     "II:d405b946",
     "III:4f562180",
   ],
+  "sinus-tachycardia": [
+    "I:cd72d6d9",
+    "II:8b7f1b7e",
+    "III:cd72d6d9",
+    "I:70edf1d3",
+    "II:8b7f1b7e",
+    "III:80da35fc",
+  ],
   "stemi": [
     "I:97fd81ff",
     "II:b052fddb",

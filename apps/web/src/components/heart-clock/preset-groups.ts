@@ -21,6 +21,7 @@ export const presetGroup: Readonly<Record<PresetId, PresetGroup | null>> = {
   'av-block-second-degree-mobitz-2': 'conduction',
   'av-block-third-degree': 'conduction',
   'av-block-third-degree-paced': 'treated',
+  'sinus-tachycardia': 'rhythm',
   'supraventricular-tachycardia': 'rhythm',
   'long-qt-syndrome': 'rhythm',
   'ventricular-tachycardia': 'rhythm',
