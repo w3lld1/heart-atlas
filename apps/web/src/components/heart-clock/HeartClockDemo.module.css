@@ -92,7 +92,8 @@
   align-items: center;
 }
 
-.rate label {
+.rate label,
+.rate-label {
   grid-column: 1 / -1;
 }
 
@@ -210,8 +211,16 @@
   border: 1px solid var(--color-border);
 }
 
-.description {
+.description,
+.note {
   color: var(--color-muted);
+}
+
+/* In place of the Wiggers diagram when there are no cycles to draw. */
+.no-cycles {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
 }
 
 .ecg,

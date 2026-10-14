@@ -1,7 +1,13 @@
 ---
 import type { GetStaticPaths, InferGetStaticParamsType } from 'astro';
 import { getCollection } from 'astro:content';
-import { defaultRateLimits, presetIds, presetRateLimits } from '@heart-atlas/heart-clock';
+import {
+  defaultRateLimits,
+  hasPulse,
+  presetIds,
+  presetParams,
+  presetRateLimits,
+} from '@heart-atlas/heart-clock';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { localeCodes, locales } from '../../../i18n/locales.ts';
 import { getMessages } from '../../../i18n/messages.ts';
@@ -82,14 +88,19 @@ const [minRate, maxRate] = defaultRateLimits;
           // floor.
           const [min, max] = presetRateLimits(id);
           return (
-            <option value={id} data-min={min} data-max={max}>
+            <option
+              value={id}
+              data-min={min}
+              data-max={max}
+              data-pulseless={hasPulse(presetParams(id)) ? undefined : ''}
+            >
               {t[`heartClock.preset.${id}`]}
             </option>
           );
         })}
       </select>
     </label>
-    <div class="field" data-ecg-field>
+    <div class="field" data-ecg-field data-rate-field>
       <label for="rate">{t['heartClock.heartRate']}</label>
       <input
         id="rate"
@@ -138,23 +149,28 @@ const [minRate, maxRate] = defaultRateLimits;
   const copy = form?.querySelector<HTMLButtonElement>('[data-copy]');
   const status = form?.querySelector<HTMLElement>('[data-copy-status]');
   const rateError = form?.querySelector<HTMLElement>('#rate-error');
+  const rateField = form?.querySelector<HTMLElement>('[data-rate-field]');
 
   function update() {
     const option = select?.selectedOptions[0];
     if (!option || !rate || !preset || !code || !rateError) return;
-    const withRate = option.dataset['rate'] !== undefined;
-    for (const field of ecgFields) field.hidden = !withRate;
+    const withEcg = option.dataset['rate'] !== undefined;
+    for (const field of ecgFields) field.hidden = !withEcg;
     const src = new URL(option.value);
     const presetOption = preset.selectedOptions[0];
+    // A preset without a pulse (ventricular fibrillation) has no heart rate to set.
+    const withRate = withEcg && presetOption?.dataset['pulseless'] === undefined;
+    if (rateField) rateField.hidden = !withRate;
     rate.min = presetOption?.dataset['min'] ?? rate.min;
     rate.max = presetOption?.dataset['max'] ?? rate.max;
     let title = option.dataset['title'] ?? '';
     // Normal is the default, so it needs no parameter.
-    if (withRate && presetOption && preset.value !== 'normal') {
+    if (withEcg && presetOption && preset.value !== 'normal') {
       src.searchParams.set('preset', preset.value);
       title = `${title}: ${presetOption.text.trim()}`;
     }
-    const valid = rate.checkValidity();
+    // A hidden field cannot be fixed, so its value does not count.
+    const valid = !withRate || rate.checkValidity();
     rateError.textContent = valid ? '' : rate.validationMessage;
     // valueAsNumber normalises "1e2" or "90.0" to the plain integer the embed accepts.
     if (withRate && valid && rate.value !== '') {

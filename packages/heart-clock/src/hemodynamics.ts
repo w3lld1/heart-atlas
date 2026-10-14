@@ -8,6 +8,8 @@ export interface Hemodynamics {
   la: number;
   /** Left ventricular volume, % of end-diastolic volume. */
   volume: number;
+  /** No blood moves: ventricular fibrillation (`ventricularFibrillation`). Absent otherwise. */
+  noFlow?: true;
 }
 
 type Keyframe = readonly [time: number, value: number];

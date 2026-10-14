@@ -1,5 +1,5 @@
 import { leadGains, unitGains, type LimbLead } from './leads.ts';
-import { beatWaves, dissociatedP, flutterWaves, fWaves, pWave } from './ecg.ts';
+import { beatWaves, dissociatedP, flutterWaves, fWaves, pWave, vfWaves } from './ecg.ts';
 import { hemodynamics, type Hemodynamics } from './hemodynamics.ts';
 import { defaultRateLimits, paramRanges, resolveParams, type HeartParams } from './params.ts';
 import { beatTiming, phaseAt, prAt, type BeatTiming, type Phase } from './timing.ts';
@@ -23,6 +23,8 @@ export interface Beat {
   beforePremature: boolean;
   /** Whether the QRS, ST and T of this beat are drawn upside down (`bidirectional`). */
   inverted: boolean;
+  /** A time slot of ventricular fibrillation, not a beat: no waves, sounds or ejection. */
+  fibrillation: boolean;
   timing: BeatTiming;
   /** Parameters this beat was built with; `setParams` affects only later beats. */
   params: Readonly<HeartParams>;
@@ -231,6 +233,25 @@ export function heartRateLimits(params: HeartParams): readonly [min: number, max
 }
 
 /**
+ * Pressures in ventricular fibrillation: no flow, so nothing changes. assumption: LV and LA at
+ * the end-diastolic pressure, the aorta at its diastolic pressure, the ventricle full; the sources
+ * do not say how fast pressures fall, and the Wiggers diagram does not draw this state. A
+ * `setParams` into or out of fibrillation steps LA and aortic pressure and LV volume at the slot
+ * boundary: the beat before builds its decline by its own timing (spec), and the beat after starts
+ * from the hidden timing of the slot. The site builds a new clock on a preset change, so it never
+ * shows this step.
+ */
+function fibrillationHemodynamics(params: Readonly<HeartParams>): Hemodynamics {
+  return {
+    lv: params.lvEndDiastolic,
+    aorta: params.aorticDiastolic,
+    la: params.lvEndDiastolic,
+    volume: 100,
+    noFlow: true,
+  };
+}
+
+/**
  * What the monitor shows at a sample: the phase, or a sinus pause. A pause with a blocked P wave,
  * or after a ventricular premature beat, keeps the sinus node going, so it shows as filling.
  */
@@ -275,6 +296,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
         premature: 2,
         beforePremature: false,
         inverted: false,
+        fibrillation: false,
         timing: ventricularPrematureTiming(rhythmRr, prematureParams),
         params: prematureParams,
       };
@@ -295,6 +317,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       beforePremature,
       // Bidirectional VT: every second complex points the other way (index 0 is upright).
       inverted: beatParams.bidirectional === 1 && index % 2 === 1,
+      fibrillation: beatParams.ventricularFibrillation === 1,
       timing,
       params: beatParams,
     };
@@ -366,17 +389,19 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
       const gains = gainsOf(b);
       return (
         gains.f * (fWaves(t, b.params) + flutterWaves(t - b.start, b.timing, b.params)) +
-        gains.p * dissociatedP(t, b.params)
+        gains.p * dissociatedP(t, b.params) +
+        vfWaves(t, b.params, lead)
       );
     };
     let value = atrial(beat);
     if (previous && previous.params !== beat.params) {
-      // Fade the previous beat's f or F waves out, so a parameter change does not step the baseline.
+      // Fade the previous beat's f or F waves (or fibrillation) out, so a parameter change does not
+      // step the baseline.
       const w = smoothstep((t - beat.start) / fWaveBlendMs);
       value = w * value + (1 - w) * atrial(previous);
     }
     for (const b of [previous, beat, beats[i + 1]]) {
-      if (!b) continue;
+      if (!b || b.fibrillation) continue;
       const gains = gainsOf(b);
       // An inverted beat has no P wave (`bidirectional` needs pAmplitude 0), so the whole beat flips.
       value += (b.inverted ? -1 : 1) * beatWaves(t - b.start, b.timing, b.params, gains);
@@ -436,6 +461,7 @@ export function createHeartClock(initial: Partial<HeartParams> = {}): HeartClock
     hemodynamicsAt(t) {
       const i = locate(t);
       const beat = beats[i] as Beat;
+      if (beat.fibrillation) return fibrillationHemodynamics(beat.params);
       // Before the first beat there is no previous one; a copy of this beat stands in for it.
       const previous = beats[i - 1] ?? {
         ...beat,

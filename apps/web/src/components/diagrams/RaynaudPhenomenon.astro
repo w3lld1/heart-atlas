@@ -1,0 +1,322 @@
+---
+import { getMessages, type MessageKey } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrowId = `${uid}-rp-arrow`;
+const phaseArrowId = `${uid}-rp-phase-arrow`;
+const tipClip = `${uid}-rp-tip`;
+
+// Labels are wrapped at word boundaries so that no line is longer than `max` characters.
+function wrap(label: string, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of label.split(' ')) {
+    if (line !== '' && line.length + 1 + word.length > max) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line === '' ? word : `${line} ${word}`;
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+const lineHeight = 15;
+const lines = (key: MessageKey, max: number) => wrap(t[key], max);
+
+// One finger seen from the side, its base on the left and its tip on the right, with one of its
+// small arteries running along it to the tip. Normal (between attacks): the artery has its usual
+// lumen and blood reaches the fingertip. Disease (an attack, brought on by cold or emotion): the
+// artery is in spasm, its lumen sharply narrowed, little blood gets through, and the finger turns
+// white from the tip with a clear border; below, the colour phases as the sources list them (pale,
+// blue, red), not always all three. No plaque or clot (the narrowing is a reversible spasm), no
+// ulcers, no heart and no numbers.
+const top = 70;
+const bottom = 140;
+const radius = (bottom - top) / 2;
+const x0 = 20;
+// Centre of the rounded fingertip.
+const tipX = 320;
+const finger = `M${x0},${top} H${tipX} A${radius},${radius} 0 0 1 ${tipX},${bottom} H${x0} Z`;
+// Creases of the two finger joints; the last segment, from the second crease to the tip, is the
+// fingertip, where whitening begins.
+const tipStart = 235;
+const creases = [130, tipStart];
+
+// The artery.
+const axis = 120;
+const ax1 = 334;
+const lumenNormal = 4.5;
+const wall = 3.5;
+const lumenSpasm = 1.2;
+// Where the spasm begins, and the distance over which the lumen eases into it.
+const xSpasm = 76;
+const ease = 18;
+function spasmLumen(x: number): number {
+  if (x <= xSpasm - ease) return lumenNormal;
+  if (x >= xSpasm) return lumenSpasm;
+  const k = (1 - Math.cos((Math.PI * (x - (xSpasm - ease))) / ease)) / 2;
+  return lumenNormal + (lumenSpasm - lumenNormal) * k;
+}
+const step = 2;
+const xs: number[] = [];
+for (let x = x0; x <= ax1; x += step) xs.push(x);
+const round = (n: number) => Math.round(n * 10) / 10;
+// A closed outline symmetric about the axis for a radius function.
+function tube(r: (x: number) => number): string {
+  const upper = xs.map((x) => `${x},${round(axis - r(x))}`);
+  const lower = [...xs].reverse().map((x) => `${x},${round(axis + r(x))}`);
+  return `M${upper.join(' L')} L${lower.join(' L')} Z`;
+}
+const normalOuter = tube(() => lumenNormal + wall);
+const normalLumen = tube(() => lumenNormal);
+const spasmOuter = tube((x) => spasmLumen(x) + wall);
+const spasmLumenPath = tube(spasmLumen);
+
+// Label positions.
+const lumenLabelX = 170;
+const lumenLabelY = 52;
+const belowY = 170;
+const arteryLeaderX = 50;
+const tipLeaderX = 300;
+const tipLabelX = 392;
+const normalTipLines = lines('diagram.label.blood-reaches-fingertip', 28);
+const diseaseTipLines = lines('diagram.label.fingertip-white-clear-border', 28);
+
+// The colour phases of an attack, left to right.
+const phaseY = 206;
+const phaseW = 48;
+const phaseH = 20;
+const phases = [
+  { x: 80, key: 'diagram.label.pallor' as const, cls: 'rp-pale' },
+  { x: 200, key: 'diagram.label.cyanosis' as const, cls: 'rp-blue' },
+  { x: 320, key: 'diagram.label.redness' as const, cls: 'rp-red' },
+];
+// Arrows between neighbouring phases.
+const phaseGaps = phases.flatMap((phase, index) => {
+  const next = phases[index + 1];
+  return next ? [[phase.x, next.x] as const] : [];
+});
+---
+
+<svg
+  viewBox="0 0 400 260"
+  role="img"
+  aria-label={t['diagram.raynaud-phenomenon.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <marker
+      id={phaseArrowId}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="5"
+      markerHeight="5"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-muted)"></path>
+    </marker>
+    <clipPath id={tipClip}>
+      <rect x={tipStart} y="0" width={400 - tipStart} height="260"></rect>
+    </clipPath>
+  </defs>
+
+  <!-- State heading -->
+  <text class="normal-only" x={x0} y="28">
+    {t['diagram.label.between-attacks']}
+  </text>
+  <text class="disease-only" x={x0} y="28">
+    {t['diagram.label.attack-cold-or-emotion']}
+  </text>
+
+  <!-- The finger. The outline keeps it visible on the page background in both themes. -->
+  <path
+    d={finger}
+    fill="var(--diagram-muscle)"
+    stroke="var(--color-muted)"
+    stroke-width="1.5"
+  ></path>
+
+  <!-- In an attack the fingertip turns white, with a clear border -->
+  <g class="disease-only">
+    <path class="rp-pale" d={finger} clip-path={`url(#${tipClip})`}></path>
+    <line
+      x1={tipStart}
+      y1={top}
+      x2={tipStart}
+      y2={bottom}
+      stroke="var(--color-text)"
+      stroke-width="1.5"
+      stroke-dasharray="4 3"
+    ></line>
+  </g>
+
+  <!-- Joint creases -->
+  <g stroke="var(--color-muted)" stroke-width="1.5" stroke-linecap="round">
+    {creases.map((x) => (
+      <>
+        <line x1={x} y1={top} x2={x} y2={top + 10} />
+        <line x1={x} y1={bottom - 10} x2={x} y2={bottom} />
+      </>
+    ))}
+  </g>
+
+  <!-- Artery wall, then the lumen on top -->
+  <g fill="var(--diagram-arterial)">
+    <path class="normal-only" d={normalOuter}></path>
+    <path class="disease-only" d={spasmOuter}></path>
+  </g>
+  <g fill="var(--diagram-arterial-fill)">
+    <path class="normal-only" d={normalLumen}></path>
+    <path class="disease-only" d={spasmLumenPath}></path>
+  </g>
+
+  <!-- Direction of blood flow, visible with and without motion -->
+  <path
+    d={`M${x0 + 4},${axis} L${xSpasm - ease - 6},${axis}`}
+    fill="none"
+    stroke="var(--diagram-arterial)"
+    stroke-width="2"
+    marker-end={`url(#${arrowId})`}
+  ></path>
+
+  <!-- Moving blood: to the fingertip between attacks, barely past the spasm in an attack -->
+  <g class="flow" fill="none" stroke="var(--diagram-arterial)" stroke-width="2">
+    <path class="normal-only dash-flow" d={`M${xSpasm - ease},${axis} H${ax1 - 6}`}></path>
+    <path class="disease-only dash-flow" d={`M${xSpasm - ease},${axis} H${xSpasm + 4}`}></path>
+  </g>
+
+  <!-- Leader lines -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line
+      x1={arteryLeaderX}
+      y1={belowY - 14}
+      x2={arteryLeaderX}
+      y2={axis + lumenNormal + wall + 2}
+    ></line>
+    <line x1={tipLeaderX} y1={belowY - 14} x2={tipLeaderX} y2={bottom + 2}></line>
+    <line
+      class="normal-only"
+      x1={lumenLabelX}
+      y1={lumenLabelY + 6}
+      x2={lumenLabelX}
+      y2={axis - lumenNormal - wall - 2}
+    ></line>
+    <line
+      class="disease-only"
+      x1={lumenLabelX}
+      y1={lumenLabelY + 6}
+      x2={lumenLabelX}
+      y2={axis - lumenSpasm - wall - 2}
+    ></line>
+  </g>
+
+  <text class="diagram-small" x={x0} y={belowY}>
+    {t['diagram.label.finger-artery']}
+  </text>
+
+  <text class="diagram-small normal-only" x={lumenLabelX} y={lumenLabelY} text-anchor="middle">
+    {t['diagram.label.usual-lumen']}
+  </text>
+  <text class="diagram-small disease-only" x={lumenLabelX} y={lumenLabelY} text-anchor="middle">
+    {t['diagram.label.spasm-narrowed-lumen']}
+  </text>
+
+  <text class="diagram-small normal-only" x={tipLabelX} y={belowY} text-anchor="end">
+    {normalTipLines.map((line, index) => (
+      <tspan x={tipLabelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+  <text class="diagram-small disease-only" x={tipLabelX} y={belowY} text-anchor="end">
+    {diseaseTipLines.map((line, index) => (
+      <tspan x={tipLabelX} dy={index === 0 ? 0 : lineHeight}>
+        {line}
+      </tspan>
+    ))}
+  </text>
+
+  <!-- Colour phases of an attack -->
+  <g class="disease-only">
+    {phases.map((phase) => (
+      <>
+        <rect
+          x={phase.x - phaseW / 2}
+          y={phaseY}
+          width={phaseW}
+          height={phaseH}
+          rx={phaseH / 2}
+          fill="var(--diagram-muscle)"
+        />
+        <rect
+          class={phase.cls}
+          x={phase.x - phaseW / 2}
+          y={phaseY}
+          width={phaseW}
+          height={phaseH}
+          rx={phaseH / 2}
+          stroke="var(--color-muted)"
+          stroke-width="1.5"
+        />
+        <text class="diagram-small" x={phase.x} y={phaseY + phaseH + 18} text-anchor="middle">
+          {t[phase.key]}
+        </text>
+      </>
+    ))}
+    <g fill="none" stroke="var(--color-muted)" stroke-width="1.5">
+      {phaseGaps.map(([from, to]) => (
+        <line
+          x1={from + phaseW / 2 + 8}
+          y1={phaseY + phaseH / 2}
+          x2={to - phaseW / 2 - 8}
+          y2={phaseY + phaseH / 2}
+          marker-end={`url(#${phaseArrowId})`}
+        />
+      ))}
+    </g>
+  </g>
+</svg>
+
+<style is:global>
+  /* The white of an attack: the page background in the light theme, the light muted colour in the
+     dark one, where the background would darken the finger instead. */
+  .diagram .rp-pale {
+    fill: var(--color-bg);
+    fill-opacity: 0.85;
+  }
+
+  .diagram .rp-blue {
+    fill: var(--diagram-venous);
+  }
+
+  .diagram .rp-red {
+    fill: var(--diagram-arterial);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .diagram .rp-pale {
+      fill: var(--color-muted);
+      fill-opacity: 0.7;
+    }
+  }
+</style>

@@ -121,6 +121,13 @@ export interface HeartParams {
    */
   bidirectional: number;
   /**
+   * Ventricular fibrillation: 1 replaces every beat with irregular oscillations from 300 per minute
+   * (`vfWaves`): no P, QRS or T, no ejection, no heart sounds, and the phase `fibrillation`. The
+   * clock keeps its beat schedule only as time slots. 0 is a rhythm of beats.
+   * Spec: docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md.
+   */
+  ventricularFibrillation: number;
+  /**
    * Second-degree AV block: 1 makes the pause after every `pauseEvery`-th beat one rhythm RR long,
    * with a P wave at its start and no QRS. 0 keeps pauses silent (sinus pauses).
    * Spec: docs/plans/2026-10-13-heart-clock-second-degree-av-block.md.
@@ -211,6 +218,7 @@ export const defaultParams: Readonly<HeartParams> = Object.freeze({
   atrialRate: 0,
   ventricularPacing: 0,
   bidirectional: 0,
+  ventricularFibrillation: 0,
   blockedP: 0,
   prStep: 0,
   prematureEvery: 0,
@@ -268,6 +276,7 @@ export const paramRanges: Readonly<Record<keyof HeartParams, readonly [number, n
   atrialRate: [0, 150],
   ventricularPacing: [0, 1],
   bidirectional: [0, 1],
+  ventricularFibrillation: [0, 1],
   blockedP: [0, 1],
   prStep: [0, 100],
   prematureEvery: [0, 20],
@@ -308,6 +317,36 @@ export function resolveParams(
   }
   if (!Number.isInteger(params.seed)) {
     throw new RangeError(`seed must be an integer, got ${params.seed}`);
+  }
+  if (!Number.isInteger(params.ventricularFibrillation)) {
+    throw new RangeError(
+      `ventricularFibrillation must be 0 or 1, got ${params.ventricularFibrillation}`,
+    );
+  }
+  // Fibrillation has no beats, so nothing that shapes or times beats can come with it; atrial
+  // contraction and P waves are left out too (assumption: the sources do not describe the atria). This
+  // comes before the cross-checks of other parameters, so they cannot hide it.
+  if (
+    params.ventricularFibrillation === 1 &&
+    (params.pAmplitude > 0 ||
+      params.atrialContribution > 0 ||
+      params.fWaveAmplitude > 0 ||
+      params.flutterConduction > 0 ||
+      params.rrIrregularity > 0 ||
+      params.pauseEvery > 0 ||
+      params.blockedP > 0 ||
+      params.prStep > 0 ||
+      params.atrialRate > 0 ||
+      params.atrialPacing > 0 ||
+      params.ventricularPacing > 0 ||
+      params.prematureEvery > 0 ||
+      params.deltaWave > 0 ||
+      params.bidirectional > 0 ||
+      params.s2Split > 0)
+  ) {
+    throw new RangeError(
+      'ventricularFibrillation needs pAmplitude, atrialContribution, fWaveAmplitude, flutterConduction, rrIrregularity, pauseEvery, blockedP, prStep, atrialRate, atrialPacing, ventricularPacing, prematureEvery, deltaWave, bidirectional and s2Split at 0',
+    );
   }
   if (!Number.isInteger(params.pauseEvery) || params.pauseEvery === 1) {
     throw new RangeError(

@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What causes the symptoms of a double aortic arch?
+    options:
+      - text: Too little blood reaching the lower half of the body
+      - text: Compression of the trachea and oesophagus
+        correct: true
+      - text: Narrowing of the valve through which blood leaves the heart
+    explanation: The symptoms are caused by compression of the trachea and oesophagus, and how strong it is determines when symptoms appear and the outlook.
+    cite: [1]
+  - level: patient
+    prompt: Which test after birth shows the type of double arch and the size of both arches?
+    options:
+      - text: A urine test
+      - text: Measuring temperature
+      - text: A heart ultrasound
+        correct: true
+    explanation: After birth, a heart ultrasound (echocardiography) is done; it shows the type of double arch, the sites of narrowing and the size of both arches.
+    cite: [1]
+  - level: patient
+    prompt: How can a vascular ring be removed?
+    options:
+      - text: By an operation
+        correct: true
+      - text: With a special diet
+      - text: With a course of breathing exercises
+    explanation: The ring can only be removed by an operation. It may be open or thoracoscopic; the doctors decide which approach to use.
+    cite: [1]
+  - level: patient
+    prompt: Which sign in a child with a double aortic arch means you should call an ambulance?
+    options:
+      - text: The child yawned before a nap
+      - text: The child has pauses in breathing
+        correct: true
+      - text: The baby briefly had hiccups after a feed
+    explanation: Call your local emergency number if a child has pauses in breathing, turns very blue, loses consciousness, or has very noisy, laboured breathing with the skin under the ribs drawing in.
+    cite: [1]
+  - level: student
+    prompt: Into which groups does the international nomenclature divide aortic vascular rings?
+    options:
+      - text: Arterial and venous
+      - text: Congenital and later-acquired forms
+      - text: Complete and incomplete ("loops")
+        correct: true
+    explanation: According to the international nomenclature cited by the Russian Ministry of Health guideline, aortic vascular rings are divided into complete and incomplete ("loops").
+    cite: [1]
+  - level: student
+    prompt: What is the ECG like in double aortic arch without associated defects?
+    options:
+      - text: Within normal limits
+        correct: true
+      - text: Showing left ventricular overload
+      - text: Showing marked sinus tachycardia
+    explanation: The ECG in double aortic arch is within normal limits unless there are associated defects.
+    cite: [1]

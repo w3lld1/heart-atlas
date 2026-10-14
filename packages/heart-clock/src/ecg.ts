@@ -1,5 +1,5 @@
 import type { HeartParams } from './params.ts';
-import { unitGains, type LeadGains } from './leads.ts';
+import { limbLeadAngles, unitGains, type LeadGains, type LimbLead } from './leads.ts';
 import { pDurationAt, type BeatTiming } from './timing.ts';
 
 /** Gaussian wave with separate widths before and after its centre (the T wave is asymmetric). */
@@ -149,4 +149,116 @@ export function flutterWaves(t: number, timing: BeatTiming, params: HeartParams)
   return x < flutterFall
     ? amplitude * (0.5 - x / flutterFall)
     : amplitude * (-0.5 + (x - flutterFall) / (1 - flutterFall));
+}
+
+/** Sines per axis of the fibrillation wave. */
+const vfSines = 6;
+/** Lowest and highest frequency of the fibrillation wave, Hz: 300–390 per minute. */
+const vfBand = [5.0, 6.5] as const;
+/** How far each sine's frequency wanders from its centre, Hz. */
+const vfDrift = 0.3;
+/** Longest vector of the two axes, mV. */
+const vfMaxSize = 0.8;
+
+/** Uniform number in [0, 1) from a seed and a component index; the same inputs give the same number. */
+function vfRandom(seed: number, k: number): number {
+  let x = (seed ^ Math.imul(k + 1, 0x9e3779b9)) >>> 0;
+  x = Math.imul(x ^ (x >>> 15), 0x2c1b3c6d);
+  x = Math.imul(x ^ (x >>> 12), 0x297a2d39);
+  return ((x ^ (x >>> 15)) >>> 0) / 2 ** 32;
+}
+
+interface VfSine {
+  centre: number;
+  driftRate: number;
+  sizeRate: number;
+  driftPhase: number;
+  sizePhase: number;
+  phase: number;
+}
+
+/**
+ * The sines of both axes for a seed: `vfSines` per axis with centres spread over the band, each
+ * wandering in frequency by ±`vfDrift` Hz and in size by ±50% at its own slow rate, so shape, size
+ * and timing keep changing (Minzdrav 2025, 569_2, 1.1; MSD Manuals, Ventricular Fibrillation,
+ * 2024). assumption: the band, the number of sines and the slow rates; the sources give only
+ * "from 300 per minute".
+ */
+function vfSinesFor(seed: number): readonly [VfSine[], VfSine[]] {
+  const lowest = vfBand[0] + vfDrift;
+  const span = vfBand[1] - vfDrift - lowest;
+  const axis = (a: number) =>
+    Array.from({ length: vfSines }, (_, i) => {
+      const r = (n: number) => vfRandom(seed, 6 * (a * vfSines + i) + n);
+      return {
+        centre: lowest + (span * (i + r(0))) / vfSines,
+        driftRate: 0.05 + 0.25 * r(1),
+        sizeRate: 0.05 + 0.25 * r(2),
+        driftPhase: r(3),
+        sizePhase: r(4),
+        phase: r(5),
+      };
+    });
+  return [axis(0), axis(1)];
+}
+
+/**
+ * Sines of the last seed asked for, and the vector at the last time asked for: a strip draws one
+ * seed thousands of times per frame, and the clock asks for the same moment in several leads.
+ */
+let vfCache:
+  | { seed: number; sines: readonly [VfSine[], VfSine[]]; t: number; x: number; y: number }
+  | undefined;
+
+/** Cosine and sine of each limb lead's angle. */
+function leadAxis(lead: LimbLead): readonly [number, number] {
+  const angle = (limbLeadAngles[lead] * Math.PI) / 180;
+  return [Math.cos(angle), Math.sin(angle)];
+}
+const vfLeadAxes: Readonly<Record<LimbLead, readonly [number, number]>> = {
+  I: leadAxis('I'),
+  II: leadAxis('II'),
+  III: leadAxis('III'),
+};
+
+/**
+ * One axis at `s` seconds: about 0.3 mV RMS, at most 0.3 · 9 / √3 ≈ 1.6 mV, which `vfWaves`
+ * limits further.
+ */
+function vfAxis(s: number, sines: readonly VfSine[]): number {
+  let sum = 0;
+  for (const { centre, driftRate, sizeRate, driftPhase, sizePhase, phase } of sines) {
+    const drifting =
+      (vfDrift / (2 * Math.PI * driftRate)) * Math.sin(2 * Math.PI * (driftRate * s + driftPhase));
+    const size = 1 + 0.5 * Math.sin(2 * Math.PI * (sizeRate * s + sizePhase));
+    sum += size * Math.sin(2 * Math.PI * (centre * s - drifting + phase));
+  }
+  return (0.3 * sum) / Math.sqrt(sines.length / 2);
+}
+
+/**
+ * Ventricular fibrillation at absolute clock time `t`, mV, in limb lead `lead`: the projection of a
+ * frontal-plane vector of two independent axes, so the leads differ and I + III = II at every
+ * moment. assumption: VF has no single axis. The vector is softly limited to `vfMaxSize`
+ * (assumption: the sources give no amplitude), so every lead fits the strip. 0 without
+ * `ventricularFibrillation`. Spec: docs/plans/2026-10-14-heart-clock-ventricular-fibrillation.md.
+ */
+export function vfWaves(t: number, params: HeartParams, lead: LimbLead = 'II'): number {
+  if (params.ventricularFibrillation === 0) return 0;
+  if (vfCache?.seed !== params.seed) {
+    vfCache = { seed: params.seed, sines: vfSinesFor(params.seed), t: NaN, x: 0, y: 0 };
+  }
+  if (vfCache.t !== t) {
+    const s = t / 1000;
+    const x = vfAxis(s, vfCache.sines[0]);
+    const y = vfAxis(s, vfCache.sines[1]);
+    const size = Math.hypot(x, y);
+    // tanh barely changes small vectors and bends large ones below vfMaxSize without a corner.
+    const scale = size === 0 ? 1 : (vfMaxSize * Math.tanh(size / vfMaxSize)) / size;
+    vfCache.t = t;
+    vfCache.x = scale * x;
+    vfCache.y = scale * y;
+  }
+  const [cos, sin] = vfLeadAxes[lead];
+  return vfCache.x * cos + vfCache.y * sin;
 }

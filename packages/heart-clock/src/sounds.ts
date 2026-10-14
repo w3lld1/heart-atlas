@@ -16,6 +16,8 @@ export interface SoundEvent {
  * pulmonary component P2 follows S2 by that many ms.
  */
 export function soundEvents(beat: Beat): SoundEvent[] {
+  // Ventricular fibrillation: no valve closes after an ejection, so there are no heart sounds.
+  if (beat.fibrillation) return [];
   const s2 = beat.start + beat.timing.aorticClosure;
   const events: SoundEvent[] = [
     { sound: 'S1', time: beat.start + beat.timing.rPeak, beatIndex: beat.index },

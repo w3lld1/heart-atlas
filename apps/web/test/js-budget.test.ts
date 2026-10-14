@@ -55,6 +55,8 @@ describe('onDemandEntry', () => {
     expect(onDemandEntry.test('Scene.C1uH2Hdb.js')).toBe(true);
     expect(onDemandEntry.test('heart-sounds.Bq1x2Yz3.js')).toBe(true);
     expect(onDemandEntry.test('player.C9dE8fGh.js')).toBe(true);
+    expect(onDemandEntry.test('wiggers-canvas.B2cD4eFg.js')).toBe(true);
+    expect(onDemandEntry.test('ecg-canvas.B2cD4eFg.js')).toBe(false);
     expect(onDemandEntry.test('player-clock.Dk3L9mNp.js')).toBe(false);
     expect(onDemandEntry.test('HeartSounds.xA7Uo7RQ.js')).toBe(false);
     expect(onDemandEntry.test('hero-state.CMDD34wJ.js')).toBe(false);

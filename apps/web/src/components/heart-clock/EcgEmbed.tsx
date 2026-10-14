@@ -1,4 +1,11 @@
-import { isPresetId, paramRanges, presetIds, type PresetId } from '@heart-atlas/heart-clock';
+import {
+  hasPulse,
+  isPresetId,
+  paramRanges,
+  presetIds,
+  presetParams,
+  type PresetId,
+} from '@heart-atlas/heart-clock';
 import { useEffect, useMemo, useState } from 'react';
 import { integerIn, parseEmbedParams } from '../../lib/embed.ts';
 import HeartClockDemo, { type HeartClockMessages } from './HeartClockDemo.tsx';
@@ -29,7 +36,9 @@ export default function EcgEmbed({ locale, messages }: Props) {
   useEffect(() => {
     setSettings(parseEmbedParams(window.location.search, ecgEmbedParams));
   }, []);
-  const { rate, preset } = settings;
+  const { preset } = settings;
+  // A preset without a pulse (ventricular fibrillation) has no heart rate to set.
+  const rate = preset !== undefined && !hasPulse(presetParams(preset)) ? undefined : settings.rate;
   // A stable object: the monitor rebuilds its clock whenever `params` changes.
   const params = useMemo(() => (rate === undefined ? undefined : { heartRate: rate }), [rate]);
   return (

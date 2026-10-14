@@ -1,0 +1,213 @@
+---
+import { getMessages } from '../../i18n/messages.ts';
+
+interface Props {
+  locale: string;
+  /** Unique per diagram on the page; prefixes ids inside the SVG. */
+  uid: string;
+}
+
+const { locale, uid } = Astro.props;
+const t = getMessages(locale);
+const arrow = `${uid}-paa-arrow`;
+const sacClip = `${uid}-paa-sac`;
+// Long labels do not fit their free space on one line: split them in two at a word boundary.
+function twoLines(label: string): [string, string] {
+  const words = label.split(' ');
+  const split = Math.ceil(words.length / 2);
+  return [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+}
+const poplitealLines = twoLines(t['diagram.label.popliteal-artery']);
+const widenedLines = twoLines(t['diagram.label.widened-pulsating-artery']);
+// One leg seen from the side, foot pointing right: the front of the leg is on the right, the back
+// on the left. The thigh runs from the top to the knee (y ≈ 210), the lower leg from the knee to
+// the ankle (y ≈ 380), the foot along the bottom.
+const leg =
+  'M110,10 L230,10 C228,90 224,160 226,205 C230,225 222,240 214,255 C208,290 204,330 200,380 C206,392 246,395 286,402 C300,405 300,428 286,430 L160,430 C138,430 132,404 140,382 C118,340 108,290 116,252 C120,236 120,222 114,206 C108,150 108,80 110,10 Z';
+// The femoral artery runs down the thigh towards the back of the leg and continues as the popliteal
+// artery at the level of the knee; below the knee it divides into the arteries of the lower leg.
+// Vessels are wide strokes: the wall, then the lumen on top of it.
+const trunk = 'M190,0 C190,80 150,130 150,180 L150,252';
+const branches = [
+  'M150,250 C146,260 146,270 146,286 V372 Q146,418 186,418 H262',
+  'M150,250 C162,260 174,270 174,286 V372 Q174,404 206,404 H256',
+];
+// Aneurysm: the popliteal segment at the knee is widened. Outer edge of the wall, then the lumen
+// 3 units inside it. No shape type is drawn on purpose: the sources do not describe one.
+const sacWall =
+  'M140,178 C140,192 124,200 124,212 C124,224 140,232 140,246 L160,246 C160,232 176,224 176,212 C176,200 160,192 160,178 Z';
+const sacLumen =
+  'M143,178 C143,193 127,201 127,212 C127,223 143,231 143,246 L157,246 C157,231 173,223 173,212 C173,201 157,193 157,178 Z';
+// A clot in the aneurysm, drawn in the widened part so that a channel for the blood stays open;
+// the sources do not say where in the sac it forms. Its outer edge reaches past the wall and is
+// clipped to the lumen, so its edge follows the lumen.
+const clotLeft =
+  'M144,190 C126,198 120,204 120,212 C120,220 126,226 144,234 C142,226 142,220 142,212 C142,204 142,198 144,190 Z';
+const clotRight =
+  'M156,190 C174,198 180,204 180,212 C180,220 174,226 156,234 C158,226 158,220 158,212 C158,204 158,198 156,190 Z';
+// Routes of the moving blood: down the trunk and on along each branch to the foot. The aneurysm
+// does not stop the flow, so the routes are the same in both states.
+const routes = [
+  'M190,4 C190,80 150,130 150,180 L150,250 C146,260 146,270 146,286 V372 Q146,418 186,418 H258',
+  'M190,4 C190,80 150,130 150,180 L150,250 C162,260 174,270 174,286 V372 Q174,404 206,404 H252',
+];
+// Negative delays so the flow is already running when the page opens.
+const run = [0, -1.5];
+---
+
+<svg
+  viewBox="0 0 440 470"
+  role="img"
+  aria-label={t['diagram.popliteal-artery-aneurysm.title']}
+  lang={locale}
+>
+  <defs>
+    <marker
+      id={arrow}
+      viewBox="0 0 10 10"
+      refX="8"
+      refY="5"
+      markerWidth="4"
+      markerHeight="4"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--diagram-arterial)"></path>
+    </marker>
+    <clipPath id={sacClip}>
+      <path d={sacLumen}></path>
+    </clipPath>
+  </defs>
+
+  <!-- The leg. The outline keeps it visible on the page background in both themes. -->
+  <path d={leg} fill="var(--diagram-muscle)" stroke="var(--color-muted)" stroke-width="1.5"></path>
+
+  <!-- Artery walls, then the lumens on top of them -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linejoin="round">
+    <path d={trunk} stroke-width="20"></path>
+    {branches.map((d) => (
+      <path d={d} stroke-width="12" />
+    ))}
+  </g>
+  <path class="disease-only" d={sacWall} fill="var(--diagram-arterial)"></path>
+  <g fill="none" stroke="var(--diagram-arterial-fill)" stroke-linejoin="round">
+    <path d={trunk} stroke-width="14"></path>
+    {branches.map((d) => (
+      <path d={d} stroke-width="6" />
+    ))}
+  </g>
+
+  <!-- Aneurysm: the widened lumen and the clot in it -->
+  <g class="disease-only">
+    <path d={sacLumen} fill="var(--diagram-arterial-fill)"></path>
+    <!-- The clot has its own colour, and a thin background-coloured edge keeps it apart from the
+         wall, so it does not read as a thicker wall -->
+    <g
+      clip-path={`url(#${sacClip})`}
+      fill="var(--color-muted)"
+      stroke="var(--color-bg)"
+      stroke-width="1.5"
+    >
+      <path d={clotLeft}></path>
+      <path d={clotRight}></path>
+    </g>
+  </g>
+
+  <!-- Flow arrows, visible with and without motion -->
+  <g fill="none" stroke="var(--diagram-arterial)" stroke-linecap="round" stroke-width="3">
+    <path d="M189,14 C189,70 162,112 154,150" marker-end={`url(#${arrow})`}></path>
+    <path d="M146,292 V350" marker-end={`url(#${arrow})`}></path>
+    <path d="M174,292 V350" marker-end={`url(#${arrow})`}></path>
+  </g>
+
+  <!-- Moving blood down to the foot -->
+  <g class="flow" fill="var(--diagram-arterial)">
+    {routes.map((route) =>
+      run.map((delay) => (
+        <circle
+          class="paa-run"
+          r="3"
+          style={`offset-path: path('${route}'); animation-duration: 3s; animation-delay: ${delay}s`}
+        />
+      )),
+    )}
+  </g>
+
+  <!-- Labels with leader lines into the drawing -->
+  <g stroke="var(--color-text)" stroke-width="1.5">
+    <line x1="186" y1="84" x2="246" y2="84"></line>
+    <line x1="230" y1="210" x2="246" y2="210"></line>
+    <line x1="182" y1="310" x2="246" y2="310"></line>
+    <line x1="108" y1="180" x2="139" y2="180"></line>
+  </g>
+  <text class="diagram-small" x="250" y="88">
+    {t['diagram.label.femoral-artery']}
+  </text>
+  <text class="diagram-small" x="250" y="214">
+    {t['diagram.label.knee']}
+  </text>
+  <text class="diagram-small" x="250" y="314">
+    {t['diagram.label.lower-leg-arteries']}
+  </text>
+  <text class="diagram-small" x="104" y="176" text-anchor="end">
+    <tspan x="104">{poplitealLines[0]}</tspan>
+    <tspan x="104" dy="15">
+      {poplitealLines[1]}
+    </tspan>
+  </text>
+
+  <!-- Disease labels -->
+  <g class="disease-only">
+    <g stroke="var(--color-text)" stroke-width="1.5">
+      <line x1="174" y1="204" x2="246" y2="150"></line>
+      <line x1="168" y1="222" x2="246" y2="248"></line>
+    </g>
+    <circle cx="174" cy="204" r="2.5" fill="var(--color-text)"></circle>
+    <circle cx="168" cy="222" r="2.5" fill="var(--color-text)"></circle>
+    <text x="250" y="140">
+      {t['diagram.label.aneurysm']}
+    </text>
+    <text class="diagram-small" x="250" y="158">
+      <tspan x="250">{widenedLines[0]}</tspan>
+      <tspan x="250" dy="15">
+        {widenedLines[1]}
+      </tspan>
+    </text>
+    <text class="diagram-small" x="250" y="254">
+      {t['diagram.label.clot']}
+    </text>
+  </g>
+</svg>
+
+<style is:global>
+  .diagram .paa-run {
+    offset-rotate: 0deg;
+    animation-name: paa-run;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Without offset-path the particles would sit at the corner of the picture. */
+  @supports not (offset-path: path('M0,0')) {
+    .diagram .paa-run {
+      display: none;
+    }
+  }
+
+  /* Blood runs down the artery to the foot. */
+  @keyframes paa-run {
+    0% {
+      offset-distance: 0%;
+      opacity: 0;
+    }
+
+    8%,
+    85% {
+      opacity: 1;
+    }
+
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+</style>

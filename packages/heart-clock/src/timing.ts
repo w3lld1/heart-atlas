@@ -19,9 +19,16 @@ export interface BeatTiming {
 }
 
 export type Phase =
-  'atrial-systole' | 'isovolumic-contraction' | 'ejection' | 'isovolumic-relaxation' | 'filling';
+  | 'atrial-systole'
+  | 'isovolumic-contraction'
+  | 'ejection'
+  | 'isovolumic-relaxation'
+  | 'filling'
+  /** Ventricular fibrillation: no cycle (`ventricularFibrillation`); not in `phases`. */
+  | 'fibrillation';
 
-export const phases: readonly Phase[] = [
+/** Phases of a beat, in order; `phaseStarts` gives their starts. */
+export const phases: readonly Exclude<Phase, 'fibrillation'>[] = [
   'atrial-systole',
   'isovolumic-contraction',
   'ejection',
@@ -106,6 +113,7 @@ export function phaseStarts(timing: BeatTiming): readonly number[] {
  * not contract with the beat, so its start is still filling.
  */
 export function phaseAt(t: number, timing: BeatTiming, params: HeartParams): Phase {
+  if (params.ventricularFibrillation === 1) return 'fibrillation';
   const starts = phaseStarts(timing);
   let index = 0;
   while (index + 1 < starts.length && t >= (starts[index + 1] ?? Infinity)) index += 1;

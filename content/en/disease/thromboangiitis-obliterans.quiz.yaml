@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: In which vessels do blood clots form in Buerger disease?
+    options:
+      - text: In the arteries of the retina and the optic nerve
+      - text: In small and medium arteries of arms and legs
+        correct: true
+      - text: In the veins of the liver and intestines
+    explanation: In Buerger disease, blood clots form in the small and medium-sized arteries of the arms and legs, and sometimes in the superficial veins.
+    cite: [5, 6]
+  - level: patient
+    prompt: What does the Russian guideline name as the main risk factor for Buerger disease?
+    options:
+      - text: Working at a computer
+      - text: Eating dairy products
+      - text: Smoking
+        correct: true
+    explanation: The Russian Ministry of Health guideline names smoking as the main risk factor for Buerger disease.
+    cite: [2]
+  - level: patient
+    prompt: Why are blood tests and a heart ultrasound done when Buerger disease is suspected?
+    options:
+      - text: To rule out other causes of poor blood flow
+        correct: true
+      - text: To find the blood group for a future transfusion
+      - text: To find out whether there is an allergy to plant pollen
+    explanation: Blood tests and imaging, including echocardiography, are done to rule out other causes of poor blood flow, such as vasculitis or blood clots that have come from the heart.
+    cite: [6]
+  - level: patient
+    prompt: In Buerger disease, what is it important to protect the hands and feet from?
+    options:
+      - text: From sunlight and fresh air
+      - text: From cold, burns or injury
+        correct: true
+      - text: From ordinary water and soap
+    explanation: It is important to avoid cold, burns, and chemical and mechanical injuries, especially from poorly fitting shoes.
+    cite: [5]
+  - level: student
+    prompt: According to MSD, what remains intact in the acute phase of Buerger disease?
+    options:
+      - text: A lumen of the artery free of thrombi
+      - text: Endothelium with no sign of proliferation
+      - text: The internal elastic lamina
+        correct: true
+    explanation: In the acute phase, occlusive thrombi fill the lumen, the intima is infiltrated by neutrophils and lymphocytes, and endothelial cells proliferate, but the internal elastic lamina remains intact.
+    cite: [5]
+  - level: student
+    prompt: According to MSD, what does angiography show in Buerger disease?
+    options:
+      - text: Corkscrew collaterals around the occlusions
+        correct: true
+      - text: Atherosclerotic plaques in many arteries
+      - text: Narrowing of the aorta and its large branches
+    explanation: According to MSD, angiography shows segmental occlusions of the distal arteries of the hands and feet, tortuous corkscrew collaterals around the occlusions and no atherosclerosis.
+    cite: [5]

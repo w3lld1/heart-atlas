@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: Why does the artery widen in this condition?
+    options:
+      - text: Because the body lacks water
+      - text: Because its wall weakens
+        correct: true
+      - text: Because of long periods of squatting
+    explanation: The wall of the artery weakens, and the artery widens.
+    cite: [5]
+  - level: patient
+    prompt: What can form inside the widened segment of the artery?
+    options:
+      - text: A blood clot
+        correct: true
+      - text: A stone, like in a kidney
+      - text: A bony growth from the knee joint
+    explanation: 'A blood clot can form in the aneurysm: it either blocks the aneurysm itself or breaks off and blocks the arteries further down.'
+    cite: [1, 3, 5]
+  - level: patient
+    prompt: Which test can confirm the diagnosis?
+    options:
+      - text: A general urine test
+      - text: Measuring height and body weight
+      - text: Ultrasound of the blood vessels
+        correct: true
+    explanation: 'The diagnosis is confirmed by imaging: an ultrasound scan of the blood vessels (duplex ultrasound), CT angiography or MR angiography.'
+    cite: [1, 5]
+  - level: patient
+    prompt: Which sign means you should call an ambulance straight away?
+    options:
+      - text: Hiccups after eating too quickly
+      - text: A leg suddenly becomes painful
+        correct: true
+      - text: A blocked nose during a cold
+    explanation: The article says to call your local emergency number straight away if a leg suddenly becomes painful.
+    cite: [4, 5]
+  - level: student
+    prompt: According to the Russian guideline, what determines the success of bypass in PAA?
+    options:
+      - text: The patient's blood cholesterol level
+      - text: Thickness of the fat over the thigh
+      - text: Patency of the tibial arteries
+        correct: true
+    explanation: Patency of the tibial arteries is key to the choice of treatment because it determines the success of bypass.
+    cite: [1]
+  - level: student
+    prompt: According to the Russian guideline, why can PAA thrombosis lead to severe ischaemia?
+    options:
+      - text: Because of rapid occlusion of the distal vessels
+        correct: true
+      - text: Because of spasm of the superficial veins of the lower leg
+      - text: Because of inflammation of the nearby knee joint
+    explanation: PAA thrombosis can lead to severe ischaemia because of rapid occlusion of the distal vessels.
+    cite: [1]
