@@ -41,13 +41,10 @@ describe('bundle branch block presets', () => {
     expect(hemiblock).toBeGreaterThan(presetParams('normal').qrsDuration);
   });
 
-  it('right bundle branch block: S in lead I lasts more than 40 ms and is deeper than R is tall', () => {
-    const { trace, qOnset, jPoint, b } = beat('right-bundle-branch-block');
-    const one = trace('I');
-    const late = one.slice(Math.round(b.timing.rPeak), Math.round(jPoint) + 20);
+  it('right bundle branch block: S in lead I lasts more than 40 ms', () => {
+    const { trace, jPoint, b } = beat('right-bundle-branch-block');
+    const late = trace('I').slice(Math.round(b.timing.rPeak), Math.round(jPoint) + 20);
     expect(late.filter((v) => v < -0.05).length).toBeGreaterThan(40);
-    const qrs = one.slice(Math.round(qOnset), Math.round(jPoint));
-    expect(-Math.min(...qrs)).toBeGreaterThan(Math.max(...qrs));
   });
 
   it('left bundle branch block: notched R without Q in lead I, ST and T the other way', () => {
@@ -61,6 +58,9 @@ describe('bundle branch block presets', () => {
       (v, k) => k > 0 && v > 0.3 && v > (qrs[k - 1] ?? 0) && v >= (qrs[k + 1] ?? 0),
     );
     expect(tops).toHaveLength(2);
+    // In the middle R drops by rNotch from its unnotched height (twice rAmplitude in lead I).
+    const middle = qrs[Math.round(b.timing.rPeak - qOnset)] ?? NaN;
+    expect(middle).toBeCloseTo(2 * 0.6 * (1 - 0.3), 1);
     // ST just after J and the T wave below the baseline in lead I.
     expect(one[Math.round(jPoint) + 20]).toBeLessThan(-0.05);
     expect(Math.min(...one.slice(Math.round(jPoint), Math.round(b.timing.tEnd)))).toBeLessThan(
@@ -73,8 +73,9 @@ describe('bundle branch block presets', () => {
     const one = qrsArea(trace('I'), qOnset, jPoint);
     const two = qrsArea(trace('II'), qOnset, jPoint);
     const three = qrsArea(trace('III'), qOnset, jPoint);
-    // aVF = (II + III) / 2 points straight down; I points left.
-    const axis = (Math.atan2((two + three) / 2, one) * 180) / Math.PI;
+    // aVF-like (II + III) / √3 = sin θ points straight down; I = cos θ points left.
+    const axis = (Math.atan2((two + three) / Math.sqrt(3), one) * 180) / Math.PI;
+    expect(axis).toBeCloseTo(-60, 0);
     expect(axis).toBeLessThan(-45);
     expect(axis).toBeGreaterThan(-90);
     expect(one).toBeGreaterThan(0);

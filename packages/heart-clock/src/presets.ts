@@ -314,10 +314,11 @@ export const presets: Readonly<Record<PresetId, Readonly<Partial<HeartParams>>>>
     // Fascicular Block, 2024). The model draws the limb leads, so it shows the broad S in I; V1 is
     // not drawn. Spec: docs/plans/2026-10-14-heart-clock-bundle-branch-block.md.
     // assumption: QRS 140 ms; the start of the QRS as in the normal preset; a broad late S of
-    // −0.3 mV in II on the 0° axis, so it points right: −0.6 mV in I and a late r of +0.3 mV in III.
-    // No source gives the S axis or amplitudes in the limb leads.
+    // −0.2 mV in II on the 0° axis, so it points right: −0.4 mV in I, lasting more than 40 ms, and
+    // a slurred tail of R in III. The net QRS axis stays about +85°, inside the normal range. No
+    // source gives the S axis or amplitudes in the limb leads.
     qrsDuration: 140,
-    sAmplitude: -0.3,
+    sAmplitude: -0.2,
     sAxis: 0,
     sWidth: 0.1,
   }),

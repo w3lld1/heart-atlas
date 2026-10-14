@@ -334,14 +334,14 @@ exports[`existing presets > keep their curves and heart rate limits 1`] = `
   },
   "right-bundle-branch-block": {
     "curves": [
-      "40:7372b54e",
-      "40:7372b54e",
-      "47:24028713",
-      "60:36db51b2",
-      "75:6e2c90ae",
-      "100:8f9a3904",
-      "137:25b5b2fa",
-      "157:80ccf9ee",
+      "40:a423a26d",
+      "40:a423a26d",
+      "47:465a2c30",
+      "60:c30c1205",
+      "75:b8b527e",
+      "100:6b18184b",
+      "137:6c9855be",
+      "157:b9223460",
     ],
     "limits": [
       40,
