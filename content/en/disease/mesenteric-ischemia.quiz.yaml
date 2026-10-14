@@ -1,0 +1,55 @@
+questions:
+  - level: patient
+    prompt: What is mesenteric ischaemia?
+    options:
+      - text: Widening of the abdominal aorta that may burst over time
+      - text: Narrowing of the kidney arteries that raises blood pressure
+      - text: A lack of blood in the intestine from poor blood flow
+        correct: true
+    explanation: Mesenteric ischaemia is a lack of blood supply to the intestine when blood flow through its vessels falls or stops.
+    cite: [3, 7]
+  - level: patient
+    prompt: Where can a clot that blocks an intestinal artery come from?
+    options:
+      - text: From the heart, for example in atrial fibrillation
+        correct: true
+      - text: From the deep veins of the legs, for example after surgery
+      - text: From the lungs, for example in a severe lung infection
+    explanation: The clot can form in the artery itself or travel with the blood from the heart, for example in atrial fibrillation.
+    cite: [3, 5]
+  - level: patient
+    prompt: When does pain come on in chronic intestinal ischaemia?
+    options:
+      - text: On long walks, when the leg muscles need more blood
+      - text: After eating, when the intestine needs more blood
+        correct: true
+      - text: At night during sleep, when the heart beats more slowly
+    explanation: Chronic ischaemia shows itself as severe, steady pain that comes on after eating, because during digestion the intestine needs more blood.
+    cite: [4, 6]
+  - level: patient
+    prompt: What matters most in treating acute intestinal ischaemia?
+    options:
+      - text: Waiting to see whether the pain goes away, and only then treating
+      - text: Choosing a strict diet so that the bowel has less work to do
+      - text: Restoring blood flow in the artery as fast as possible
+        correct: true
+    explanation: Acute blockage of an intestinal artery is a surgical emergency. The key is to restore blood flow as fast as possible. Waiting to see whether the pain goes away is wrong, because without blood flow the bowel dies quickly.
+    cite: [3, 4, 5, 6]
+  - level: student
+    prompt: Why does chronic mesenteric insufficiency rarely cause symptoms unless both SMA and coeliac trunk are narrowed?
+    options:
+      - text: The bowel lining gets little blood and tolerates a shortage well
+      - text: Collateral circulation between them is extensive
+        correct: true
+      - text: The inferior mesenteric artery, not the SMA, supplies the small bowel
+    explanation: Chronic mesenteric vascular insufficiency rarely causes symptoms unless both the SMA and the coeliac trunk are substantially narrowed or occluded, because collateral circulation between them is extensive.
+    cite: [4]
+  - level: student
+    prompt: Which part of the colon is the watershed between the SMA and IMA?
+    options:
+      - text: Splenic flexure
+        correct: true
+      - text: Sigmoid colon
+      - text: Ascending part of the colon
+    explanation: The splenic flexure is a watershed between the SMA and IMA and is at particular risk of ischaemia. The SMA supplies the colon to the splenic flexure, and the IMA the descending colon, sigmoid colon and rectum.
+    cite: [3]
