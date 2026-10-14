@@ -545,6 +545,33 @@ test('the CPVT article shows bidirectional ventricular tachycardia', async ({ pa
   expect((await axe(page).analyze()).violations).toEqual([]);
 });
 
+test('the ventricular fibrillation article shows the ventricular fibrillation preset', async ({
+  page,
+}) => {
+  test.skip(fixtures, 'needs the production content build');
+  await page.goto('en/disease/ventricular-fibrillation/');
+  // Normal (to compare the cycle) and ventricular fibrillation (`preset`), which has no pulse.
+  const conditions = page.getByRole('group', { name: en['heartClock.condition'] });
+  await expect(conditions.getByRole('radio')).toHaveCount(2);
+  await expect(
+    conditions.getByRole('radio', {
+      name: en['heartClock.preset.ventricular-fibrillation'],
+    }),
+  ).toBeChecked();
+  await expect(conditions).toHaveAccessibleDescription(
+    en['heartClock.preset.ventricular-fibrillation.summary'],
+  );
+
+  await conditions.scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: en['heartClock.pause'] })).toBeVisible();
+  await expect(page.getByRole('slider', { name: en['heartClock.heartRate'] })).toHaveCount(0);
+  await expect(page.getByRole('status', { name: en['heartClock.heartRate'] })).toHaveText(
+    en['heartClock.noPulse'],
+  );
+  await expect(page.getByText(en['heartClock.wiggers.noCycles'], { exact: true })).toBeVisible();
+  expect((await axe(page).analyze()).violations).toEqual([]);
+});
+
 test('the short QT syndrome article shows the short QT preset', async ({ page }) => {
   test.skip(fixtures, 'needs the production content build');
   await page.goto('en/disease/short-qt-syndrome/');
