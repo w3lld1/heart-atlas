@@ -134,6 +134,7 @@ export default function HeartClockDemo({
       pressure: t['heartClock.wiggers.pressure'],
       volume: t['heartClock.wiggers.volume'],
       ecg: t['heartClock.wiggers.ecg'],
+      ejectionFraction: t['heartClock.wiggers.ejectionFraction'],
     }),
     [t],
   );
