@@ -16,6 +16,7 @@ import Patient from '../src/components/Patient.astro';
 import SourceList from '../src/components/SourceList.astro';
 import Structure from '../src/components/Structure.astro';
 import Student from '../src/components/Student.astro';
+import Urgent from '../src/components/Urgent.astro';
 import ArticleClock from '../src/components/heart-clock/ArticleClock.astro';
 import CongenitalModel from '../src/components/viewer/CongenitalModel.astro';
 import HeartModel from '../src/components/viewer/HeartModel.astro';
@@ -40,6 +41,16 @@ describe('Patient and Student', () => {
     });
     expect(student).toContain('data-level="student"');
     expect(student).toContain('For students');
+  });
+});
+
+describe('Urgent', () => {
+  it('frames the emergency signs in a plain section, not a landmark', async () => {
+    const html = await container.renderToString(Urgent, { slots: { default: '<p>Call 112</p>' } });
+    expect(html).toContain('class="urgent');
+    expect(html).toContain('<section');
+    expect(html).not.toContain('<aside');
+    expect(html).toContain('Call 112');
   });
 });
 

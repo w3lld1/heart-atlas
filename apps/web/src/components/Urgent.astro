@@ -1,0 +1,25 @@
+---
+// A framed block for the signs that need emergency help, so a reader finds them before the rest of
+// the article. The article writes the heading, the signs with their <Cite> and the number to call.
+// A plain section, not <aside>: an aside inside <main> is a landmark that must be top level.
+---
+
+<section class="urgent">
+  <slot />
+</section>
+
+<style>
+  .urgent {
+    margin-block: 1.5rem;
+    padding-block: 0.25rem;
+    padding-inline: 1rem;
+    border: 2px solid var(--color-accent);
+    border-radius: 0.5rem;
+    background: var(--color-notice-bg);
+  }
+
+  .urgent :global(h2) {
+    margin-block-start: 0.75rem;
+    color: var(--color-accent);
+  }
+</style>
