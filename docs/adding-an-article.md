@@ -130,7 +130,7 @@ A section that only one level needs (for example "Questions for your doctor" for
 
 ### `<Urgent>`
 
-A framed block for the signs that need emergency help. Put it near the top of the article, outside `<Patient>` and `<Student>`, so both levels see it. The article writes the heading, the signs with `<Cite>` and the number to call:
+A framed block for the signs that need emergency help. Put it near the top of the article, outside `<Patient>` and `<Student>`, so both levels see it. The article writes the heading, the signs with `<Cite>` and the number to call; each translation names the emergency numbers of its readers:
 
 ```mdx
 <Urgent>
