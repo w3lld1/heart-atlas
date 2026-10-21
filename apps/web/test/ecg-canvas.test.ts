@@ -103,6 +103,7 @@ describe('Wiggers ECG row', () => {
       pressure: 'p',
       volume: 'v',
       ecg: 'e',
+      ejectionFraction: 'EF {value}%',
     });
     return vertical.map((segment) => segment.x);
   }

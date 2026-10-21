@@ -27,6 +27,7 @@ export const heartClockMessageKeys = [
   'heartClock.wiggers.pressure',
   'heartClock.wiggers.volume',
   'heartClock.wiggers.ecg',
+  'heartClock.wiggers.ejectionFraction',
   'heartClock.wiggers.lv',
   'heartClock.wiggers.aorta',
   'heartClock.wiggers.la',

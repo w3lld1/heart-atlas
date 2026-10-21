@@ -17,6 +17,8 @@ export interface WiggersLabels {
   pressure: string;
   volume: string;
   ecg: string;
+  /** Ejection fraction caption; `{value}` is the percent. */
+  ejectionFraction: string;
 }
 
 export function readWiggersColors(element: Element): WiggersColors {
@@ -109,6 +111,20 @@ export function drawWiggers(
   context.fillText(labels.pressure, axisWidth + 4, panels.pressure.top - 6);
   context.fillText(labels.volume, axisWidth + 4, panels.volume.top - 6);
   context.fillText(labels.ecg, axisWidth + 4, panels.ecg.top + 4);
+  // The one number that tells heart failure from the norm when the ECG stays the same. Bottom
+  // right of the volume panel: the volume there is back near end-diastolic, so no line crosses it.
+  context.textAlign = 'right';
+  context.font = 'bold 12px system-ui, sans-serif';
+  context.fillText(
+    labels.ejectionFraction.replace(
+      '{value}',
+      String(Math.round(beat.params.ejectionFraction * 100)),
+    ),
+    width - 4,
+    volumeY(0) - 4,
+  );
+  context.textAlign = 'left';
+  context.font = '11px system-ui, sans-serif';
 
   const line = (color: string, y: (k: number) => number, widthPx = 2, dash: number[] = []) => {
     context.setLineDash(dash);
