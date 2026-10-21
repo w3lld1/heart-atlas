@@ -9,6 +9,7 @@ import ReportSection from './report/ReportSection.astro';
 import ReportTerm from './report/ReportTerm.astro';
 import Structure from './Structure.astro';
 import Student from './Student.astro';
+import Urgent from './Urgent.astro';
 import CongenitalModel from './viewer/CongenitalModel.astro';
 import HeartModel from './viewer/HeartModel.astro';
 
@@ -27,4 +28,5 @@ export const articleComponents = {
   ReportTerm,
   Structure,
   Student,
+  Urgent,
 };

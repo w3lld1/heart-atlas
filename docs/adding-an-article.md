@@ -126,6 +126,24 @@ Text with terminology.<Cite n={2} />
 
 The level switch hides one level when JavaScript runs; without JavaScript both are shown with labels.
 
+A section that only one level needs (for example "Questions for your doctor" for patients) keeps its heading inside that level's block, so the other level does not show an empty heading. The heart failure article follows the patient template: in brief, emergency signs, what happens to the heart, causes, symptoms, how to tell the symptom from other causes, tests and why they are done, the key number and what it means, treatment, living with the condition and questions for the doctor.
+
+### `<Urgent>`
+
+A framed block for the signs that need emergency help. Put it near the top of the article, outside `<Patient>` and `<Student>`, so both levels see it. The article writes the heading, the signs with `<Cite>` and the number to call; each translation names the emergency numbers of its readers:
+
+```mdx
+<Urgent>
+
+## When to call an ambulance
+
+Call your local emergency number if:
+
+- breathing suddenly becomes much harder;<Cite n={5} />
+
+</Urgent>
+```
+
 ### `<Diagram>`
 
 An animated schematic with a caption per state. Most diagrams switch between `normal` and `disease`; some use `diastole` / `systole`, `recording` / `symptom`, `normal` / `rbbb` / `lbbb` (bundle branch block), `normal` / `athlete` (athlete's heart), or a single `scheme` with no switch (`diagramStates` in `apps/web/src/components/diagrams/index.ts`). The captions are medical text, so they live in the article, one slot per state, and carry `<Cite>`; a slot for a state the diagram does not have fails the build:
