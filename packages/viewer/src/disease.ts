@@ -166,6 +166,16 @@ export const diseaseShapes: Record<DiseaseId, DiseaseShape> = {
   'thoracic-aortic-aneurysm': { aortaBulge: 0.6, sources: { article: [1, 2, 3, 4] } },
 };
 
+/**
+ * The heart clock preset a viewer's own clock runs while it shows `id`: the preset its heartbeat
+ * signs come from (`beat`), so an article without a heart clock still shows them. Null when the
+ * viewer draws the signs itself or they need no heartbeat.
+ */
+export function ownClockPreset(id: DiseaseId): PresetId | null {
+  const { beat } = diseaseShapes[id];
+  return typeof beat === 'string' ? beat : null;
+}
+
 /** Whether the shape changes the model at rest, so its still caption applies without a heartbeat. */
 export const hasStillSigns = (shape: DiseaseShape): boolean =>
   Boolean(shape.tint ?? shape.zone ?? shape.grow ?? shape.leak ?? shape.aortaBulge ?? shape.marker);

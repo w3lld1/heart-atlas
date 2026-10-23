@@ -7,6 +7,7 @@ import {
   diseaseIds,
   diseaseShapes,
   diseaseView,
+  ownClockPreset,
   hasStillSigns,
   isDiseaseId,
   queryWithDisease,
@@ -228,5 +229,17 @@ describe('the disease a viewer draws', () => {
     expect(shownOnAnatomy('atrial-fibrillation')).toBe(false);
     expect(shownOnAnatomy('aortic-stenosis')).toBe(true);
     expect(shownOnAnatomy('dilated-cardiomyopathy')).toBe(true);
+  });
+});
+
+describe('ownClockPreset', () => {
+  it('runs the preset a heartbeat sign comes from', () => {
+    expect(ownClockPreset('heart-failure')).toBe('heart-failure');
+    expect(ownClockPreset('dilated-cardiomyopathy')).toBe('heart-failure');
+  });
+
+  it('runs no preset for signs the viewer draws or that need no heartbeat', () => {
+    expect(ownClockPreset('aortic-stenosis')).toBeNull();
+    expect(ownClockPreset('hypertension')).toBeNull();
   });
 });

@@ -17,6 +17,7 @@ import {
   diseaseFromQuery,
   diseaseShapes,
   diseaseView,
+  ownClockPreset,
   presetNote,
   queryWithDisease,
   shownDisease,
@@ -44,6 +45,8 @@ const RATE = { min: 40, max: 180, step: 5, initial: 75 } as const;
 /** The viewer's own heart clock, loaded with the first start so the page does not pay for it. */
 interface OwnClock {
   setRate(rate: number): void;
+  /** The preset to run; null runs the normal heart. Takes effect from the next beat. */
+  setPreset(preset: PresetId | null): void;
   source: CycleSource;
 }
 
@@ -53,9 +56,17 @@ interface OwnClock {
  */
 const MAX_FRAME_MS = 100;
 
-async function startOwnClock(rate: number): Promise<OwnClock> {
-  const { createHeartClock, cycleState } = await import('@heart-atlas/heart-clock');
-  const clock = createHeartClock({ heartRate: rate });
+async function startOwnClock(rate: number, presetNow: () => PresetId | null): Promise<OwnClock> {
+  const { createHeartClock, cycleState, presetParams } = await import('@heart-atlas/heart-clock');
+  let heartRate = rate;
+  // Read after the import, in case the reader switched the model while the clock loaded.
+  let preset = presetNow();
+  // Beats before this index still run the previous preset, which `before` names.
+  let from = 0;
+  let before: PresetId | null = null;
+  // Full parameters, so a switch back to normal resets everything the preset changed.
+  const params = () => ({ ...presetParams(preset ?? 'normal'), heartRate });
+  const clock = createHeartClock(params());
   let t = 0;
   let last = performance.now();
   const now = () => {
@@ -65,8 +76,25 @@ async function startOwnClock(rate: number): Promise<OwnClock> {
     return t;
   };
   return {
-    setRate: (heartRate) => clock.setParams({ heartRate }, now()),
-    source: () => cycleState(clock, now()),
+    setRate: (next) => {
+      heartRate = next;
+      clock.setParams({ heartRate }, now());
+    },
+    setPreset: (next) => {
+      if (next === preset) return;
+      const time = now();
+      before = clock.beatAt(time).index < from ? before : preset;
+      preset = next;
+      from = clock.setParams(params(), time);
+    },
+    // The preset goes with the state, as from the page's clock, so the model shows its signs. It
+    // follows the beats: the preset changes from the next beat, and so does its caption.
+    source: () => {
+      const time = now();
+      const shown = clock.beatAt(time).index < from ? before : preset;
+      const state = cycleState(clock, time);
+      return shown ? { ...state, preset: shown } : state;
+    },
   };
 }
 
@@ -150,6 +178,10 @@ export default function HeartViewer({
   // The reader's pick from `diseases`, and the normal / disease switch of a viewer with its own.
   const [picked, setPicked] = useState<DiseaseId | null>(null);
   const [showOwn, setShowOwn] = useState(true);
+  // The preset the viewer's own clock runs: that of its disease, while the reader shows the disease.
+  const ownPreset =
+    cycleMode === 'own' && !choices && ownDisease && showOwn ? ownClockPreset(ownDisease) : null;
+  const ownPresetRef = useRef(ownPreset);
   const rateRef = useRef<number>(RATE.initial);
   const [startingClock, setStartingClock] = useState(false);
   const ownClock = useRef<OwnClock | null>(null);
@@ -237,7 +269,7 @@ export default function HeartViewer({
     setStartingClock(true);
     try {
       // The rate as it is once loaded, in case the reader moved the slider meanwhile.
-      const clock = await startOwnClock(rateRef.current);
+      const clock = await startOwnClock(rateRef.current, () => ownPresetRef.current);
       if (starting.current !== attempt) return;
       clock.setRate(rateRef.current);
       ownClock.current = clock;
@@ -252,6 +284,11 @@ export default function HeartViewer({
       }
     }
   }, []);
+
+  useEffect(() => {
+    ownPresetRef.current = ownPreset;
+    ownClock.current?.setPreset(ownPreset);
+  }, [ownPreset]);
 
   const changeRate = useCallback((value: number) => {
     rateRef.current = value;
@@ -317,7 +354,8 @@ export default function HeartViewer({
     cycleMode === 'own' &&
     cycle === null &&
     view !== null &&
-    diseaseShapes[view.id].beat === true;
+    // A picker's viewer runs no preset of its own (ownPreset), so only signs it draws itself.
+    (diseaseShapes[view.id].beat === true || (!choices && ownClockPreset(view.id) !== null));
   if (beatHint) captions.push(t['viewer.disease.startBeat']);
   // Not a sign of disease, so it goes without the note about disease signs.
   const presetCaption = cyclePreset ? presetNote[cyclePreset] : undefined;

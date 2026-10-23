@@ -60,12 +60,12 @@ test.describe('disease signs on the 3D model', () => {
   test('a sign from the clock preset shows only while the clock runs it', async ({ page }) => {
     test.skip(articles, 'needs the production content build');
     test.slow();
-    await page.goto('en/disease/heart-failure/');
+    await page.goto('en/disease/dilated-cardiomyopathy/');
     // The clock island hydrates once seen; the model follows it from then on.
     const strip = page.locator('canvas[role="img"]').first();
     await strip.scrollIntoViewIfNeeded();
     await expect(page.locator('astro-island', { has: strip })).not.toHaveAttribute('ssr');
-    const caption = page.getByText(en['viewer.disease.heart-failure.beat']);
+    const caption = page.getByText(en['viewer.disease.dilated-cardiomyopathy.beat']);
     await expect(caption).toHaveCount(0);
     await loadModel(page);
     await expect(caption).toBeVisible(LOAD);
@@ -175,6 +175,26 @@ test.describe('disease signs on the 3D model', () => {
     await expect(page.getByText(en['viewer.disease.pulmonary-valve-stenosis.beat'])).toBeVisible(
       LOAD,
     );
+  });
+
+  test('a sign from a clock preset shows while the model beats on its own', async ({ page }) => {
+    test.skip(articles, 'needs the production content build');
+    test.slow();
+    // The article has no heart clock: its ECG looks the same as normal.
+    await page.goto('en/disease/heart-failure/');
+    await expect(page.locator('canvas[role="img"]')).toHaveCount(0);
+    await loadModel(page);
+    const caption = page.getByText(en['viewer.disease.heart-failure.beat']);
+    await expect(page.getByText(en['viewer.disease.startBeat'])).toBeVisible();
+    await expect(caption).toHaveCount(0);
+    await page.getByRole('button', { name: en['viewer.heartbeat.start'] }).click();
+    await expect(caption).toBeVisible(LOAD);
+    // The model's own normal / disease switch, not the diagram's in the text.
+    const view = page.getByRole('group', { name: en['viewer.disease.view'] });
+    await view.getByRole('radio', { name: en['viewer.disease.view.normal'] }).check();
+    await expect(caption).toHaveCount(0, LOAD);
+    await view.getByRole('radio', { name: en['viewer.disease.view.disease'] }).check();
+    await expect(caption).toBeVisible(LOAD);
   });
 
   test('the anatomy page shows the new chamber and valve shapes', async ({ page }) => {
